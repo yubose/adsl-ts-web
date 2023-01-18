@@ -322,6 +322,14 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                     `${streamLabel} is set to true. ` +
                       `Proceeding to turn on ${type} streaming now...`,
                   )
+                  const elNodes = el.childNodes
+                  for(const elem  of elNodes){
+                    const type = (elem as HTMLElement)?.tagName?.toLowerCase?.() || ''
+                    if(!(/audio|video/.test(type))){
+                      el.removeChild(elem)
+                    }
+                  }
+                  
 
                   if (el) {
                     log.debug(
@@ -349,6 +357,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                       )
                     } else {
                       node.appendChild(el)
+                      
                     }
                   } else {
                     log.debug(

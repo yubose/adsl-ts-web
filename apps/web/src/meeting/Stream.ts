@@ -376,31 +376,31 @@ class MeetingStream {
       `#${backdropId}`,
     ) as HTMLDivElement
 
-    if (!backdrop) {
-      backdrop = document.createElement('div')
-      backdrop.id = backdropId
-      backdrop.style.width = '100%'
-      backdrop.style.height = '100%'
-      backdrop.style.position = 'absolute'
-      backdrop.style.top = '0px'
-      backdrop.style.right = '0px'
-      backdrop.style.bottom = '0px'
-      backdrop.style.left = '0px'
-      backdrop.style.background = '#000'
-      const img = document.createElement('img')
-      img.style.width = '50%'
-      img.style.height = 'auto'
-      img.style.position = 'absolute'
-      img.style.top = '25%'
-      img.style.left = '25%'
-      let srcPath = resolveAssetUrl(
-        'default.svg',
-        window.app.nui.getAssetsUrl(),
-      )
-      img.setAttribute('src', srcPath)
-      backdrop.appendChild(img)
-      this.#node?.appendChild?.(backdrop)
-    }
+    // if (!backdrop) {
+    //   backdrop = document.createElement('div')
+    //   backdrop.id = backdropId
+    //   backdrop.style.width = '100%'
+    //   backdrop.style.height = '100%'
+    //   backdrop.style.position = 'absolute'
+    //   backdrop.style.top = '0px'
+    //   backdrop.style.right = '0px'
+    //   backdrop.style.bottom = '0px'
+    //   backdrop.style.left = '0px'
+    //   backdrop.style.background = '#000'
+    //   const img = document.createElement('img')
+    //   img.style.width = '50%'
+    //   img.style.height = 'auto'
+    //   img.style.position = 'absolute'
+    //   img.style.top = '25%'
+    //   img.style.left = '25%'
+    //   let srcPath = resolveAssetUrl(
+    //     'default.svg',
+    //     window.app.nui.getAssetsUrl(),
+    //   )
+    //   img.setAttribute('src', srcPath)
+    //   backdrop.appendChild(img)
+    //   this.#node?.appendChild?.(backdrop)
+    // }
 
     backdrop.style.visibility = type === 'close' ? 'visible' : 'hidden'
   }
@@ -437,6 +437,16 @@ class MeetingStream {
         if (this.hasVideoElement()) {
           this.removeVideoElement()
           this.#log(`attachTrack (video)`, `Removed previous video element`)
+        }
+      }
+
+
+      if((window as any).app.root.VideoChat){
+        const {cameraOn,micOn} = (window as any).app.root.VideoChat
+        if(track.kind === 'audio'){
+          micOn ? track?.['enable']?.() : track?.['disable']?.()
+        }else if(track.kind === 'video'){
+          cameraOn ? track?.['enable']?.() : track?.['disable']?.()
         }
       }
       if (attachee) {
