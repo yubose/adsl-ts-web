@@ -36,6 +36,7 @@ import { hide } from '../utils/dom'
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
+import { cloneDeep } from 'lodash'
 // import moment from "moment"
 
 type ToolbarInput = any
@@ -2013,11 +2014,14 @@ const createExtendedDOMResolvers = function (app: App) {
 
                 for(let i = 0;i<keys.length;i++){
                   app.updateRoot((draft) => {
-                    set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput],`${values[i]}`));
+                    if(values[i]==="$"){
+                      set(draft?.[pageName], keys[i],dataValue['allData'][dataInput]);
+                    }else{
+                      set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput],`${values[i]}`));
+                    }
                   })
                 }
               }
-
               // app.root.Global.checkboxArr = selected
               set(app.root.Global,dataOptions["checkName"],selected);
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
