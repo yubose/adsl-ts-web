@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
-import log from 'loglevel'
+import log from '../log'
 import { isComponent } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
@@ -31,6 +31,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.debug(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
         // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        // app.meeting.getMainStreamElement()
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
@@ -38,6 +39,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           app.register.extendVideoFunction('onDisconnect')
         }
         toast(`A participant disconnected`, { type: 'error' })
+        const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
+        videoNode.style.display = 'none'
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {
@@ -322,6 +325,14 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                     `${streamLabel} is set to true. ` +
                       `Proceeding to turn on ${type} streaming now...`,
                   )
+                  const elNodes = el.childNodes
+                  for(const elem  of elNodes){
+                    const type = (elem as HTMLElement)?.tagName?.toLowerCase?.() || ''
+                    if(!(/audio|video/.test(type))){
+                      el.removeChild(elem)
+                    }
+                  }
+                  
 
                   if (el) {
                     log.debug(
@@ -349,6 +360,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                       )
                     } else {
                       node.appendChild(el)
+                      
                     }
                   } else {
                     log.debug(
@@ -381,7 +393,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                         error instanceof Error
                           ? error
                           : new Error(String(error))
-                      console.error(err)
+                      log.error(err)
                     }
                   } else {
                     log.debug(
@@ -403,7 +415,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   node.removeChild(el)
                   el.remove()
                 } catch (error) {
-                  console.error(
+                  log.error(
                     error instanceof Error ? error : new Error(String(error)),
                   )
                 }

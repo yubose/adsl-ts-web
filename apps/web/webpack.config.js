@@ -359,6 +359,11 @@ function getWebpackConfig(env) {
         new InjectScriptsPlugin({ path: settings.injectScripts }),
       ]) ||
         []),
+      new webpack.DefinePlugin({
+        'process.env': {
+          NODE_ENV: JSON.stringify(process.env.NODE_ENV)
+        } 
+      })
     ],
     optimization:
       mode === 'production'

@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import type App from '../App'
+import log from '../log'
 
 const ADD_DIR = 'ADD_DIR'
 const ADD_FILE = 'ADD_FILE'
@@ -52,7 +53,7 @@ function createWssDiagnosticsClient(
         try {
           data = u.isStr(msg.data) ? JSON.parse(msg.data) : msg.data
         } catch (error) {
-          console.error(
+          log.error(
             error instanceof Error ? error : new Error(String(error)),
           )
         }
@@ -65,7 +66,7 @@ function createWssDiagnosticsClient(
       })
 
       ws.addEventListener('error', (evt) => {
-        console.log(`%c${tag} Error`, `color:#ec0000;`, evt)
+        log.log(`%c${tag} Error`, `color:#ec0000;`, evt)
       })
     }
   }
@@ -135,7 +136,7 @@ async function createWssDiagnosticsClient(
   lpeer.addEventListener(
     'icecandidate',
     async function onLocalIceCandidate(event) {
-      console.log(`%c[lpeer] Ice candidate`, `color:${color.lpeer};`, {
+      log.log(`%c[lpeer] Ice candidate`, `color:${color.lpeer};`, {
         thisValue: this,
         event,
       })
@@ -143,12 +144,12 @@ async function createWssDiagnosticsClient(
         try {
           await peer.addIceCandidate(event.candidate)
         } catch (error) {
-          console.error(
+          log.error(
             error instanceof Error ? error : new Error(String(error)),
           )
         }
       } else {
-        console.log(
+        log.log(
           `%c[lpeer-icecandidate] No candidate`,
           `color:${color.lpeer};`,
         )
@@ -157,12 +158,12 @@ async function createWssDiagnosticsClient(
   )
 
   lpeer.addEventListener('datachannel', function onLocalPeerDataChannel(event) {
-    console.log(`%c[lpeer] Data channel`, `color:${color.lpeer};`, event)
+    log.log(`%c[lpeer] Data channel`, `color:${color.lpeer};`, event)
     const channel = event.channel
     window['lchannel'] = channel
 
     channel.addEventListener('open', function onLocalPeerChannelOpened(event) {
-      console.log(`%c[lpeer] Opened`, `color:${color.lpeer};`, event)
+      log.log(`%c[lpeer] Opened`, `color:${color.lpeer};`, event)
       channel.send('Hi back!')
       channel.send('Hi back2!')
       channel.send('Hi back2!')
@@ -172,7 +173,7 @@ async function createWssDiagnosticsClient(
     channel.addEventListener(
       'bufferedamountlow',
       function onLocalPeerChannelOpened(event) {
-        console.log(
+        log.log(
           `%c[lpeer] Buffered amount low`,
           `color:${color.lpeer};`,
           event,
@@ -180,12 +181,12 @@ async function createWssDiagnosticsClient(
       },
     )
     channel.addEventListener('error', function onLocalPeerChannelError(event) {
-      console.log(`%c[lpeer] Error`, `color:${color.lpeer};`, event)
+      log.log(`%c[lpeer] Error`, `color:${color.lpeer};`, event)
     })
     channel.addEventListener(
       'message',
       function onLocalPeerChannelMessage(event) {
-        event.console.log(`%c[lpeer] Message`, `color:${color.lpeer};`, event)
+        event.log.log(`%c[lpeer] Message`, `color:${color.lpeer};`, event)
       },
     )
   })
@@ -197,12 +198,12 @@ async function createWssDiagnosticsClient(
         try {
           await lpeer.addIceCandidate(event.candidate)
         } catch (error) {
-          console.error(
+          log.error(
             error instanceof Error ? error : new Error(String(error)),
           )
         }
       } else {
-        console.log(
+        log.log(
           `%c[peer-icecandidate] No candidate`,
           `color:${color.peer};`,
         )
@@ -211,26 +212,26 @@ async function createWssDiagnosticsClient(
   )
 
   channel.addEventListener('open', function onChannelOpen(event) {
-    console.log(`%c[channel] Opened`, `color:${color.channel};`, {
+    log.log(`%c[channel] Opened`, `color:${color.channel};`, {
       thisValue: this,
       event,
     })
     this.send('HELLO!')
   })
   channel.addEventListener('message', function onChannelMessage(event) {
-    console.log(`%c[channel] Message`, `color:${color.channel};`, {
+    log.log(`%c[channel] Message`, `color:${color.channel};`, {
       thisValue: this,
       event,
     })
   })
   channel.addEventListener('close', function onChannelClose(event) {
-    console.log(`%c[channel] Closed`, `color:${color.channel};`, {
+    log.log(`%c[channel] Closed`, `color:${color.channel};`, {
       thisValue: this,
       event,
     })
   })
   channel.addEventListener('error', function onChannelError(event) {
-    console.log(`%c[channel] Error`, `color:${color.channel};`, {
+    log.log(`%c[channel] Error`, `color:${color.channel};`, {
       thisValue: this,
       event,
     })
@@ -238,7 +239,7 @@ async function createWssDiagnosticsClient(
   channel.addEventListener(
     'bufferedamountlow',
     function onChannelBufferedAmountFlow(event) {
-      console.log(
+      log.log(
         `%c[channel] Buffered amount flow`,
         `color:${color.channel};`,
         {
@@ -252,7 +253,7 @@ async function createWssDiagnosticsClient(
   peer.addEventListener(
     'connectionstatechange',
     function onPeerStateChange(event) {
-      console.log(`%c[peer] Connection state changed`, `color:${color.peer};`, {
+      log.log(`%c[peer] Connection state changed`, `color:${color.peer};`, {
         thisValue: this,
         event,
       })
@@ -262,12 +263,12 @@ async function createWssDiagnosticsClient(
     },
   )
   peer.addEventListener('datachannel', function onPeerDataChannel(event) {
-    console.log(`%c[peer] Data channel`, `color:${color.peer};`, event)
+    log.log(`%c[peer] Data channel`, `color:${color.peer};`, event)
     const channel = event.channel
     window['pchannel'] = channel
 
     channel.addEventListener('open', function onRemotePeerChannelOpened(event) {
-      console.log(`%c[peer] Opened`, `color:${color.peer};`, event)
+      log.log(`%c[peer] Opened`, `color:${color.peer};`, event)
       channel.send('Hi back!')
       channel.send('Hi back2!')
       channel.send('Hi back2!')
@@ -277,7 +278,7 @@ async function createWssDiagnosticsClient(
     channel.addEventListener(
       'bufferedamountlow',
       function onRemotePeerChannelOpened(event) {
-        console.log(
+        log.log(
           `%c[peer] Buffered amount low`,
           `color:${color.peer};`,
           event,
@@ -285,25 +286,25 @@ async function createWssDiagnosticsClient(
       },
     )
     channel.addEventListener('error', function onRemotePeerChannelError(event) {
-      console.log(`%c[peer] Error`, `color:${color.peer};`, event)
+      log.log(`%c[peer] Error`, `color:${color.peer};`, event)
     })
     channel.addEventListener(
       'message',
       function onRemotePeerChannelMessage(event) {
-        console.log(`%c[peer] Message`, `color:${color.peer};`, event)
+        log.log(`%c[peer] Message`, `color:${color.peer};`, event)
       },
     )
   })
   peer.addEventListener('icecandidate', function onPeerIceCandidate(evt) {
-    console.log(`%c[peer] Ice candidate`, `color:${color.peer};`, evt)
+    log.log(`%c[peer] Ice candidate`, `color:${color.peer};`, evt)
   })
   peer.addEventListener('icecandidateerror', function onPeerError(evt) {
-    console.log(`%c[peer] Ice candidate error`, `color:${color.peer};`, evt)
+    log.log(`%c[peer] Ice candidate error`, `color:${color.peer};`, evt)
   })
   peer.addEventListener(
     'iceconnectionstatechange',
     function onPeerIceConnectionStateChange(evt) {
-      console.log(
+      log.log(
         `%c[peer] Ice candidate state change`,
         `color:${color.peer};`,
         evt,
@@ -313,7 +314,7 @@ async function createWssDiagnosticsClient(
   peer.addEventListener(
     'icegatheringstatechange',
     function onPeerIceGatheringStateChange(evt) {
-      console.log(
+      log.log(
         `%c[peer] Ice gathering state changed`,
         `color:${color.peer};`,
         evt,
@@ -323,21 +324,21 @@ async function createWssDiagnosticsClient(
   peer.addEventListener(
     'negotiationneeded',
     async function onPeerNegotiationNeeded(evt) {
-      console.log(`%c[peer] Negotiation needed`, `color:${color.peer};`, evt)
+      log.log(`%c[peer] Negotiation needed`, `color:${color.peer};`, evt)
       const offer = await this.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
       })
-      console.log({ offer })
+      log.log({ offer })
       this.getSenders().forEach((sender) => {
-        console.log(sender)
+        log.log(sender)
       })
     },
   )
   peer.addEventListener(
     'signalingstatechange',
     function onPeerSignalingStateChange(evt) {
-      console.log(
+      log.log(
         `%c[peer] Signaling state change`,
         `color:${color.peer};`,
         evt,
@@ -345,7 +346,7 @@ async function createWssDiagnosticsClient(
     },
   )
   peer.addEventListener('track', function onPeerTrack(evt) {
-    console.log(`%c[peer] Track`, `color:${color.peer};`, evt)
+    log.log(`%c[peer] Track`, `color:${color.peer};`, evt)
   })
 
   try {
@@ -357,7 +358,7 @@ async function createWssDiagnosticsClient(
     await lpeer.setRemoteDescription(peer.localDescription)
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    console.error(err)
+    log.error(err)
   }
 
   // const track = new MediaStreamTrack()
@@ -402,17 +403,17 @@ async function createWssDiagnosticsClient(
 
   function start() {
     ws.addEventListener('open', () => {
-      console.log(`%c${tag} Opened`, `color:#00b406;`)
+      log.log(`%c${tag} Opened`, `color:#00b406;`)
       ws.send(JSON.stringify({ type: 'LOADED' }))
     })
     ws.addEventListener('message', (data) => {
-      console.log(`%c${tag} Message`, `color:#e50087;`, data)
+      log.log(`%c${tag} Message`, `color:#e50087;`, data)
     })
     ws.addEventListener('error', (evt) => {
-      console.log(`%c${tag} Error`, `color:#ec0000;`, evt)
+      log.log(`%c${tag} Error`, `color:#ec0000;`, evt)
     })
     ws.addEventListener('close', (evt) => {
-      console.log(`%c${tag} Closed`, `color:#FF5722;`, evt)
+      log.log(`%c${tag} Closed`, `color:#FF5722;`, evt)
     })
   }
 

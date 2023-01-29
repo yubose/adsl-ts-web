@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
@@ -36,6 +36,7 @@ import { hide } from '../utils/dom'
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
+import { cloneDeep } from 'lodash'
 // import moment from "moment"
 
 type ToolbarInput = any
@@ -129,7 +130,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        // console.log("test actionChain",actionChain)
+        // log.log("test actionChain",actionChain)
         await actionChain?.execute?.(event)
       }
     }
@@ -319,7 +320,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 {
                   // const script = document.createElement('script')
                   // script.onload = () => {
-                  //   console.log('APPENDED js to body')
+                  //   log.log('APPENDED js to body')
 
                   let headerBar: ToolbarInput = {
                     left: 'prev next',
@@ -428,7 +429,7 @@ const createExtendedDOMResolvers = function (app: App) {
                                         <div style="padding-top:3px">Reason ：' +
                           (info.event._def.extendedProps.name??info.event._def.extendedProps.Reason) +
                           '</div>\
-                                        <div style="padding:4px 0">Sta rtTime：' +
+                                        <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
                               info.event._instance.range.start,
@@ -613,7 +614,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 // link.href =
                 //   'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css'
                 // link.onload = () => {
-                //   console.log('APPENDED css to head')
+                //   log.log('APPENDED css to head')
                 // }
                 // document.head.appendChild(link)
 
@@ -621,7 +622,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           } else {
             // default echart
-            console.log(`not define`)
+            log.log(`not define`)
 
             // let myChart = echarts.init(node)
             // let option = dataValue
@@ -993,7 +994,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
 
                 li.onclick = function () {
-                  console.log(li.innerHTML)
+                  log.log(li.innerHTML)
                   node.innerHTML = li.innerHTML
                   node.setAttribute('data-value', li.innerHTML)
                   ul.innerHTML = ''
@@ -1010,7 +1011,7 @@ const createExtendedDOMResolvers = function (app: App) {
             node.addEventListener('input', function (e) {
               ul.innerHTML = ''
               ul.style.display = 'block'
-              // console.log(node.value)
+              // log.log(node.value)
               let count = 0
               json1.forEach((element) => {
                 let name = element.name.toLowerCase()
@@ -1038,7 +1039,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   })
 
                   li.onclick = function () {
-                    console.log(li.innerHTML)
+                    log.log(li.innerHTML)
                     node.innerHTML = li.innerHTML
                     node.setAttribute('data-value', li.innerHTML)
                     ul.innerHTML = ''
@@ -1411,7 +1412,7 @@ const createExtendedDOMResolvers = function (app: App) {
         //     postMessage?.execute?.(msg)
         //   })
         // } catch (error) {
-        //   console.error(error)
+        //   log.error(error)
         // }
         // iframeEl.addEventListener('load', function (evt) {
         //   log.func('load')
@@ -1422,7 +1423,7 @@ const createExtendedDOMResolvers = function (app: App) {
         //     { componentPage, thisValue: this, window: this.contentWindow },
         //   )
         // const obs = new MutationObserver((mutations) => {
-        //   console.log(`[ComponentPage] Mutations`, mutations)
+        //   log.log(`[ComponentPage] Mutations`, mutations)
         // })
         // obs.observe(this, {
         //   attributes: true,
@@ -1628,7 +1629,7 @@ const createExtendedDOMResolvers = function (app: App) {
             | string
           )[]
           const videoData = component.get('video-option')
-          // console.log(videoData,"kkkk")
+          // log.log(videoData,"kkkk")
           const option: optionSetting = component.get('data-option') as {
             [key in string]: any
           }
@@ -1777,7 +1778,7 @@ const createExtendedDOMResolvers = function (app: App) {
           })
           if (v) {
             // v.addEventListener("click",()=>{
-            //   console.log("vvvv",v);
+            //   log.log("vvvv",v);
 
             //   v.play();
 
@@ -1806,14 +1807,14 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           }
         } else {
-          console.error('Image array is empty')
+          log.error('Image array is empty')
         }
       },
     },
     '[App] Checkbox': {
       cond: 'checkbox',
       resolve({ node, component }) {
-        if (node && Object.keys(component.get('data-value'))) {
+        if (node) {
           let pageName = app.currentPage
           const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || ''
@@ -1821,10 +1822,10 @@ const createExtendedDOMResolvers = function (app: App) {
           const dataOptions = component.get('data-option') as {}
           let fragment: null | DocumentFragment =
             document.createDocumentFragment()
-          let childrenConta = document.createElement('div')
+          // let childrenConta = document.createElement('div')
+          node.textContent = "";
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
-              appearance: none;
               position: relative;
               background: wheat;
               border-radius: 50%;
@@ -1850,30 +1851,97 @@ const createExtendedDOMResolvers = function (app: App) {
             border-radius: 50%;
         }`
           let chechedB = `{
-          content: "";
-          background-color: #fff;
-          position: absolute;
-          top: -2px;
-          left: -1px;
-          width: 100%;
-          height: 100%;
-          border: 2px solid #800080;
-          border-radius: 50%;
-          color: #7d7d7d;
-          // font-size: 20px;
-          font-weight: bold;
-          text-align: center;
-          line-height: 5vw;
+            content: "";
+            background-color: #fff;
+            position: absolute;
+            top: -2px;
+            left: -1px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #800080;
+            border-radius: 50%;
+            color: #7d7d7d;
+            // font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 5vw;
         }`
+          let C = `{
+            appearance: none;
+        }`
+        let chechedC = `{
+          content: "";
+          display: inline-block;
+          vertical-align: middle;
+          width: 13px;
+          height: 13px;
+          background-image: url(selectGray.svg);
+          background-size: 100%;
+        }`
+        let chechedCheck = `{
+          background-image: url(selectGrayBlue.svg);
+        }`
+        switch (styleCheckBox) {
+          case 'A': {
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]${A}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]:checked::before${chechedA}`,
+              0,
+            )
+            break
+          }
+          case 'B': {
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]${B}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]:checked::before${chechedB}`,
+              0,
+            )
+            break
+          }
+          case 'C': {
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]${C}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]::before${chechedC}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]:checked::before${chechedCheck}`,
+              0,
+            )
+            break
+          }
+          default: {
+            break
+          }
+        }
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
             let contanierDiv = document.createElement('div')
-            childInput.type = 'checkbox'
-            childInput.value = i + 1 + ''
-            spanDom.textContent = dataValue['allData'][i]
-            if (dataValue['selectedData'].includes(i + 1)) {
-              childInput.checked = true
+
+            if(dataOptions["module"]=== "radio"){
+              childInput.type = 'radio';
+              childInput.name = "radio";
+            }else{
+              childInput.type = 'checkbox'
+            }
+            childInput.value = i + '';
+
+            spanDom.textContent = get(dataValue['allData'][i],dataValue["path"])
+            if (dataValue['selectedData'].includes(i)) {
+              childInput.checked = true;
+              app.updateRoot((draft) => {
+                set(draft?.[pageName], dataKey, dataValue['selectedData'])
+              })
             }
             childInput.setAttribute('class', dataOptions['classStyle'])
             for (
@@ -1916,56 +1984,50 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             contanierDiv.appendChild(childInput)
             contanierDiv.appendChild(spanDom)
+
             fragment.appendChild(contanierDiv)
           }
-          childrenConta.append(fragment)
+          node.append(fragment)
           fragment = null
-          let arrReturnNew: any = []
-          childrenConta.addEventListener('click', (e) => {
-            let dataInput = +(e.target as HTMLInputElement).value
+          node.addEventListener('click', (e) => {
+            let dataInput = +(e.target as HTMLInputElement).value;
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
-              let selected = dataValue['selectedData'] as number[]
-              !selected.includes(dataInput)
+              let selected = dataValue['selectedData'] as any
+              if(dataOptions["module"]=== "radio"){
+                selected = [];
+                selected[0] = dataInput;
+              }else{
+                !selected.includes(dataInput)
                 ? selected?.push(dataInput)
                 : selected?.splice(selected.indexOf(dataInput), 1)
+              }
+              // let text =
               // selected.forEach((val)=>{
               //   arrReturnNew.push(dataValue["allData"][val-1]);
               // })
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, selected)
               })
-              app.root.Global.checkboxArr = selected
+              if(dataOptions["data"]){
+                const keys = Object.keys(dataOptions["data"]);
+                const values = Object.values(dataOptions["data"]);
+
+                for(let i = 0;i<keys.length;i++){
+                  app.updateRoot((draft) => {
+                    if(values[i]==="$"){
+                      set(draft?.[pageName], keys[i],dataValue['allData'][dataInput]);
+                    }else{
+                      set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput],`${values[i]}`));
+                    }
+                  })
+                }
+              }
+              // app.root.Global.checkboxArr = selected
+              set(app.root.Global,dataOptions["checkName"],selected);
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
-          switch (styleCheckBox) {
-            case 'A': {
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]${A}`,
-                0,
-              )
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]:checked::before${chechedA}`,
-                0,
-              )
-              break
-            }
-            case 'B': {
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]${B}`,
-                0,
-              )
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]:checked::before${chechedB}`,
-                0,
-              )
-              break
-            }
-            default: {
-              break
-            }
-          }
-          node.appendChild(childrenConta)
+          // node.appendChild(childrenConta)
         }
       },
     },
@@ -1992,7 +2054,7 @@ const createExtendedDOMResolvers = function (app: App) {
           //   return moment(date).format(format);
           // }
           // onChange: function(selectedDates, dateStr, instance){
-          //   console.log(selectedDates, dateStr, instance)
+          //   log.log(selectedDates, dateStr, instance)
 
           //   instance.calendarContainer.style.visibility = "visible"
           // }

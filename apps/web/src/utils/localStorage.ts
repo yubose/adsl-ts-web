@@ -4,6 +4,7 @@
  */
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
+import log from '../log'
 
 const ls = u.isBrowser() ? window.localStorage : ({} as Storage)
 
@@ -15,7 +16,7 @@ const get = (key = '') => {
       value = JSON.parse(value)
     }
   } catch (error) {
-    console.error(error instanceof Error ? error : new Error(String(error)))
+    log.error(error instanceof Error ? error : new Error(String(error)))
   }
   return value
 }
@@ -45,7 +46,7 @@ export function getBatchFromLocalStorage<K extends string>(...keys: K[]) {
           try {
             result = JSON.parse(value)
           } catch (error) {
-            console.error(error)
+            log.error(error)
           }
         }
         if (result != undefined) acc[key] = result
