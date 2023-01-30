@@ -58,19 +58,24 @@ const createExtendedDOMResolvers = function (app: App) {
     node: NDOMElement
     evtName: string
     iteratorVar: string
-    page: NDOMPage | ComponentPage
+    page: NDOMPage | ComponentPage,
+    initialCapital?: boolean
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '', page } = args
+    let { component, dataKey, node, evtName, iteratorVar = '', page,initialCapital } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
     let pageName = page.page
 
     async function onChange(event: Event) {
       pageName !== page.page && (pageName = page.page)
 
-      const value = (event.target as any)?.value || ''
+      let value = (event.target as any)?.value || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
+        if(initialCapital){
+          value = value.slice(0,1).toUpperCase()+ value.slice(1);
+          (node as HTMLInputElement).value = value;
+        }
         if (dataObject) {
           set(
             dataObject,
@@ -104,9 +109,15 @@ const createExtendedDOMResolvers = function (app: App) {
               warningMsg += `If this is intended then ignore this message.`
               // log.orange(warningMsg, { component, dataKey, pageName, value })
             }
+
+            if(initialCapital){
+              value = value.slice(0,1).toUpperCase()+ value.slice(1);
+              (node as HTMLInputElement).value = value;
+            }
             set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
             node.dataset.value = value
+
             /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
             if (/settings/i.test(pageName)) {
               if (node.dataset?.name === 'code') {
@@ -649,6 +660,7 @@ const createExtendedDOMResolvers = function (app: App) {
           component.get('data-key') || component.blueprint?.dataKey || ''
         const maxLen = component.get('maxLength') || '';
         const showFocus = component.get('showSoftInput') || '';
+        const initialCapital = component.get('initialCapital') || '';
         if (maxLen) {
           node?.setAttribute('maxlength', maxLen)
         }
@@ -678,6 +690,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 node: node as NDOMElement,
                 iteratorVar,
                 page,
+
               }),
             )
 
@@ -693,6 +706,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         node: node as NDOMElement,
                         iteratorVar,
                         page,
+                        initialCapital
                       }),
                       component.blueprint.debounce,
                     )
@@ -703,6 +717,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       node: node as NDOMElement,
                       iteratorVar,
                       page,
+                      initialCapital
                     }),
               )
             }
@@ -717,6 +732,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   node: node as NDOMElement,
                   iteratorVar,
                   page,
+                  initialCapital
                 }),
               )
             }
@@ -1629,7 +1645,6 @@ const createExtendedDOMResolvers = function (app: App) {
             | string
           )[]
           const videoData = component.get('video-option')
-          // log.log(videoData,"kkkk")
           const option: optionSetting = component.get('data-option') as {
             [key in string]: any
           }
