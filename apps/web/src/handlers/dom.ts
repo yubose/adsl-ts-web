@@ -1869,17 +1869,20 @@ const createExtendedDOMResolvers = function (app: App) {
           let C = `{
             appearance: none;
         }`
+        let cadlVersion = JSON.parse(localStorage.getItem("config") as string).web.cadlVersion.stable;
+        let cadlConfigUrl = (JSON.parse(localStorage.getItem("config") as string).cadlBaseUrl as string)
+        let url = cadlConfigUrl.startsWith("http")?cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion: "/admin/admin";
         let chechedC = `{
           content: "";
           display: inline-block;
           vertical-align: middle;
           width: 13px;
           height: 13px;
-          background-image: url(selectGray.svg);
+          background-image: url(${url}/assets/selectGray.svg);
           background-size: 100%;
         }`
         let chechedCheck = `{
-          background-image: url(selectGrayBlue.svg);
+          background-image: url(${url}/assets/selectGrayBlue.svg);
         }`
         switch (styleCheckBox) {
           case 'A': {
