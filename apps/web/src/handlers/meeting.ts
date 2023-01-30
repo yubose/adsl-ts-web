@@ -105,6 +105,18 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       }
       log.debug(`Bound local participant to selfStream`, app.selfStream)
     }
+    const remoteParticipants = room?.participants
+    if(remoteParticipants){
+      // twilioOnNoParticipant
+    }else{
+      // twilioOnPeopleJoin
+      app.register.extendVideoFunction('twilioOnPeopleJoin')
+    }
+
+    if(remoteParticipants && remoteParticipants.size ==0){
+      app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+    }
+
     for (const participant of room.participants.values()) {
       await app.meeting.addRemoteParticipant(participant)
     }

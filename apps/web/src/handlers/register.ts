@@ -295,6 +295,12 @@ class createRegisters {
         componentObject.eventId = 'codeTasks'
         await handleRegister(componentObject)
       },
+      async twilioOnPeopleShowRoom(componentObject:GlobalRegisterComponent,options?: Record<string, any>){
+        componentObject.eventId = 'twilioOnPeopleShowRoom'
+        console.log('twilioOnPeopleShowRoom')
+        await handleRegister(componentObject)
+      },
+
 
     }
   }

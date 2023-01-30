@@ -75,7 +75,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 			app.updateRoot((draft) => {
 				if (localTrack) {
 					let videoNode = app.selfStream.getVideoElement()
-					if(videoNode){
+					if(videoNode && kind === 'video'){
 						localTrack.isEnabled? videoNode.style.display='none':videoNode.style.display='block'
 					}
 					
