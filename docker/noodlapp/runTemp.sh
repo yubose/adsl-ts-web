@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ ! -d noodlfiles && -d noodlfileTemp ]]
+then
+    cp -rp noodlfilesTemp noodlfiles
+fi
+
 docker run \
     --rm \
 	--detach \
