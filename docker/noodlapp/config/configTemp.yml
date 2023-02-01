@@ -1,0 +1,31 @@
+apiHost: ecosapip1.aitmed.io
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+debug: console_log_api
+isGetPosition: false
+syncHost: https://sync.aitmed.io:443
+elasticClient: https://elastic.aitmed.io
+searchLink: https://search.aitmed.com
+platform: admin
+superAdminID: "Xa2FfgAAAAAI8AJCrBIABQ==" 
+viewWidthHeightRatio:
+    min: 1.78
+    max: 1.78
+web:
+  cadlVersion:
+    stable: 9.94.5
+    test: 9.94.5
+ios:
+  cadlVersion:
+    stable: 9.94.5
+    test: 9.94.5
+android:
+  cadlVersion:
+    stable: 9.94.5
+    test: 9.94.5
+cadlBaseUrl: http://localhost:noodlDevPortENV/noodlfiles/
+cadlMain: cadlEndpoint.yml
+timestamp: 12012022PDT

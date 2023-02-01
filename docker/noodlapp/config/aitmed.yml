@@ -26,6 +26,6 @@ android:
   cadlVersion:
     stable: 9.94.5
     test: 9.94.5
-cadlBaseUrl: http://localhost:8080/noodlfiles/
+cadlBaseUrl: http://localhost:3030/noodlfiles/
 cadlMain: cadlEndpoint.yml
 timestamp: 12012022PDT

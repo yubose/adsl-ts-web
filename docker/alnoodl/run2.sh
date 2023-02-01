@@ -1,5 +1,6 @@
 #!/bin/bash
 docker run \
+    --rm \
 	--detach \
 	--name alnoodlapp \
 	--mount type=bind,source=/etc/localtime,destination=/etc/localtime,readonly=true \
