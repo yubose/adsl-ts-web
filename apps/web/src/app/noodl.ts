@@ -17,7 +17,7 @@ import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
     //@ts-ignore
-    baseConfigUrl: window.configRoot || 'https://public.aitmed.com/config',
+    baseConfigUrl: window.configRoot || 'https://d2bbkxkl9sogfu.cloudfront.net/config',
     //@ts-ignore
     app: window.appName || (process.env.ANALYSIS_APP ?? process.env.DEBUG_APP ?? 'patient'),
   get url() {

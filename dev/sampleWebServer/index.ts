@@ -6,7 +6,7 @@ const _color = 'navajowhite'
 window.addEventListener('load', async (evt) => {
   const app = new App()
   const lvl3Sdk = createInstance({
-    configUrl: `https://public.aitmed.com/config/admind3.yml`,
+    configUrl: `https://d2bbkxkl9sogfu.cloudfront.net/config/admind3.yml`,
     env: 'stable',
     overwrite: true,
   })
