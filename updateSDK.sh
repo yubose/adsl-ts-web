@@ -13,3 +13,6 @@ npm i noodl-types@latest
 git add .
 git commit -a -m "update aitmed sdk, inlcude lvl2,lvl3,noodl-ui"
 git push
+
+
+

@@ -35,7 +35,7 @@ if (cli.flags.deploy) {
     )
   }
 
-  cmd = `aws s3 sync ./public s3://public.aitmed.com/static/${config}/${version}/`
+  cmd = `aws s3 sync ./public s3://d2bbkxkl9sogfu.cloudfront.net/static/${config}/${version}/`
 
   execSync(cmd, execOptions)
 } else {
