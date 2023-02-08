@@ -536,7 +536,7 @@ const createActions = function createActions(app: App) {
         if(_pick(action, 'blank')){
           app.disableSpinner();
           options.ref?.abort();
-          return void window.open(destination, '_blank');
+          return void window.open(destProps.destination, '_blank');
         }
         await app.navigate(
           ndomPage,
