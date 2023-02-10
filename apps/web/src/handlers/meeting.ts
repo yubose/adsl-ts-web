@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
 import log from '../log'
-import { isComponent } from 'noodl-ui'
+import { findByUX, isComponent } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
 import { isMobile } from '../utils/common'
@@ -16,6 +16,7 @@ import { isVisible, parseCssText, toast } from '../utils/dom'
 import is from '../utils/is'
 import App from '../App'
 import { LocalParticipant } from 'twilio-video'
+import { get, set } from 'lodash'
 
 type RemoteParticipantConnectionChangeEvent =
   | 'participantConnected'
@@ -106,7 +107,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.debug(`Bound local participant to selfStream`, app.selfStream)
     }
     const remoteParticipants = room?.participants
-    if(remoteParticipants){
+    if(remoteParticipants.size == 0){
       // twilioOnNoParticipant
     }else{
       // twilioOnPeopleJoin
@@ -238,6 +239,26 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         // Currently used for the popUp in the VideoChat page that have global: true
         function onMutation(mutations: Parameters<MutationCallback>[0]) {
           log.debug(`Mutation change`, mutations)
+
+          const timerNode = findByUX('videoTimer') as HTMLElement
+          if(timerNode && mutations.length == 2){
+            let dataKey = timerNode.getAttribute('data-key') || 0
+            const Interval = setInterval(()=>{
+              app.updateRoot((draft) => {
+                const seconds = get(draft, dataKey, 0)
+                set(draft, dataKey, seconds + 1)
+              })
+
+            },1000)
+            //@ts-expect-error
+            app.ndom.global.intervals.set('VideoChatTimer',Interval)
+          }else{
+            //@ts-expect-error
+            const interval =app.ndom.global.intervals.get('VideoChatTimer')
+            if(interval){
+              clearInterval(interval)
+            }
+          }
 
           const prevStyle = parseCssText(mutations[0]?.oldValue || '')
           const newStyle = parseCssText(

@@ -379,6 +379,7 @@ class createRegisters {
       const componentObject = this.app.ndom.global.register.get(onEvent)
       if (componentObject) {
         const onEvent = componentObject.props.onEvent as any
+        console.log(onEvent)
         ;(this.registrees as any)[onEvent](componentObject)
       }
     }
