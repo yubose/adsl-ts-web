@@ -371,6 +371,17 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                       element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
+                      if((element.tage & 0xf000) >> 12===3){
+                        element.coverageType = "Personal Injury"
+                      }else if((element.tage & 0xf000) >> 12===1){
+                        element.coverageType = "Medical Insurance"
+                      }else if((element.tage & 0xf000) >> 12===2){
+                        element.coverageType = "Workers Comp"
+                      }else if((element.tage & 0xf000) >> 12===4){
+                        element.coverageType = "Self Pay"
+                      }else if((element.tage & 0xf000) >> 12===0){
+                        element.coverageType = "No Selected"
+                      }
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
@@ -448,12 +459,14 @@ const createExtendedDOMResolvers = function (app: App) {
                               new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
-                          '</div>\
-                          <div>Duration：' +
+                          '<div  style="padding-top:3px">Duration：' +
                           info.event._def.extendedProps.timeLength +
                           ' minutes' +
-                          '</div>\
-　　　　　　        　</div>',
+                          '</div>' +
+                          '<div  style="padding-top:3px">Coverage Type: ' +
+                          info.event._def.extendedProps.coverageType +
+                          '</div>'
+                            ,
                         allowHTML: true,
                         //theme: 'translucent',
                         //interactive: true,
