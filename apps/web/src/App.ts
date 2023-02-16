@@ -307,6 +307,25 @@ class App {
   getRegister() {
     return this.register
   }
+  injectScript(url:string) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script")
+      const tempGlobal = "__tempModuleLoadingVariable" + Math.random().toString(32).substring(2)
+      script.type = "module"
+      script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
+      script.onload = () => {
+        resolve(window[tempGlobal])
+        delete window[tempGlobal]
+        script.remove()
+      }
+      script.onerror = () => {
+        reject(new Error("Failed to load module script with URL " + url))
+        delete window[tempGlobal]
+        script.remove()
+      }
+      document.documentElement.appendChild(script)
+    })
+  }
 
   /**
    * Navigates to a page specified in page.requesting
@@ -585,7 +604,12 @@ class App {
           startPage = cachedPage.name
         }
       }
-
+      const injectScripts = this.noodl.config?.proloadlib
+      if(u.isArr(injectScripts) && injectScripts.length>0){
+        injectScripts.forEach((url)=>{
+          this.injectScript(url)
+        })
+      }
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
