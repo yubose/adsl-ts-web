@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import tippy, { followCursor, MultipleTargets } from 'tippy.js'
+import tippy, { followCursor, Instance, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -469,11 +469,11 @@ const createExtendedDOMResolvers = function (app: App) {
                             ,
                         allowHTML: true,
                         //theme: 'translucent',
-                        //interactive: true,
-                        //placement: 'right-end',
+                        interactive: true,
+                        placement: 'top',
                         followCursor: true,
-                        plugins: [followCursor],
-                        duration: [0, 0],
+                        // plugins: [followCursor],
+                        // duration: [0, 0],
                       })
                     },
                     //eventColor: 'red',
