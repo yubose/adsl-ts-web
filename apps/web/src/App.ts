@@ -309,21 +309,36 @@ class App {
   }
   injectScript(url:string) {
     return new Promise((resolve, reject) => {
-      const script = document.createElement("script")
-      const tempGlobal = "__tempModuleLoadingVariable" + Math.random().toString(32).substring(2)
-      script.type = "module"
-      script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
-      script.onload = () => {
-        resolve(window[tempGlobal])
-        delete window[tempGlobal]
-        script.remove()
+      if(url.endsWith('js')){
+        const script = document.createElement("script")
+        const tempGlobal = "__tempModuleLoadingVariable" + Math.random().toString(32).substring(2)
+        script.type = "module"
+        script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
+        script.onload = () => {
+          resolve(window[tempGlobal])
+          delete window[tempGlobal]
+          script.remove()
+        }
+        script.onerror = () => {
+          reject(new Error("Failed to load module script with URL " + url))
+          delete window[tempGlobal]
+          script.remove()
+        }
+        document.documentElement.appendChild(script)
+      }else if(url.endsWith('css')){
+        let link = document.createElement('link')
+        link.href = url
+        link.rel = 'stylesheet'
+        document.documentElement.appendChild(link)
+        link.onload = () => {
+          resolve("loaded module script with URL " + url)
+        }
+        link.onerror = () => {
+          reject(new Error("Failed to load module script with URL " + url))
+          link.remove()
+        }
       }
-      script.onerror = () => {
-        reject(new Error("Failed to load module script with URL " + url))
-        delete window[tempGlobal]
-        script.remove()
-      }
-      document.documentElement.appendChild(script)
+      
     })
   }
 
