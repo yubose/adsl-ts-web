@@ -620,7 +620,7 @@ class App {
           startPage = cachedPage.name
         }
       }
-      const injectScripts = this.noodl.config?.proloadlib
+      const injectScripts = this.noodl.config?.preloadlib
       if(u.isArr(injectScripts) && injectScripts.length>0){
         injectScripts.forEach((url)=>{
           this.injectScript(url)
