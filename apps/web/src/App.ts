@@ -313,6 +313,7 @@ class App {
         const script = document.createElement("script")
         const tempGlobal = "__tempModuleLoadingVariable" + Math.random().toString(32).substring(2)
         script.type = "module"
+        script.async = true
         script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
         script.onload = () => {
           resolve(window[tempGlobal])
