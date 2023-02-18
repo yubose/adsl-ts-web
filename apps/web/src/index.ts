@@ -206,15 +206,23 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
-
-  const notifiedForChromeDesktop = await localForage.getItem(
-    'notified-chrome-desktop',
-  )
-
-  if (!isChrome() && notifiedForChromeDesktop != 'notified') {
+  // for desktop version comment by chenchen.xu 2023.2.18
+  // const notifiedForChromeDesktop = await localForage.getItem(
+  //   'notified-chrome-desktop',
+  // )
+  // if (!isChrome() && notifiedForChromeDesktop != 'notified') {
+  //   const width = window.outerWidth
+  //   if (width > 1000) {
+  //     await localForage.setItem('notified-chrome-desktop', 'notified')
+  //     toast(`For best performance, please use the Chrome browser`, {
+  //       timeout: 10000,
+  //       type: 'dark',
+  //     })
+  //   }
+  // }
+  if (!isChrome()) {
     const width = window.outerWidth
     if (width > 1000) {
-      await localForage.setItem('notified-chrome-desktop', 'notified')
       toast(`For best performance, please use the Chrome browser`, {
         timeout: 10000,
         type: 'dark',
