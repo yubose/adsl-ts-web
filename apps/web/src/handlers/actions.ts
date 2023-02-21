@@ -522,7 +522,11 @@ const createActions = function createActions(app: App) {
         pageModifiers,
         updatedQueryString: ndomPage?.pageUrl,
       })
-
+      if(_pick(action, 'blank')){
+        app.disableSpinner();
+        options.ref?.abort();
+        return void window.open(destProps.destination, '_blank');
+      }
       if (!isSamePage) {
         if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
           if (ndomPage.node.contentDocument?.body) {
@@ -533,11 +537,11 @@ const createActions = function createActions(app: App) {
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
-        if(_pick(action, 'blank')){
-          app.disableSpinner();
-          options.ref?.abort();
-          return void window.open(destProps.destination, '_blank');
-        }
+        // if(_pick(action, 'blank')){
+        //   app.disableSpinner();
+        //   options.ref?.abort();
+        //   return void window.open(destProps.destination, '_blank');
+        // }
         await app.navigate(
           ndomPage,
           destination,

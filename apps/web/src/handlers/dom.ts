@@ -472,6 +472,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         interactive: true,
                         placement: 'top',
                         followCursor: true,
+                        appendTo: ()=>node
                         // plugins: [followCursor],
                         // duration: [0, 0],
                       })
