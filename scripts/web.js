@@ -68,14 +68,15 @@ if (cli.flags.deploy) {
 
     cmd += 'npx webpack --mode=production'
   } else if (cli.flags.start) {
-    cmd += 'NODE_ENV=development '
-    // cmd += 'NODE_ENV=production '
-    cmd += 'USE_DEV_PATHS=true '
 
     if (cli.flags.stable) {
+      cmd += 'NODE_ENV=production '
+      cmd += 'USE_DEV_PATHS=true '
       env.ECOS_ENV = 'stable'
       cmd += 'ECOS_ENV=stable '
     } else {
+      cmd += 'NODE_ENV=development '
+      cmd += 'USE_DEV_PATHS=true '
       env.ECOS_ENV = 'test'
       cmd += 'ECOS_ENV=test '
     }
