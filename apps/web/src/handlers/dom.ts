@@ -41,7 +41,15 @@ import { cloneDeep } from 'lodash'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
-
+function addListener(node: NDOMElement, event: string, callback: any) {
+  node.addEventListener(event, callback)
+  return {
+    event,
+    callback: ()=>{
+      node.removeEventListener(event,callback)
+    }
+  }
+}
 const createExtendedDOMResolvers = function (app: App) {
   /**
    * Creates an onChange function which should be used as a handler on the
@@ -325,6 +333,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
                 gridPages?.addEventListener('click', stopProp)
                 gridSearch?.addEventListener('click', stopProp)
+                component.addEventListeners({
+                  event: 'click',
+                  callback: ()=>{
+                    gridPages?.removeEventListener('click',stopProp)
+                    gridSearch?.removeEventListener('click',stopProp)
+                  }
+                })
                 break
               }
               case 'calendarTable':
@@ -504,6 +519,15 @@ const createExtendedDOMResolvers = function (app: App) {
                     }
                   }
                   calendar.render();
+                  component.addEventListeners({
+                    event: 'calendar',
+                    callback: ()=>{
+                      const timer = setTimeout(()=>{
+                        calendar.destroy()
+                        clearTimeout(timer)
+                      },1000)
+                    }
+                  })
                   window.setTimeout(() => {
                     (
                       document.querySelectorAll(
@@ -556,9 +580,16 @@ const createExtendedDOMResolvers = function (app: App) {
                       'Nov',
                       'Dec',
                     ];
-                  timeTable?.addEventListener('click',(e)=>{
-                      dataValue.data = ''
-                  },true)
+                  const timeClick = (e)=>{
+                    dataValue.data = ''
+                  }
+                  timeTable?.addEventListener('click',timeClick,true)
+                  component.addEventListeners({
+                    event: 'click',
+                    callback: ()=>{
+                      timeTable.removeEventListener('click',timeClick)
+                    }
+                  })
                   function getEventTime(){
                     let getMonth =  titleTime.textContent?.split(" ")[0] as string;
                     let getDay =  titleTime.textContent?.split(" ")[1]?.split(",")[0] as string;
@@ -583,7 +614,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       dataValue.currentDate = new Date(new Date().toLocaleDateString()).getTime()/1000;
                     }
                   }
-                  docEventPrevClick.addEventListener('click', (e) => {
+                  const prevClick = (e) => {
                     if(!dataValue.dataWeek&&dataValue.dataWeek !== 'week'){
                       getEventTime();
                     }else{
@@ -593,8 +624,8 @@ const createExtendedDOMResolvers = function (app: App) {
                       dataValue.currentDate = dataValue.start;
                     }
                     dataValue.data = 'prev';
-                  })
-                  docEventNextClick.addEventListener('click', (e) => {
+                  }
+                  const nextClick = (e) => {
                     if(!dataValue.dataWeek&&dataValue.dataWeek !== 'week'){
                       getEventTime();
                     }else{
@@ -604,20 +635,48 @@ const createExtendedDOMResolvers = function (app: App) {
                       dataValue.currentDate = dataValue.start;
                     }
                     dataValue.data = 'next';
+                  }
+                  docEventPrevClick.addEventListener('click', prevClick)
+                  component.addEventListeners({
+                    event: 'click',
+                    callback: ()=>{
+                      docEventPrevClick.removeEventListener('click',prevClick)
+                    }
                   })
-                  docEventDayClick.addEventListener('click', (e) => {
+                  docEventNextClick.addEventListener('click', nextClick)
+                  component.addEventListeners({
+                    event: 'click',
+                    callback: ()=>{
+                      docEventNextClick.removeEventListener('click',nextClick)
+                    }
+                  })
+                  const dayClick = (e) => {
                     getEventTime();
                     dataValue.data = 'day'
                     dataValue.dataDay = 'day'
                     dataValue.dataWeek = ''
                     titleTime.textContent =  ""
 
-                  })
-                  docEventWeekClick.addEventListener('click', (e) => {
+                  }
+                  const weekClick = (e) => {
                     getEventTimeWeek();
                     dataValue.data = 'week'
                     dataValue.dataWeek = 'week'
                     dataValue.dataDay = ''
+                  }
+                  docEventDayClick.addEventListener('click', dayClick)
+                  component.addEventListeners({
+                    event: 'click',
+                    callback: ()=>{
+                      docEventDayClick.removeEventListener('click',dayClick)
+                    }
+                  })
+                  docEventWeekClick.addEventListener('click',weekClick)
+                  component.addEventListeners({
+                    event: 'click',
+                    callback: ()=>{
+                      docEventWeekClick.removeEventListener('click',weekClick)
+                    }
                   })
                   }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
@@ -683,35 +742,46 @@ const createExtendedDOMResolvers = function (app: App) {
             component?.type == 'textField' &&
             component?.contentType == 'password'
           ) {
-            node.addEventListener(
-              'input',
-              getOnChange({
-                component,
-                dataKey,
-                evtName: 'onInput',
-                node: node as NDOMElement,
-                iteratorVar,
-                page,
-              }),
-            )
+            const executeFunc = getOnChange({
+              component,
+              dataKey,
+              evtName: 'onInput',
+              node: node as NDOMElement,
+              iteratorVar,
+              page,
+            })
+            // node.addEventListener(
+            //   'input',
+            //   executeFunc,
+            // )
+            const listener = addListener(node,'input',executeFunc)
+            component.addEventListeners(listener)
           } else {
-            node.addEventListener(
-              'change',
-              getOnChange({
-                component,
-                dataKey,
-                evtName: 'onChange',
-                node: node as NDOMElement,
-                iteratorVar,
-                page,
+            const executeFunc = getOnChange({
+              component,
+              dataKey,
+              evtName: 'onChange',
+              node: node as NDOMElement,
+              iteratorVar,
+              page,
+            })
+            // node.addEventListener(
+            //   'change',
+            //   getOnChange({
+            //     component,
+            //     dataKey,
+            //     evtName: 'onChange',
+            //     node: node as NDOMElement,
+            //     iteratorVar,
+            //     page,
 
-              }),
-            )
+            //   }),
+            // )
+            const listener = addListener(node,'change',executeFunc)
+            component.addEventListeners(listener)
 
             if (component?.type == 'textField') {
-              node.addEventListener(
-                'input',
-                component.blueprint.debounce
+              const executeFunc = component.blueprint.debounce
                   ? antiShake(
                       getOnChange({
                         component,
@@ -732,43 +802,90 @@ const createExtendedDOMResolvers = function (app: App) {
                       iteratorVar,
                       page,
                       initialCapital
-                    }),
-              )
+                    })
+              const listener = addListener(node,'input',executeFunc)
+              component.addEventListeners(listener)
+              // node.addEventListener(
+              //   'input',
+              //   component.blueprint.debounce
+              //     ? antiShake(
+              //         getOnChange({
+              //           component,
+              //           dataKey,
+              //           evtName: 'onInput',
+              //           node: node as NDOMElement,
+              //           iteratorVar,
+              //           page,
+              //           initialCapital
+              //         }),
+              //         component.blueprint.debounce,
+              //       )
+              //     : getOnChange({
+              //         component,
+              //         dataKey,
+              //         evtName: 'onInput',
+              //         node: node as NDOMElement,
+              //         iteratorVar,
+              //         page,
+              //         initialCapital
+              //       }),
+              // )
             }
             if (component?.type == 'textView') {
-              node.addEventListener(
-                'input',
+              const executeFunc = getOnChange({
+                component,
+                dataKey,
+                evtName: 'onInput',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              const listener = addListener(node,'input',executeFunc)
+              component.addEventListeners(listener)
+              // node.addEventListener(
+              //   'input',
 
-                getOnChange({
-                  component,
-                  dataKey,
-                  evtName: 'onInput',
-                  node: node as NDOMElement,
-                  iteratorVar,
-                  page,
-                  initialCapital
-                }),
-              )
+              //   getOnChange({
+              //     component,
+              //     dataKey,
+              //     evtName: 'onInput',
+              //     node: node as NDOMElement,
+              //     iteratorVar,
+              //     page,
+              //     initialCapital
+              //   }),
+              // )
             }
           }
         }
         if (component.blueprint?.onBlur) {
-          node.addEventListener(
-            'blur',
-            getOnChange({
-              node: node as NDOMElement,
-              component,
-              dataKey,
-              evtName: 'onBlur',
-              iteratorVar,
-              page,
-            }),
-          )
+          const executeFunc = getOnChange({
+            component,
+            dataKey,
+            evtName: 'onBlur',
+            node: node as NDOMElement,
+            iteratorVar,
+            page,
+          })
+          const listener = addListener(node,'blur',executeFunc)
+          component.addEventListeners(listener)
+          // node.addEventListener(
+          //   'blur',
+          //   getOnChange({
+          //     node: node as NDOMElement,
+          //     component,
+          //     dataKey,
+          //     evtName: 'onBlur',
+          //     iteratorVar,
+          //     page,
+          //   }),
+          // )
         }
         if(showFocus){
           node?.setAttribute("showSoftInput","true")
-          setTimeout(()=>{
+          const timer = setTimeout(()=>{
             node?.focus();
+            clearTimeout(timer)
           },100)
         }
       },
@@ -1482,7 +1599,7 @@ const createExtendedDOMResolvers = function (app: App) {
         // Password inputs
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-            setTimeout(() => {
+            const timer = setTimeout(() => {
               const assetsUrl = app.nui.getAssetsUrl() || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiableEye.svg'
               const eyeClosed = assetsUrl + 'makePasswordInvisibleEye.svg'
@@ -1564,6 +1681,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   ? 'Click here to hide your password'
                   : 'Click here to reveal your password'
               }
+              clearTimeout(timer)
             })
           }
         } else {
