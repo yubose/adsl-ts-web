@@ -297,13 +297,14 @@ export function openFileSelector(
     input.onclick = function onFileInputClick(event) {
       document.body.onfocus = () => {
         document.body.onfocus = null
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           document.body.removeChild(input)
           resolve({
             event,
             files: input.files?.length ? input.files : null,
             status: input.files?.length ? 'selected' : 'canceled',
           } as FileSelectorCanceledResult)
+          clearTimeout(timer)
         }, 350)
       }
     }
