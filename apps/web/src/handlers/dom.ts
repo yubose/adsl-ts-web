@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import tippy, { followCursor, Instance, MultipleTargets } from 'tippy.js'
+import tippy, {  MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -486,7 +486,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         //theme: 'translucent',
                         interactive: true,
                         placement: 'top',
-                        followCursor: true,
+                        // followCursor: true,
                         appendTo: ()=>node
                         // plugins: [followCursor],
                         // duration: [0, 0],
@@ -1971,6 +1971,9 @@ const createExtendedDOMResolvers = function (app: App) {
             document.createDocumentFragment()
           // let childrenConta = document.createElement('div')
           node.textContent = "";
+          if(get(app.root.Global,dataOptions["checkName"]).length){
+            dataValue['selectedData'] = cloneDeep(get(app.root.Global,dataOptions["checkName"]))
+          }
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
               position: relative;
@@ -2073,6 +2076,7 @@ const createExtendedDOMResolvers = function (app: App) {
             break
           }
         }
+        const arrData:number[] = []
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
@@ -2087,10 +2091,10 @@ const createExtendedDOMResolvers = function (app: App) {
             childInput.value = i + '';
 
             spanDom.textContent = get(dataValue['allData'][i],dataValue["path"])
-            if (dataValue['selectedData'].includes(i)) {
+            if (dataValue['selectedData'].includes(get(dataValue['allData'][i],dataValue["path"]))) {
               childInput.checked = true;
               app.updateRoot((draft) => {
-                set(draft?.[pageName], dataKey, dataValue['selectedData'])
+                set(draft?.[pageName], dataKey, [i])
               })
             }
             childInput.setAttribute('class', dataOptions['classStyle'])
@@ -2173,7 +2177,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
               }
               // app.root.Global.checkboxArr = selected
-              set(app.root.Global,dataOptions["checkName"],selected);
+              set(app.root.Global,dataOptions["checkName"],dataValue['allData'][selected].name.data.category);
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
