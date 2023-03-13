@@ -38,7 +38,7 @@ import flatpickr from 'flatpickr'
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
 import { cloneDeep } from 'lodash'
 // import moment from "moment"
-
+// import * as echarts from "echarts";
 type ToolbarInput = any
 // import { isArray } from 'lodash'
 function addListener(node: NDOMElement, event: string, callback: any) {
@@ -212,15 +212,16 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node) {
           node.style.width = component.style.width as string
           node.style.height = component.style.height as string
-          if (dataValue.chartType) {
-            let chartType = dataValue.chartType.toString()
+          if (dataValue.chartType||component.get('chartType')) {
+            let chartType = component.get('chartType')||dataValue.chartType.toString();
             switch (chartType) {
-              // case 'graph': {
-              //   let myChart = echarts.init(node)
-              //   let option = dataValue
-              //   option && myChart.setOption(option)
-              //   break
-              // }
+              case 'graph': {
+                //@ts-ignore
+                let myChart = echarts.init(node)
+                let option = dataValue
+                option && myChart.setOption(option)
+                break
+              }
               case 'table': {
                 let option = dataValue
                 let tableData: any = {
