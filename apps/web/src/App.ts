@@ -426,19 +426,6 @@ class App {
           ? void (window.location.href = pageUrl as string)
           : window.open(pageUrl, '_self')
       }
-      const currentPage = _page.page
-      if(currentPage){
-        const pageCadl = this.noodl.root[currentPage]
-        Object.keys(pageCadl).forEach((key)=>{
-          if(key!=='components'){
-            if(key === 'init'){
-              pageCadl[key].length = 0
-            }else{
-              pageCadl[key] = {}
-            }
-          }
-        })
-      }
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {
         // If this is a goto, we must delete the page we are redirecting to if it previously was used in the root object
         if (isGoto) {
