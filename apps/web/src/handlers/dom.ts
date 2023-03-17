@@ -526,7 +526,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       const timer = setTimeout(()=>{
                         calendar.destroy()
                         clearTimeout(timer)
-                      },1000)
+                      },10000)
                     }
                   })
                   window.setTimeout(() => {
