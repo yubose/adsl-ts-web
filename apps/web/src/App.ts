@@ -1071,7 +1071,7 @@ class App {
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
       }
-      page.previous && this.nui.cache.component.clear(page.previous)
+      page.previous && page.previous!==page.page && this.nui.cache.component.clear(page.previous)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
