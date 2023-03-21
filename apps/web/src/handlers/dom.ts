@@ -107,6 +107,10 @@ const createExtendedDOMResolvers = function (app: App) {
       } else {
         if (dataKey) {
           app.updateRoot((draft) => {
+            if(u.isStr(dataKey) && dataKey.startsWith('Global')){
+              pageName = 'Global'
+              dataKey = dataKey.replace('Global.','')
+            }
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
