@@ -224,10 +224,178 @@ const createExtendedDOMResolvers = function (app: App) {
             let chartType = component.get('chartType')||dataValue.chartType.toString();
             switch (chartType) {
               case 'graph': {
+                  const dataType = {
+                    371201: 'bloodPressureData',
+                    373761: 'heartRateData',
+                    376321: 'respiratoryRateData'
+                  }
+                  let setting =  {
+                    "title": {
+                      show: true,
+                      text: "Blood Pressure",
+                      x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
+                      // right: 'auto',//'title 组件离容器右侧的距离
+                      top: '8%',//title 组件离容器上侧的距离
+                      // bottom: 'auto',//title 组件离容器下侧的距离
+                      textStyle: {
+                        color:" #000",//字体颜色
+                        fontStyle: 'bold',//字体风格
+                        fontWeight: 'normal',//字体粗细
+                        fontFamily: 'sans-serif',//文字字体
+                        fontSize:18,//字体大小
+                      }
+                    },
+                    "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {
+                            "type": "cross",
+                            "axis": "auto",
+                            "snap": true,
+                            "showContent": true
+                        },
+                        textStyle: {
+                          color: '#000',     // 文字的颜色
+                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                      }
+                    },
+                    "grid": {
+                        show: true,
+                        "top": "20%",
+                        "left": "10%",
+                        "right": "15%",
+                        "bottom": "3%",
+                        "containLabel": true,
+                        // width: "820px",
+                        // height: "280px"
+
+                    },
+                    "legend": {
+                        "orient": "horizontal",
+                        "x": "left",
+                        "y": "top",
+                        "data": [
+                            "heightBloodPressure",
+                            "lowBloodPressure"
+                        ]
+                    },
+                    "xAxis": {
+                        "type": "category",
+                        "name": "Time",
+                        "axisLine": {
+                            "symbol": [
+                                "none",
+                                "arrow"
+                            ],
+                            "lineStyle": {
+                                "color": "#3366CC"
+                            }
+                        },
+                        "axisLabel": {
+                            "rotate": 45,
+                            "interval": 0
+                        },
+                        "boundaryGap": false,
+                        "data": null
+                    },
+                    "yAxis": {
+                        "name": "mmHg",
+                        "type": "value",
+                        "min": 0,
+                        "max": 500,
+                        "splitNumber": 10,
+                        "axisLine": {
+                            "show": true,
+                            "symbol": [
+                                "none",
+                                "arrow"
+                            ],
+                            "lineStyle": {
+                                "color": "#3366CC"
+                            }
+                        }
+                    },
+                    "series": [
+                        {
+                            "name": "heightBloodPressure",
+                            "type": dataValue.type,
+                            "symbolSize": 8,
+                            "data": [],
+                            "itemStyle": {
+                                "normal": {
+                                    "label": {
+                                        "show": true
+                                    },
+                                    "lineStyle": {
+                                        "width": 2,
+                                        "type": "solid"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                          "name": "lowBloodPressure",
+                          "type": dataValue.type,
+                          "symbol": "circle",
+                          "smooth": 0.5,
+                          "itemStyle": {
+                              "normal": {
+                                  "label": {
+                                      "show": true
+                                  },
+                                  "lineStyle": {
+                                      "width": 2,
+                                      "type": "dotted"
+                                  }
+                              }
+                          },
+                          "data": []
+                      }
+                    ]
+                  }
+                if(dataValue.dateType==='week'){
+
+                  let _dateTempObj:{[key in string]: {}} = {};
+                  if(dataValue.dataType == 371201){
+                    dataValue.dataSource.forEach((item)=>{
+                      let _stamp = get(item,"ctime");
+                      let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
+                        if(!_dateTempObj[signal]){
+                        _dateTempObj[signal] = {}
+                          _dateTempObj[signal]["heightBloodPressure"] = []
+                          _dateTempObj[signal]['lowBloodPressure'] = []
+                        }
+                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item,"name.data.heightBloodPressure"))
+                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item,"name.data.lowBloodPressure"))
+                    })
+                    Object.values(_dateTempObj).forEach((item)=>{
+                      // @ts-ignore
+                      setting.series[0]["data"].push( (item["heightBloodPressure"].reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
+                      // @ts-ignore
+                      setting.series[1]["data"].push((item["lowBloodPressure"].reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                    })
+                  }else{
+                    dataValue.dataSource.forEach((item)=>{
+                      let _stamp = get(item,"ctime");
+                      let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
+                        if(!_dateTempObj[signal]){
+                        _dateTempObj[signal] = {}
+                          _dateTempObj[signal][`${dataType[dataValue.dataType]}`] = []
+                        }
+                        _dateTempObj[signal][`${dataType[dataValue.dataType]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType]}`))
+                    })
+                    Object.values(_dateTempObj).forEach((item)=>{
+                      // @ts-ignore
+                      setting.series[0]["data"].push((item[`${dataType[dataValue.dataType]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType]}`].length).toFixed())
+                    })
+                  }
+                  setting.xAxis.data = Object.keys(_dateTempObj) as any;
+                }
                 //@ts-ignore
                 let myChart = echarts.init(node)
-                let option = dataValue
-                option && myChart.setOption(option)
+                dataValue && myChart.setOption(setting)
                 break
               }
               case 'table': {
