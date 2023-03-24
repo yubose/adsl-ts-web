@@ -37,6 +37,7 @@ import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
 import { cloneDeep } from 'lodash'
+import moment from 'moment'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -229,7 +230,12 @@ const createExtendedDOMResolvers = function (app: App) {
                     373761: 'heartRateData',
                     376321: 'respiratoryRateData'
                   }
-                  let setting =  {
+                  let setting = null;
+                  let _dateTempObj:{[key in string]: {}} = {};
+
+
+                if(dataValue.dateType==='week'){
+                  let settingWeek =  {
                     "title": {
                       show: true,
                       text: "Blood Pressure",
@@ -355,9 +361,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     ]
                   }
-                if(dataValue.dateType==='week'){
-
-                  let _dateTempObj:{[key in string]: {}} = {};
                   if(dataValue.dataType == 371201){
                     dataValue.dataSource.forEach((item)=>{
                       let _stamp = get(item,"ctime");
@@ -372,9 +375,9 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
                       // @ts-ignore
-                      setting.series[0]["data"].push( (item["heightBloodPressure"].reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
+                      settingWeek.series[0]["data"].push( (item["heightBloodPressure"].reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
                       // @ts-ignore
-                      setting.series[1]["data"].push((item["lowBloodPressure"].reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                      settingWeek.series[1]["data"].push((item["lowBloodPressure"].reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
                     })
                   }else{
                     dataValue.dataSource.forEach((item)=>{
@@ -388,10 +391,257 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
                       // @ts-ignore
-                      setting.series[0]["data"].push((item[`${dataType[dataValue.dataType]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType]}`].length).toFixed())
+                      settingWeek.series[0]["data"].push((item[`${dataType[dataValue.dataType]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType]}`].length).toFixed())
                     })
                   }
-                  setting.xAxis.data = Object.keys(_dateTempObj) as any;
+                  settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
+                  setting = settingWeek as any;
+                }else if(dataValue.dateType==='day'){
+                  // dataValue.dataSource =[
+                  //   {
+                  //     ctime: 1679626173,
+                  //     type: 371201,
+                  //     name: {
+                  //       data: {
+                  //         "showData": "65/87",
+                  //       "heightBloodPressure": "65",
+                  //       "lowBloodPressure": "87",
+                  //       "unit": "mmHg"
+                  //       },
+                  //       title: "Blood Pressure",
+                  //       type: "application/json",
+                  //   }
+                  //   },
+                  //   {
+                  //     ctime: 1679627373,
+                  //     type: 371201,
+                  //     name: {
+                  //       data: {
+                  //         "showData": "65/87",
+                  //       "heightBloodPressure": "65",
+                  //       "lowBloodPressure": "87",
+                  //       "unit": "mmHg"
+                  //       },
+                  //       title: "Blood Pressure",
+                  //       type: "application/json",
+                  //   }
+                  //   },
+                  //   {
+                  //     ctime: 1679629373,
+                  //     type: 371201,
+                  //     name: {
+                  //       data: {
+                  //         "showData": "65/87",
+                  //       "heightBloodPressure": "65",
+                  //       "lowBloodPressure": "87",
+                  //       "unit": "mmHg"
+                  //       },
+                  //       title: "Blood Pressure",
+                  //       type: "application/json",
+                  //   }
+                  //   },
+                  //   {
+                  //     ctime: 1679631373,
+                  //     type: 371201,
+                  //     name: {
+                  //       data: {
+                  //         "showData": "65/87",
+                  //       "heightBloodPressure": "65",
+                  //       "lowBloodPressure": "87",
+                  //       "unit": "mmHg"
+                  //       },
+                  //       title: "Blood Pressure",
+                  //       type: "application/json",
+                  //   }
+                  //   },
+                  //   {
+                  //     ctime: 1679638373,
+                  //     type: 371201,
+                  //     name: {
+                  //       data: {
+                  //         "showData": "65/87",
+                  //       "heightBloodPressure": "65",
+                  //       "lowBloodPressure": "87",
+                  //       "unit": "mmHg"
+                  //       },
+                  //       title: "Blood Pressure",
+                  //       type: "application/json",
+                  //   }
+                  //   },
+                  //   {
+                  //     ctime: 1679640373,
+                  //     type: 371201,
+                  //     name: {
+                  //       data: {
+                  //         "showData": "65/87",
+                  //       "heightBloodPressure": "33",
+                  //       "lowBloodPressure": "66",
+                  //       "unit": "mmHg"
+                  //       },
+                  //       title: "Blood Pressure",
+                  //       type: "application/json",
+                  //   }
+                  //   }
+                  // ];
+                  let settingDay=  {
+                    "title": {
+                      show: true,
+                      text: "Blood Pressure",
+                      x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
+                      // right: 'auto',//'title 组件离容器右侧的距离
+                      top: '8%',//title 组件离容器上侧的距离
+                      // bottom: 'auto',//title 组件离容器下侧的距离
+                      textStyle: {
+                        color:" #000",//字体颜色
+                        fontStyle: 'bold',//字体风格
+                        fontWeight: 'normal',//字体粗细
+                        fontFamily: 'sans-serif',//文字字体
+                        fontSize:18,//字体大小
+                      }
+                    },
+                    "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {
+                            "type": "cross",
+                            "axis": "auto",
+                            "snap": true,
+                            "showContent": true
+                        },
+                        textStyle: {
+                          color: '#000',     // 文字的颜色
+                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                      }
+                    },
+                    "grid": {
+                        show: true,
+                        "top": "20%",
+                        "left": "10%",
+                        "right": "15%",
+                        "bottom": "3%",
+                        "containLabel": true,
+                        // width: "820px",
+                        // height: "280px"
+
+                    },
+                    "legend": {
+                        "orient": "horizontal",
+                        "x": "left",
+                        "y": "top",
+                        "data": [
+                            "heightBloodPressure",
+                            "lowBloodPressure"
+                        ]
+                    },
+                    "xAxis": {
+                        type: "category",
+                        // type: "time",
+                        show: true,
+                        // min: 0,
+                        // max: 24,
+                        "name": "Time",
+                        "axisLine": {
+                            "symbol": [
+                                "none",
+                                "arrow"
+                            ],
+                            "lineStyle": {
+                                "color": "#3366CC"
+                            }
+                        },
+                        // splitNumber: 2,
+                        "axisLabel": {
+                          formatter: null
+                            // "rotate": 45,
+                            // "interval": 0
+                        },
+                        "boundaryGap": false,
+                        "data": ['03-24\n10:00', '03-24\n11:00', '03-24\n12:00', '03-24\n14:00']
+                    },
+                    "yAxis": {
+                        "name": "mmHg",
+                        "type": "value",
+                        "min": 0,
+                        "max": 300,
+                        "splitNumber": 10,
+                        "axisLine": {
+                            "show": true,
+                            "symbol": [
+                                "none",
+                                "arrow"
+                            ],
+                            "lineStyle": {
+                                "color": "#3366CC"
+                            }
+                        }
+                    },
+                    "series": [
+                        {
+                            "name": "heightBloodPressure",
+                            "type": dataValue.type,
+                            "symbolSize": 8,
+                            "data": [],
+                            "itemStyle": {
+                                "normal": {
+                                    "label": {
+                                        "show": true
+                                    },
+                                    "lineStyle": {
+                                        "width": 2,
+                                        "type": "solid"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                          "name": "lowBloodPressure",
+                          "type": dataValue.type,
+                          "symbol": "circle",
+                          "smooth": 0.5,
+                          "itemStyle": {
+                              "normal": {
+                                  "label": {
+                                      "show": true
+                                  },
+                                  "lineStyle": {
+                                      "width": 2,
+                                      "type": "dotted"
+                                  }
+                              }
+                          },
+                          "data": []
+                      }
+                    ]
+                  }
+                  if(dataValue.dataType == 371201){
+                    dataValue.dataSource.forEach((item)=>{
+                      let _stamp = get(item,"ctime");
+                      let signal = new Date(_stamp*1000).getHours();
+                        if(!_dateTempObj[signal]){
+                        _dateTempObj[signal] = {}
+                          _dateTempObj[signal]["heightBloodPressure"] = []
+                          _dateTempObj[signal]['lowBloodPressure'] = []
+                        }
+                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item,"name.data.heightBloodPressure"))
+                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item,"name.data.lowBloodPressure"))
+                    })
+                    Object.values(_dateTempObj).forEach((item)=>{
+                      // @ts-ignore
+                      settingDay.series[0]["data"].push( (item["heightBloodPressure"].reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
+                      // @ts-ignore
+                      settingDay.series[1]["data"].push((item["lowBloodPressure"].reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                    })
+                    let _date = new Date(dataValue.dataSource[0]["ctime"]*1000);
+                  settingDay.xAxis.data = Object.keys(_dateTempObj).map((item:any)=>{
+                    let showD = moment({year: _date.getFullYear(),month: _date.getMonth(),day: _date.getDate(),hour: item}).format('MM-DD');
+                    let showH = moment({year: _date.getFullYear(),month: _date.getMonth(),day: _date.getDate(),hour: item}).format('HH:mm');
+                    return showD+'\n'+showH;
+                  })
+                  }
+                  setting = settingDay as any;
+                }else if(dataValue.dateType==='month'){
                 }
                 //@ts-ignore
                 let myChart = echarts.init(node)
