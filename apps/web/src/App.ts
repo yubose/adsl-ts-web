@@ -525,6 +525,7 @@ class App {
         if (!this.noodl.getState().queue?.length) {
           if (this.getState().spinner.active) this.disableSpinner()
         }
+        this.disableSpinner()
       })
       if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
