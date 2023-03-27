@@ -225,6 +225,11 @@ const createExtendedDOMResolvers = function (app: App) {
             let chartType = component.get('chartType')||dataValue.chartType.toString();
             switch (chartType) {
               case 'graph': {
+                function  getSmartDate(s=Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(new Date()),list=['Mon','Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']):string[]{
+                  const index = list.indexOf(s);
+                  list.unshift( ...list.splice(index+1));
+                  return list;
+              }
                   const dataType = {
                     371201: 'bloodPressureData',
                     373761: 'heartRateData',
@@ -232,13 +237,11 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   let setting = null;
                   let _dateTempObj:{[key in string]: {}} = {};
-
-
                 if(dataValue.dateType==='week'){
                   let settingWeek =  {
                     "title": {
                       show: true,
-                      text: "Blood Pressure",
+                      text: "",
                       x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
                       // right: 'auto',//'title 组件离容器右侧的距离
                       top: '8%',//title 组件离容器上侧的距离
@@ -274,18 +277,12 @@ const createExtendedDOMResolvers = function (app: App) {
                         "right": "15%",
                         "bottom": "3%",
                         "containLabel": true,
-                        // width: "820px",
-                        // height: "280px"
-
                     },
                     "legend": {
                         "orient": "horizontal",
                         "x": "left",
                         "y": "top",
-                        "data": [
-                            "heightBloodPressure",
-                            "lowBloodPressure"
-                        ]
+                        "data": []
                     },
                     "xAxis": {
                         "type": "category",
@@ -307,7 +304,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         "data": null
                     },
                     "yAxis": {
-                        "name": "mmHg",
+                        "name": "",
                         "type": "value",
                         "min": 0,
                         "max": 500,
@@ -323,166 +320,119 @@ const createExtendedDOMResolvers = function (app: App) {
                             }
                         }
                     },
-                    "series": [
-                        {
-                            "name": "heightBloodPressure",
-                            "type": dataValue.type,
-                            "symbolSize": 8,
-                            "data": [],
-                            "itemStyle": {
-                                "normal": {
-                                    "label": {
-                                        "show": true
-                                    },
-                                    "lineStyle": {
-                                        "width": 2,
-                                        "type": "solid"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                          "name": "lowBloodPressure",
-                          "type": dataValue.type,
-                          "symbol": "circle",
-                          "smooth": 0.5,
-                          "itemStyle": {
-                              "normal": {
-                                  "label": {
-                                      "show": true
-                                  },
-                                  "lineStyle": {
-                                      "width": 2,
-                                      "type": "dotted"
-                                  }
-                              }
-                          },
-                          "data": []
-                      }
-                    ]
+                    "series": []
                   }
+                  settingWeek.xAxis.data = getSmartDate() as any;
                   if(dataValue.dataType == 371201){
+                    settingWeek.title.text = "Blood Pressure";
+                    settingWeek.yAxis.name = "mmHg";
+                    //@ts-ignore
+                    settingWeek.legend.data.push("heightBloodPressure","lowBloodPressure")
+                    //@ts-ignore
+                    settingWeek.series.push({
+                      "name": "heightBloodPressure",
+                      "type": dataValue.type,
+                      "symbolSize": 8,
+                      "data": [],
+                      connectNulls:true,
+                      "itemStyle": {
+                          "normal": {
+                              "label": {
+                                  "show": true
+                              },
+                              "lineStyle": {
+                                  "width": 2,
+                                  "type": "solid"
+                              }
+                          }
+                      }
+                  },
+                  {
+                    "name": "lowBloodPressure",
+                    "type": dataValue.type,
+                    "symbol": "circle",
+                    "symbolSize": 8,
+                    // "smooth": 0.5,
+                    connectNulls:true,
+                    "itemStyle": {
+                        "normal": {
+                            "label": {
+                                "show": true
+                            },
+                            "lineStyle": {
+                                "width": 2,
+                                "type": "solid"
+                            }
+                        }
+                    },
+                    "data": []
+                });
+                    (settingWeek.xAxis.data as any).forEach(element => {
+                      _dateTempObj[element] = {}
+                      _dateTempObj[element]["heightBloodPressure"] =[];
+                      _dateTempObj[element]["lowBloodPressure"] =[];
+                    });
                     dataValue.dataSource.forEach((item)=>{
                       let _stamp = get(item,"ctime");
                       let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
-                        if(!_dateTempObj[signal]){
-                        _dateTempObj[signal] = {}
-                          _dateTempObj[signal]["heightBloodPressure"] = []
-                          _dateTempObj[signal]['lowBloodPressure'] = []
-                        }
                         _dateTempObj[signal]['heightBloodPressure']?.push(get(item,"name.data.heightBloodPressure"))
                         _dateTempObj[signal]['lowBloodPressure']?.push(get(item,"name.data.lowBloodPressure"))
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
-                      // @ts-ignore
-                      settingWeek.series[0]["data"].push( (item["heightBloodPressure"].reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
-                      // @ts-ignore
-                      settingWeek.series[1]["data"].push((item["lowBloodPressure"].reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                      if(item["heightBloodPressure"].length>0){
+                        // @ts-ignore
+                        settingWeek.series[0]["data"].push( (item["heightBloodPressure"]?.reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
+                        // @ts-ignore
+                        settingWeek.series[1]["data"].push((item["lowBloodPressure"]?.reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                      }else{
+                        (settingWeek.series[0]["data"] as any[]).push(undefined);
+                        (settingWeek.series[1]["data"] as any[]).push(undefined);
+                      }
                     })
+                    setting = settingWeek as any;
                   }else{
+                    settingWeek.title.text = "Heart Rate";
+                    settingWeek.yAxis.name = "bpm";
+                    //@ts-ignore
+                    settingWeek.series.push({
+                      "name": "Heart Rate",
+                      "type": dataValue.type,
+                      "symbolSize": 8,
+                      "data": [],
+                      connectNulls:true,
+                      "itemStyle": {
+                          "normal": {
+                              "label": {
+                                  "show": true
+                              },
+                              "lineStyle": {
+                                  "width": 2,
+                                  "type": "solid"
+                              }
+                          }
+                      }
+                    });
+                    (settingWeek.xAxis.data as any).forEach(element => {
+                      _dateTempObj[element] = {}
+                      _dateTempObj[element][`${dataType[dataValue.dataType]}`] =[];
+                    });
                     dataValue.dataSource.forEach((item)=>{
                       let _stamp = get(item,"ctime");
                       let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
-                        if(!_dateTempObj[signal]){
-                        _dateTempObj[signal] = {}
-                          _dateTempObj[signal][`${dataType[dataValue.dataType]}`] = []
-                        }
                         _dateTempObj[signal][`${dataType[dataValue.dataType]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType]}`))
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
-                      // @ts-ignore
-                      settingWeek.series[0]["data"].push((item[`${dataType[dataValue.dataType]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType]}`].length).toFixed())
+                      if(item[`${dataType[dataValue.dataType]}`].length>0){
+                        // @ts-ignore
+                        settingWeek.series[0]["data"].push((item[`${dataType[dataValue.dataType]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType]}`].length).toFixed())
+                      }else{
+                        (settingWeek.series[0]["data"] as any[]).push(undefined);
+                      }
                     })
-                  }
-                  settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
                   setting = settingWeek as any;
+                  }
+                  // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
                 }else if(dataValue.dateType==='day'){
-                  // dataValue.dataSource =[
-                  //   {
-                  //     ctime: 1679626173,
-                  //     type: 371201,
-                  //     name: {
-                  //       data: {
-                  //         "showData": "65/87",
-                  //       "heightBloodPressure": "65",
-                  //       "lowBloodPressure": "87",
-                  //       "unit": "mmHg"
-                  //       },
-                  //       title: "Blood Pressure",
-                  //       type: "application/json",
-                  //   }
-                  //   },
-                  //   {
-                  //     ctime: 1679627373,
-                  //     type: 371201,
-                  //     name: {
-                  //       data: {
-                  //         "showData": "65/87",
-                  //       "heightBloodPressure": "65",
-                  //       "lowBloodPressure": "87",
-                  //       "unit": "mmHg"
-                  //       },
-                  //       title: "Blood Pressure",
-                  //       type: "application/json",
-                  //   }
-                  //   },
-                  //   {
-                  //     ctime: 1679629373,
-                  //     type: 371201,
-                  //     name: {
-                  //       data: {
-                  //         "showData": "65/87",
-                  //       "heightBloodPressure": "65",
-                  //       "lowBloodPressure": "87",
-                  //       "unit": "mmHg"
-                  //       },
-                  //       title: "Blood Pressure",
-                  //       type: "application/json",
-                  //   }
-                  //   },
-                  //   {
-                  //     ctime: 1679631373,
-                  //     type: 371201,
-                  //     name: {
-                  //       data: {
-                  //         "showData": "65/87",
-                  //       "heightBloodPressure": "65",
-                  //       "lowBloodPressure": "87",
-                  //       "unit": "mmHg"
-                  //       },
-                  //       title: "Blood Pressure",
-                  //       type: "application/json",
-                  //   }
-                  //   },
-                  //   {
-                  //     ctime: 1679638373,
-                  //     type: 371201,
-                  //     name: {
-                  //       data: {
-                  //         "showData": "65/87",
-                  //       "heightBloodPressure": "65",
-                  //       "lowBloodPressure": "87",
-                  //       "unit": "mmHg"
-                  //       },
-                  //       title: "Blood Pressure",
-                  //       type: "application/json",
-                  //   }
-                  //   },
-                  //   {
-                  //     ctime: 1679640373,
-                  //     type: 371201,
-                  //     name: {
-                  //       data: {
-                  //         "showData": "65/87",
-                  //       "heightBloodPressure": "33",
-                  //       "lowBloodPressure": "66",
-                  //       "unit": "mmHg"
-                  //       },
-                  //       title: "Blood Pressure",
-                  //       type: "application/json",
-                  //   }
-                  //   }
-                  // ];
                   let settingDay=  {
                     "title": {
                       show: true,
@@ -530,10 +480,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         "orient": "horizontal",
                         "x": "left",
                         "y": "top",
-                        "data": [
-                            "heightBloodPressure",
-                            "lowBloodPressure"
-                        ]
+                        "data": []
                     },
                     "xAxis": {
                         type: "category",
@@ -558,10 +505,10 @@ const createExtendedDOMResolvers = function (app: App) {
                             // "interval": 0
                         },
                         "boundaryGap": false,
-                        "data": ['03-24\n10:00', '03-24\n11:00', '03-24\n12:00', '03-24\n14:00']
+                        "data": []
                     },
                     "yAxis": {
-                        "name": "mmHg",
+                        "name": "",
                         "type": "value",
                         "min": 0,
                         "max": 300,
@@ -577,48 +524,53 @@ const createExtendedDOMResolvers = function (app: App) {
                             }
                         }
                     },
-                    "series": [
-                        {
-                            "name": "heightBloodPressure",
-                            "type": dataValue.type,
-                            "symbolSize": 8,
-                            "data": [],
-                            "itemStyle": {
-                                "normal": {
-                                    "label": {
-                                        "show": true
-                                    },
-                                    "lineStyle": {
-                                        "width": 2,
-                                        "type": "solid"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                          "name": "lowBloodPressure",
-                          "type": dataValue.type,
-                          "symbol": "circle",
-                          "smooth": 0.5,
-                          "itemStyle": {
-                              "normal": {
-                                  "label": {
-                                      "show": true
-                                  },
-                                  "lineStyle": {
-                                      "width": 2,
-                                      "type": "dotted"
-                                  }
-                              }
-                          },
-                          "data": []
-                      }
-                    ]
+                    "series": []
                   }
                   if(dataValue.dataType == 371201){
+                    settingDay.yAxis.name = "mmHg";
+                    settingDay.title.text = "Blood Pressure"
+                    //@ts-ignore
+                    settingDay.legend.data.push( "heightBloodPressure","lowBloodPressure")
+                    //@ts-ignore
+                    settingDay.series.push({
+                      "name": "heightBloodPressure",
+                      "type": dataValue.type,
+                      "symbolSize": 8,
+                      "data": [],
+                      "itemStyle": {
+                          "normal": {
+                              "label": {
+                                  "show": true
+                              },
+                              "lineStyle": {
+                                  "width": 2,
+                                  "type": "solid"
+                              }
+                          }
+                      }
+                  },
+                  {
+                    "name": "lowBloodPressure",
+                    "type": dataValue.type,
+                    "symbol": "circle",
+                    "symbolSize": 8,
+                    // "smooth": 0.5,
+                    "itemStyle": {
+                        "normal": {
+                            "label": {
+                                "show": true
+                            },
+                            "lineStyle": {
+                                "width": 2,
+                                "type": "solid"
+                            }
+                        }
+                    },
+                    "data": []
+                });
                     dataValue.dataSource.forEach((item)=>{
                       let _stamp = get(item,"ctime");
-                      let signal = new Date(_stamp*1000).getHours();
+                      let signal = moment(_stamp*1000).format('HH:mm');
                         if(!_dateTempObj[signal]){
                         _dateTempObj[signal] = {}
                           _dateTempObj[signal]["heightBloodPressure"] = []
@@ -629,17 +581,55 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
                       // @ts-ignore
-                      settingDay.series[0]["data"].push( (item["heightBloodPressure"].reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
+                      settingDay.series[0]["data"].push(...item["heightBloodPressure"])
                       // @ts-ignore
-                      settingDay.series[1]["data"].push((item["lowBloodPressure"].reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                      settingDay.series[1]["data"].push(...item["lowBloodPressure"])
                     })
-                    let _date = new Date(dataValue.dataSource[0]["ctime"]*1000);
-                  settingDay.xAxis.data = Object.keys(_dateTempObj).map((item:any)=>{
-                    let showD = moment({year: _date.getFullYear(),month: _date.getMonth(),day: _date.getDate(),hour: item}).format('MM-DD');
-                    let showH = moment({year: _date.getFullYear(),month: _date.getMonth(),day: _date.getDate(),hour: item}).format('HH:mm');
-                    return showD+'\n'+showH;
+                  }else{
+                    //@ts-ignore
+                    settingDay.title.text = "Heart Rate"
+                    settingDay.yAxis.name = "bpm";
+                    //@ts-ignore
+                    settingDay.series.push({
+                      "name": "heartRate",
+                      "type": dataValue.type,
+                      "symbolSize": 8,
+                      "data": [],
+                      "itemStyle": {
+                          "normal": {
+                              "label": {
+                                  "show": true
+                              },
+                              "lineStyle": {
+                                  "width": 2,
+                                  "type": "solid"
+                              }
+                          }
+                      }
                   })
+                    dataValue.dataSource.forEach((item)=>{
+                      let _stamp = get(item,"ctime");
+                      let signal = moment(_stamp*1000).format('HH:mm');
+                      if(!_dateTempObj[signal]){
+                        _dateTempObj[signal] = {}
+                          _dateTempObj[signal][`${dataType[dataValue.dataType]}`] = []
+                        }
+                        _dateTempObj[signal][`${dataType[dataValue.dataType]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType]}`))
+                    })
+                    Object.values(_dateTempObj).forEach((item)=>{
+                      if(item[`${dataType[dataValue.dataType]}`].length>0){
+                        // @ts-ignore
+                      settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType]}`])
+                      }
+                    })
                   }
+                  let _date = new Date(dataValue.dataSource[0]["ctime"]*1000);
+                  settingDay.xAxis.data = Object.keys(_dateTempObj).map((item:any)=>{
+                  const date =  moment({year: _date.getFullYear(),month: _date.getMonth(),day: _date.getDate(),hour: item.split(":")[0],minute: item.split(":")[1]})
+                  let showD =date.format('MM-DD');
+                  let showH = date.format('HH:mm');
+                  return showD+'\n'+showH;
+                  }) as any
                   setting = settingDay as any;
                 }else if(dataValue.dateType==='month'){
                 }
