@@ -802,13 +802,21 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 	const redraw: Store.BuiltInObject["fn"] = async function onRedraw(
 		action,
 		options
-	) {
+	) {	
 		const component = options?.component as NuiComponent.Instance;
-		const metadata = getActionMetadata(action, {
-			component,
-			pickKeys: "viewTag",
-		});
-		const { viewTag } = metadata;
+		let viewTag
+		if(component){
+			const metadata = getActionMetadata(action, {
+				component,
+				pickKeys: "viewTag",
+			});
+			viewTag = metadata['viewTag'];
+		}else{
+			viewTag = {
+				fromAction: options['viewTag'],
+				fromComponent: undefined,
+			}
+		}
 
 		let components = [] as NuiComponent.Instance[];
 		let numComponents = 0;
