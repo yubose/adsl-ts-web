@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import tippy, {  MultipleTargets } from 'tippy.js'
+import tippy, { MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -46,8 +46,8 @@ function addListener(node: NDOMElement, event: string, callback: any) {
   node.addEventListener(event, callback)
   return {
     event,
-    callback: ()=>{
-      node.removeEventListener(event,callback)
+    callback: () => {
+      node.removeEventListener(event, callback)
     }
   }
 }
@@ -70,7 +70,7 @@ const createExtendedDOMResolvers = function (app: App) {
     page: NDOMPage | ComponentPage,
     initialCapital?: boolean
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '', page,initialCapital } = args
+    let { component, dataKey, node, evtName, iteratorVar = '', page, initialCapital } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
     let pageName = page.page
 
@@ -81,8 +81,8 @@ const createExtendedDOMResolvers = function (app: App) {
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
-        if(initialCapital){
-          value = value.slice(0,1).toUpperCase()+ value.slice(1);
+        if (initialCapital) {
+          value = value.slice(0, 1).toUpperCase() + value.slice(1);
           (node as HTMLInputElement).value = value;
         }
         if (dataObject) {
@@ -97,7 +97,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.error(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-              `to update its value but a dataObject was not found`,
+            `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -108,13 +108,13 @@ const createExtendedDOMResolvers = function (app: App) {
       } else {
         if (dataKey) {
           app.updateRoot((draft) => {
-            if(u.isStr(dataKey) && dataKey.startsWith('Global')){
+            if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
               pageName = 'Global'
-              dataKey = dataKey.replace('Global.','')
+              dataKey = dataKey.replace('Global.', '')
             }
-            if(u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')){
+            if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
               pageName = 'BaseBLEData'
-              dataKey = dataKey.replace('BaseBLEData.','')
+              dataKey = dataKey.replace('BaseBLEData.', '')
             }
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
@@ -127,8 +127,8 @@ const createExtendedDOMResolvers = function (app: App) {
               // log.orange(warningMsg, { component, dataKey, pageName, value })
             }
 
-            if(initialCapital){
-              value = value.slice(0,1).toUpperCase()+ value.slice(1);
+            if (initialCapital) {
+              value = value.slice(0, 1).toUpperCase() + value.slice(1);
               (node as HTMLInputElement).value = value;
             }
             set(draft?.[pageName], dataKey, value)
@@ -166,24 +166,24 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-  ;(function () {
-    let beforeUnload_time = 0,
-      gap_time = 0
-    window.onunload = function () {
-      gap_time = new Date().getTime() - beforeUnload_time
-      if (gap_time <= 2) {
-        //浏览器关闭判断
-        clearCookie()
+    ; (function () {
+      let beforeUnload_time = 0,
+        gap_time = 0
+      window.onunload = function () {
+        gap_time = new Date().getTime() - beforeUnload_time
+        if (gap_time <= 2) {
+          //浏览器关闭判断
+          clearCookie()
+        }
       }
-    }
-    window.onbeforeunload = function () {
-      beforeUnload_time = new Date().getTime()
-    }
-    function clearCookie() {
-      //清除localstorage
-      window.localStorage.clear()
-    }
-  })()
+      window.onbeforeunload = function () {
+        beforeUnload_time = new Date().getTime()
+      }
+      function clearCookie() {
+        //清除localstorage
+        window.localStorage.clear()
+      }
+    })()
 
   const antiShake = (fn, wait) => {
     let timer
@@ -221,30 +221,30 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node) {
           node.style.width = component.style.width as string
           node.style.height = component.style.height as string
-          if (dataValue.chartType||component.get('chartType')) {
-            let chartType = component.get('chartType')||dataValue.chartType.toString();
+          if (dataValue.chartType || component.get('chartType')) {
+            let chartType = component.get('chartType') || dataValue.chartType.toString();
             switch (chartType) {
               case 'graph': {
-                function  getSmartDate(s=Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(new Date()),list=['Mon','Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']):string[]{
+                function getSmartDate(s = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date()), list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']): string[] {
                   const index = list.indexOf(s);
-                  list.unshift( ...list.splice(index+1));
+                  list.unshift(...list.splice(index + 1));
                   return list;
-              }
-                  const dataType = {
-                    "371201": ['Blood Pressure',"mmHg","",300],
-                    "373761": ['Heart Rate','bpm','heartRateData',500],
-                    "376321": ['Respiratory Rate','breaths/min','respiratoryRateData',300],
-                    "378881": ['Pulse Oximetry','O₂%','pulseOximetryData',300],
-                    "381441": ['Temperature','℉/℃','temperatureData',300],
-                    "384001": ['Blood Glucose Levels','O₂%','bloodGlucoseLevelsData',300],
-                    "386561": ['Height','ft.,in.',["heightFt","heightIn"],3],
-                    "389121": ['Weight','lbs','weightData',300],
-                    "391681": ['BMI','kg/㎡','bmiData',300]
-                  };
-                  let setting = null;
-                  let _dateTempObj:{[key in string]: {}} = {};
-                if(dataValue.dateType==='week'){
-                  let settingWeek =  {
+                }
+                const dataType = {
+                  "371201": ['Blood Pressure', "mmHg", "", 300],
+                  "373761": ['Heart Rate', 'bpm', 'heartRateData', 500],
+                  "376321": ['Respiratory Rate', 'breaths/min', 'respiratoryRateData', 300],
+                  "378881": ['Pulse Oximetry', 'O₂%', 'pulseOximetryData', 300],
+                  "381441": ['Temperature', '℉/℃', 'temperatureData', 300],
+                  "384001": ['Blood Glucose Levels', 'O₂%', 'bloodGlucoseLevelsData', 300],
+                  "386561": ['Height', 'ft.,in.', ["heightFt", "heightIn"], 3],
+                  "389121": ['Weight', 'lbs', 'weightData', 300],
+                  "391681": ['BMI', 'kg/㎡', 'bmiData', 300]
+                };
+                let setting = null;
+                let _dateTempObj: { [key in string]: {} } = {};
+                if (dataValue.dateType === 'week') {
+                  let settingWeek = {
                     "title": {
                       show: true,
                       text: "",
@@ -253,151 +253,151 @@ const createExtendedDOMResolvers = function (app: App) {
                       top: '8%',//title 组件离容器上侧的距离
                       // bottom: 'auto',//title 组件离容器下侧的距离
                       textStyle: {
-                        color:" #000",//字体颜色
+                        color: " #000",//字体颜色
                         fontStyle: 'bold',//字体风格
                         fontWeight: 'normal',//字体粗细
                         fontFamily: 'sans-serif',//文字字体
-                        fontSize:18,//字体大小
+                        fontSize: 18,//字体大小
                       }
                     },
                     "tooltip": {
-                        "trigger": "axis",
-                        "axisPointer": {
-                            "type": "cross",
-                            "axis": "auto",
-                            "snap": true,
-                            "showContent": true
-                        },
-                        textStyle: {
-                          color: '#000',     // 文字的颜色
-                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
-                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
-                          // fontSize: '20',    // 文字字体大小
-                          // lineHeight: '50',    // 行高
+                      "trigger": "axis",
+                      "axisPointer": {
+                        "type": "cross",
+                        "axis": "auto",
+                        "snap": true,
+                        "showContent": true
+                      },
+                      textStyle: {
+                        color: '#000',     // 文字的颜色
+                        fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                        fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                        // fontSize: '20',    // 文字字体大小
+                        // lineHeight: '50',    // 行高
                       }
                     },
                     "grid": {
-                        show: true,
-                        "top": "20%",
-                        "left": "10%",
-                        "right": "15%",
-                        "bottom": "3%",
-                        "containLabel": true,
+                      show: true,
+                      "top": "20%",
+                      "left": "10%",
+                      "right": "15%",
+                      "bottom": "3%",
+                      "containLabel": true,
                     },
                     "legend": {
-                        "orient": "horizontal",
-                        "x": "left",
-                        "y": "top",
-                        "data": []
+                      "orient": "horizontal",
+                      "x": "left",
+                      "y": "top",
+                      "data": []
                     },
                     "xAxis": {
-                        "type": "category",
-                        "name": "Time",
-                        "axisLine": {
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC"
-                            }
-                        },
-                        "axisLabel": {
-                            "rotate": 45,
-                            "interval": 0
-                        },
-                        "boundaryGap": false,
-                        "data": null
+                      "type": "category",
+                      "name": "Time",
+                      "axisLine": {
+                        "symbol": [
+                          "none",
+                          "arrow"
+                        ],
+                        "lineStyle": {
+                          "color": "#3366CC"
+                        }
+                      },
+                      "axisLabel": {
+                        "rotate": 45,
+                        "interval": 0
+                      },
+                      "boundaryGap": false,
+                      "data": null
                     },
                     "yAxis": {
-                        "name": "",
-                        "type": "value",
-                        "min": 0,
-                        "max": 500,
-                        "splitNumber": 10,
-                        "axisLine": {
-                            "show": true,
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC"
-                            }
+                      "name": "",
+                      "type": "value",
+                      "min": 0,
+                      "max": 500,
+                      "splitNumber": 10,
+                      "axisLine": {
+                        "show": true,
+                        "symbol": [
+                          "none",
+                          "arrow"
+                        ],
+                        "lineStyle": {
+                          "color": "#3366CC"
                         }
+                      }
                     },
                     "series": []
                   }
                   settingWeek.xAxis.data = getSmartDate() as any;
-                  if(dataValue.dataType == "371201"){
+                  if (dataValue.dataType == "371201") {
                     settingWeek.title.text = "Blood Pressure";
                     settingWeek.yAxis.name = "mmHg";
                     settingWeek.yAxis.max = dataType[dataValue.dataType][3];
                     //@ts-ignore
-                    settingWeek.legend.data.push("heightBloodPressure","lowBloodPressure")
+                    settingWeek.legend.data.push("heightBloodPressure", "lowBloodPressure")
                     //@ts-ignore
                     settingWeek.series.push({
                       "name": "heightBloodPressure",
                       "type": dataValue.type,
                       "symbolSize": 8,
                       "data": [],
-                      connectNulls:true,
+                      connectNulls: true,
                       "itemStyle": {
-                          "normal": {
-                              "label": {
-                                  "show": true
-                              },
-                              "lineStyle": {
-                                  "width": 2,
-                                  "type": "solid"
-                              }
-                          }
-                      }
-                  },
-                  {
-                    "name": "lowBloodPressure",
-                    "type": dataValue.type,
-                    "symbol": "circle",
-                    "symbolSize": 8,
-                    // "smooth": 0.5,
-                    connectNulls:true,
-                    "itemStyle": {
                         "normal": {
+                          "label": {
+                            "show": true
+                          },
+                          "lineStyle": {
+                            "width": 2,
+                            "type": "solid"
+                          }
+                        }
+                      }
+                    },
+                      {
+                        "name": "lowBloodPressure",
+                        "type": dataValue.type,
+                        "symbol": "circle",
+                        "symbolSize": 8,
+                        // "smooth": 0.5,
+                        connectNulls: true,
+                        "itemStyle": {
+                          "normal": {
                             "label": {
-                                "show": true
+                              "show": true
                             },
                             "lineStyle": {
-                                "width": 2,
-                                "type": "solid"
+                              "width": 2,
+                              "type": "solid"
                             }
-                        }
-                    },
-                    "data": []
-                });
+                          }
+                        },
+                        "data": []
+                      });
                     (settingWeek.xAxis.data as any).forEach(element => {
                       _dateTempObj[element] = {}
-                      _dateTempObj[element]["heightBloodPressure"] =[];
-                      _dateTempObj[element]["lowBloodPressure"] =[];
+                      _dateTempObj[element]["heightBloodPressure"] = [];
+                      _dateTempObj[element]["lowBloodPressure"] = [];
                     });
-                    dataValue.dataSource.forEach((item)=>{
-                      let _stamp = get(item,"ctime");
-                      let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
-                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item,"name.data.heightBloodPressure"))
-                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item,"name.data.lowBloodPressure"))
+                    dataValue.dataSource.forEach((item) => {
+                      let _stamp = get(item, "ctime");
+                      let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
+                      _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
+                      _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
                     })
-                    Object.values(_dateTempObj).forEach((item)=>{
-                      if(item["heightBloodPressure"].length>0){
+                    Object.values(_dateTempObj).forEach((item) => {
+                      if (item["heightBloodPressure"].length > 0) {
                         // @ts-ignore
-                        settingWeek.series[0]["data"].push( (item["heightBloodPressure"]?.reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed() )
+                        settingWeek.series[0]["data"].push((item["heightBloodPressure"]?.reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed())
                         // @ts-ignore
                         settingWeek.series[1]["data"].push((item["lowBloodPressure"]?.reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
-                      }else{
+                      } else {
                         (settingWeek.series[0]["data"] as any[]).push(undefined);
                         (settingWeek.series[1]["data"] as any[]).push(undefined);
                       }
                     })
                     setting = settingWeek as any;
-                  }else{
+                  } else {
                     settingWeek.title.text = dataType[dataValue.dataType][0];
                     settingWeek.yAxis.name = dataType[dataValue.dataType][1];
                     settingWeek.yAxis.max = dataType[dataValue.dataType][3];
@@ -408,52 +408,52 @@ const createExtendedDOMResolvers = function (app: App) {
                       "type": dataValue.type,
                       "symbolSize": 8,
                       "data": [],
-                      connectNulls:true,
+                      connectNulls: true,
                       "itemStyle": {
-                          "normal": {
-                              "label": {
-                                  "show": true
-                              },
-                              "lineStyle": {
-                                  "width": 2,
-                                  "type": "solid"
-                              }
+                        "normal": {
+                          "label": {
+                            "show": true
+                          },
+                          "lineStyle": {
+                            "width": 2,
+                            "type": "solid"
                           }
+                        }
                       }
                     });
                     (settingWeek.xAxis.data as any).forEach(element => {
                       _dateTempObj[element] = {}
-                      _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] =[];
+                      _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] = [];
                     });
-                    dataValue.dataSource.forEach((item)=>{
-                      let _stamp = get(item,"ctime");
-                      let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
-                      if(dataValue.dataType == '386561'){
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item,`name.data.${dataType[dataValue.dataType][2][0]}`)+'.'+get(item,`name.data.${dataType[dataValue.dataType][2][1]}`)))
-                      }else{
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType][2]}`))
+                    dataValue.dataSource.forEach((item) => {
+                      let _stamp = get(item, "ctime");
+                      let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
+                      if (dataValue.dataType == '386561') {
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
+                      } else {
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
                       }
                     })
-                    Object.values(_dateTempObj).forEach((item)=>{
-                      if(item[`${dataType[dataValue.dataType][0]}`].length>0){
+                    Object.values(_dateTempObj).forEach((item) => {
+                      if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
                         let cum = (item[`${dataType[dataValue.dataType][0]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType][0]}`].length);
-                        if(dataValue.dataType == "386561"){
-                        // @ts-ignore
-                        settingWeek.series[0]["data"].push(cum.toFixed(2))
-                        }else{
-                        // @ts-ignore
-                        settingWeek.series[0]["data"].push(cum.toFixed())
+                        if (dataValue.dataType == "386561") {
+                          // @ts-ignore
+                          settingWeek.series[0]["data"].push(cum.toFixed(2))
+                        } else {
+                          // @ts-ignore
+                          settingWeek.series[0]["data"].push(cum.toFixed())
                         }
 
-                      }else{
+                      } else {
                         (settingWeek.series[0]["data"] as any[]).push(undefined);
                       }
                     })
-                  setting = settingWeek as any;
+                    setting = settingWeek as any;
                   }
                   // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
-                }else if(dataValue.dateType==='day'){
-                  let settingDay=  {
+                } else if (dataValue.dateType === 'day') {
+                  let settingDay = {
                     "title": {
                       show: true,
                       text: "Blood Pressure",
@@ -462,96 +462,98 @@ const createExtendedDOMResolvers = function (app: App) {
                       top: '8%',//title 组件离容器上侧的距离
                       // bottom: 'auto',//title 组件离容器下侧的距离
                       textStyle: {
-                        color:" #000",//字体颜色
+                        color: " #000",//字体颜色
                         fontStyle: 'bold',//字体风格
                         fontWeight: 'normal',//字体粗细
                         fontFamily: 'sans-serif',//文字字体
-                        fontSize:18,//字体大小
+                        fontSize: 18,//字体大小
                       }
                     },
                     "tooltip": {
-                        "trigger": "axis",
-                        "axisPointer": {
-                            "type": "cross",
-                            "axis": "auto",
-                            "snap": true,
-                            "showContent": true
-                        },
-                        textStyle: {
-                          color: '#000',     // 文字的颜色
-                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
-                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
-                          // fontSize: '20',    // 文字字体大小
-                          // lineHeight: '50',    // 行高
+                      "trigger": "axis",
+                      "axisPointer": {
+                        "type": "cross",
+                        "axis": "auto",
+                        "snap": true,
+                        "showContent": true
+                      },
+                      textStyle: {
+                        color: '#000',     // 文字的颜色
+                        fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                        fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                        // fontSize: '20',    // 文字字体大小
+                        // lineHeight: '50',    // 行高
                       }
                     },
                     "grid": {
-                        show: true,
-                        "top": "20%",
-                        "left": "10%",
-                        "right": "15%",
-                        "bottom": "3%",
-                        "containLabel": true,
-                        // width: "820px",
-                        // height: "280px"
+                      show: true,
+                      "top": "20%",
+                      "left": "10%",
+                      "right": "15%",
+                      "bottom": "3%",
+                      "containLabel": true,
+                      // width: "820px",
+                      // height: "280px"
 
                     },
                     "legend": {
-                        "orient": "horizontal",
-                        "x": "left",
-                        "y": "top",
-                        "data": []
+                      "orient": "horizontal",
+                      "x": "left",
+                      "y": "top",
+                      "data": []
                     },
                     "xAxis": {
-                        type: "category",
-                        // type: "time",
-                        show: true,
-                        // min: 0,
-                        // max: 24,
-                        "name": "Time",
-                        "axisLine": {
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC"
-                            }
-                        },
-                        // splitNumber: 2,
-                        "axisLabel": {
-                          formatter: null
-                            // "rotate": 45,
-                            // "interval": 0
-                        },
-                        "boundaryGap": false,
-                        "data": []
+                      type: "category",
+                      // type: "time",
+                      show: true,
+                      // min: 0,
+                      // max: 24,
+                      "name": "Time",
+                      "axisLine": {
+                        "symbol": [
+                          "none",
+                          "arrow"
+                        ],
+                        "lineStyle": {
+                          "color": "#3366CC"
+                        }
+                      },
+                      // splitNumber: 2,
+                      "axisLabel": {
+                        formatter: null
+                        // "rotate": 45,
+                        // "interval": 0
+                      },
+                      "boundaryGap": false,
+                      "data": []
                     },
                     "yAxis": {
-                        "name": "",
-                        "type": "value",
-                        "min": 0,
-                        "max": 300,
-                        "splitNumber": 10,
-                        "axisLine": {
-                            "show": true,
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC"
-                            }
+                      "name": "",
+                      "type": "value",
+                      "min": 0,
+                      "max": 300,
+                      "splitNumber": 10,
+                      "axisLine": {
+                        "show": true,
+                        "symbol": [
+                          "none",
+                          "arrow"
+                        ],
+                        "lineStyle": {
+                          "color": "#3366CC"
                         }
+                      }
                     },
                     "series": []
                   }
-                  if(dataValue.dataType == "371201"){
+                  if (dataValue.dataType == "371201") {
+                    console.error('进入了 day 血压');
+
                     settingDay.yAxis.name = "mmHg";
                     settingDay.title.text = "Blood Pressure"
                     settingDay.yAxis.max = dataType[dataValue.dataType][3];
                     //@ts-ignore
-                    settingDay.legend.data.push( "heightBloodPressure","lowBloodPressure")
+                    settingDay.legend.data.push("heightBloodPressure", "lowBloodPressure")
                     //@ts-ignore
                     settingDay.series.push({
                       "name": "heightBloodPressure",
@@ -559,54 +561,57 @@ const createExtendedDOMResolvers = function (app: App) {
                       "symbolSize": 8,
                       "data": [],
                       "itemStyle": {
-                          "normal": {
-                              "label": {
-                                  "show": true
-                              },
-                              "lineStyle": {
-                                  "width": 2,
-                                  "type": "solid"
-                              }
-                          }
-                      }
-                  },
-                  {
-                    "name": "lowBloodPressure",
-                    "type": dataValue.type,
-                    "symbol": "circle",
-                    "symbolSize": 8,
-                    // "smooth": 0.5,
-                    "itemStyle": {
                         "normal": {
+                          "label": {
+                            "show": true
+                          },
+                          "lineStyle": {
+                            "width": 2,
+                            "type": "solid"
+                          }
+                        }
+                      }
+                    },
+                      {
+                        "name": "lowBloodPressure",
+                        "type": dataValue.type,
+                        "symbol": "circle",
+                        "symbolSize": 8,
+                        // "smooth": 0.5,
+                        "itemStyle": {
+                          "normal": {
                             "label": {
-                                "show": true
+                              "show": true
                             },
                             "lineStyle": {
-                                "width": 2,
-                                "type": "solid"
+                              "width": 2,
+                              "type": "solid"
                             }
-                        }
-                    },
-                    "data": []
-                });
-                    dataValue.dataSource.forEach((item)=>{
-                      let _stamp = get(item,"ctime");
-                      let signal = moment(_stamp*1000).format('HH:mm');
-                        if(!_dateTempObj[signal]){
+                          }
+                        },
+                        "data": []
+                      });
+                    console.error('dataValue');
+                    console.error(dataValue.dataSource.length);
+
+                    dataValue.dataSource.forEach((item) => {
+                      let _stamp = get(item, "ctime");
+                      let signal = moment(_stamp * 1000).format('HH:mm');
+                      if (!_dateTempObj[signal]) {
                         _dateTempObj[signal] = {}
-                          _dateTempObj[signal]["heightBloodPressure"] = []
-                          _dateTempObj[signal]['lowBloodPressure'] = []
-                        }
-                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item,"name.data.heightBloodPressure"))
-                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item,"name.data.lowBloodPressure"))
+                        _dateTempObj[signal]["heightBloodPressure"] = []
+                        _dateTempObj[signal]['lowBloodPressure'] = []
+                      }
+                      _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
+                      _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
                     })
-                    Object.values(_dateTempObj).forEach((item)=>{
+                    Object.values(_dateTempObj).forEach((item) => {
                       // @ts-ignore
                       settingDay.series[0]["data"].push(...item["heightBloodPressure"])
                       // @ts-ignore
                       settingDay.series[1]["data"].push(...item["lowBloodPressure"])
                     })
-                  }else{
+                  } else {
                     //@ts-ignore
                     settingDay.title.text = dataType[dataValue.dataType][0]
                     settingDay.yAxis.name = dataType[dataValue.dataType][1];
@@ -618,46 +623,52 @@ const createExtendedDOMResolvers = function (app: App) {
                       "symbolSize": 8,
                       "data": [],
                       "itemStyle": {
-                          "normal": {
-                              "label": {
-                                  "show": true
-                              },
-                              "lineStyle": {
-                                  "width": 2,
-                                  "type": "solid"
-                              }
+                        "normal": {
+                          "label": {
+                            "show": true
+                          },
+                          "lineStyle": {
+                            "width": 2,
+                            "type": "solid"
                           }
+                        }
                       }
-                  })
-                    dataValue.dataSource.forEach((item)=>{
-                      let _stamp = get(item,"ctime");
-                      let signal = moment(_stamp*1000).format('HH:mm');
-                      if(!_dateTempObj[signal]){
-                        _dateTempObj[signal] = {}
-                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
-                        }
-                        if(dataValue.dataType == '386561'){
-                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item,`name.data.${dataType[dataValue.dataType][2][0]}`)+'.'+get(item,`name.data.${dataType[dataValue.dataType][2][1]}`)))
-                        }else{
-                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType][2]}`))
-                        }
                     })
-                    Object.values(_dateTempObj).forEach((item)=>{
-                      if(item[`${dataType[dataValue.dataType][0]}`].length>0){
+                    dataValue.dataSource.forEach((item) => {
+                      let _stamp = get(item, "ctime");
+                      let signal = moment(_stamp * 1000).format('HH:mm');
+                      if (!_dateTempObj[signal]) {
+                        _dateTempObj[signal] = {}
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
+                      }
+                      if (dataValue.dataType == '386561') {
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
+                      } else {
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
+                      }
+                    })
+                    Object.values(_dateTempObj).forEach((item) => {
+                      if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
                         // @ts-ignore
-                      settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
+                        settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
                       }
                     })
                   }
-                  let _date = new Date(dataValue.dataSource[0]["ctime"]*1000);
-                  settingDay.xAxis.data = Object.keys(_dateTempObj).map((item:any)=>{
-                  const date =  moment({year: _date.getFullYear(),month: _date.getMonth(),day: _date.getDate(),hour: item.split(":")[0],minute: item.split(":")[1]})
-                  let showD =date.format('MM-DD');
-                  let showH = date.format('HH:mm');
-                  return showD+'\n'+showH;
+                  let _date: Date
+                  if (dataValue.dataSource.length == 0) {
+                    _date = new Date();
+                  } else {
+                    _date = new Date(dataValue.dataSource[0]["ctime"] * 1000);
+                  }
+                  settingDay.xAxis.data = Object.keys(_dateTempObj).map((item: any) => {
+                    const date = moment({ year: _date.getFullYear(), month: _date.getMonth(), day: _date.getDate(), hour: item.split(":")[0], minute: item.split(":")[1] })
+                    let showD = date.format('MM-DD');
+                    let showH = date.format('HH:mm');
+                    return showD + '\n' + showH;
                   }) as any
                   setting = settingDay as any;
-                }else if(dataValue.dateType==='month'){
+
+                } else if (dataValue.dateType === 'month') {
                 }
                 //@ts-ignore
                 let myChart = echarts.init(node)
@@ -778,9 +789,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 gridSearch?.addEventListener('click', stopProp)
                 component.addEventListeners({
                   event: 'click',
-                  callback: ()=>{
-                    gridPages?.removeEventListener('click',stopProp)
-                    gridSearch?.removeEventListener('click',stopProp)
+                  callback: () => {
+                    gridPages?.removeEventListener('click', stopProp)
+                    gridSearch?.removeEventListener('click', stopProp)
                   }
                 })
                 break
@@ -797,8 +808,8 @@ const createExtendedDOMResolvers = function (app: App) {
                     right: 'timeGridDay,timeGridWeek',
                   }
                   let defaultData = dataValue.chartData;
-                  defaultData = defaultData.filter((element)=>{
-                    if(!(+element.etime - +element.stime === 86400))return element;
+                  defaultData = defaultData.filter((element) => {
+                    if (!(+element.etime - +element.stime === 86400)) return element;
                   })
                   if (u.isArr(defaultData)) {
                     defaultData.forEach((element) => {
@@ -829,15 +840,15 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                       element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
-                      if((element.tage & 0xf000) >> 12===3){
+                      if ((element.tage & 0xf000) >> 12 === 3) {
                         element.coverageType = "Personal Injury"
-                      }else if((element.tage & 0xf000) >> 12===1){
+                      } else if ((element.tage & 0xf000) >> 12 === 1) {
                         element.coverageType = "Medical Insurance"
-                      }else if((element.tage & 0xf000) >> 12===2){
+                      } else if ((element.tage & 0xf000) >> 12 === 2) {
                         element.coverageType = "Workers Comp"
-                      }else if((element.tage & 0xf000) >> 12===4){
+                      } else if ((element.tage & 0xf000) >> 12 === 4) {
                         element.coverageType = "Self Pay"
-                      }else if((element.tage & 0xf000) >> 12===0){
+                      } else if ((element.tage & 0xf000) >> 12 === 0) {
                         element.coverageType = "No Selected"
                       }
                       delete element.stime
@@ -849,10 +860,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     defaultData = []
                   }
                   let initialView = "timeGridDay";
-                  if(dataValue.dataWeek == "week"){
-                    if(dataValue.dataDay === "day"){
-                    initialView = "timeGridDay";
-                    }else{
+                  if (dataValue.dataWeek == "week") {
+                    if (dataValue.dataDay === "day") {
+                      initialView = "timeGridDay";
+                    } else {
                       initialView = "timeGridWeek";
                     }
                   }
@@ -886,7 +897,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) {},
+                    viewDidMount(mountArg) { },
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -907,14 +918,14 @@ const createExtendedDOMResolvers = function (app: App) {
                           info.event._def.extendedProps.visitType +
                           '</div>\
                                         <div style="padding-top:3px">Reason ：' +
-                          (info.event._def.extendedProps.name??info.event._def.extendedProps.Reason) +
+                          (info.event._def.extendedProps.name ?? info.event._def.extendedProps.Reason) +
                           '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                              new Date().getTimezoneOffset() * 60 * 1000,
+                            new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '<div  style="padding-top:3px">Duration：' +
@@ -924,13 +935,13 @@ const createExtendedDOMResolvers = function (app: App) {
                           '<div  style="padding-top:3px">Coverage Type: ' +
                           info.event._def.extendedProps.coverageType +
                           '</div>'
-                            ,
+                        ,
                         allowHTML: true,
                         //theme: 'translucent',
                         interactive: true,
                         placement: 'top',
                         // followCursor: true,
-                        appendTo: ()=>node
+                        appendTo: () => node
                         // plugins: [followCursor],
                         // duration: [0, 0],
                       })
@@ -948,27 +959,27 @@ const createExtendedDOMResolvers = function (app: App) {
                     inst: calendar,
                     page: pageName,
                   }
-                  if(dataValue.start&&dataValue.end){
-                    if(dataValue.currentDate){
-                      if(dataValue.dataWeek == "week"){
-                        calendar.gotoDate( dataValue.start*1000)
-                      }else{
-                        calendar.gotoDate( dataValue.currentDate*1000)
+                  if (dataValue.start && dataValue.end) {
+                    if (dataValue.currentDate) {
+                      if (dataValue.dataWeek == "week") {
+                        calendar.gotoDate(dataValue.start * 1000)
+                      } else {
+                        calendar.gotoDate(dataValue.currentDate * 1000)
                       }
-                    }else if(dataValue.end - dataValue.start>86400){
-                    calendar.gotoDate( new Date().getTime())
-                    }else{
-                    calendar.gotoDate( dataValue.start*1000)
+                    } else if (dataValue.end - dataValue.start > 86400) {
+                      calendar.gotoDate(new Date().getTime())
+                    } else {
+                      calendar.gotoDate(dataValue.start * 1000)
                     }
                   }
                   calendar.render();
                   component.addEventListeners({
                     event: 'calendar',
-                    callback: ()=>{
-                      const timer = setTimeout(()=>{
+                    callback: () => {
+                      const timer = setTimeout(() => {
                         calendar.destroy()
                         clearTimeout(timer)
-                      },10000)
+                      }, 10000)
                     }
                   })
                   window.setTimeout(() => {
@@ -978,23 +989,23 @@ const createExtendedDOMResolvers = function (app: App) {
                       )[0] as HTMLDivElement
                     )?.scrollIntoView({ behavior: 'smooth' });
                     let docEventPrevClick: HTMLButtonElement =
-                    document.querySelectorAll(
-                      '.fc-prev-button',
-                    )[0] as HTMLButtonElement
-                  let docEventNextClick: HTMLButtonElement =
-                    document.querySelectorAll(
-                      '.fc-next-button',
-                    )[0] as HTMLButtonElement
-                  let docEventDayClick: HTMLButtonElement =
-                  document.querySelectorAll(
-                    '.fc-timeGridDay-button',
-                  )[0] as HTMLButtonElement
-                  let docEventWeekClick: HTMLButtonElement =
-                    document.querySelectorAll(
-                      '.fc-timeGridWeek-button',
-                    )[0] as HTMLButtonElement
-                  let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
-                  let titleTime = document.getElementsByClassName('fc-toolbar-title')[0];
+                      document.querySelectorAll(
+                        '.fc-prev-button',
+                      )[0] as HTMLButtonElement
+                    let docEventNextClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-next-button',
+                      )[0] as HTMLButtonElement
+                    let docEventDayClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridDay-button',
+                      )[0] as HTMLButtonElement
+                    let docEventWeekClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridWeek-button',
+                      )[0] as HTMLButtonElement
+                    let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
+                    let titleTime = document.getElementsByClassName('fc-toolbar-title')[0];
                     let months = [
                       'January',
                       'February',
@@ -1023,104 +1034,104 @@ const createExtendedDOMResolvers = function (app: App) {
                       'Nov',
                       'Dec',
                     ];
-                  const timeClick = (e)=>{
-                    dataValue.data = ''
-                  }
-                  timeTable?.addEventListener('click',timeClick,true)
-                  component.addEventListeners({
-                    event: 'click',
-                    callback: ()=>{
-                      timeTable.removeEventListener('click',timeClick)
+                    const timeClick = (e) => {
+                      dataValue.data = ''
                     }
-                  })
-                  function getEventTime(){
-                    let getMonth =  titleTime.textContent?.split(" ")[0] as string;
-                    let getDay =  titleTime.textContent?.split(" ")[1]?.split(",")[0] as string;
-                    let getYear=  titleTime.textContent?.split(",")[1] as string;
-                    let getTimeNow = new Date(+getYear, (+months.indexOf(getMonth)),+getDay).getTime();
-                    if(dataValue.currentDate!==dataValue.start){
-                      dataValue.start = dataValue.currentDate;
-                    dataValue.end = dataValue.currentDate + 86400;
-                    }else{
-                      dataValue.start = getTimeNow/1000;
-                    dataValue.end = getTimeNow/1000 + 86400;
+                    timeTable?.addEventListener('click', timeClick, true)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        timeTable.removeEventListener('click', timeClick)
+                      }
+                    })
+                    function getEventTime() {
+                      let getMonth = titleTime.textContent?.split(" ")[0] as string;
+                      let getDay = titleTime.textContent?.split(" ")[1]?.split(",")[0] as string;
+                      let getYear = titleTime.textContent?.split(",")[1] as string;
+                      let getTimeNow = new Date(+getYear, (+months.indexOf(getMonth)), +getDay).getTime();
+                      if (dataValue.currentDate !== dataValue.start) {
+                        dataValue.start = dataValue.currentDate;
+                        dataValue.end = dataValue.currentDate + 86400;
+                      } else {
+                        dataValue.start = getTimeNow / 1000;
+                        dataValue.end = getTimeNow / 1000 + 86400;
+                      }
                     }
-                  }
-                  function getEventTimeWeek(){
-                    let getMonth =  titleTime.textContent?.split(" ")[0] as string;
-                    let getDay =  titleTime.textContent?.split("-")[0]?.split(" ")[1] as string;
-                    let getYear=  titleTime.textContent?.split(",")[1] as string;
-                    let getTimeNow = new Date(+getYear, (+abbMonths.indexOf(getMonth)),+getDay).getTime();
-                    dataValue.start = getTimeNow/1000;
-                    dataValue.end = getTimeNow/1000 + 604800;
-                    if(!dataValue.currentDate){
-                      dataValue.currentDate = new Date(new Date().toLocaleDateString()).getTime()/1000;
+                    function getEventTimeWeek() {
+                      let getMonth = titleTime.textContent?.split(" ")[0] as string;
+                      let getDay = titleTime.textContent?.split("-")[0]?.split(" ")[1] as string;
+                      let getYear = titleTime.textContent?.split(",")[1] as string;
+                      let getTimeNow = new Date(+getYear, (+abbMonths.indexOf(getMonth)), +getDay).getTime();
+                      dataValue.start = getTimeNow / 1000;
+                      dataValue.end = getTimeNow / 1000 + 604800;
+                      if (!dataValue.currentDate) {
+                        dataValue.currentDate = new Date(new Date().toLocaleDateString()).getTime() / 1000;
+                      }
                     }
-                  }
-                  const prevClick = (e) => {
-                    if(!dataValue.dataWeek&&dataValue.dataWeek !== 'week'){
+                    const prevClick = (e) => {
+                      if (!dataValue.dataWeek && dataValue.dataWeek !== 'week') {
+                        getEventTime();
+                      } else {
+                        getEventTimeWeek()
+                      }
+                      if (!(dataValue.dataDay || dataValue.dataWeek) || (dataValue.dataDay == "day" && dataValue.dataWeek == '')) {
+                        dataValue.currentDate = dataValue.start;
+                      }
+                      dataValue.data = 'prev';
+                    }
+                    const nextClick = (e) => {
+                      if (!dataValue.dataWeek && dataValue.dataWeek !== 'week') {
+                        getEventTime();
+                      } else {
+                        getEventTimeWeek()
+                      }
+                      if (!(dataValue.dataDay || dataValue.dataWeek) || (dataValue.dataDay == "day" && dataValue.dataWeek == '')) {
+                        dataValue.currentDate = dataValue.start;
+                      }
+                      dataValue.data = 'next';
+                    }
+                    docEventPrevClick.addEventListener('click', prevClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventPrevClick.removeEventListener('click', prevClick)
+                      }
+                    })
+                    docEventNextClick.addEventListener('click', nextClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventNextClick.removeEventListener('click', nextClick)
+                      }
+                    })
+                    const dayClick = (e) => {
                       getEventTime();
-                    }else{
-                      getEventTimeWeek()
-                    }
-                    if(!(dataValue.dataDay||dataValue.dataWeek)||(dataValue.dataDay =="day"&&dataValue.dataWeek == '')){
-                      dataValue.currentDate = dataValue.start;
-                    }
-                    dataValue.data = 'prev';
-                  }
-                  const nextClick = (e) => {
-                    if(!dataValue.dataWeek&&dataValue.dataWeek !== 'week'){
-                      getEventTime();
-                    }else{
-                      getEventTimeWeek()
-                    }
-                    if(!(dataValue.dataDay||dataValue.dataWeek)||(dataValue.dataDay =="day"&&dataValue.dataWeek == '')){
-                      dataValue.currentDate = dataValue.start;
-                    }
-                    dataValue.data = 'next';
-                  }
-                  docEventPrevClick.addEventListener('click', prevClick)
-                  component.addEventListeners({
-                    event: 'click',
-                    callback: ()=>{
-                      docEventPrevClick.removeEventListener('click',prevClick)
-                    }
-                  })
-                  docEventNextClick.addEventListener('click', nextClick)
-                  component.addEventListeners({
-                    event: 'click',
-                    callback: ()=>{
-                      docEventNextClick.removeEventListener('click',nextClick)
-                    }
-                  })
-                  const dayClick = (e) => {
-                    getEventTime();
-                    dataValue.data = 'day'
-                    dataValue.dataDay = 'day'
-                    dataValue.dataWeek = ''
-                    titleTime.textContent =  ""
+                      dataValue.data = 'day'
+                      dataValue.dataDay = 'day'
+                      dataValue.dataWeek = ''
+                      titleTime.textContent = ""
 
-                  }
-                  const weekClick = (e) => {
-                    getEventTimeWeek();
-                    dataValue.data = 'week'
-                    dataValue.dataWeek = 'week'
-                    dataValue.dataDay = ''
-                  }
-                  docEventDayClick.addEventListener('click', dayClick)
-                  component.addEventListeners({
-                    event: 'click',
-                    callback: ()=>{
-                      docEventDayClick.removeEventListener('click',dayClick)
                     }
-                  })
-                  docEventWeekClick.addEventListener('click',weekClick)
-                  component.addEventListeners({
-                    event: 'click',
-                    callback: ()=>{
-                      docEventWeekClick.removeEventListener('click',weekClick)
+                    const weekClick = (e) => {
+                      getEventTimeWeek();
+                      dataValue.data = 'week'
+                      dataValue.dataWeek = 'week'
+                      dataValue.dataDay = ''
                     }
-                  })
+                    docEventDayClick.addEventListener('click', dayClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventDayClick.removeEventListener('click', dayClick)
+                      }
+                    })
+                    docEventWeekClick.addEventListener('click', weekClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventWeekClick.removeEventListener('click', weekClick)
+                      }
+                    })
                   }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
@@ -1161,12 +1172,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] data-value': {
       cond: ({ node }) => isTextFieldLike(node),
       before({ node, component }) {
-        ;(node as HTMLInputElement).value = component.get('data-value') || ''
+        ; (node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ;(node as HTMLSelectElement)['selectedIndex'] = 0
+            ; (node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -1197,7 +1208,7 @@ const createExtendedDOMResolvers = function (app: App) {
             //   'input',
             //   executeFunc,
             // )
-            const listener = addListener(node,'input',executeFunc)
+            const listener = addListener(node, 'input', executeFunc)
             component.addEventListeners(listener)
           } else {
             const executeFunc = getOnChange({
@@ -1220,33 +1231,33 @@ const createExtendedDOMResolvers = function (app: App) {
 
             //   }),
             // )
-            const listener = addListener(node,'change',executeFunc)
+            const listener = addListener(node, 'change', executeFunc)
             component.addEventListeners(listener)
 
             if (component?.type == 'textField') {
               const executeFunc = component.blueprint.debounce
-                  ? antiShake(
-                      getOnChange({
-                        component,
-                        dataKey,
-                        evtName: 'onInput',
-                        node: node as NDOMElement,
-                        iteratorVar,
-                        page,
-                        initialCapital
-                      }),
-                      component.blueprint.debounce,
-                    )
-                  : getOnChange({
-                      component,
-                      dataKey,
-                      evtName: 'onInput',
-                      node: node as NDOMElement,
-                      iteratorVar,
-                      page,
-                      initialCapital
-                    })
-              const listener = addListener(node,'input',executeFunc)
+                ? antiShake(
+                  getOnChange({
+                    component,
+                    dataKey,
+                    evtName: 'onInput',
+                    node: node as NDOMElement,
+                    iteratorVar,
+                    page,
+                    initialCapital
+                  }),
+                  component.blueprint.debounce,
+                )
+                : getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                  initialCapital
+                })
+              const listener = addListener(node, 'input', executeFunc)
               component.addEventListeners(listener)
               // node.addEventListener(
               //   'input',
@@ -1283,7 +1294,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 iteratorVar,
                 page,
               })
-              const listener = addListener(node,'input',executeFunc)
+              const listener = addListener(node, 'input', executeFunc)
               component.addEventListeners(listener)
               // node.addEventListener(
               //   'input',
@@ -1310,7 +1321,7 @@ const createExtendedDOMResolvers = function (app: App) {
             iteratorVar,
             page,
           })
-          const listener = addListener(node,'blur',executeFunc)
+          const listener = addListener(node, 'blur', executeFunc)
           component.addEventListeners(listener)
           // node.addEventListener(
           //   'blur',
@@ -1324,12 +1335,12 @@ const createExtendedDOMResolvers = function (app: App) {
           //   }),
           // )
         }
-        if(showFocus){
-          node?.setAttribute("showSoftInput","true")
-          const timer = setTimeout(()=>{
+        if (showFocus) {
+          node?.setAttribute("showSoftInput", "true")
+          const timer = setTimeout(() => {
             node?.focus();
             clearTimeout(timer)
-          },100)
+          }, 100)
         }
       },
     },
@@ -1438,7 +1449,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            ;(node as HTMLImageElement).src = url
+            ; (node as HTMLImageElement).src = url
           })
         }
       },
@@ -1678,8 +1689,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-              ? false
-              : true
+                ? false
+                : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1848,14 +1859,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                        Name +
-                        ' </span><br> <span style="font-size: 1vh;">' +
-                        Speciality +
-                        '</span><br> <span style="font-size: 1vh;">' +
-                        phoneNumber +
-                        '</span><br> <span style="font-size: 1vh;">' +
-                        address +
-                        '</span>',
+                      Name +
+                      ' </span><br> <span style="font-size: 1vh;">' +
+                      Speciality +
+                      '</span><br> <span style="font-size: 1vh;">' +
+                      phoneNumber +
+                      '</span><br> <span style="font-size: 1vh;">' +
+                      address +
+                      '</span>',
                     )
                     .addTo(map)
                 })
@@ -1884,8 +1895,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-              ? false
-              : true
+                ? false
+                : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1966,14 +1977,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (app.subStreams.elementExists(node)) {
               log.error(
                 `Attempted to add an element to a subStream but it ` +
-                  `already exists in the subStreams container`,
+                `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
           } else {
             log.error(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-                `was not available`,
+              `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
@@ -2135,8 +2146,8 @@ const createExtendedDOMResolvers = function (app: App) {
             /number|integer/i.test(contentType)
               ? 'number'
               : u.isStr(contentType)
-              ? contentType
-              : 'text',
+                ? contentType
+                : 'text',
           )
         }
       },
@@ -2193,20 +2204,20 @@ const createExtendedDOMResolvers = function (app: App) {
             direction?: 'vertical' | 'horizontal'
             spaceBetween?: number
             autoplay?:
-              | boolean
-              | {
-                  delay: number
-                  stopOnLastSlide?: boolean
-                  disableOnInteraction?: boolean
-                }
+            | boolean
+            | {
+              delay: number
+              stopOnLastSlide?: boolean
+              disableOnInteraction?: boolean
+            }
             slidesPerView?: number
             effect?: 'slide' | 'fade' | 'cube' | 'coverflow' | 'flip'
             pagination?:
-              | boolean
-              | {
-                  type?: 'bullets' | 'fraction' | 'progressbar' | 'custom'
-                  clickable?: boolean
-                }
+            | boolean
+            | {
+              type?: 'bullets' | 'fraction' | 'progressbar' | 'custom'
+              clickable?: boolean
+            }
             navigation?: boolean
             childStyle?: {
               width?: number | string
@@ -2275,11 +2286,11 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           for (let index = 0; index < listDom.childElementCount; index++) {
-            ;(listDom.children[index] as HTMLLIElement).setAttribute(
+            ; (listDom.children[index] as HTMLLIElement).setAttribute(
               'class',
               'swiper-slide',
             )
-            ;(listDom.children[index] as HTMLLIElement).style.cssText = `
+              ; (listDom.children[index] as HTMLLIElement).style.cssText = `
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -2414,8 +2425,8 @@ const createExtendedDOMResolvers = function (app: App) {
             document.createDocumentFragment()
           // let childrenConta = document.createElement('div')
           node.textContent = "";
-          if(get(app.root.Global,dataOptions["checkName"]).length){
-            dataValue['selectedData'] = cloneDeep(get(app.root.Global,dataOptions["checkName"]))
+          if (get(app.root.Global, dataOptions["checkName"]).length) {
+            dataValue['selectedData'] = cloneDeep(get(app.root.Global, dataOptions["checkName"]))
           }
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
@@ -2462,10 +2473,10 @@ const createExtendedDOMResolvers = function (app: App) {
           let C = `{
             appearance: none;
         }`
-        let cadlVersion = JSON.parse(localStorage.getItem("config") as string).web.cadlVersion.stable;
-        let cadlConfigUrl = (JSON.parse(localStorage.getItem("config") as string).cadlBaseUrl as string)
-        let url = cadlConfigUrl.startsWith("http")?cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion: "/admin/admin";
-        let chechedC = `{
+          let cadlVersion = JSON.parse(localStorage.getItem("config") as string).web.cadlVersion.stable;
+          let cadlConfigUrl = (JSON.parse(localStorage.getItem("config") as string).cadlBaseUrl as string)
+          let url = cadlConfigUrl.startsWith("http") ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion : "/admin/admin";
+          let chechedC = `{
           content: "";
           display: inline-block;
           vertical-align: middle;
@@ -2474,67 +2485,67 @@ const createExtendedDOMResolvers = function (app: App) {
           background-image: url(${url}/assets/selectGray.svg);
           background-size: 100%;
         }`
-        let chechedCheck = `{
+          let chechedCheck = `{
           background-image: url(${url}/assets/selectGrayBlue.svg);
         }`
-        switch (styleCheckBox) {
-          case 'A': {
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]${A}`,
-              0,
-            )
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]:checked::before${chechedA}`,
-              0,
-            )
-            break
+          switch (styleCheckBox) {
+            case 'A': {
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${A}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedA}`,
+                0,
+              )
+              break
+            }
+            case 'B': {
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${B}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedB}`,
+                0,
+              )
+              break
+            }
+            case 'C': {
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${C}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]::before${chechedC}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedCheck}`,
+                0,
+              )
+              break
+            }
+            default: {
+              break
+            }
           }
-          case 'B': {
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]${B}`,
-              0,
-            )
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]:checked::before${chechedB}`,
-              0,
-            )
-            break
-          }
-          case 'C': {
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]${C}`,
-              0,
-            )
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]::before${chechedC}`,
-              0,
-            )
-            document.styleSheets[0].insertRule(
-              `input[class=${styleCheckBox}]:checked::before${chechedCheck}`,
-              0,
-            )
-            break
-          }
-          default: {
-            break
-          }
-        }
-        const arrData:number[] = []
+          const arrData: number[] = []
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
             let contanierDiv = document.createElement('div')
 
-            if(dataOptions["module"]=== "radio"){
+            if (dataOptions["module"] === "radio") {
               childInput.type = 'radio';
               childInput.name = "radio";
-            }else{
+            } else {
               childInput.type = 'checkbox'
             }
             childInput.value = i + '';
 
-            spanDom.textContent = get(dataValue['allData'][i],dataValue["path"])
-            if (dataValue['selectedData'].includes(get(dataValue['allData'][i],dataValue["path"]))) {
+            spanDom.textContent = get(dataValue['allData'][i], dataValue["path"])
+            if (dataValue['selectedData'].includes(get(dataValue['allData'][i], dataValue["path"]))) {
               childInput.checked = true;
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, [i])
@@ -2549,7 +2560,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['inputStyle'])[index]}`
               let styleValue =
                 dataOptions['inputStyle'][
-                  `${Object.keys(dataOptions['inputStyle'])[index]}`
+                `${Object.keys(dataOptions['inputStyle'])[index]}`
                 ]
               childInput.style[styleKey] = styleValue
             }
@@ -2561,7 +2572,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['textStyle'])[index]}`
               let styleValue =
                 dataOptions['textStyle'][
-                  `${Object.keys(dataOptions['textStyle'])[index]}`
+                `${Object.keys(dataOptions['textStyle'])[index]}`
                 ]
               spanDom.style[styleKey] = styleValue
             }
@@ -2570,12 +2581,11 @@ const createExtendedDOMResolvers = function (app: App) {
               index < Object.keys(dataOptions['containerStyle']).length;
               index++
             ) {
-              let styleKey = `${
-                Object.keys(dataOptions['containerStyle'])[index]
-              }`
+              let styleKey = `${Object.keys(dataOptions['containerStyle'])[index]
+                }`
               let styleValue =
                 dataOptions['containerStyle'][
-                  `${Object.keys(dataOptions['containerStyle'])[index]}`
+                `${Object.keys(dataOptions['containerStyle'])[index]}`
                 ]
               contanierDiv.style[styleKey] = styleValue
             }
@@ -2590,13 +2600,13 @@ const createExtendedDOMResolvers = function (app: App) {
             let dataInput = +(e.target as HTMLInputElement).value;
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
               let selected = dataValue['selectedData'] as any
-              if(dataOptions["module"]=== "radio"){
+              if (dataOptions["module"] === "radio") {
                 selected = [];
                 selected[0] = dataInput;
-              }else{
+              } else {
                 !selected.includes(dataInput)
-                ? selected?.push(dataInput)
-                : selected?.splice(selected.indexOf(dataInput), 1)
+                  ? selected?.push(dataInput)
+                  : selected?.splice(selected.indexOf(dataInput), 1)
               }
               // let text =
               // selected.forEach((val)=>{
@@ -2605,22 +2615,22 @@ const createExtendedDOMResolvers = function (app: App) {
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, selected)
               })
-              if(dataOptions["data"]){
+              if (dataOptions["data"]) {
                 const keys = Object.keys(dataOptions["data"]);
                 const values = Object.values(dataOptions["data"]);
 
-                for(let i = 0;i<keys.length;i++){
+                for (let i = 0; i < keys.length; i++) {
                   app.updateRoot((draft) => {
-                    if(values[i]==="$"){
-                      set(draft?.[pageName], keys[i],dataValue['allData'][dataInput]);
-                    }else{
-                      set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput],`${values[i]}`));
+                    if (values[i] === "$") {
+                      set(draft?.[pageName], keys[i], dataValue['allData'][dataInput]);
+                    } else {
+                      set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput], `${values[i]}`));
                     }
                   })
                 }
               }
               // app.root.Global.checkboxArr = selected
-              set(app.root.Global,dataOptions["checkName"],dataValue['allData'][selected].name.data.category);
+              set(app.root.Global, dataOptions["checkName"], dataValue['allData'][selected].name.data.category);
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
@@ -2635,7 +2645,7 @@ const createExtendedDOMResolvers = function (app: App) {
         inputTarget.style.width = node.style.width;
         inputTarget.style.height = node.style.height;
         // inputTarget.setAttribute("class","latpickr form-control input")
-        flatpickr(inputTarget,{
+        flatpickr(inputTarget, {
           // altInput: true,
           // enableTime: true,
           appendTo: node,
@@ -2656,7 +2666,7 @@ const createExtendedDOMResolvers = function (app: App) {
           //   instance.calendarContainer.style.visibility = "visible"
           // }
         });
-      node.append(inputTarget);
+        node.append(inputTarget);
 
         // if (node && Object.keys(component.get('data-value'))) {
         // }
@@ -2717,10 +2727,10 @@ const createExtendedDOMResolvers = function (app: App) {
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
             let chatBackground: string
-            ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
-              domNode,
-              this.IsOwner(Msg.bsig),
-            )
+              ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+                domNode,
+                this.IsOwner(Msg.bsig),
+              )
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
@@ -2748,10 +2758,10 @@ const createExtendedDOMResolvers = function (app: App) {
           private createPdfNode(Msg: any): HTMLElement {
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
-            ;[domNode, domNodeContent] = this.judgeIsOwner(
-              domNode,
-              this.IsOwner(Msg.bsig),
-            )
+              ;[domNode, domNodeContent] = this.judgeIsOwner(
+                domNode,
+                this.IsOwner(Msg.bsig),
+              )
             let pdfInfo = this.judgePdfIsOwner(
               domNodeContent,
               this.IsOwner(Msg.bsig),
@@ -2853,17 +2863,14 @@ const createExtendedDOMResolvers = function (app: App) {
             pdfIcon.style.cssText = `
               width: ${this.pdfCss.pdfIconWidth}px;
               height: ${this.pdfCss.pdfIconHeight}px;
-              margin: ${
-                (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-              }px 10px ${
-              (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-            }px 10px;
+              margin: ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px;
             `
             let pdfInfo = document.createElement('div')
             pdfInfo.style.cssText = `
-                width: ${
-                  this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
-                }px;
+                width: ${this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
+              }px;
                 height: auto;
                 margin: 5px 10px 5px 10px;
                 display: flex;
