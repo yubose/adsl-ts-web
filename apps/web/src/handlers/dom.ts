@@ -231,10 +231,16 @@ const createExtendedDOMResolvers = function (app: App) {
                   return list;
               }
                   const dataType = {
-                    371201: 'bloodPressureData',
-                    373761: 'heartRateData',
-                    376321: 'respiratoryRateData'
-                  }
+                    "371201": ['Blood Pressure',"mmHg","",300],
+                    "373761": ['Heart Rate','bpm','heartRateData',500],
+                    "376321": ['Respiratory Rate','breaths/min','respiratoryRateData',300],
+                    "378881": ['Pulse Oximetry','O₂%','pulseOximetryData',300],
+                    "381441": ['Temperature','℉/℃','temperatureData',300],
+                    "384001": ['Blood Glucose Levels','O₂%','bloodGlucoseLevelsData',300],
+                    "386561": ['Height','ft.,in.',["heightFt","heightIn"],3],
+                    "389121": ['Weight','lbs','weightData',300],
+                    "391681": ['BMI','kg/㎡','bmiData',300]
+                  };
                   let setting = null;
                   let _dateTempObj:{[key in string]: {}} = {};
                 if(dataValue.dateType==='week'){
@@ -323,9 +329,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     "series": []
                   }
                   settingWeek.xAxis.data = getSmartDate() as any;
-                  if(dataValue.dataType == 371201){
+                  if(dataValue.dataType == "371201"){
                     settingWeek.title.text = "Blood Pressure";
                     settingWeek.yAxis.name = "mmHg";
+                    settingWeek.yAxis.max = dataType[dataValue.dataType][3];
                     //@ts-ignore
                     settingWeek.legend.data.push("heightBloodPressure","lowBloodPressure")
                     //@ts-ignore
@@ -391,11 +398,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                     setting = settingWeek as any;
                   }else{
-                    settingWeek.title.text = "Heart Rate";
-                    settingWeek.yAxis.name = "bpm";
+                    settingWeek.title.text = dataType[dataValue.dataType][0];
+                    settingWeek.yAxis.name = dataType[dataValue.dataType][1];
+                    settingWeek.yAxis.max = dataType[dataValue.dataType][3];
+
                     //@ts-ignore
                     settingWeek.series.push({
-                      "name": "Heart Rate",
+                      "name": dataType[dataValue.dataType][0],
                       "type": dataValue.type,
                       "symbolSize": 8,
                       "data": [],
@@ -414,17 +423,28 @@ const createExtendedDOMResolvers = function (app: App) {
                     });
                     (settingWeek.xAxis.data as any).forEach(element => {
                       _dateTempObj[element] = {}
-                      _dateTempObj[element][`${dataType[dataValue.dataType]}`] =[];
+                      _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] =[];
                     });
                     dataValue.dataSource.forEach((item)=>{
                       let _stamp = get(item,"ctime");
                       let signal = Intl.DateTimeFormat('en-US', {weekday: 'short'}).format(_stamp*1000);
-                        _dateTempObj[signal][`${dataType[dataValue.dataType]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType]}`))
+                      if(dataValue.dataType == '386561'){
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item,`name.data.${dataType[dataValue.dataType][2][0]}`)+'.'+get(item,`name.data.${dataType[dataValue.dataType][2][1]}`)))
+                      }else{
+                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType][2]}`))
+                      }
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
-                      if(item[`${dataType[dataValue.dataType]}`].length>0){
+                      if(item[`${dataType[dataValue.dataType][0]}`].length>0){
+                        let cum = (item[`${dataType[dataValue.dataType][0]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType][0]}`].length);
+                        if(dataValue.dataType == "386561"){
                         // @ts-ignore
-                        settingWeek.series[0]["data"].push((item[`${dataType[dataValue.dataType]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType]}`].length).toFixed())
+                        settingWeek.series[0]["data"].push(cum.toFixed(2))
+                        }else{
+                        // @ts-ignore
+                        settingWeek.series[0]["data"].push(cum.toFixed())
+                        }
+
                       }else{
                         (settingWeek.series[0]["data"] as any[]).push(undefined);
                       }
@@ -526,9 +546,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                     "series": []
                   }
-                  if(dataValue.dataType == 371201){
+                  if(dataValue.dataType == "371201"){
                     settingDay.yAxis.name = "mmHg";
                     settingDay.title.text = "Blood Pressure"
+                    settingDay.yAxis.max = dataType[dataValue.dataType][3];
                     //@ts-ignore
                     settingDay.legend.data.push( "heightBloodPressure","lowBloodPressure")
                     //@ts-ignore
@@ -587,11 +608,12 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                   }else{
                     //@ts-ignore
-                    settingDay.title.text = "Heart Rate"
-                    settingDay.yAxis.name = "bpm";
+                    settingDay.title.text = dataType[dataValue.dataType][0]
+                    settingDay.yAxis.name = dataType[dataValue.dataType][1];
+                    settingDay.yAxis.max = dataType[dataValue.dataType][3];
                     //@ts-ignore
                     settingDay.series.push({
-                      "name": "heartRate",
+                      "name": dataType[dataValue.dataType][0],
                       "type": dataValue.type,
                       "symbolSize": 8,
                       "data": [],
@@ -612,14 +634,18 @@ const createExtendedDOMResolvers = function (app: App) {
                       let signal = moment(_stamp*1000).format('HH:mm');
                       if(!_dateTempObj[signal]){
                         _dateTempObj[signal] = {}
-                          _dateTempObj[signal][`${dataType[dataValue.dataType]}`] = []
+                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
                         }
-                        _dateTempObj[signal][`${dataType[dataValue.dataType]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType]}`))
+                        if(dataValue.dataType == '386561'){
+                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item,`name.data.${dataType[dataValue.dataType][2][0]}`)+'.'+get(item,`name.data.${dataType[dataValue.dataType][2][1]}`)))
+                        }else{
+                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item,`name.data.${dataType[dataValue.dataType][2]}`))
+                        }
                     })
                     Object.values(_dateTempObj).forEach((item)=>{
-                      if(item[`${dataType[dataValue.dataType]}`].length>0){
+                      if(item[`${dataType[dataValue.dataType][0]}`].length>0){
                         // @ts-ignore
-                      settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType]}`])
+                      settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
                       }
                     })
                   }
