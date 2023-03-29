@@ -291,7 +291,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       "data": []
                     },
                     "xAxis": {
-<<<<<<< HEAD
                         "type": "category",
                         "name": "Time",
                         "axisLine": {
@@ -336,41 +335,6 @@ const createExtendedDOMResolvers = function (app: App) {
                         },
                         axisLabel: {
                           color: "rgb(51, 102, 204)"
-=======
-                      "type": "category",
-                      "name": "Time",
-                      "axisLine": {
-                        "symbol": [
-                          "none",
-                          "arrow"
-                        ],
-                        "lineStyle": {
-                          "color": "#3366CC"
-                        }
-                      },
-                      "axisLabel": {
-                        "rotate": 45,
-                        "interval": 0
-                      },
-                      "boundaryGap": false,
-                      "data": null
-                    },
-                    "yAxis": {
-                      "name": "",
-                      "type": "value",
-                      "min": 0,
-                      "max": 500,
-                      "splitNumber": 10,
-                      "axisLine": {
-                        "show": true,
-                        "symbol": [
-                          "none",
-                          "arrow"
-                        ],
-                        "lineStyle": {
-                          "color": "#3366CC"
-                        }
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
                       }
                     },
                     "series": []
@@ -406,8 +370,8 @@ const createExtendedDOMResolvers = function (app: App) {
                             "width": 2,
                             "type": "solid"
                           }
-<<<<<<< HEAD
-                      },
+                      }
+                    },
                       markLine: {  //设置标记线
                         symbol: ['none', 'none'], // 去掉箭头
                         label: {
@@ -417,16 +381,13 @@ const createExtendedDOMResolvers = function (app: App) {
                           {
                             // type: 'average',
                             name: '阈值',
-                            yAxis: 120,
+                            yAxis: 80,
                             lineStyle:  //设置标记点的样式
                             {
-                              normal: { type: 'solid', color: '#48aaff' }
+                              normal: { type: "solid", color: '#48aaff' }
                             },
                           }],
-=======
-                        }
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
-                      }
+                      },
                     },
                       {
                         "name": "lowBloodPressure",
@@ -444,7 +405,6 @@ const createExtendedDOMResolvers = function (app: App) {
                               "width": 2,
                               "type": "solid"
                             }
-<<<<<<< HEAD
                         }
                     },
                     markLine: {  //设置标记线
@@ -456,8 +416,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         {
                           // type: 'average',
                           name: '阈值',
-
-                          yAxis: 80,
+                          yAxis: 120,
                           lineStyle:  //设置标记点的样式
                           {
                             normal: { type: "solid", color: '#48aaff' }
@@ -466,12 +425,6 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                     "data": []
                 });
-=======
-                          }
-                        },
-                        "data": []
-                      });
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
                     (settingWeek.xAxis.data as any).forEach(element => {
                       _dateTempObj[element] = {}
                       _dateTempObj[element]["heightBloodPressure"] = [];
@@ -525,8 +478,8 @@ const createExtendedDOMResolvers = function (app: App) {
                             "width": 2,
                             "type": "solid"
                           }
-<<<<<<< HEAD
-                      },
+                      }
+                    },
                       markLine: {  //设置标记线
                         symbol: ['none', 'none'], // 去掉箭头
                         label: {
@@ -536,7 +489,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           {
                             // type: 'average',
                             name: '阈值',
-                            show: false,
+                            // show: false,
                             yAxis: 100,
                             lineStyle:  //设置标记点的样式
                             {
@@ -544,11 +497,6 @@ const createExtendedDOMResolvers = function (app: App) {
                             },
                           }],
                       },
-
-=======
-                        }
-                      }
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
                     });
                     (settingWeek.xAxis.data as any).forEach(element => {
                       _dateTempObj[element] = {}
@@ -578,12 +526,8 @@ const createExtendedDOMResolvers = function (app: App) {
                         (settingWeek.series[0]["data"] as any[]).push(undefined);
                       }
                     })
-<<<<<<< HEAD
 
                   setting = settingWeek as any;
-=======
-                    setting = settingWeek as any;
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
                   }
                   console.log((settingWeek.series[0]["data"]))
                   //@ts-ignore
@@ -642,7 +586,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       "data": []
                     },
                     "xAxis": {
-<<<<<<< HEAD
                         type: "category",
                         // type: "time",
                         show: true,
@@ -672,31 +615,6 @@ const createExtendedDOMResolvers = function (app: App) {
                           },
                           show:true
                         }
-=======
-                      type: "category",
-                      // type: "time",
-                      show: true,
-                      // min: 0,
-                      // max: 24,
-                      "name": "Time",
-                      "axisLine": {
-                        "symbol": [
-                          "none",
-                          "arrow"
-                        ],
-                        "lineStyle": {
-                          "color": "#3366CC"
-                        }
-                      },
-                      // splitNumber: 2,
-                      "axisLabel": {
-                        formatter: null
-                        // "rotate": 45,
-                        // "interval": 0
-                      },
-                      "boundaryGap": false,
-                      "data": []
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
                     },
                     "yAxis": {
                       "name": "",
@@ -717,14 +635,8 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                     "series": []
                   }
-<<<<<<< HEAD
 
                   if(dataValue.dataType == "371201"){
-=======
-                  if (dataValue.dataType == "371201") {
-                    console.error('进入了 day 血压');
-
->>>>>>> c5b949253f8e7fa089addb43969fd141256e05bc
                     settingDay.yAxis.name = "mmHg";
                     settingDay.title.text = "Blood Pressure"
                     settingDay.yAxis.max = dataType[dataValue.dataType][3];
@@ -767,8 +679,8 @@ const createExtendedDOMResolvers = function (app: App) {
                         },
                         "data": []
                       });
-                    console.error('dataValue');
-                    console.error(dataValue.dataSource.length);
+                    // console.error('dataValue');
+                    // console.error(dataValue.dataSource.length);
 
                     dataValue.dataSource.forEach((item) => {
                       let _stamp = get(item, "ctime");
