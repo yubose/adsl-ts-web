@@ -294,20 +294,28 @@ const createExtendedDOMResolvers = function (app: App) {
                         "type": "category",
                         "name": "Time",
                         "axisLine": {
+                            "show": true,
                             "symbol": [
                                 "none",
                                 "arrow"
                             ],
                             "lineStyle": {
-                                "color": "#3366CC"
-                            }
+                                "color": "#3366CC",
+                            },
+
                         },
                         "axisLabel": {
                             "rotate": 45,
                             "interval": 0
                         },
                         "boundaryGap": false,
-                        "data": null
+                        "data": null,
+                          splitLine :{    //网格线
+                          lineStyle:{
+                              type:'dashed'    //设置网格线类型 dotted：虚线   solid:实线
+                          },
+                          show:true //隐藏或显示
+                        }
                     },
                     "yAxis": {
                         "name": "",
@@ -322,9 +330,12 @@ const createExtendedDOMResolvers = function (app: App) {
                                 "arrow"
                             ],
                             "lineStyle": {
-                                "color": "#3366CC"
+                                "color": "#3366CC",
                             }
-                        }
+                        },
+                        axisLabel: {
+                          color: "rgb(51, 102, 204)"
+                      }
                     },
                     "series": []
                   }
@@ -333,6 +344,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     settingWeek.title.text = "Blood Pressure";
                     settingWeek.yAxis.name = "mmHg";
                     settingWeek.yAxis.max = dataType[dataValue.dataType][3];
+
+                    settingWeek.yAxis.axisLabel.color = function(v){
+                      if(v==80||v==120){
+                        return '#48aaff'
+                      }else{
+                        return 'rgb(51, 102, 204)'
+                      }
+                  } as any;
                     //@ts-ignore
                     settingWeek.legend.data.push("heightBloodPressure","lowBloodPressure")
                     //@ts-ignore
@@ -352,6 +371,22 @@ const createExtendedDOMResolvers = function (app: App) {
                                   "type": "solid"
                               }
                           }
+                      },
+                      markLine: {  //设置标记线
+                        symbol: ['none', 'none'], // 去掉箭头
+                        label: {
+                          show: false
+                        },
+                        data: [
+                          {
+                            // type: 'average',
+                            name: '阈值',
+                            yAxis: 120,
+                            lineStyle:  //设置标记点的样式
+                            {
+                              normal: { type: 'solid', color: '#48aaff' }
+                            },
+                          }],
                       }
                   },
                   {
@@ -371,6 +406,23 @@ const createExtendedDOMResolvers = function (app: App) {
                                 "type": "solid"
                             }
                         }
+                    },
+                    markLine: {  //设置标记线
+                      symbol: ['none', 'none'], // 去掉箭头
+                      label: {
+                        show: false
+                      },
+                      data: [
+                        {
+                          // type: 'average',
+                          name: '阈值',
+
+                          yAxis: 80,
+                          lineStyle:  //设置标记点的样式
+                          {
+                            normal: { type: "solid", color: '#48aaff' }
+                          },
+                        }],
                     },
                     "data": []
                 });
@@ -396,12 +448,21 @@ const createExtendedDOMResolvers = function (app: App) {
                         (settingWeek.series[1]["data"] as any[]).push(undefined);
                       }
                     })
+
                     setting = settingWeek as any;
                   }else{
                     settingWeek.title.text = dataType[dataValue.dataType][0];
                     settingWeek.yAxis.name = dataType[dataValue.dataType][1];
                     settingWeek.yAxis.max = dataType[dataValue.dataType][3];
-
+                    if(dataValue.dataType == "373761"){
+                      settingWeek.yAxis.axisLabel.color = function(v){
+                        if(v==100){
+                          return '#48aaff'
+                        }else{
+                          return 'rgb(51, 102, 204)'
+                        }
+                    } as any;
+                    }
                     //@ts-ignore
                     settingWeek.series.push({
                       "name": dataType[dataValue.dataType][0],
@@ -419,7 +480,25 @@ const createExtendedDOMResolvers = function (app: App) {
                                   "type": "solid"
                               }
                           }
-                      }
+                      },
+                      markLine: {  //设置标记线
+                        symbol: ['none', 'none'], // 去掉箭头
+                        label: {
+                          show: false
+                        },
+                        data: [
+                          {
+                            // type: 'average',
+                            name: '阈值',
+                            show: false,
+                            yAxis: 100,
+                            lineStyle:  //设置标记点的样式
+                            {
+                              normal: { type: "solid", color: '#48aaff' }
+                            },
+                          }],
+                      },
+
                     });
                     (settingWeek.xAxis.data as any).forEach(element => {
                       _dateTempObj[element] = {}
@@ -449,8 +528,14 @@ const createExtendedDOMResolvers = function (app: App) {
                         (settingWeek.series[0]["data"] as any[]).push(undefined);
                       }
                     })
+
                   setting = settingWeek as any;
                   }
+                  console.log((settingWeek.series[0]["data"]))
+                  //@ts-ignore
+
+                  setting.yAxis.max = Math.max(...(settingWeek.series[0]["data"]).filter(x=>x))+50;
+
                   // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
                 }else if(dataValue.dateType==='day'){
                   let settingDay=  {
@@ -525,7 +610,13 @@ const createExtendedDOMResolvers = function (app: App) {
                             // "interval": 0
                         },
                         "boundaryGap": false,
-                        "data": []
+                        "data": [],
+                        splitLine :{    //网格线
+                          lineStyle:{
+                              type:'dashed'
+                          },
+                          show:true
+                        }
                     },
                     "yAxis": {
                         "name": "",
@@ -546,6 +637,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                     "series": []
                   }
+
                   if(dataValue.dataType == "371201"){
                     settingDay.yAxis.name = "mmHg";
                     settingDay.title.text = "Blood Pressure"
@@ -656,9 +748,14 @@ const createExtendedDOMResolvers = function (app: App) {
                   let showH = date.format('HH:mm');
                   return showD+'\n'+showH;
                   }) as any
+                    //@ts-ignore
+                  settingDay.yAxis.max = Math.max(...(settingDay.series[0]["data"]))+50;
+
                   setting = settingDay as any;
                 }else if(dataValue.dateType==='month'){
                 }
+                  // console.log( Math.max(...["33","66","67","33","99"]))
+
                 //@ts-ignore
                 let myChart = echarts.init(node)
                 dataValue && myChart.setOption(setting)
