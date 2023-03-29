@@ -28,7 +28,8 @@ export const lvl3Options = {
     // This will be returned (normal use) if NOT using -- env APP=<config name>
     const port = 3000
     // return '../aitmed/config/localhost.yml'
-    return safeDeployUrl
+    // return safeDeployUrl
+    return '../local.yml'
     // return isDeploying
     //   ? safeDeployUrl
     //   : `http://127.0.0.1:${port}/${lvl3Options.app}.yml`

@@ -700,47 +700,51 @@ const createExtendedDOMResolvers = function (app: App) {
                       settingDay.series[1]["data"].push(...item["lowBloodPressure"])
                     })
                   } else {
-                    //@ts-ignore
-                    settingDay.title.text = dataType[dataValue.dataType][0]
-                    settingDay.yAxis.name = dataType[dataValue.dataType][1];
-                    settingDay.yAxis.max = dataType[dataValue.dataType][3];
-                    //@ts-ignore
-                    settingDay.series.push({
-                      "name": dataType[dataValue.dataType][0],
-                      "type": dataValue.type,
-                      "symbolSize": 8,
-                      "data": [],
-                      "itemStyle": {
-                        "normal": {
-                          "label": {
-                            "show": true
-                          },
-                          "lineStyle": {
-                            "width": 2,
-                            "type": "solid"
+                    try {
+                      //@ts-ignore
+                      settingDay.title.text = dataType[dataValue.dataType][0]
+                      settingDay.yAxis.name = dataType[dataValue.dataType][1];
+                      settingDay.yAxis.max = dataType[dataValue.dataType][3];
+                      //@ts-ignore
+                      settingDay.series.push({
+                        "name": dataType[dataValue.dataType][0],
+                        "type": dataValue.type,
+                        "symbolSize": 8,
+                        "data": [],
+                        "itemStyle": {
+                          "normal": {
+                            "label": {
+                              "show": true
+                            },
+                            "lineStyle": {
+                              "width": 2,
+                              "type": "solid"
+                            }
                           }
                         }
-                      }
-                    })
-                    dataValue.dataSource.forEach((item) => {
-                      let _stamp = get(item, "ctime");
-                      let signal = moment(_stamp * 1000).format('HH:mm');
-                      if (!_dateTempObj[signal]) {
-                        _dateTempObj[signal] = {}
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
-                      }
-                      if (dataValue.dataType == '386561') {
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
-                      } else {
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
-                      }
-                    })
-                    Object.values(_dateTempObj).forEach((item) => {
-                      if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
-                        // @ts-ignore
-                        settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
-                      }
-                    })
+                      })
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, "ctime");
+                        let signal = moment(_stamp * 1000).format('HH:mm');
+                        if (!_dateTempObj[signal]) {
+                          _dateTempObj[signal] = {}
+                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
+                        }
+                        if (dataValue.dataType == '386561') {
+                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
+                        } else {
+                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
+                        }
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
+                          // @ts-ignore
+                          settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
+                        }
+                      })
+                    } catch (error) {
+                      log.error(error)
+                    }
                   }
                   let _date: Date
                   if (dataValue.dataSource.length == 0) {
