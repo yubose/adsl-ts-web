@@ -225,176 +225,142 @@ const createExtendedDOMResolvers = function (app: App) {
             let chartType = component.get('chartType') || dataValue.chartType.toString();
             switch (chartType) {
               case 'graph': {
-                function getSmartDate(s = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date()), list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']): string[] {
-                  const index = list.indexOf(s);
-                  list.unshift(...list.splice(index + 1));
-                  return list;
-                }
-                const dataType = {
-                  "371201": ['Blood Pressure', "mmHg", "", 300],
-                  "373761": ['Heart Rate', 'bpm', 'heartRateData', 500],
-                  "376321": ['Respiratory Rate', 'breaths/min', 'respiratoryRateData', 300],
-                  "378881": ['Pulse Oximetry', 'O₂%', 'pulseOximetryData', 300],
-                  "381441": ['Temperature', '℉/℃', 'temperatureData', 300],
-                  "384001": ['Blood Glucose Levels', 'O₂%', 'bloodGlucoseLevelsData', 300],
-                  "386561": ['Height', 'ft.,in.', ["heightFt", "heightIn"], 3],
-                  "389121": ['Weight', 'lbs', 'weightData', 300],
-                  "391681": ['BMI', 'kg/㎡', 'bmiData', 300]
-                };
-                let setting = null;
-                let _dateTempObj: { [key in string]: {} } = {};
-                if (dataValue.dateType === 'week') {
-                  let settingWeek = {
-                    "title": {
-                      show: true,
-                      text: "",
-                      x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
-                      // right: 'auto',//'title 组件离容器右侧的距离
-                      top: '8%',//title 组件离容器上侧的距离
-                      // bottom: 'auto',//title 组件离容器下侧的距离
-                      textStyle: {
-                        color: " #000",//字体颜色
-                        fontStyle: 'bold',//字体风格
-                        fontWeight: 'normal',//字体粗细
-                        fontFamily: 'sans-serif',//文字字体
-                        fontSize: 18,//字体大小
-                      }
-                    },
-                    "tooltip": {
-                      "trigger": "axis",
-                      "axisPointer": {
-                        "type": "cross",
-                        "axis": "auto",
-                        "snap": true,
-                        "showContent": true
-                      },
-                      textStyle: {
-                        color: '#000',     // 文字的颜色
-                        fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
-                        fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
-                        // fontSize: '20',    // 文字字体大小
-                        // lineHeight: '50',    // 行高
-                      }
-                    },
-                    "grid": {
-                      show: true,
-                      "top": "20%",
-                      "left": "10%",
-                      "right": "15%",
-                      "bottom": "3%",
-                      "containLabel": true,
-                    },
-                    "legend": {
-                      "orient": "horizontal",
-                      "x": "left",
-                      "y": "top",
-                      "data": []
-                    },
-                    "xAxis": {
-                        "type": "category",
-                        "name": "Time",
-                        "axisLine": {
-                            "show": true,
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC",
-                            },
-
-                        },
-                        "axisLabel": {
-                            "rotate": 45,
-                            "interval": 0
-                        },
-                        "boundaryGap": false,
-                        "data": null,
-                          splitLine :{    //网格线
-                          lineStyle:{
-                              type:'dashed'    //设置网格线类型 dotted：虚线   solid:实线
-                          },
-                          show:true //隐藏或显示
-                        }
-                    },
-                    "yAxis": {
-                        "name": "",
-                        "type": "value",
-                        "min": 0,
-                        "max": 500,
-                        "splitNumber": 10,
-                        "axisLine": {
-                            "show": true,
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC",
-                            }
-                        },
-                        axisLabel: {
-                          color: "rgb(51, 102, 204)"
-                      }
-                    },
-                    "series": []
+                try {  
+                  function getSmartDate(s = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date()), list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']): string[] {
+                    const index = list.indexOf(s);
+                    list.unshift(...list.splice(index + 1));
+                    return list;
                   }
-                  settingWeek.xAxis.data = getSmartDate() as any;
-                  if (dataValue.dataType == "371201") {
-                    settingWeek.title.text = "Blood Pressure";
-                    settingWeek.yAxis.name = "mmHg";
-                    settingWeek.yAxis.max = dataType[dataValue.dataType][3];
-
-                    settingWeek.yAxis.axisLabel.color = function(v){
-                      if(v==80||v==120){
-                        return '#48aaff'
-                      }else{
-                        return 'rgb(51, 102, 204)'
-                      }
-                  } as any;
-                    //@ts-ignore
-                    settingWeek.legend.data.push("heightBloodPressure", "lowBloodPressure")
-                    //@ts-ignore
-                    settingWeek.series.push({
-                      "name": "heightBloodPressure",
-                      "type": dataValue.type,
-                      "symbolSize": 8,
-                      "data": [],
-                      connectNulls: true,
-                      "itemStyle": {
-                        "normal": {
-                          "label": {
-                            "show": true
-                          },
-                          "lineStyle": {
-                            "width": 2,
-                            "type": "solid"
-                          }
-                      }
-                    },
-                      markLine: {  //设置标记线
-                        symbol: ['none', 'none'], // 去掉箭头
-                        label: {
-                          show: false
-                        },
-                        data: [
-                          {
-                            // type: 'average',
-                            name: '阈值',
-                            yAxis: 80,
-                            lineStyle:  //设置标记点的样式
-                            {
-                              normal: { type: "solid", color: '#48aaff' }
-                            },
-                          }],
+                  const dataType = {
+                    "371201": ['Blood Pressure', "mmHg", "", 300],
+                    "373761": ['Heart Rate', 'bpm', 'heartRateData', 500],
+                    "376321": ['Respiratory Rate', 'breaths/min', 'respiratoryRateData', 300],
+                    "378881": ['Pulse Oximetry', 'O₂%', 'pulseOximetryData', 300],
+                    "381441": ['Temperature', '℉/℃', 'temperatureData', 300],
+                    "384001": ['Blood Glucose Levels', 'O₂%', 'bloodGlucoseLevelsData', 300],
+                    "386561": ['Height', 'ft.,in.', ["heightFt", "heightIn"], 3],
+                    "389121": ['Weight', 'lbs', 'weightData', 300],
+                    "391681": ['BMI', 'kg/㎡', 'bmiData', 300]
+                  };
+                  let setting = null;
+                  let _dateTempObj: { [key in string]: {} } = {};
+                  if (dataValue.dateType === 'week') {
+                    let settingWeek = {
+                      "title": {
+                        show: true,
+                        text: "",
+                        x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
+                        // right: 'auto',//'title 组件离容器右侧的距离
+                        top: '8%',//title 组件离容器上侧的距离
+                        // bottom: 'auto',//title 组件离容器下侧的距离
+                        textStyle: {
+                          color: " #000",//字体颜色
+                          fontStyle: 'bold',//字体风格
+                          fontWeight: 'normal',//字体粗细
+                          fontFamily: 'sans-serif',//文字字体
+                          fontSize: 18,//字体大小
+                        }
                       },
-                    },
-                      {
-                        "name": "lowBloodPressure",
+                      "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {
+                          "type": "cross",
+                          "axis": "auto",
+                          "snap": true,
+                          "showContent": true
+                        },
+                        textStyle: {
+                          color: '#000',     // 文字的颜色
+                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                        }
+                      },
+                      "grid": {
+                        show: true,
+                        "top": "20%",
+                        "left": "10%",
+                        "right": "15%",
+                        "bottom": "3%",
+                        "containLabel": true,
+                      },
+                      "legend": {
+                        "orient": "horizontal",
+                        "x": "left",
+                        "y": "top",
+                        "data": []
+                      },
+                      "xAxis": {
+                          "type": "category",
+                          "name": "Time",
+                          "axisLine": {
+                              "show": true,
+                              "symbol": [
+                                  "none",
+                                  "arrow"
+                              ],
+                              "lineStyle": {
+                                  "color": "#3366CC",
+                              },
+
+                          },
+                          "axisLabel": {
+                              "rotate": 45,
+                              "interval": 0
+                          },
+                          "boundaryGap": false,
+                          "data": null,
+                            splitLine :{    //网格线
+                            lineStyle:{
+                                type:'dashed'    //设置网格线类型 dotted：虚线   solid:实线
+                            },
+                            show:true //隐藏或显示
+                          }
+                      },
+                      "yAxis": {
+                          "name": "",
+                          "type": "value",
+                          "min": 0,
+                          "max": 500,
+                          "splitNumber": 10,
+                          "axisLine": {
+                              "show": true,
+                              "symbol": [
+                                  "none",
+                                  "arrow"
+                              ],
+                              "lineStyle": {
+                                  "color": "#3366CC",
+                              }
+                          },
+                          axisLabel: {
+                            color: "rgb(51, 102, 204)"
+                        }
+                      },
+                      "series": []
+                    }
+                    settingWeek.xAxis.data = getSmartDate() as any;
+                    if (dataValue.dataType == "371201") {
+                      settingWeek.title.text = "Blood Pressure";
+                      settingWeek.yAxis.name = "mmHg";
+                      settingWeek.yAxis.max = dataType[dataValue.dataType][3];
+
+                      settingWeek.yAxis.axisLabel.color = function(v){
+                        if(v==80||v==120){
+                          return '#48aaff'
+                        }else{
+                          return 'rgb(51, 102, 204)'
+                        }
+                    } as any;
+                      //@ts-ignore
+                      settingWeek.legend.data.push("heightBloodPressure", "lowBloodPressure")
+                      //@ts-ignore
+                      settingWeek.series.push({
+                        "name": "heightBloodPressure",
                         "type": dataValue.type,
-                        "symbol": "circle",
                         "symbolSize": 8,
-                        // "smooth": 0.5,
+                        "data": [],
                         connectNulls: true,
                         "itemStyle": {
                           "normal": {
@@ -406,80 +372,42 @@ const createExtendedDOMResolvers = function (app: App) {
                               "type": "solid"
                             }
                         }
-                    },
-                    markLine: {  //设置标记线
-                      symbol: ['none', 'none'], // 去掉箭头
-                      label: {
-                        show: false
                       },
-                      data: [
+                        markLine: {  //设置标记线
+                          symbol: ['none', 'none'], // 去掉箭头
+                          label: {
+                            show: false
+                          },
+                          data: [
+                            {
+                              // type: 'average',
+                              name: '阈值',
+                              yAxis: 80,
+                              lineStyle:  //设置标记点的样式
+                              {
+                                normal: { type: "solid", color: '#48aaff' }
+                              },
+                            }],
+                        },
+                      },
                         {
-                          // type: 'average',
-                          name: '阈值',
-                          yAxis: 120,
-                          lineStyle:  //设置标记点的样式
-                          {
-                            normal: { type: "solid", color: '#48aaff' }
-                          },
-                        }],
-                    },
-                    "data": []
-                });
-                    (settingWeek.xAxis.data as any).forEach(element => {
-                      _dateTempObj[element] = {}
-                      _dateTempObj[element]["heightBloodPressure"] = [];
-                      _dateTempObj[element]["lowBloodPressure"] = [];
-                    });
-                    dataValue.dataSource.forEach((item) => {
-                      let _stamp = get(item, "ctime");
-                      let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
-                      _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
-                      _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
-                    })
-                    Object.values(_dateTempObj).forEach((item) => {
-                      if (item["heightBloodPressure"].length > 0) {
-                        // @ts-ignore
-                        settingWeek.series[0]["data"].push((item["heightBloodPressure"]?.reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed())
-                        // @ts-ignore
-                        settingWeek.series[1]["data"].push((item["lowBloodPressure"]?.reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
-                      } else {
-                        (settingWeek.series[0]["data"] as any[]).push(undefined);
-                        (settingWeek.series[1]["data"] as any[]).push(undefined);
-                      }
-                    })
-
-                    setting = settingWeek as any;
-                  } else {
-                    settingWeek.title.text = dataType[dataValue.dataType][0];
-                    settingWeek.yAxis.name = dataType[dataValue.dataType][1];
-                    settingWeek.yAxis.max = dataType[dataValue.dataType][3];
-                    if(dataValue.dataType == "373761"){
-                      settingWeek.yAxis.axisLabel.color = function(v){
-                        if(v==100){
-                          return '#48aaff'
-                        }else{
-                          return 'rgb(51, 102, 204)'
-                        }
-                    } as any;
-                    }
-                    //@ts-ignore
-                    settingWeek.series.push({
-                      "name": dataType[dataValue.dataType][0],
-                      "type": dataValue.type,
-                      "symbolSize": 8,
-                      "data": [],
-                      connectNulls: true,
-                      "itemStyle": {
-                        "normal": {
-                          "label": {
-                            "show": true
-                          },
-                          "lineStyle": {
-                            "width": 2,
-                            "type": "solid"
+                          "name": "lowBloodPressure",
+                          "type": dataValue.type,
+                          "symbol": "circle",
+                          "symbolSize": 8,
+                          // "smooth": 0.5,
+                          connectNulls: true,
+                          "itemStyle": {
+                            "normal": {
+                              "label": {
+                                "show": true
+                              },
+                              "lineStyle": {
+                                "width": 2,
+                                "type": "solid"
+                              }
                           }
-                      }
-                    },
+                      },
                       markLine: {  //设置标记线
                         symbol: ['none', 'none'], // 去掉箭头
                         label: {
@@ -489,228 +417,59 @@ const createExtendedDOMResolvers = function (app: App) {
                           {
                             // type: 'average',
                             name: '阈值',
-                            // show: false,
-                            yAxis: 100,
+                            yAxis: 120,
                             lineStyle:  //设置标记点的样式
                             {
                               normal: { type: "solid", color: '#48aaff' }
                             },
                           }],
                       },
-                    });
-                    (settingWeek.xAxis.data as any).forEach(element => {
-                      _dateTempObj[element] = {}
-                      _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] = [];
-                    });
-                    dataValue.dataSource.forEach((item) => {
-                      let _stamp = get(item, "ctime");
-                      let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
-                      if (dataValue.dataType == '386561') {
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
-                      } else {
-                        _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
-                      }
-                    })
-                    Object.values(_dateTempObj).forEach((item) => {
-                      if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
-                        let cum = (item[`${dataType[dataValue.dataType][0]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType][0]}`].length);
-                        if (dataValue.dataType == "386561") {
-                          // @ts-ignore
-                          settingWeek.series[0]["data"].push(cum.toFixed(2))
-                        } else {
-                          // @ts-ignore
-                          settingWeek.series[0]["data"].push(cum.toFixed())
-                        }
-
-                      } else {
-                        (settingWeek.series[0]["data"] as any[]).push(undefined);
-                      }
-                    })
-
-                  setting = settingWeek as any;
-                  }
-                  console.log((settingWeek.series[0]["data"]))
-                  //@ts-ignore
-
-                  setting.yAxis.max = Math.max(...(settingWeek.series[0]["data"]).filter(x=>x))+50;
-
-                  // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
-                } else if (dataValue.dateType === 'day') {
-                  let settingDay = {
-                    "title": {
-                      show: true,
-                      text: "Blood Pressure",
-                      x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
-                      // right: 'auto',//'title 组件离容器右侧的距离
-                      top: '8%',//title 组件离容器上侧的距离
-                      // bottom: 'auto',//title 组件离容器下侧的距离
-                      textStyle: {
-                        color: " #000",//字体颜色
-                        fontStyle: 'bold',//字体风格
-                        fontWeight: 'normal',//字体粗细
-                        fontFamily: 'sans-serif',//文字字体
-                        fontSize: 18,//字体大小
-                      }
-                    },
-                    "tooltip": {
-                      "trigger": "axis",
-                      "axisPointer": {
-                        "type": "cross",
-                        "axis": "auto",
-                        "snap": true,
-                        "showContent": true
-                      },
-                      textStyle: {
-                        color: '#000',     // 文字的颜色
-                        fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
-                        fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
-                        // fontSize: '20',    // 文字字体大小
-                        // lineHeight: '50',    // 行高
-                      }
-                    },
-                    "grid": {
-                      show: true,
-                      "top": "20%",
-                      "left": "10%",
-                      "right": "15%",
-                      "bottom": "3%",
-                      "containLabel": true,
-                      // width: "820px",
-                      // height: "280px"
-
-                    },
-                    "legend": {
-                      "orient": "horizontal",
-                      "x": "left",
-                      "y": "top",
                       "data": []
-                    },
-                    "xAxis": {
-                        type: "category",
-                        // type: "time",
-                        show: true,
-                        // min: 0,
-                        // max: 24,
-                        "name": "Time",
-                        "axisLine": {
-                            "symbol": [
-                                "none",
-                                "arrow"
-                            ],
-                            "lineStyle": {
-                                "color": "#3366CC"
-                            }
-                        },
-                        // splitNumber: 2,
-                        "axisLabel": {
-                          formatter: null
-                            // "rotate": 45,
-                            // "interval": 0
-                        },
-                        "boundaryGap": false,
-                        "data": [],
-                        splitLine :{    //网格线
-                          lineStyle:{
-                              type:'dashed'
-                          },
-                          show:true
-                        }
-                    },
-                    "yAxis": {
-                      "name": "",
-                      "type": "value",
-                      "min": 0,
-                      "max": 300,
-                      "splitNumber": 10,
-                      "axisLine": {
-                        "show": true,
-                        "symbol": [
-                          "none",
-                          "arrow"
-                        ],
-                        "lineStyle": {
-                          "color": "#3366CC"
-                        }
-                      }
-                    },
-                    "series": []
-                  }
-
-                  if(dataValue.dataType == "371201"){
-                    settingDay.yAxis.name = "mmHg";
-                    settingDay.title.text = "Blood Pressure"
-                    settingDay.yAxis.max = dataType[dataValue.dataType][3];
-                    //@ts-ignore
-                    settingDay.legend.data.push("heightBloodPressure", "lowBloodPressure")
-                    //@ts-ignore
-                    settingDay.series.push({
-                      "name": "heightBloodPressure",
-                      "type": dataValue.type,
-                      "symbolSize": 8,
-                      "data": [],
-                      "itemStyle": {
-                        "normal": {
-                          "label": {
-                            "show": true
-                          },
-                          "lineStyle": {
-                            "width": 2,
-                            "type": "solid"
-                          }
-                        }
-                      }
-                    },
-                      {
-                        "name": "lowBloodPressure",
-                        "type": dataValue.type,
-                        "symbol": "circle",
-                        "symbolSize": 8,
-                        // "smooth": 0.5,
-                        "itemStyle": {
-                          "normal": {
-                            "label": {
-                              "show": true
-                            },
-                            "lineStyle": {
-                              "width": 2,
-                              "type": "solid"
-                            }
-                          }
-                        },
-                        "data": []
+                  });
+                      (settingWeek.xAxis.data as any).forEach(element => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element]["heightBloodPressure"] = [];
+                        _dateTempObj[element]["lowBloodPressure"] = [];
                       });
-                    // console.error('dataValue');
-                    // console.error(dataValue.dataSource.length);
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, "ctime");
+                        let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
+                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
+                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (item["heightBloodPressure"].length > 0) {
+                          // @ts-ignore
+                          settingWeek.series[0]["data"].push((item["heightBloodPressure"]?.reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed())
+                          // @ts-ignore
+                          settingWeek.series[1]["data"].push((item["lowBloodPressure"]?.reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                        } else {
+                          (settingWeek.series[0]["data"] as any[]).push(undefined);
+                          (settingWeek.series[1]["data"] as any[]).push(undefined);
+                        }
+                      })
 
-                    dataValue.dataSource.forEach((item) => {
-                      let _stamp = get(item, "ctime");
-                      let signal = moment(_stamp * 1000).format('HH:mm');
-                      if (!_dateTempObj[signal]) {
-                        _dateTempObj[signal] = {}
-                        _dateTempObj[signal]["heightBloodPressure"] = []
-                        _dateTempObj[signal]['lowBloodPressure'] = []
+                      setting = settingWeek as any;
+                    } else {
+                      settingWeek.title.text = dataType[dataValue.dataType][0];
+                      settingWeek.yAxis.name = dataType[dataValue.dataType][1];
+                      settingWeek.yAxis.max = dataType[dataValue.dataType][3];
+                      if(dataValue.dataType == "373761"){
+                        settingWeek.yAxis.axisLabel.color = function(v){
+                          if(v==100){
+                            return '#48aaff'
+                          }else{
+                            return 'rgb(51, 102, 204)'
+                          }
+                      } as any;
                       }
-                      _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
-                      _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
-                    })
-                    Object.values(_dateTempObj).forEach((item) => {
-                      // @ts-ignore
-                      settingDay.series[0]["data"].push(...item["heightBloodPressure"])
-                      // @ts-ignore
-                      settingDay.series[1]["data"].push(...item["lowBloodPressure"])
-                    })
-                  } else {
-                    try {
                       //@ts-ignore
-                      settingDay.title.text = dataType[dataValue.dataType][0]
-                      settingDay.yAxis.name = dataType[dataValue.dataType][1];
-                      settingDay.yAxis.max = dataType[dataValue.dataType][3];
-                      //@ts-ignore
-                      settingDay.series.push({
+                      settingWeek.series.push({
                         "name": dataType[dataValue.dataType][0],
                         "type": dataValue.type,
                         "symbolSize": 8,
                         "data": [],
+                        connectNulls: true,
                         "itemStyle": {
                           "normal": {
                             "label": {
@@ -720,16 +479,33 @@ const createExtendedDOMResolvers = function (app: App) {
                               "width": 2,
                               "type": "solid"
                             }
-                          }
                         }
-                      })
+                      },
+                        markLine: {  //设置标记线
+                          symbol: ['none', 'none'], // 去掉箭头
+                          label: {
+                            show: false
+                          },
+                          data: [
+                            {
+                              // type: 'average',
+                              name: '阈值',
+                              // show: false,
+                              yAxis: 100,
+                              lineStyle:  //设置标记点的样式
+                              {
+                                normal: { type: "solid", color: '#48aaff' }
+                              },
+                            }],
+                        },
+                      });
+                      (settingWeek.xAxis.data as any).forEach(element => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] = [];
+                      });
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, "ctime");
-                        let signal = moment(_stamp * 1000).format('HH:mm');
-                        if (!_dateTempObj[signal]) {
-                          _dateTempObj[signal] = {}
-                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
-                        }
+                        let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
                         if (dataValue.dataType == '386561') {
                           _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
                         } else {
@@ -738,38 +514,268 @@ const createExtendedDOMResolvers = function (app: App) {
                       })
                       Object.values(_dateTempObj).forEach((item) => {
                         if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
-                          // @ts-ignore
-                          settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
+                          let cum = (item[`${dataType[dataValue.dataType][0]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType][0]}`].length);
+                          if (dataValue.dataType == "386561") {
+                            // @ts-ignore
+                            settingWeek.series[0]["data"].push(cum.toFixed(2))
+                          } else {
+                            // @ts-ignore
+                            settingWeek.series[0]["data"].push(cum.toFixed())
+                          }
+
+                        } else {
+                          (settingWeek.series[0]["data"] as any[]).push(undefined);
                         }
                       })
-                    } catch (error) {
-                      log.error(error)
+
+                    setting = settingWeek as any;
                     }
-                  }
-                  let _date: Date
-                  if (dataValue.dataSource.length == 0) {
-                    _date = new Date();
-                  } else {
-                    _date = new Date(dataValue.dataSource[0]["ctime"] * 1000);
-                  }
-                  settingDay.xAxis.data = Object.keys(_dateTempObj).map((item: any) => {
-                    const date = moment({ year: _date.getFullYear(), month: _date.getMonth(), day: _date.getDate(), hour: item.split(":")[0], minute: item.split(":")[1] })
-                    let showD = date.format('MM-DD');
-                    let showH = date.format('HH:mm');
-                    return showD + '\n' + showH;
-                  }) as any
+                    console.log((settingWeek.series[0]["data"]))
                     //@ts-ignore
-                  settingDay.yAxis.max = Math.max(...(settingDay.series[0]["data"]))+50;
 
-                  setting = settingDay as any;
+                    setting.yAxis.max = Math.max(...(settingWeek.series[0]["data"]).filter(x=>x))+50;
 
-                } else if (dataValue.dateType === 'month') {
+                    // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
+                  } else if (dataValue.dateType === 'day') {
+                    let settingDay = {
+                      "title": {
+                        show: true,
+                        text: "Blood Pressure",
+                        x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
+                        // right: 'auto',//'title 组件离容器右侧的距离
+                        top: '8%',//title 组件离容器上侧的距离
+                        // bottom: 'auto',//title 组件离容器下侧的距离
+                        textStyle: {
+                          color: " #000",//字体颜色
+                          fontStyle: 'bold',//字体风格
+                          fontWeight: 'normal',//字体粗细
+                          fontFamily: 'sans-serif',//文字字体
+                          fontSize: 18,//字体大小
+                        }
+                      },
+                      "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {
+                          "type": "cross",
+                          "axis": "auto",
+                          "snap": true,
+                          "showContent": true
+                        },
+                        textStyle: {
+                          color: '#000',     // 文字的颜色
+                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                        }
+                      },
+                      "grid": {
+                        show: true,
+                        "top": "20%",
+                        "left": "10%",
+                        "right": "15%",
+                        "bottom": "3%",
+                        "containLabel": true,
+                        // width: "820px",
+                        // height: "280px"
+
+                      },
+                      "legend": {
+                        "orient": "horizontal",
+                        "x": "left",
+                        "y": "top",
+                        "data": []
+                      },
+                      "xAxis": {
+                          type: "category",
+                          // type: "time",
+                          show: true,
+                          // min: 0,
+                          // max: 24,
+                          "name": "Time",
+                          "axisLine": {
+                              "symbol": [
+                                  "none",
+                                  "arrow"
+                              ],
+                              "lineStyle": {
+                                  "color": "#3366CC"
+                              }
+                          },
+                          // splitNumber: 2,
+                          "axisLabel": {
+                            formatter: null
+                              // "rotate": 45,
+                              // "interval": 0
+                          },
+                          "boundaryGap": false,
+                          "data": [],
+                          splitLine :{    //网格线
+                            lineStyle:{
+                                type:'dashed'
+                            },
+                            show:true
+                          }
+                      },
+                      "yAxis": {
+                        "name": "",
+                        "type": "value",
+                        "min": 0,
+                        "max": 300,
+                        "splitNumber": 10,
+                        "axisLine": {
+                          "show": true,
+                          "symbol": [
+                            "none",
+                            "arrow"
+                          ],
+                          "lineStyle": {
+                            "color": "#3366CC"
+                          }
+                        }
+                      },
+                      "series": []
+                    }
+
+                    if(dataValue.dataType == "371201"){
+                      settingDay.yAxis.name = "mmHg";
+                      settingDay.title.text = "Blood Pressure"
+                      settingDay.yAxis.max = dataType[dataValue.dataType][3];
+                      //@ts-ignore
+                      settingDay.legend.data.push("heightBloodPressure", "lowBloodPressure")
+                      //@ts-ignore
+                      settingDay.series.push({
+                        "name": "heightBloodPressure",
+                        "type": dataValue.type,
+                        "symbolSize": 8,
+                        "data": [],
+                        "itemStyle": {
+                          "normal": {
+                            "label": {
+                              "show": true
+                            },
+                            "lineStyle": {
+                              "width": 2,
+                              "type": "solid"
+                            }
+                          }
+                        }
+                      },
+                        {
+                          "name": "lowBloodPressure",
+                          "type": dataValue.type,
+                          "symbol": "circle",
+                          "symbolSize": 8,
+                          // "smooth": 0.5,
+                          "itemStyle": {
+                            "normal": {
+                              "label": {
+                                "show": true
+                              },
+                              "lineStyle": {
+                                "width": 2,
+                                "type": "solid"
+                              }
+                            }
+                          },
+                          "data": []
+                        });
+                      // console.error('dataValue');
+                      // console.error(dataValue.dataSource.length);
+
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, "ctime");
+                        let signal = moment(_stamp * 1000).format('HH:mm');
+                        if (!_dateTempObj[signal]) {
+                          _dateTempObj[signal] = {}
+                          _dateTempObj[signal]["heightBloodPressure"] = []
+                          _dateTempObj[signal]['lowBloodPressure'] = []
+                        }
+                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
+                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        // @ts-ignore
+                        settingDay.series[0]["data"].push(...item["heightBloodPressure"])
+                        // @ts-ignore
+                        settingDay.series[1]["data"].push(...item["lowBloodPressure"])
+                      })
+                    } else {
+                      try {
+                        //@ts-ignore
+                        settingDay.title.text = dataType[dataValue.dataType][0]
+                        settingDay.yAxis.name = dataType[dataValue.dataType][1];
+                        settingDay.yAxis.max = dataType[dataValue.dataType][3];
+                        //@ts-ignore
+                        settingDay.series.push({
+                          "name": dataType[dataValue.dataType][0],
+                          "type": dataValue.type,
+                          "symbolSize": 8,
+                          "data": [],
+                          "itemStyle": {
+                            "normal": {
+                              "label": {
+                                "show": true
+                              },
+                              "lineStyle": {
+                                "width": 2,
+                                "type": "solid"
+                              }
+                            }
+                          }
+                        })
+                        dataValue.dataSource.forEach((item) => {
+                          let _stamp = get(item, "ctime");
+                          let signal = moment(_stamp * 1000).format('HH:mm');
+                          if (!_dateTempObj[signal]) {
+                            _dateTempObj[signal] = {}
+                            _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
+                          }
+                          if (dataValue.dataType == '386561') {
+                            _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
+                          } else {
+                            _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
+                          }
+                        })
+                        Object.values(_dateTempObj).forEach((item) => {
+                          if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
+                            // @ts-ignore
+                            settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
+                          }
+                        })
+                      } catch (error) {
+                        log.error(error)
+                      }
+                    }
+                    let _date: Date
+                    if (dataValue.dataSource.length == 0) {
+                      _date = new Date();
+                    } else {
+                      _date = new Date(dataValue.dataSource[0]["ctime"] * 1000);
+                    }
+                    settingDay.xAxis.data = Object.keys(_dateTempObj).map((item: any) => {
+                      const date = moment({ year: _date.getFullYear(), month: _date.getMonth(), day: _date.getDate(), hour: item.split(":")[0], minute: item.split(":")[1] })
+                      let showD = date.format('MM-DD');
+                      let showH = date.format('HH:mm');
+                      return showD + '\n' + showH;
+                    }) as any
+                    console.log(settingDay.series[0])
+                      //@ts-ignore
+                    settingDay.yAxis.max = Math.max(...(settingDay.series[0]["data"]))+50;
+
+                    setting = settingDay as any;
+                      
+
+                  } else if (dataValue.dateType === 'month') {
+                  }
+                    // console.log( Math.max(...["33","66","67","33","99"]))
+
+                  //@ts-ignore
+                  let myChart = echarts.init(node)
+                  dataValue && myChart.setOption(setting)
+                } catch(error) {
+                  log.error(error)
                 }
-                  // console.log( Math.max(...["33","66","67","33","99"]))
-
-                //@ts-ignore
-                let myChart = echarts.init(node)
-                dataValue && myChart.setOption(setting)
                 break
               }
               case 'table': {
