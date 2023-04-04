@@ -40,11 +40,12 @@ async function initializeApp(
       getStatus: Account?.getStatus?.bind(Account),
     }) as App
     u.assign(app.spinner.opts, {
-      lines: 13, // The number of lines to draw
-      length: 38, // The length of each line
-      width: 17, // The line thickness
-      radius: 45, // The radius of the inner circle
+      lines: 10, // The number of lines to draw
+      length: 4, // The length of each line
+      width: 4, // The line thickness
+      radius: 10, // The radius of the inner circle
       animation: 'spinner-line-shrink', // The CSS animation name for the lines
+      speed: 2,
       color: '#000', // CSS color or array of colors
       zIndex: 2000000000, // The z-index (defaults to 2e9)
     })

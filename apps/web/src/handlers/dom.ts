@@ -225,7 +225,7 @@ const createExtendedDOMResolvers = function (app: App) {
             let chartType = component.get('chartType') || dataValue.chartType.toString();
             switch (chartType) {
               case 'graph': {
-                try {  
+                try {
                   function getSmartDate(s = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date()), list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']): string[] {
                     const index = list.indexOf(s);
                     list.unshift(...list.splice(index + 1));
@@ -515,9 +515,9 @@ const createExtendedDOMResolvers = function (app: App) {
                       Object.values(_dateTempObj).forEach((item) => {
                         if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
                           let cum = (item[`${dataType[dataValue.dataType][0]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType][0]}`].length);
-                          if (dataValue.dataType == "386561") {
+                          if (dataValue.dataType == "381441") {
                             // @ts-ignore
-                            settingWeek.series[0]["data"].push(cum.toFixed(2))
+                            settingWeek.series[0]["data"].push(cum.toFixed(1))
                           } else {
                             // @ts-ignore
                             settingWeek.series[0]["data"].push(cum.toFixed())
@@ -764,7 +764,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     settingDay.yAxis.max = Math.max(...(settingDay.series[0]["data"]))+50;
 
                     setting = settingDay as any;
-                      
+
 
                   } else if (dataValue.dateType === 'month') {
                   }
