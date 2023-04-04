@@ -19,3 +19,4 @@ apps/web/public/admin
 apps/web/public/aitmed
 apps/web/public/search
 apps/web/public/testpage
+.idea/*
