@@ -108,14 +108,6 @@ const createExtendedDOMResolvers = function (app: App) {
       } else {
         if (dataKey) {
           app.updateRoot((draft) => {
-            if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
-              pageName = 'Global'
-              dataKey = dataKey.replace('Global.', '')
-            }
-            if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
-              pageName = 'BaseBLEData'
-              dataKey = dataKey.replace('BaseBLEData.', '')
-            }
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
@@ -131,7 +123,19 @@ const createExtendedDOMResolvers = function (app: App) {
               value = value.slice(0, 1).toUpperCase() + value.slice(1);
               (node as HTMLInputElement).value = value;
             }
-            set(draft?.[pageName], dataKey, value)
+
+            if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('Global.', '')
+              set(draft?.['Global'], newDataKey, value)
+            }else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('BaseBLEData.', '')
+              set(draft?.['BaseBLEData'], newDataKey, value)
+            }else{
+              set(draft?.[pageName], dataKey, value)
+            }
+        
             component.edit('data-value', value)
             node.dataset.value = value
 
