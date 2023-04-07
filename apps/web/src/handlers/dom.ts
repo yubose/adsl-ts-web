@@ -3009,8 +3009,11 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
-
-        console.log(width, height)
+        let style = component.get("style")
+        
+        const sprites = 'https://public.aitmed.com.cn/cadl/admin1.39/assets/sprites.png'
+        const up = 'https://public.aitmed.com.cn/cadl/admin1.39/assets/arrowUp.svg'
+        const down = 'https://public.aitmed.com.cn/cadl/admin1.39/assets/arrowDown.svg'
 
         let ulCss = {
           "width": width+'px',
@@ -3037,40 +3040,221 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         let divCss = {
-          "background-color": "rgb(0, 87, 149)",
-          "height": 0.186*height + 'px',
+          // "background-color": "#005795",
+          //@ts-ignore
+          "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
           "position": "relative",
           "outline": "none",
           "margin-top": "0px"
         }
 
-        console.log(ulCss, liCss, divCss)
+        let imgCss = {
+          // @ts-ignore
+          "width": Math.ceil((0.7/Number(style?.width))*width)/100 + 'px',
+          // @ts-ignore
+          "top": Math.ceil((2/Number(style?.height))*height)/100 + 'px',
+          // @ts-ignore
+          "left": Math.ceil((14.5/Number(style?.width))*width)/100 + 'px',
+          "display": "block",
+          "cursor": "pointer",
+          "position": "absolute",
+          "outline": "none",
+          "object-fit": "contain",
+          "margin-top": "0px"
+        }
+
+        let title1Css = {
+          // @ts-ignore
+          "width": Math.ceil((10/Number(style?.width))*width)/100 + 'px',
+          "top": "0",
+          // @ts-ignore
+          "left": Math.ceil((4/Number(style?.width))*width)/100 + 'px',
+          // @ts-ignore
+          "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+          // @ts-ignore
+          "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+          "box-sizing": "border-box",
+          "color": "#ffffff",
+          "font-size": "0.77vw",
+          "cursor": "pointer",
+          "position": "absolute",
+          "outline": "none",
+          "display": "flex",
+          "align-items": "center",
+          "justify-content": "flex-start",
+          "margin-top": "0px",
+        }
+
+        let optsList: Map<string, LIOpts> = new Map()
+
+        if(window.navBar) {
+          optsList = window.navBar
+        } else {
+          const list = component.get('list')
+          const len = list.length
+          for(let i = 0; i < len; i++) {
+            let child = list[i]
+            let children: Array<LIOpts> = []
+            let hasChildren = false
+            if(child.hasChildren === "block") {
+              child.childList.forEach(c => {
+                children.push({
+                  isIcon: false,
+                  title: c.title,
+                  pageName: child.pageName,
+                  level: c.level,
+                  background: c.backgroundColor.replace('0x', '#'),
+                  hasChildren: false
+                })
+              })
+              hasChildren = true
+            }
+            optsList.set(child.pageName, {
+              isIcon: false,
+              isExtend: false,
+              title: child.title,
+              pageName: child.pageName,
+              level: child.level,
+              background: child.backgroundColor.replace('0x', '#'),
+              hasChildren: hasChildren,
+              logoPath: child.logoPath,
+              children: children
+            })
+          }
+          window.navBar = optsList
+        }
+
+        const toStr = (obj: Object): string => {
+          return JSON.stringify(obj)
+                .replace(new RegExp(',', 'g'), ';')
+                .replace(new RegExp('"', 'g'), '')
+                .replace('{', '')
+                .replace('}', '')
+        }
+
+        interface LIOpts {
+          hasChildren?: boolean
+          level?: number
+          isIcon: boolean
+          title?: string
+          pageName?: string
+          logoPath?: string
+          background?: string
+          isExtend?: boolean
+          children?: Array<LIOpts>
+        }
 
         class ul {
           dom: HTMLUListElement
-          constructor(css: string) {
+          constructor(css: string, opts: Array<LIOpts> | Map<string, LIOpts>) {
             this.dom = document.createElement('ul')
             this.dom.style.cssText = css
+            opts.forEach(child => {
+              this.dom.appendChild(new li(toStr(liCss), child).dom)
+            })
           }
         }
 
         class li {
           dom: HTMLLIElement
-          constructor(css: string){
+          constructor(css: string, opts: LIOpts){
             this.dom = document.createElement('li')
             this.dom.style.cssText = css
+            this.dom.appendChild(new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom)
+            if(opts.hasChildren) {
+              let level2UlCss = Object.assign({...ulCss}, {
+                height: 'auto',
+                position: 'absolute',
+                display: 'none',
+                transition: 'linear 1s'
+              })
+              let ulD = new ul(toStr(level2UlCss), opts.children as Array<LIOpts>).dom
+              ulD.id = `_${opts.pageName}`
+              this.dom.appendChild(ulD)
+            }
           }
         }
 
-        const list = component.get('list')
-        const len = list.length
-
-        // let ulDom = new ul()
-        // console.log(ulDom)
-
-        for(let i = 0; i < len; i++) {
-          
+        class div {
+          dom: HTMLElement
+          constructor(css:string, opts: LIOpts) {
+            this.dom = document.createElement('div')
+            this.dom.style.cssText = css
+            if(!opts.isIcon) {
+              this.dom.setAttribute("data-key", opts.title as string)
+              if(opts.level === 1) {
+                let iconCss = Object.assign({...divCss}, {
+                  // @ts-ignore
+                  width: 0.1*Number(width) + 'px',
+                  // @ts-ignore
+                  height: Math.ceil((2.5/Number(style?.height))*height)/100 + 'px',
+                  // @ts-ignore
+                  left: Math.ceil((1.5/Number(style?.width))*width)/100 + 'px',
+                  // @ts-ignore
+                  top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
+                  position: 'absolute',
+                  background: `url(${sprites}) ${opts.logoPath}`
+                })
+                this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
+              }
+              let label = document.createElement('div')
+              label.innerHTML = opts.title as string
+              label.style.cssText = toStr(title1Css)
+              label.setAttribute('title-value', `${opts.pageName}`)
+              this.dom.appendChild(label)
+              if(opts.hasChildren) {
+                let imageDom = document.createElement('img')
+                imageDom.src = down
+                imageDom.style.cssText = toStr(imgCss)
+                imageDom.setAttribute('title-value', `${opts.pageName}`)
+                imageDom.setAttribute('isExtend', "false")
+                imageDom.id = `__${opts.pageName}`
+                this.dom.appendChild(imageDom)
+              }
+            }
+          }
         }
+
+        let ulDom = new ul(toStr(ulCss), optsList).dom
+
+        node.appendChild(ulDom)
+
+        ulDom.addEventListener('click', event => {
+          let dom = event.target as HTMLImageElement
+          const action = (dom: HTMLImageElement) => {
+            let value = dom.getAttribute('title-value')
+            let isExtend = dom.getAttribute('isExtend')
+            let ul = document.getElementById(`_${value}`) as HTMLUListElement
+            if(isExtend === 'true') {
+              ul.style.position = 'absolute'
+              ul.style.display = 'none'
+              dom.src = down
+              dom.setAttribute('isExtend', 'false')
+              // @ts-ignore
+              window.navBar.get(`${value}`).isExtend = false
+            } else {
+              ul.style.position = 'relative'
+              ul.style.display = 'block'
+              dom.src = up
+              dom.setAttribute('isExtend', 'true')
+              // @ts-ignore
+              window.navBar.get(`${value}`).isExtend = true
+            }
+          }
+          if(dom.tagName === "DIV") {
+            let value = dom.getAttribute('title-value')
+            let img = document.getElementById(`__${value}`)  as HTMLImageElement
+            if(img) {
+              action(img)
+            }
+            window.location.href = window.location.href + `-${value}`
+            // console.log(value)
+          } else if(dom.tagName === "IMG") {
+            action(dom)
+          }
+          console.log(window.navBar)
+
+        })
 
       }
     }
