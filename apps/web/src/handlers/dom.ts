@@ -3003,6 +3003,77 @@ const createExtendedDOMResolvers = function (app: App) {
 
       },
     },
+    '[App] navBar': {
+      cond: 'navBar',
+      resolve({ node, component }) {
+
+        let width = Number(node.style.width.replace('px', ''))
+        let height = Number(node.style.height.replace('px', ''))
+
+        console.log(width, height)
+
+        let ulCss = {
+          "width": width+'px',
+          "height": height+'px',
+          "left": "0px",
+          "top": "0px",
+          "margin": "0px",
+          "position": "absolute",
+          "outline": "none",
+          "display": "block",
+          "list-style": "none"
+        }
+
+        let liCss = {
+          "left": "0px",
+          "margin-top": "0px",
+          "width": width+'px',
+          "position": "relative",
+          "outline": "none",
+          "height": "auto",
+          "list-style": "none",
+          "border-style": "none",
+          "border-radius": "0px"
+        }
+
+        let divCss = {
+          "background-color": "rgb(0, 87, 149)",
+          "height": 0.186*height + 'px',
+          "position": "relative",
+          "outline": "none",
+          "margin-top": "0px"
+        }
+
+        console.log(ulCss, liCss, divCss)
+
+        class ul {
+          dom: HTMLUListElement
+          constructor(css: string) {
+            this.dom = document.createElement('ul')
+            this.dom.style.cssText = css
+          }
+        }
+
+        class li {
+          dom: HTMLLIElement
+          constructor(css: string){
+            this.dom = document.createElement('li')
+            this.dom.style.cssText = css
+          }
+        }
+
+        const list = component.get('list')
+        const len = list.length
+
+        // let ulDom = new ul()
+        // console.log(ulDom)
+
+        for(let i = 0; i < len; i++) {
+          
+        }
+
+      }
+    }
   }
 
   return u
