@@ -1097,6 +1097,77 @@ class App {
           setDocumentScrollTop('bottom')
         }
       }
+
+      let isAborted = false
+      const pageObject = this.root[page.page]
+      const Mounted = this.root[page.page]?.onMounted
+      if(Mounted && pageObject){
+        const onMounted =  async (current, index, mounted) => {
+            log.debug('', { current, index, mounted, page: page.page })
+
+            const validateReference = (ref: string) => {
+              const datapath = nu.trimReference(ref as ReferenceString)
+              const location = ref.startsWith(`=.builtIn`)
+                ? 'root'
+                : is.localKey(datapath)
+                ? 'local'
+                : 'root'
+              if (
+                !has(
+                  location === 'local' ? this.root[page.page] : this.root,
+                  datapath.split('.'),
+                )
+              ) {
+                log.error(
+                  `The reference "${ref}" is missing from the ${
+                    location === 'local'
+                      ? `local root for page "${page.page}"`
+                      : 'root'
+                  }`,
+                  {
+                    previous: mounted[index - 1],
+                    current: { value: current, index },
+                    next: mounted[index + 1],
+                    datapath,
+                    location,
+                    page: page.page,
+                    snapshot: cloneDeep(
+                      location === 'root'
+                        ? this.root
+                        : this.root[page.page],
+                    ),
+                  },
+                )
+              }
+            }
+
+            const validateObject = (obj: Record<string, any>) => {
+              for (const [key, value] of u.entries(obj)) {
+                is.reference(key) && validateReference(key)
+                is.reference(value) && validateReference(value)
+                if (u.isObj(value)) validateObject(value)
+              }
+            }
+
+            u.isObj(current) && validateObject(current)
+
+            if (!isAborted) {
+              let currentIndex = this.loadingPages[page.page]?.findIndex?.(
+                (o) => o.id === page.id,
+              )
+
+              if (currentIndex > -1) {
+                if (currentIndex > 0) {
+                  isAborted = true
+                  this.loadingPages[page.page].splice(currentIndex, 1)
+                } else {
+                  this.loadingPages[page.page].shift()
+                }
+              }
+            }
+          }
+        this.noodl?.runMounted({pageObject,onInit: onMounted,pageName: page.page})
+      }
     }
 
     page
