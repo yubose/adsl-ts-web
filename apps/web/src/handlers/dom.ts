@@ -135,7 +135,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }else{
               set(draft?.[pageName], dataKey, value)
             }
-        
+
             component.edit('data-value', value)
             node.dataset.value = value
 
@@ -358,10 +358,10 @@ const createExtendedDOMResolvers = function (app: App) {
                         }
                     } as any;
                       //@ts-ignore
-                      settingWeek.legend.data.push("heightBloodPressure", "lowBloodPressure")
+                      settingWeek.legend.data.push("Systolic", "Diastolic")
                       //@ts-ignore
                       settingWeek.series.push({
-                        "name": "heightBloodPressure",
+                        "name": "Systolic",
                         "type": dataValue.type,
                         "symbolSize": 8,
                         "data": [],
@@ -395,7 +395,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         },
                       },
                         {
-                          "name": "lowBloodPressure",
+                          "name": "Diastolic",
                           "type": dataValue.type,
                           "symbol": "circle",
                           "symbolSize": 8,
@@ -432,21 +432,21 @@ const createExtendedDOMResolvers = function (app: App) {
                   });
                       (settingWeek.xAxis.data as any).forEach(element => {
                         _dateTempObj[element] = {}
-                        _dateTempObj[element]["heightBloodPressure"] = [];
-                        _dateTempObj[element]["lowBloodPressure"] = [];
+                        _dateTempObj[element]["Systolic"] = [];
+                        _dateTempObj[element]["Diastolic"] = [];
                       });
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, "ctime");
                         let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
-                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
-                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
+                        _dateTempObj[signal]['Systolic']?.push(get(item, "name.data.heightBloodPressure"))
+                        _dateTempObj[signal]['Diastolic']?.push(get(item, "name.data.lowBloodPressure"))
                       })
                       Object.values(_dateTempObj).forEach((item) => {
-                        if (item["heightBloodPressure"].length > 0) {
+                        if (item["Systolic"].length > 0) {
                           // @ts-ignore
-                          settingWeek.series[0]["data"].push((item["heightBloodPressure"]?.reduce((e, f) => +e + +f) / item["heightBloodPressure"].length).toFixed())
+                          settingWeek.series[0]["data"].push((item["Systolic"]?.reduce((e, f) => +e + +f) / item["Systolic"].length).toFixed())
                           // @ts-ignore
-                          settingWeek.series[1]["data"].push((item["lowBloodPressure"]?.reduce((e, f) => +e + +f) / item["lowBloodPressure"].length).toFixed())
+                          settingWeek.series[1]["data"].push((item["Diastolic"]?.reduce((e, f) => +e + +f) / item["Diastolic"].length).toFixed())
                         } else {
                           (settingWeek.series[0]["data"] as any[]).push(undefined);
                           (settingWeek.series[1]["data"] as any[]).push(undefined);
@@ -646,10 +646,10 @@ const createExtendedDOMResolvers = function (app: App) {
                       settingDay.title.text = "Blood Pressure"
                       settingDay.yAxis.max = dataType[dataValue.dataType][3];
                       //@ts-ignore
-                      settingDay.legend.data.push("heightBloodPressure", "lowBloodPressure")
+                      settingDay.legend.data.push("Systolic", "Diastolic")
                       //@ts-ignore
                       settingDay.series.push({
-                        "name": "heightBloodPressure",
+                        "name": "Systolic",
                         "type": dataValue.type,
                         "symbolSize": 8,
                         "data": [],
@@ -666,7 +666,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         }
                       },
                         {
-                          "name": "lowBloodPressure",
+                          "name": "Diastolic",
                           "type": dataValue.type,
                           "symbol": "circle",
                           "symbolSize": 8,
@@ -692,17 +692,17 @@ const createExtendedDOMResolvers = function (app: App) {
                         let signal = moment(_stamp * 1000).format('HH:mm');
                         if (!_dateTempObj[signal]) {
                           _dateTempObj[signal] = {}
-                          _dateTempObj[signal]["heightBloodPressure"] = []
-                          _dateTempObj[signal]['lowBloodPressure'] = []
+                          _dateTempObj[signal]["Systolic"] = []
+                          _dateTempObj[signal]['Diastolic'] = []
                         }
-                        _dateTempObj[signal]['heightBloodPressure']?.push(get(item, "name.data.heightBloodPressure"))
-                        _dateTempObj[signal]['lowBloodPressure']?.push(get(item, "name.data.lowBloodPressure"))
+                        _dateTempObj[signal]['Systolic']?.push(get(item, "name.data.heightBloodPressure"))
+                        _dateTempObj[signal]['Diastolic']?.push(get(item, "name.data.lowBloodPressure"))
                       })
                       Object.values(_dateTempObj).forEach((item) => {
                         // @ts-ignore
-                        settingDay.series[0]["data"].push(...item["heightBloodPressure"])
+                        settingDay.series[0]["data"].push(...item["Systolic"])
                         // @ts-ignore
-                        settingDay.series[1]["data"].push(...item["lowBloodPressure"])
+                        settingDay.series[1]["data"].push(...item["Diastolic"])
                       })
                     } else {
                       try {
