@@ -36,7 +36,7 @@ import { hide } from '../utils/dom'
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
-import { cloneDeep } from 'lodash'
+import { cloneDeep, extend } from 'lodash'
 import moment from 'moment'
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -3007,6 +3007,359 @@ const createExtendedDOMResolvers = function (app: App) {
 
       },
     },
+    '[App] navBar': {
+      cond: 'navBar',
+      resolve({ node, component }) {
+
+        // console.error(component.get('dataKey'))
+        let currentPage = app.currentPage
+
+        let width = Number(node.style.width.replace('px', ''))
+        let height = Number(node.style.height.replace('px', ''))
+        let style = component.get("style")
+        
+        const sprites = 'https://public.aitmed.com.cn/cadl/admin1.39/assets/sprites.png'
+        const up = 'https://public.aitmed.com.cn/cadl/admin1.39/assets/arrowUp.svg'
+        const down = 'https://public.aitmed.com.cn/cadl/admin1.39/assets/arrowDown.svg'
+
+        let ulCss = {
+          "width": width+'px',
+          "height": height+'px',
+          "left": "0px",
+          "top": "0px",
+          "margin": "0px",
+          "position": "absolute",
+          "outline": "none",
+          "display": "block",
+          "list-style": "none"
+        }
+
+        let liCss = {
+          "left": "0px",
+          "margin-top": "0px",
+          "width": width+'px',
+          "position": "relative",
+          "outline": "none",
+          "height": "auto",
+          "list-style": "none",
+          "border-style": "none",
+          "border-radius": "0px"
+        }
+
+        let divCss = {
+          // "background-color": "#005795",
+          //@ts-ignore
+          "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+          "position": "relative",
+          "outline": "none",
+          "margin-top": "0px"
+        }
+
+        let imgCss = {
+          // @ts-ignore
+          "width": Math.ceil((0.7/Number(style?.width))*width)/100 + 'px',
+          // @ts-ignore
+          "top": Math.ceil((2/Number(style?.height))*height)/100 + 'px',
+          // @ts-ignore
+          "left": Math.ceil((14.5/Number(style?.width))*width)/100 + 'px',
+          "display": "block",
+          "cursor": "pointer",
+          "position": "absolute",
+          "outline": "none",
+          "object-fit": "contain",
+          "margin-top": "0px"
+        }
+
+        let title1Css = {
+          // @ts-ignore
+          "width": Math.ceil((10/Number(style?.width))*width)/100 + 'px',
+          "top": "0",
+          // @ts-ignore
+          "left": Math.ceil((4/Number(style?.width))*width)/100 + 'px',
+          // @ts-ignore
+          "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+          // @ts-ignore
+          "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+          "box-sizing": "border-box",
+          "color": "#ffffff",
+          "font-size": "13.5px",
+          "cursor": "pointer",
+          "position": "absolute",
+          "outline": "none",
+          "display": "flex",
+          "align-items": "center",
+          "justify-content": "flex-start",
+          "margin-top": "0px",
+        }
+
+        let optsList: Map<string, LIOpts> = new Map()
+        // let extendSet = new Set()
+
+        // @ts-ignore
+        if(!!window.navBar) {
+          // @ts-ignore
+          optsList = window.navBar.list
+        } else {
+          const list = component.get('list')
+          const len = list.length
+          // @ts-ignore
+          window.navBar = {
+            selectedPage: currentPage,
+            extendSet: new Set()
+            // list: new Map()
+          }
+          for(let i = 0; i < len; i++) {
+            let child = list[i]
+            let children: Array<LIOpts> = []
+            let hasChildren = false
+            let isExtend = false
+            if(child.hasChildren === "block") {
+              let l = child.childList.length
+              let t = 0
+              for(t = 0; t < l; t++) {
+                let c = child.childList[t]
+                if(c.pageName === currentPage) {
+                  isExtend = true
+                }
+                children.push({
+                  isIcon: false,
+                  title: c.title,
+                  pageName: c.pageName,
+                  level: c.level,
+                  background: c.backgroundColor.replace('0x', '#'),
+                  hasChildren: false
+                })
+              }
+              hasChildren = true
+            }
+            if(child.pageName === currentPage || isExtend) {
+              optsList.set(child.pageName, {
+                isIcon: false,
+                isExtend: true,
+                title: child.title,
+                pageName: child.pageName,
+                level: child.level,
+                background: child.backgroundColor.replace('0x', '#'),
+                hasChildren: hasChildren,
+                logoPath: child.logoPath,
+                children: children
+              })
+              if(hasChildren){
+                // @ts-ignore
+                window.navBar.extendSet.add(child.pageName)
+              }
+            } else {
+              optsList.set(child.pageName, {
+                isIcon: false,
+                isExtend: false,
+                title: child.title,
+                pageName: child.pageName,
+                level: child.level,
+                background: child.backgroundColor.replace('0x', '#'),
+                hasChildren: hasChildren,
+                logoPath: child.logoPath,
+                children: children
+              })
+            }
+          }
+          // @ts-ignore
+          window.navBar.list = optsList
+        }
+        // @ts-ignore
+        let navBar = window.navBar
+        let navList = navBar.list
+
+        const toStr = (obj: Object): string => {
+          return JSON.stringify(obj)
+                .replace(new RegExp(',', 'g'), ';')
+                .replace(new RegExp('"', 'g'), '')
+                .replace('{', '')
+                .replace('}', '')
+        }
+
+        interface LIOpts {
+          hasChildren?: boolean
+          level?: number
+          isIcon: boolean
+          title?: string
+          pageName?: string
+          logoPath?: string
+          background?: string
+          isExtend?: boolean
+          children?: Array<LIOpts>
+        }
+
+        class ul {
+          dom: HTMLUListElement
+          constructor(css: string, opts: Array<LIOpts> | Map<string, LIOpts>) {
+            this.dom = document.createElement('ul')
+            this.dom.style.cssText = css
+            opts.forEach(child => {
+              console.log("CHILD", child)
+              this.dom.appendChild(new li(toStr(liCss), child).dom)
+            })
+          }
+        }
+
+        class li {
+          dom: HTMLLIElement
+          constructor(css: string, opts: LIOpts){
+            this.dom = document.createElement('li')
+            this.dom.style.cssText = css
+            let divDom = new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom
+            // if(opts.level === 2)
+            if(!opts.hasChildren)
+              divDom.id = `_${opts.pageName}_`
+            this.dom.appendChild(divDom)
+            if(opts.hasChildren) {
+              let level2UlCss = {}
+              if(opts.isExtend) {
+                level2UlCss = Object.assign({...ulCss}, {
+                  height: 'auto',
+                  position: 'relative',
+                  display: 'block'
+                })
+              } else {
+                level2UlCss = Object.assign({...ulCss}, {
+                  height: 'auto',
+                  position: 'absolute',
+                  display: 'none'
+                })
+              }
+              let ulD = new ul(toStr(level2UlCss), opts.children as Array<LIOpts>).dom
+              ulD.id = `_${opts.pageName}`
+              this.dom.appendChild(ulD)
+            }
+          }
+        }
+
+        class div {
+          dom: HTMLElement
+          constructor(css:string, opts: LIOpts) {
+            this.dom = document.createElement('div')
+            this.dom.style.cssText = css
+            if(!opts.isIcon) {
+              this.dom.setAttribute("data-key", opts.title as string)
+              if(opts.level === 1) {
+                let iconCss = Object.assign({...divCss}, {
+                  // @ts-ignore
+                  width: 0.1*Number(width) + 'px',
+                  // @ts-ignore
+                  height: Math.ceil((2.5/Number(style?.height))*height)/100 + 'px',
+                  // @ts-ignore
+                  left: Math.ceil((1.5/Number(style?.width))*width)/100 + 'px',
+                  // @ts-ignore
+                  top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
+                  position: 'absolute',
+                  background: `url(${sprites}) ${opts.logoPath}`
+                })
+                this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
+              }
+              let label = document.createElement('div')
+              label.innerHTML = opts.title as string
+              label.style.cssText = toStr(title1Css)
+              label.setAttribute('title-value', `${opts.pageName}`)
+              this.dom.appendChild(label)
+              if(opts.hasChildren) {
+                let imageDom = document.createElement('img')
+                imageDom.src = opts.isExtend ? up : down
+                imageDom.style.cssText = toStr(imgCss)
+                imageDom.setAttribute('title-value', `${opts.pageName}`)
+                imageDom.id = `__${opts.pageName}`
+                this.dom.appendChild(imageDom)
+              }
+            }
+          }
+        }
+
+        let ulDom = new ul(toStr(ulCss), optsList).dom
+
+        node.appendChild(ulDom)
+
+        // @ts-ignore
+        if(navBar.selectedPage) {
+          // @ts-ignore
+          document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+        }
+
+        let extendSet = navBar.extendSet
+
+        ulDom.addEventListener('click', event => {
+          let dom = event.target as HTMLImageElement
+          const action = (value: string) => {
+            // @ts-ignore
+            //@ts-ignore
+            navBar.selectedPage = value
+            // @ts-ignore
+            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+            try {
+              let isExtend = navList.get(value).isExtend
+              if(!isExtend) {
+                extendSet.forEach(v => {
+                  if(navList.get(v).hasChildren){
+                    (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                    (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                    (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                    navList.get(v).isExtend = false
+                  }
+                })
+                extendSet.clear()
+              }
+              if(navList.get(value).hasChildren) {
+                extendSet.add(value)
+                navList.get(value).isExtend = true
+              }
+            } catch (error) {
+              
+            }
+            // window.app.root.Global.pageName = value
+            // console.log()
+            // component.set('dataKey', value)
+            app.updateRoot(draft => {
+              set(draft?.[currentPage], component.get('dataKey'), value)
+            })
+            // console.error(component.get('dataKey'))
+          }
+          if(dom.tagName === "DIV") {
+            let value = dom.getAttribute('title-value') as string
+            let img = document.getElementById(`__${value}`)  as HTMLImageElement
+            if(img) {
+              let value = dom.getAttribute('title-value')
+              // @ts-ignore
+              let isExtend = navList.get(value).isExtend
+              let ul = document.getElementById(`_${value}`) as HTMLUListElement
+              if(!isExtend){
+                ul.style.position = 'relative'
+                ul.style.display = 'block'
+                img.src = up
+              }
+            }
+            action(value)
+          } else if(dom.tagName === "IMG") {
+            let value = dom.getAttribute('title-value')
+            // @ts-ignore
+            let isExtend = navList.get(value).isExtend
+            let ul = document.getElementById(`_${value}`) as HTMLUListElement
+            // @ts-ignore
+            window.app.root.Global.pageName = ''
+            if(isExtend) {
+              ul.style.position = 'absolute'
+              ul.style.display = 'none'
+              dom.src = down
+              extendSet.delete(value)
+              navList.get(value).isExtend = false
+            } else {
+              ul.style.position = 'relative'
+              ul.style.display = 'block'
+              dom.src = up
+              extendSet.add(value)
+              navList.get(value).isExtend = true
+            }
+          }
+        })
+
+      }
+    }
   }
 
   return u
