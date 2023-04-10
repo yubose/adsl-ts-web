@@ -36,7 +36,7 @@ import { hide } from '../utils/dom'
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
-import { cloneDeep } from 'lodash'
+import { cloneDeep, extend } from 'lodash'
 import moment from 'moment'
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -3075,7 +3075,7 @@ const createExtendedDOMResolvers = function (app: App) {
           "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
           "box-sizing": "border-box",
           "color": "#ffffff",
-          "font-size": "0.77vw",
+          "font-size": "13.5px",
           "cursor": "pointer",
           "position": "absolute",
           "outline": "none",
@@ -3086,43 +3086,75 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         let optsList: Map<string, LIOpts> = new Map()
+        // let extendSet = new Set()
 
-        if(window.navBar) {
-          optsList = window.navBar
+        // @ts-ignore
+        if(!!window.navBar) {
+          // @ts-ignore
+          optsList = window.navBar.list
         } else {
           const list = component.get('list')
           const len = list.length
+          // @ts-ignore
+          window.navBar = {
+            selectedPage: list[0].pageName,
+            extendSet: new Set()
+            // list: new Map()
+          }
           for(let i = 0; i < len; i++) {
             let child = list[i]
             let children: Array<LIOpts> = []
             let hasChildren = false
             if(child.hasChildren === "block") {
-              child.childList.forEach(c => {
+              let l = child.childList.length
+              let t = 0
+              for(t = 0; t < l; t++) {
+                let c = child.childList[t]
                 children.push({
                   isIcon: false,
                   title: c.title,
-                  pageName: child.pageName,
+                  pageName: c.pageName,
                   level: c.level,
                   background: c.backgroundColor.replace('0x', '#'),
                   hasChildren: false
                 })
-              })
+              }
               hasChildren = true
             }
-            optsList.set(child.pageName, {
-              isIcon: false,
-              isExtend: false,
-              title: child.title,
-              pageName: child.pageName,
-              level: child.level,
-              background: child.backgroundColor.replace('0x', '#'),
-              hasChildren: hasChildren,
-              logoPath: child.logoPath,
-              children: children
-            })
+            if(i === 0) {
+              optsList.set(child.pageName, {
+                isIcon: false,
+                isExtend: true,
+                title: child.title,
+                pageName: child.pageName,
+                level: child.level,
+                background: child.backgroundColor.replace('0x', '#'),
+                hasChildren: hasChildren,
+                logoPath: child.logoPath,
+                children: children
+              })
+              // @ts-ignore
+              window.navBar.extendSet.add(child.pageName)
+            } else {
+              optsList.set(child.pageName, {
+                isIcon: false,
+                isExtend: false,
+                title: child.title,
+                pageName: child.pageName,
+                level: child.level,
+                background: child.backgroundColor.replace('0x', '#'),
+                hasChildren: hasChildren,
+                logoPath: child.logoPath,
+                children: children
+              })
+            }
           }
-          window.navBar = optsList
+          // @ts-ignore
+          window.navBar.list = optsList
         }
+        // @ts-ignore
+        let navBar = window.navBar
+        let navList = navBar.list
 
         const toStr = (obj: Object): string => {
           return JSON.stringify(obj)
@@ -3150,6 +3182,7 @@ const createExtendedDOMResolvers = function (app: App) {
             this.dom = document.createElement('ul')
             this.dom.style.cssText = css
             opts.forEach(child => {
+              console.log("CHILD", child)
               this.dom.appendChild(new li(toStr(liCss), child).dom)
             })
           }
@@ -3160,14 +3193,26 @@ const createExtendedDOMResolvers = function (app: App) {
           constructor(css: string, opts: LIOpts){
             this.dom = document.createElement('li')
             this.dom.style.cssText = css
-            this.dom.appendChild(new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom)
+            let divDom = new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom
+            // if(opts.level === 2)
+            if(!opts.hasChildren)
+              divDom.id = `_${opts.pageName}_`
+            this.dom.appendChild(divDom)
             if(opts.hasChildren) {
-              let level2UlCss = Object.assign({...ulCss}, {
-                height: 'auto',
-                position: 'absolute',
-                display: 'none',
-                transition: 'linear 1s'
-              })
+              let level2UlCss = {}
+              if(opts.isExtend) {
+                level2UlCss = Object.assign({...ulCss}, {
+                  height: 'auto',
+                  position: 'relative',
+                  display: 'block'
+                })
+              } else {
+                level2UlCss = Object.assign({...ulCss}, {
+                  height: 'auto',
+                  position: 'absolute',
+                  display: 'none'
+                })
+              }
               let ulD = new ul(toStr(level2UlCss), opts.children as Array<LIOpts>).dom
               ulD.id = `_${opts.pageName}`
               this.dom.appendChild(ulD)
@@ -3204,10 +3249,9 @@ const createExtendedDOMResolvers = function (app: App) {
               this.dom.appendChild(label)
               if(opts.hasChildren) {
                 let imageDom = document.createElement('img')
-                imageDom.src = down
+                imageDom.src = opts.isExtend ? up : down
                 imageDom.style.cssText = toStr(imgCss)
                 imageDom.setAttribute('title-value', `${opts.pageName}`)
-                imageDom.setAttribute('isExtend', "false")
                 imageDom.id = `__${opts.pageName}`
                 this.dom.appendChild(imageDom)
               }
@@ -3219,41 +3263,77 @@ const createExtendedDOMResolvers = function (app: App) {
 
         node.appendChild(ulDom)
 
+        // @ts-ignore
+        if(navBar.selectedPage) {
+          // @ts-ignore
+          document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+        }
+
+        let extendSet = navBar.extendSet
+
         ulDom.addEventListener('click', event => {
           let dom = event.target as HTMLImageElement
-          const action = (dom: HTMLImageElement) => {
+          const action = (value: string) => {
+            // @ts-ignore
+            let isExtend = navList.get(value).isExtend
+            // console.error("extendSet", extendSet)
+            //@ts-ignore
+            navBar.selectedPage = value
+            // @ts-ignore
+            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+            if(!isExtend) {
+              extendSet.forEach(v => {
+                if(navList.get(v).hasChildren){
+                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                  (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                  navList.get(v).isExtend = false
+                }
+              })
+              extendSet.clear()
+              extendSet.add(value)
+              navList.get(value).isExtend = true
+            }
+            window.app.root.Global.pageName = value
+            // component.set('data-key', value)
+            // console.error(component.get('data-key'))
+          }
+          if(dom.tagName === "DIV") {
+            let value = dom.getAttribute('title-value') as string
+            let img = document.getElementById(`__${value}`)  as HTMLImageElement
+            if(img) {
+              let value = dom.getAttribute('title-value')
+              // @ts-ignore
+              let isExtend = navList.get(value).isExtend
+              let ul = document.getElementById(`_${value}`) as HTMLUListElement
+              if(!isExtend){
+                ul.style.position = 'relative'
+                ul.style.display = 'block'
+                img.src = up
+              }
+            }
+            action(value)
+          } else if(dom.tagName === "IMG") {
             let value = dom.getAttribute('title-value')
-            let isExtend = dom.getAttribute('isExtend')
+            // @ts-ignore
+            let isExtend = navList.get(value).isExtend
             let ul = document.getElementById(`_${value}`) as HTMLUListElement
-            if(isExtend === 'true') {
+            // @ts-ignore
+            window.app.root.Global.pageName = ''
+            if(isExtend) {
               ul.style.position = 'absolute'
               ul.style.display = 'none'
               dom.src = down
-              dom.setAttribute('isExtend', 'false')
-              // @ts-ignore
-              window.navBar.get(`${value}`).isExtend = false
+              extendSet.delete(value)
+              navList.get(value).isExtend = false
             } else {
               ul.style.position = 'relative'
               ul.style.display = 'block'
               dom.src = up
-              dom.setAttribute('isExtend', 'true')
-              // @ts-ignore
-              window.navBar.get(`${value}`).isExtend = true
+              extendSet.add(value)
+              navList.get(value).isExtend = true
             }
           }
-          if(dom.tagName === "DIV") {
-            let value = dom.getAttribute('title-value')
-            let img = document.getElementById(`__${value}`)  as HTMLImageElement
-            if(img) {
-              action(img)
-            }
-            window.location.href = window.location.href + `-${value}`
-            // console.log(value)
-          } else if(dom.tagName === "IMG") {
-            action(dom)
-          }
-          console.log(window.navBar)
-
         })
 
       }
