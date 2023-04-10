@@ -3095,9 +3095,10 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           const list = component.get('list')
           const len = list.length
+          let currentPage = app.currentPage
           // @ts-ignore
           window.navBar = {
-            selectedPage: list[0].pageName,
+            selectedPage: currentPage,
             extendSet: new Set()
             // list: new Map()
           }
@@ -3105,11 +3106,15 @@ const createExtendedDOMResolvers = function (app: App) {
             let child = list[i]
             let children: Array<LIOpts> = []
             let hasChildren = false
+            let isExtend = false
             if(child.hasChildren === "block") {
               let l = child.childList.length
               let t = 0
               for(t = 0; t < l; t++) {
                 let c = child.childList[t]
+                if(c.pageName === currentPage) {
+                  isExtend = true
+                }
                 children.push({
                   isIcon: false,
                   title: c.title,
@@ -3121,7 +3126,7 @@ const createExtendedDOMResolvers = function (app: App) {
               }
               hasChildren = true
             }
-            if(i === 0) {
+            if(child.pageName === currentPage || isExtend) {
               optsList.set(child.pageName, {
                 isIcon: false,
                 isExtend: true,
@@ -3133,8 +3138,10 @@ const createExtendedDOMResolvers = function (app: App) {
                 logoPath: child.logoPath,
                 children: children
               })
-              // @ts-ignore
-              window.navBar.extendSet.add(child.pageName)
+              if(hasChildren){
+                // @ts-ignore
+                window.navBar.extendSet.add(child.pageName)
+              }
             } else {
               optsList.set(child.pageName, {
                 isIcon: false,
@@ -3275,24 +3282,29 @@ const createExtendedDOMResolvers = function (app: App) {
           let dom = event.target as HTMLImageElement
           const action = (value: string) => {
             // @ts-ignore
-            let isExtend = navList.get(value).isExtend
-            // console.error("extendSet", extendSet)
             //@ts-ignore
             navBar.selectedPage = value
             // @ts-ignore
             document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
-            if(!isExtend) {
-              extendSet.forEach(v => {
-                if(navList.get(v).hasChildren){
-                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                  (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
-                  navList.get(v).isExtend = false
-                }
-              })
-              extendSet.clear()
-              extendSet.add(value)
-              navList.get(value).isExtend = true
+            try {
+              let isExtend = navList.get(value).isExtend
+              if(!isExtend) {
+                extendSet.forEach(v => {
+                  if(navList.get(v).hasChildren){
+                    (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                    (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                    (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                    navList.get(v).isExtend = false
+                  }
+                })
+                extendSet.clear()
+              }
+              if(navList.get(value).hasChildren) {
+                extendSet.add(value)
+                navList.get(value).isExtend = true
+              }
+            } catch (error) {
+              
             }
             window.app.root.Global.pageName = value
             // component.set('data-key', value)
