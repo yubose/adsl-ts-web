@@ -3007,6 +3007,9 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'navBar',
       resolve({ node, component }) {
 
+        // console.error(component.get('dataKey'))
+        let currentPage = app.currentPage
+
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
         let style = component.get("style")
@@ -3095,7 +3098,6 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           const list = component.get('list')
           const len = list.length
-          let currentPage = app.currentPage
           // @ts-ignore
           window.navBar = {
             selectedPage: currentPage,
@@ -3306,9 +3308,13 @@ const createExtendedDOMResolvers = function (app: App) {
             } catch (error) {
               
             }
-            window.app.root.Global.pageName = value
-            // component.set('data-key', value)
-            // console.error(component.get('data-key'))
+            // window.app.root.Global.pageName = value
+            // console.log()
+            // component.set('dataKey', value)
+            app.updateRoot(draft => {
+              set(draft?.[currentPage], component.get('dataKey'), value)
+            })
+            // console.error(component.get('dataKey'))
           }
           if(dom.tagName === "DIV") {
             let value = dom.getAttribute('title-value') as string
