@@ -3089,12 +3089,15 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         let optsList: Map<string, LIOpts> = new Map()
+        let childMap: Map<string, string> = new Map()
         // let extendSet = new Set()
 
         // @ts-ignore
         if(!!window.navBar) {
           // @ts-ignore
           optsList = window.navBar.list
+          // @ts-ignore
+          childMap = window.navBar.linkMap
         } else {
           const list = component.get('list')
           const len = list.length
@@ -3116,6 +3119,11 @@ const createExtendedDOMResolvers = function (app: App) {
                 let c = child.childList[t]
                 if(c.pageName === currentPage) {
                   isExtend = true
+                }
+                if(c.childList instanceof Array) {
+                  c.childList.forEach(item => {
+                    childMap.set(item, c.pageName+'|'+child.pageName)
+                  })
                 }
                 children.push({
                   isIcon: false,
@@ -3160,6 +3168,8 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           // @ts-ignore
           window.navBar.list = optsList
+          // @ts-ignore
+          window.navBar.linkMap = childMap
         }
         // @ts-ignore
         let navBar = window.navBar
@@ -3279,58 +3289,91 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         let extendSet = navBar.extendSet
+        
+        if(childMap.has(currentPage)) {
+          // console.log("AAAABC")
+          let info = childMap.get(currentPage)
+          let PAGE = info?.split('|')[0]
+          let BLOCK = info?.split('|')[1]
+          if(navBar.selectedPage !== PAGE) {
+            extendSet.forEach(v => {
+              if(navList.get(v).hasChildren){
+                (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                navList.get(v).isExtend = false
+              }
+            })
+            extendSet.clear();
+            extendSet.add(BLOCK);
+            navList.get(BLOCK).isExtend = true;
+            (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.position = 'relative';
+            (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.display = 'block';
+            if(navList.get(BLOCK).hasChildren){ 
+              (<HTMLImageElement>document.getElementById(`__${BLOCK}`)).src = up;
+            }
+            // @ts-ignore
+            navBar.selectedPage = PAGE
+            // @ts-ignore
+            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+          }
+        }
+        
 
         ulDom.addEventListener('click', event => {
           let dom = event.target as HTMLImageElement
-          const action = (value: string) => {
-            // @ts-ignore
-            //@ts-ignore
-            navBar.selectedPage = value
-            // @ts-ignore
-            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+          if(dom.tagName === "DIV") {
             try {
-              let isExtend = navList.get(value).isExtend
-              if(!isExtend) {
-                extendSet.forEach(v => {
-                  if(navList.get(v).hasChildren){
-                    (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                    (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                    (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
-                    navList.get(v).isExtend = false
+              const action = (value: string) => {
+                // @ts-ignore
+                navBar.selectedPage = value
+                // @ts-ignore
+                document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+                try {
+                  let isExtend = navList.get(value).isExtend
+                  if(!isExtend) {
+                    extendSet.forEach(v => {
+                      if(navList.get(v).hasChildren){
+                        (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                        (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                        (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                        navList.get(v).isExtend = false
+                      }
+                    })
+                    extendSet.clear()
                   }
+                  if(navList.get(value).hasChildren) {
+                    extendSet.add(value)
+                    navList.get(value).isExtend = true
+                  }
+                } catch (error) {
+                  
+                }
+                // window.app.root.Global.pageName = value
+                // console.log()
+                // component.set('dataKey', value)
+                app.updateRoot(draft => {
+                  set(draft?.[currentPage], component.get('dataKey'), value)
                 })
-                extendSet.clear()
+                // console.error(component.get('dataKey'))
               }
-              if(navList.get(value).hasChildren) {
-                extendSet.add(value)
-                navList.get(value).isExtend = true
+              let value = dom.getAttribute('title-value') as string
+              let img = document.getElementById(`__${value}`)  as HTMLImageElement
+              if(img) {
+                let value = dom.getAttribute('title-value')
+                // @ts-ignore
+                let isExtend = navList.get(value).isExtend
+                let ul = document.getElementById(`_${value}`) as HTMLUListElement
+                if(!isExtend){
+                  ul.style.position = 'relative'
+                  ul.style.display = 'block'
+                  img.src = up
+                }
               }
+              action(value)
             } catch (error) {
               
             }
-            // window.app.root.Global.pageName = value
-            // console.log()
-            // component.set('dataKey', value)
-            app.updateRoot(draft => {
-              set(draft?.[currentPage], component.get('dataKey'), value)
-            })
-            // console.error(component.get('dataKey'))
-          }
-          if(dom.tagName === "DIV") {
-            let value = dom.getAttribute('title-value') as string
-            let img = document.getElementById(`__${value}`)  as HTMLImageElement
-            if(img) {
-              let value = dom.getAttribute('title-value')
-              // @ts-ignore
-              let isExtend = navList.get(value).isExtend
-              let ul = document.getElementById(`_${value}`) as HTMLUListElement
-              if(!isExtend){
-                ul.style.position = 'relative'
-                ul.style.display = 'block'
-                img.src = up
-              }
-            }
-            action(value)
           } else if(dom.tagName === "IMG") {
             let value = dom.getAttribute('title-value')
             // @ts-ignore
@@ -3352,6 +3395,10 @@ const createExtendedDOMResolvers = function (app: App) {
               navList.get(value).isExtend = true
             }
           }
+        })
+
+        window.addEventListener('popstate', event => {
+          location.reload()
         })
 
       }
