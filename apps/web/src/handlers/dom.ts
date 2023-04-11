@@ -3284,8 +3284,12 @@ const createExtendedDOMResolvers = function (app: App) {
 
         // @ts-ignore
         if(navBar.selectedPage) {
-          // @ts-ignore
-          document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+          try {
+            // @ts-ignore
+            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+          } catch (error) {
+            
+          }
         }
 
         let extendSet = navBar.extendSet
