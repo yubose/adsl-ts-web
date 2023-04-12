@@ -381,7 +381,6 @@ const createActions = function createActions(app: App) {
       let goto = _pick(action, 'goto') || ''
       let ndomPage = pickNDOMPageFromOptions(options)
       let destProps: ReturnType<typeof app.parse.destination>
-
       if (!app.getState().spinner.active) app.enableSpinner()
 
       log.debug(
@@ -439,7 +438,17 @@ const createActions = function createActions(app: App) {
           }
         }
       }
-
+      if(_pick(action, 'blank')&&u.isStr(goto)){
+        let a = document.createElement("a");
+        a.style.display = "none"
+        app.disableSpinner();
+        options.ref?.abort();
+        a.href = destProps.destination;
+        a.target="_blank"
+        a.click()
+        a = null as any;
+        return;
+      }
       if (u.isObj(goto?.dataIn)) {
         const dataIn = goto.dataIn
         'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
@@ -522,11 +531,6 @@ const createActions = function createActions(app: App) {
         pageModifiers,
         updatedQueryString: ndomPage?.pageUrl,
       })
-      if(_pick(action, 'blank')){
-        app.disableSpinner();
-        options.ref?.abort();
-        return void window.open(destProps.destination, '_blank');
-      }
       if (!isSamePage) {
         if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
           if (ndomPage.node.contentDocument?.body) {
