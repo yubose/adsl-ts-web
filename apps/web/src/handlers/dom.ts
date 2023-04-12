@@ -3326,6 +3326,12 @@ const createExtendedDOMResolvers = function (app: App) {
 
         ulDom.addEventListener('click', event => {
           let dom = event.target as HTMLImageElement
+          app.updateRoot(draft => {
+            set(draft, component.get('data-key'), {
+              pageName: 'ScheduleManagement',
+              isGoto: false
+            })
+          })
           if(dom.tagName === "DIV") {
             try {
               const action = (value: string) => {
@@ -3357,7 +3363,10 @@ const createExtendedDOMResolvers = function (app: App) {
                 // console.log()
                 // component.set('dataKey', value)
                 app.updateRoot(draft => {
-                  set(draft?.[currentPage], component.get('dataKey'), value)
+                  set(draft, component.get('data-key'), {
+                    pageName: value,
+                    isGoto: true
+                  })
                 })
                 // console.error(component.get('dataKey'))
               }
@@ -3376,7 +3385,7 @@ const createExtendedDOMResolvers = function (app: App) {
               }
               action(value)
             } catch (error) {
-              
+              console.log("DRAFT", app.root.Global.menuBarInfo)
             }
           } else if(dom.tagName === "IMG") {
             let value = dom.getAttribute('title-value')
