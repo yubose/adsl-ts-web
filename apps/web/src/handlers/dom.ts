@@ -36,8 +36,9 @@ import { hide } from '../utils/dom'
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
-import { cloneDeep, extend } from 'lodash'
+import { cloneDeep } from 'lodash'
 import moment from 'moment'
+
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -3101,10 +3102,9 @@ const createExtendedDOMResolvers = function (app: App) {
           // @ts-ignore
           childMap = window.navBar.linkMap
           // @ts-ignore
-          window.navBar.selectedPage = currentPage
-          // @ts-ignore
           extendMap = window.navBar.extendMap
         } else {
+          console.log("REFRESH")
           const list = component.get('list')
           const len = list.length
           // @ts-ignore
@@ -3290,16 +3290,6 @@ const createExtendedDOMResolvers = function (app: App) {
 
         node.appendChild(ulDom)
 
-        // @ts-ignore
-        if(navBar.selectedPage) {
-          try {
-            // @ts-ignore
-            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
-          } catch (error) {
-            
-          }
-        }
-
         let extendSet = navBar.extendSet
         
         if(childMap.has(currentPage)) {
@@ -3327,7 +3317,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // @ts-ignore
             navBar.selectedPage = PAGE
             // @ts-ignore
-            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+            // document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
           }
         }
         
@@ -3348,6 +3338,32 @@ const createExtendedDOMResolvers = function (app: App) {
           (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.display = 'block';
           if(navList.get(extendPage).hasChildren){ 
             (<HTMLImageElement>document.getElementById(`__${extendPage}`)).src = up;
+          }
+          // @ts-ignore
+          window.navBar.selectedPage = currentPage
+        }
+
+        if(optsList.has(currentPage) && !optsList.get(currentPage)?.hasChildren) {
+          extendSet.forEach(v => {
+            if(navList.get(v).hasChildren){
+              (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+              (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+              (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+              navList.get(v).isExtend = false
+            }
+            extendSet.clear();
+            // @ts-ignore
+            window.navBar.selectedPage = currentPage
+          })
+        }
+
+        // @ts-ignore
+        if(navBar.selectedPage) {
+          try {
+            // @ts-ignore
+            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+          } catch (error) {
+            
           }
         }
 
