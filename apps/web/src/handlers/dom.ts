@@ -3009,6 +3009,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         // console.error(component.get('dataKey'))
         let currentPage = app.currentPage
+        console.log("currentPage", currentPage)
 
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
@@ -3090,6 +3091,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let optsList: Map<string, LIOpts> = new Map()
         let childMap: Map<string, string> = new Map()
+        let extendMap: Map<string, string> = new Map()
         // let extendSet = new Set()
 
         // @ts-ignore
@@ -3098,6 +3100,10 @@ const createExtendedDOMResolvers = function (app: App) {
           optsList = window.navBar.list
           // @ts-ignore
           childMap = window.navBar.linkMap
+          // @ts-ignore
+          window.navBar.selectedPage = currentPage
+          // @ts-ignore
+          extendMap = window.navBar.extendMap
         } else {
           const list = component.get('list')
           const len = list.length
@@ -3105,7 +3111,6 @@ const createExtendedDOMResolvers = function (app: App) {
           window.navBar = {
             selectedPage: currentPage,
             extendSet: new Set()
-            // list: new Map()
           }
           for(let i = 0; i < len; i++) {
             let child = list[i]
@@ -3133,6 +3138,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   background: c.backgroundColor.replace('0x', '#'),
                   hasChildren: false
                 })
+                extendMap.set(c.pageName, child.pageName)
               }
               hasChildren = true
             }
@@ -3170,6 +3176,8 @@ const createExtendedDOMResolvers = function (app: App) {
           window.navBar.list = optsList
           // @ts-ignore
           window.navBar.linkMap = childMap
+          // @ts-ignore
+          window.navBar.extendMap = extendMap
         }
         // @ts-ignore
         let navBar = window.navBar
@@ -3201,7 +3209,7 @@ const createExtendedDOMResolvers = function (app: App) {
             this.dom = document.createElement('ul')
             this.dom.style.cssText = css
             opts.forEach(child => {
-              console.log("CHILD", child)
+              // console.log("CHILD", child)
               this.dom.appendChild(new li(toStr(liCss), child).dom)
             })
           }
@@ -3323,6 +3331,25 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
         
+        if(extendMap.has(currentPage)) {
+          let extendPage = extendMap.get(currentPage)
+          extendSet.forEach(v => {
+            if(navList.get(v).hasChildren){
+              (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+              (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+              (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+              navList.get(v).isExtend = false
+            }
+          })
+          extendSet.clear();
+          extendSet.add(extendPage);
+          navList.get(extendPage).isExtend = true;
+          (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.position = 'relative';
+          (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.display = 'block';
+          if(navList.get(extendPage).hasChildren){ 
+            (<HTMLImageElement>document.getElementById(`__${extendPage}`)).src = up;
+          }
+        }
 
         ulDom.addEventListener('click', event => {
           let dom = event.target as HTMLImageElement
@@ -3359,16 +3386,12 @@ const createExtendedDOMResolvers = function (app: App) {
                 } catch (error) {
                   
                 }
-                // window.app.root.Global.pageName = value
-                // console.log()
-                // component.set('dataKey', value)
                 app.updateRoot(draft => {
                   set(draft, component.get('data-key'), {
                     pageName: value,
                     isGoto: true
                   })
                 })
-                // console.error(component.get('dataKey'))
               }
               let value = dom.getAttribute('title-value') as string
               let img = document.getElementById(`__${value}`)  as HTMLImageElement
@@ -3385,7 +3408,7 @@ const createExtendedDOMResolvers = function (app: App) {
               }
               action(value)
             } catch (error) {
-              console.log("DRAFT", app.root.Global.menuBarInfo)
+              
             }
           } else if(dom.tagName === "IMG") {
             let value = dom.getAttribute('title-value')
@@ -3408,10 +3431,6 @@ const createExtendedDOMResolvers = function (app: App) {
               navList.get(value).isExtend = true
             }
           }
-        })
-
-        window.addEventListener('popstate', event => {
-          location.reload()
         })
 
       }
