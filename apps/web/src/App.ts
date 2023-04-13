@@ -1037,7 +1037,7 @@ class App {
     const onNavigateStart = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.debug(`Removing room listeners...`)
-        this.meeting.room?.removeAllListeners?.()
+        // this.meeting.room?.removeAllListeners?.()
       }
     }
 
