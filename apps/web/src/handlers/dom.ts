@@ -3269,7 +3269,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   // @ts-ignore
                   top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
                   position: 'absolute',
-                  background: `url(${sprites}) ${opts.logoPath}`
+                  background: `url(${sprites}) ${opts.logoPath} no-repeat`
                 })
                 this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
               }
