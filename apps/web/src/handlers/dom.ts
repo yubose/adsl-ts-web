@@ -3020,9 +3020,9 @@ const createExtendedDOMResolvers = function (app: App) {
         let height = Number(node.style.height.replace('px', ''))
         const assetsUrl = app.nui.getAssetsUrl() || ""
         let style = component.get("style")
-        const sprites = `${assetsUrl}/sprites.png`
-        const up = `${assetsUrl}/arrowUp.svg`
-        const down = `${assetsUrl}/arrowDown.svg`
+        const sprites = `${assetsUrl}sprites.png`
+        const up = `${assetsUrl}arrowUp.svg`
+        const down = `${assetsUrl}arrowDown.svg`
         let ulCss = {
           "width": width+'px',
           "height": height+'px',
