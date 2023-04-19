@@ -3108,9 +3108,9 @@ const createExtendedDOMResolvers = function (app: App) {
           // @ts-ignore
           extendMap = window.navBar.extendMap
         } else {
-          console.log("REFRESH")
-          // const list = component.get('list')
-          const list = app.root.Global.sourceData
+          console.warn("REFRESH")
+          // const list = component.get('test')
+          const list = get(app.root, component.get('list'))
           const len = list.length
           // @ts-ignore
           window.navBar = {
