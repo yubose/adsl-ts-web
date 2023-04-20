@@ -16,10 +16,8 @@ import type { Env } from 'noodl-types'
 import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
-    //@ts-ignore
-    baseConfigUrl: window.configRoot || 'https://public.aitmed.com/config',
-    //@ts-ignore
-    app: window.appName || (process.env.ANALYSIS_APP ?? process.env.DEBUG_APP ?? 'patient'),
+  baseConfigUrl: 'https://public.aitmed.com/config',
+  app: process.env.ANALYSIS_APP ?? process.env.DEBUG_APP ?? 'patient',
   get url() {
     // ONLY used if passed in as cli args via --env APP=<config name>
     // See webpack.config.js for details in the "_getLocalAppHelpers" function
@@ -28,12 +26,10 @@ export const lvl3Options = {
     // This will be returned (normal use) if NOT using -- env APP=<config name>
     const port = 3000
     return safeDeployUrl
-    // return '../local.yml'
     // return isDeploying
     //   ? safeDeployUrl
     //   : `http://127.0.0.1:${port}/${lvl3Options.app}.yml`
     // return `./analysis.yml`
-    // return `./admin/chinaConfig/admin.yml`
   },
 }
 
