@@ -44,7 +44,7 @@ import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
-import { isUnitTestEnv } from './utils/common'
+import { isUnitTestEnv, sortByPriority } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
 
@@ -74,6 +74,7 @@ class App {
       page: '',
     },
   }
+
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #meeting: ReturnType<typeof createMeetingFns>
@@ -307,12 +308,15 @@ class App {
   getRegister() {
     return this.register
   }
-  injectScript(url:string) {
+
+  async injectScript(url: string) {
     return new Promise((resolve, reject) => {
-      if(url.endsWith('js')){
-        const script = document.createElement("script")
-        const tempGlobal = "__tempModuleLoadingVariable" + Math.random().toString(32).substring(2)
-        script.type = "module"
+      if (url.endsWith('js')) {
+        const script = document.createElement('script')
+        const tempGlobal =
+          '__tempModuleLoadingVariable' +
+          Math.random().toString(32).substring(2)
+        script.type = 'module'
         script.async = true
         script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
         script.onload = () => {
@@ -321,25 +325,24 @@ class App {
           script.remove()
         }
         script.onerror = () => {
-          reject(new Error("Failed to load module script with URL " + url))
+          reject(new Error('Failed to load module script with URL ' + url))
           delete window[tempGlobal]
           script.remove()
         }
         document.documentElement.appendChild(script)
-      }else if(url.endsWith('css')){
+      } else if (url.endsWith('css')) {
         let link = document.createElement('link')
         link.href = url
         link.rel = 'stylesheet'
         document.documentElement.appendChild(link)
         link.onload = () => {
-          resolve("loaded module script with URL " + url)
+          resolve('loaded module script with URL ' + url)
         }
         link.onerror = () => {
-          reject(new Error("Failed to load module script with URL " + url))
+          reject(new Error('Failed to load module script with URL ' + url))
           link.remove()
         }
       }
-      
     })
   }
 
@@ -405,7 +408,7 @@ class App {
         }
         localStorage.setItem('tempParams', JSON.stringify(params))
         // await lf.setItem('tempParams', params)
-      }else{
+      } else {
         localStorage.setItem('tempParams', JSON.stringify({}))
       }
 
@@ -479,7 +482,7 @@ class App {
       throw new Error(error as any)
     }
     let e = Date.now()
-    log.log('%c[timerLog]页面整体渲染','color: green;',`${e-s}`)
+    log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
   }
 
   async initialize({
@@ -511,9 +514,7 @@ class App {
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
         } catch (error) {
-          log.error(
-            error instanceof Error ? error : new Error(String(error)),
-          )
+          log.error(error instanceof Error ? error : new Error(String(error)))
         }
       }
 
@@ -574,8 +575,8 @@ class App {
       this.root.extendedBuiltIn = builtIns
       this.root.localForage = lf
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
-      u.entries(middlewares).forEach(([id, fn]) =>
-        this.actionFactory.createMiddleware(id, fn),
+      sortByPriority(middlewares).forEach(({ id, fn }) =>
+        this.actionFactory.createMiddleware(id as string, fn),
       )
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -621,8 +622,8 @@ class App {
         }
       }
       const injectScripts = this.noodl.config?.preloadlib
-      if(u.isArr(injectScripts) && injectScripts.length>0){
-        injectScripts.forEach((url)=>{
+      if (u.isArr(injectScripts) && injectScripts.length > 0) {
+        injectScripts.forEach((url) => {
           this.injectScript(url)
         })
       }
@@ -904,7 +905,7 @@ class App {
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
             let e2 = Date.now()
-            log.log('%c[timerLog]afterinit','color: green;',`${e2-s2}`)
+            log.log('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -919,7 +920,7 @@ class App {
 
       log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
       let e = Date.now()
-      log.log('%c[timerLog]获取页面和init','color: green;',`${e-s}`)
+      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
 
       if (isAbortedFromSDK) {
         log.info(
@@ -1072,7 +1073,9 @@ class App {
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
       }
-      page.previous && page.previous!==page.page && this.nui.cache.component.clear(page.previous)
+      page.previous &&
+        page.previous !== page.page &&
+        this.nui.cache.component.clear(page.previous)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
