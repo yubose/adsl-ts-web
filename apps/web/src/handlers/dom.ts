@@ -684,9 +684,6 @@ const createExtendedDOMResolvers = function (app: App) {
                           },
                           "data": []
                         });
-                      // console.error('dataValue');
-                      // console.error(dataValue.dataSource.length);
-
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, "ctime");
                         let signal = moment(_stamp * 1000).format('HH:mm');
