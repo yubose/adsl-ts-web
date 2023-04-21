@@ -171,6 +171,7 @@ function getWebpackConfig(env) {
   };
   (mode==="production")&&(headers['Cache-Control']='max-age=86400');
   const webpackOptions = {
+  
     entry: {
       main: [
         process.env.SAMPLE
@@ -185,6 +186,7 @@ function getWebpackConfig(env) {
     },
     ignoreWarnings: [/InjectManifest/],
     mode,
+
     devServer: {
       allowedHosts: [
         'localhost',
@@ -194,10 +196,14 @@ function getWebpackConfig(env) {
         'aitmed.io',
       ],
       compress: true,
+
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
       headers: headers,
+      client:{
+        overlay: false
+      },
       port: 3000,
       ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
       /**
