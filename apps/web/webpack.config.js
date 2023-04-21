@@ -12,6 +12,7 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
+const TerserPlugin = require("terser-webpack-plugin");
 const serializeErr = (err) => ({
   name: err.name,
   message: err.message,
@@ -170,6 +171,7 @@ function getWebpackConfig(env) {
   };
   (mode==="production")&&(headers['Cache-Control']='max-age=86400');
   const webpackOptions = {
+  
     entry: {
       main: [
         process.env.SAMPLE
@@ -184,6 +186,7 @@ function getWebpackConfig(env) {
     },
     ignoreWarnings: [/InjectManifest/],
     mode,
+
     devServer: {
       allowedHosts: [
         'localhost',
@@ -193,10 +196,14 @@ function getWebpackConfig(env) {
         'aitmed.io',
       ],
       compress: true,
+
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
       headers: headers,
+      client:{
+        overlay: false
+      },
       port: 3000,
       ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
       /**
@@ -352,6 +359,19 @@ function getWebpackConfig(env) {
           },
         ],
       }),
+      // new TerserPlugin({
+      //   cache: true,
+      //   sourceMap: false,
+      //   // 多进程
+      //   parallel: true,
+      //   terserOptions: {
+      //     warnings: false,
+      //     compress: {
+      //       drop_console: false,
+      //       drop_debugger: false
+      //     }
+      //   },
+      // }),
       new webpack.ProgressPlugin({
         // handler: webpackProgress,
       }),
@@ -362,7 +382,7 @@ function getWebpackConfig(env) {
       new webpack.DefinePlugin({
         'process.env': {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV)
-        } 
+        }
       })
     ],
     optimization:
@@ -371,6 +391,15 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
+            minimizer: [new TerserPlugin({
+              terserOptions:{
+              warnings: false,
+              compress: {
+                      drop_console: false,
+                      drop_debugger: false
+                    }
+              }
+            })],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
@@ -394,6 +423,7 @@ function getWebpackConfig(env) {
                 },
               },
             },
+
           }
         : undefined,
   }
