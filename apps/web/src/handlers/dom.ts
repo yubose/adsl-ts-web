@@ -3016,8 +3016,16 @@ const createExtendedDOMResolvers = function (app: App) {
         let currentPage = app.currentPage
         console.log("currentPage", currentPage)
 
+        const originWidth = 278.25
+        const originIconWidth = 162
+        const originIconHeight = 147
+
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
+
+        let ratio = Math.floor(100*(width/originWidth))/100
+        console.log("NAVBAR", ratio)
+
         const assetsUrl = app.nui.getAssetsUrl() || ""
         let style = component.get("style")
         const sprites = `${assetsUrl}sprites.png`
@@ -3080,7 +3088,7 @@ const createExtendedDOMResolvers = function (app: App) {
           // @ts-ignore
           "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
           // @ts-ignore
-          "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+          // "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
           "box-sizing": "border-box",
           "color": "#ffffff",
           "font-size": "13.5px",
@@ -3259,6 +3267,9 @@ const createExtendedDOMResolvers = function (app: App) {
             if(!opts.isIcon) {
               this.dom.setAttribute("data-key", opts.title as string)
               if(opts.level === 1) {
+                const logoPathLeft = Number(opts.logoPath?.split('px')[0]) * ratio
+                const logoPathRight = Number(opts.logoPath?.split('px')[1]) * ratio 
+                console.log(Number(opts.logoPath?.split('px')[0]), Number(opts.logoPath?.split('px')[1]))
                 let iconCss = Object.assign({...divCss}, {
                   // @ts-ignore
                   width: 0.1*Number(width) + 'px',
@@ -3269,7 +3280,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   // @ts-ignore
                   top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
                   position: 'absolute',
-                  background: `url(${sprites}) ${opts.logoPath} no-repeat`
+                  background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
+                  "background-size": `${ratio*originIconWidth}px ${ratio*originIconHeight}px`
                 })
                 this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
               }
