@@ -3016,21 +3016,29 @@ const createExtendedDOMResolvers = function (app: App) {
         let currentPage = app.currentPage
         console.log("currentPage", currentPage)
 
-        const originWidth = 278.25
-        const originIconWidth = 162
-        const originIconHeight = 147
-
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
-
-        let ratio = Math.floor(100*(width/originWidth))/100
-        console.log("NAVBAR", ratio)
 
         const assetsUrl = app.nui.getAssetsUrl() || ""
         let style = component.get("style")
         const sprites = `${assetsUrl}sprites.png`
         const up = `${assetsUrl}arrowUp.svg`
         const down = `${assetsUrl}arrowDown.svg`
+        
+        const img = new Image()
+        img.src = sprites
+
+        let originIconWidth, originIconHeight
+
+        img.onload = () => {
+          originIconWidth = img.width
+          originIconHeight = img.height
+          draw()
+        }
+
+        const originWidth = 278.25
+        let ratio = Math.floor(100*(width/originWidth))/100
+
         let ulCss = {
           "width": width+'px',
           "height": height+'px',
@@ -3269,7 +3277,6 @@ const createExtendedDOMResolvers = function (app: App) {
               if(opts.level === 1) {
                 const logoPathLeft = Number(opts.logoPath?.split('px')[0]) * ratio
                 const logoPathRight = Number(opts.logoPath?.split('px')[1]) * ratio 
-                console.log(Number(opts.logoPath?.split('px')[0]), Number(opts.logoPath?.split('px')[1]))
                 let iconCss = Object.assign({...divCss}, {
                   // @ts-ignore
                   width: 0.1*Number(width) + 'px',
@@ -3302,9 +3309,93 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
 
-        let ulDom = new ul(toStr(ulCss), optsList).dom
+        const draw = () => {
+          const ulDom = new ul(toStr(ulCss), optsList).dom
 
-        node.appendChild(ulDom)
+          node.appendChild(ulDom)
+
+          ulDom.addEventListener('click', event => {
+            let dom = event.target as HTMLImageElement
+            app.updateRoot(draft => {
+              set(draft, component.get('data-key'), {
+                pageName: 'ScheduleManagement',
+                isGoto: false
+              })
+            })
+            if(dom.tagName === "DIV") {
+              try {
+                const action = (value: string) => {
+                  // @ts-ignore
+                  navBar.selectedPage = value
+                  // @ts-ignore
+                  document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+                  try {
+                    let isExtend = navList.get(value).isExtend
+                    if(!isExtend) {
+                      extendSet.forEach(v => {
+                        if(navList.get(v).hasChildren){
+                          (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                          (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                          (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                          navList.get(v).isExtend = false
+                        }
+                      })
+                      extendSet.clear()
+                    }
+                    if(navList.get(value).hasChildren) {
+                      extendSet.add(value)
+                      navList.get(value).isExtend = true
+                    }
+                  } catch (error) {
+                    
+                  }
+                  app.updateRoot(draft => {
+                    set(draft, component.get('data-key'), {
+                      pageName: value,
+                      isGoto: true
+                    })
+                  })
+                }
+                let value = dom.getAttribute('title-value') as string
+                let img = document.getElementById(`__${value}`)  as HTMLImageElement
+                if(img) {
+                  let value = dom.getAttribute('title-value')
+                  // @ts-ignore
+                  let isExtend = navList.get(value).isExtend
+                  let ul = document.getElementById(`_${value}`) as HTMLUListElement
+                  if(!isExtend){
+                    ul.style.position = 'relative'
+                    ul.style.display = 'block'
+                    img.src = up
+                  }
+                }
+                action(value)
+              } catch (error) {
+                
+              }
+            } else if(dom.tagName === "IMG") {
+              let value = dom.getAttribute('title-value')
+              // @ts-ignore
+              let isExtend = navList.get(value).isExtend
+              let ul = document.getElementById(`_${value}`) as HTMLUListElement
+              // @ts-ignore
+              window.app.root.Global.pageName = ''
+              if(isExtend) {
+                ul.style.position = 'absolute'
+                ul.style.display = 'none'
+                dom.src = down
+                extendSet.delete(value)
+                navList.get(value).isExtend = false
+              } else {
+                ul.style.position = 'relative'
+                ul.style.display = 'block'
+                dom.src = up
+                extendSet.add(value)
+                navList.get(value).isExtend = true
+              }
+            }
+          })
+        }
 
         let extendSet = navBar.extendSet
         
@@ -3382,88 +3473,6 @@ const createExtendedDOMResolvers = function (app: App) {
             
           }
         }
-
-        ulDom.addEventListener('click', event => {
-          let dom = event.target as HTMLImageElement
-          app.updateRoot(draft => {
-            set(draft, component.get('data-key'), {
-              pageName: 'ScheduleManagement',
-              isGoto: false
-            })
-          })
-          if(dom.tagName === "DIV") {
-            try {
-              const action = (value: string) => {
-                // @ts-ignore
-                navBar.selectedPage = value
-                // @ts-ignore
-                document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
-                try {
-                  let isExtend = navList.get(value).isExtend
-                  if(!isExtend) {
-                    extendSet.forEach(v => {
-                      if(navList.get(v).hasChildren){
-                        (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                        (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                        (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
-                        navList.get(v).isExtend = false
-                      }
-                    })
-                    extendSet.clear()
-                  }
-                  if(navList.get(value).hasChildren) {
-                    extendSet.add(value)
-                    navList.get(value).isExtend = true
-                  }
-                } catch (error) {
-                  
-                }
-                app.updateRoot(draft => {
-                  set(draft, component.get('data-key'), {
-                    pageName: value,
-                    isGoto: true
-                  })
-                })
-              }
-              let value = dom.getAttribute('title-value') as string
-              let img = document.getElementById(`__${value}`)  as HTMLImageElement
-              if(img) {
-                let value = dom.getAttribute('title-value')
-                // @ts-ignore
-                let isExtend = navList.get(value).isExtend
-                let ul = document.getElementById(`_${value}`) as HTMLUListElement
-                if(!isExtend){
-                  ul.style.position = 'relative'
-                  ul.style.display = 'block'
-                  img.src = up
-                }
-              }
-              action(value)
-            } catch (error) {
-              
-            }
-          } else if(dom.tagName === "IMG") {
-            let value = dom.getAttribute('title-value')
-            // @ts-ignore
-            let isExtend = navList.get(value).isExtend
-            let ul = document.getElementById(`_${value}`) as HTMLUListElement
-            // @ts-ignore
-            window.app.root.Global.pageName = ''
-            if(isExtend) {
-              ul.style.position = 'absolute'
-              ul.style.display = 'none'
-              dom.src = down
-              extendSet.delete(value)
-              navList.get(value).isExtend = false
-            } else {
-              ul.style.position = 'relative'
-              ul.style.display = 'block'
-              dom.src = up
-              extendSet.add(value)
-              navList.get(value).isExtend = true
-            }
-          }
-        })
 
       }
     }
