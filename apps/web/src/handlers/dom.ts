@@ -3030,286 +3030,281 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let originIconWidth, originIconHeight
 
-        img.onload = () => {
+        const draw = () => {
           originIconWidth = img.width
           originIconHeight = img.height
-          draw()
-        }
+          const originWidth = 278.25
+          let ratio = Math.floor(100*(width/originWidth))/100
 
-        const originWidth = 278.25
-        let ratio = Math.floor(100*(width/originWidth))/100
-
-        let ulCss = {
-          "width": width+'px',
-          "height": height+'px',
-          "left": "0px",
-          "top": "0px",
-          "margin": "0px",
-          "position": "absolute",
-          "outline": "none",
-          "display": "block",
-          "list-style": "none"
-        }
-
-        let liCss = {
-          "left": "0px",
-          "margin-top": "0px",
-          "width": width+'px',
-          "position": "relative",
-          "outline": "none",
-          "height": "auto",
-          "list-style": "none",
-          "border-style": "none",
-          "border-radius": "0px"
-        }
-
-        let divCss = {
-          // "background-color": "#005795",
-          //@ts-ignore
-          "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
-          "position": "relative",
-          "outline": "none",
-          "margin-top": "0px"
-        }
-
-        let imgCss = {
-          // @ts-ignore
-          "width": Math.ceil((0.7/Number(style?.width))*width)/100 + 'px',
-          // @ts-ignore
-          "top": Math.ceil((2/Number(style?.height))*height)/100 + 'px',
-          // @ts-ignore
-          "left": Math.ceil((14.5/Number(style?.width))*width)/100 + 'px',
-          "display": "block",
-          "cursor": "pointer",
-          "position": "absolute",
-          "outline": "none",
-          "object-fit": "contain",
-          "margin-top": "0px"
-        }
-
-        let title1Css = {
-          // @ts-ignore
-          "width": Math.ceil((10/Number(style?.width))*width)/100 + 'px',
-          "top": "0",
-          // @ts-ignore
-          "left": Math.ceil((4/Number(style?.width))*width)/100 + 'px',
-          // @ts-ignore
-          "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
-          // @ts-ignore
-          // "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
-          "box-sizing": "border-box",
-          "color": "#ffffff",
-          "font-size": "13.5px",
-          "cursor": "pointer",
-          "position": "absolute",
-          "outline": "none",
-          "display": "flex",
-          "align-items": "center",
-          "justify-content": "flex-start",
-          "margin-top": "0px",
-        }
-
-        let optsList: Map<string, LIOpts> = new Map()
-        let childMap: Map<string, string> = new Map()
-        let extendMap: Map<string, string> = new Map()
-        // let extendSet = new Set()
-
-        // @ts-ignore
-        if(!!window.navBar) {
-          // @ts-ignore
-          optsList = window.navBar.list
-          // @ts-ignore
-          childMap = window.navBar.linkMap
-          // @ts-ignore
-          extendMap = window.navBar.extendMap
-        } else {
-          console.warn("REFRESH")
-          // const list = component.get('test')
-          const list = get(app.root, component.get('list'))
-          const len = list.length
-          // @ts-ignore
-          window.navBar = {
-            selectedPage: currentPage,
-            extendSet: new Set()
+          let ulCss = {
+            "width": width+'px',
+            "height": height+'px',
+            "left": "0px",
+            "top": "0px",
+            "margin": "0px",
+            "position": "absolute",
+            "outline": "none",
+            "display": "block",
+            "list-style": "none"
           }
-          for(let i = 0; i < len; i++) {
-            let child = list[i]
-            let children: Array<LIOpts> = []
-            let hasChildren = false
-            let isExtend = false
-            if(child.hasChildren === "block") {
-              let l = child.childList.length
-              let t = 0
-              for(t = 0; t < l; t++) {
-                let c = child.childList[t]
-                if(c.pageName === currentPage) {
-                  isExtend = true
+
+          let liCss = {
+            "left": "0px",
+            "margin-top": "0px",
+            "width": width+'px',
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "list-style": "none",
+            "border-style": "none",
+            "border-radius": "0px"
+          }
+
+          let divCss = {
+            // "background-color": "#005795",
+            //@ts-ignore
+            "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+            "position": "relative",
+            "outline": "none",
+            "margin-top": "0px"
+          }
+
+          let imgCss = {
+            // @ts-ignore
+            "width": Math.ceil((0.7/Number(style?.width))*width)/100 + 'px',
+            // @ts-ignore
+            "top": Math.ceil((2/Number(style?.height))*height)/100 + 'px',
+            // @ts-ignore
+            "left": Math.ceil((14.5/Number(style?.width))*width)/100 + 'px',
+            "display": "block",
+            "cursor": "pointer",
+            "position": "absolute",
+            "outline": "none",
+            "object-fit": "contain",
+            "margin-top": "0px"
+          }
+
+          let title1Css = {
+            // @ts-ignore
+            "width": Math.ceil((10/Number(style?.width))*width)/100 + 'px',
+            "top": "0",
+            // @ts-ignore
+            "left": Math.ceil((4/Number(style?.width))*width)/100 + 'px',
+            // @ts-ignore
+            "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+            // @ts-ignore
+            // "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+            "box-sizing": "border-box",
+            "color": "#ffffff",
+            "font-size": "13.5px",
+            "cursor": "pointer",
+            "position": "absolute",
+            "outline": "none",
+            "display": "flex",
+            "align-items": "center",
+            "justify-content": "flex-start",
+            "margin-top": "0px",
+          }
+
+          let optsList: Map<string, LIOpts> = new Map()
+          let childMap: Map<string, string> = new Map()
+          let extendMap: Map<string, string> = new Map()
+          // let extendSet = new Set()
+
+          // @ts-ignore
+          if(!!window.navBar) {
+            // @ts-ignore
+            optsList = window.navBar.list
+            // @ts-ignore
+            childMap = window.navBar.linkMap
+            // @ts-ignore
+            extendMap = window.navBar.extendMap
+          } else {
+            console.warn("REFRESH")
+            // const list = component.get('test')
+            const list = get(app.root, component.get('list'))
+            const len = list.length
+            // @ts-ignore
+            window.navBar = {
+              selectedPage: currentPage,
+              extendSet: new Set()
+            }
+            for(let i = 0; i < len; i++) {
+              let child = list[i]
+              let children: Array<LIOpts> = []
+              let hasChildren = false
+              let isExtend = false
+              if(child.hasChildren === "block") {
+                let l = child.childList.length
+                let t = 0
+                for(t = 0; t < l; t++) {
+                  let c = child.childList[t]
+                  if(c.pageName === currentPage) {
+                    isExtend = true
+                  }
+                  if(c.childList instanceof Array) {
+                    c.childList.forEach(item => {
+                      childMap.set(item, c.pageName+'|'+child.pageName)
+                    })
+                  }
+                  children.push({
+                    isIcon: false,
+                    title: c.title,
+                    pageName: c.pageName,
+                    level: c.level,
+                    background: c.backgroundColor.replace('0x', '#'),
+                    hasChildren: false
+                  })
+                  extendMap.set(c.pageName, child.pageName)
                 }
-                if(c.childList instanceof Array) {
-                  c.childList.forEach(item => {
-                    childMap.set(item, c.pageName+'|'+child.pageName)
+                hasChildren = true
+              }
+              if(child.pageName === currentPage || isExtend) {
+                optsList.set(child.pageName, {
+                  isIcon: false,
+                  isExtend: true,
+                  title: child.title,
+                  pageName: child.pageName,
+                  level: child.level,
+                  background: child.backgroundColor.replace('0x', '#'),
+                  hasChildren: hasChildren,
+                  logoPath: child.logoPath,
+                  children: children
+                })
+                if(hasChildren){
+                  // @ts-ignore
+                  window.navBar.extendSet.add(child.pageName)
+                }
+              } else {
+                optsList.set(child.pageName, {
+                  isIcon: false,
+                  isExtend: false,
+                  title: child.title,
+                  pageName: child.pageName,
+                  level: child.level,
+                  background: child.backgroundColor.replace('0x', '#'),
+                  hasChildren: hasChildren,
+                  logoPath: child.logoPath,
+                  children: children
+                })
+              }
+            }
+            // @ts-ignore
+            window.navBar.list = optsList
+            // @ts-ignore
+            window.navBar.linkMap = childMap
+            // @ts-ignore
+            window.navBar.extendMap = extendMap
+          }
+          // @ts-ignore
+          let navBar = window.navBar
+          let navList = navBar.list
+
+          const toStr = (obj: Object): string => {
+            return JSON.stringify(obj)
+                  .replace(new RegExp(',', 'g'), ';')
+                  .replace(new RegExp('"', 'g'), '')
+                  .replace('{', '')
+                  .replace('}', '')
+          }
+
+          interface LIOpts {
+            hasChildren?: boolean
+            level?: number
+            isIcon: boolean
+            title?: string
+            pageName?: string
+            logoPath?: string
+            background?: string
+            isExtend?: boolean
+            children?: Array<LIOpts>
+          }
+
+          class ul {
+            dom: HTMLUListElement
+            constructor(css: string, opts: Array<LIOpts> | Map<string, LIOpts>) {
+              this.dom = document.createElement('ul')
+              this.dom.style.cssText = css
+              opts.forEach(child => {
+                // console.log("CHILD", child)
+                this.dom.appendChild(new li(toStr(liCss), child).dom)
+              })
+            }
+          }
+
+          class li {
+            dom: HTMLLIElement
+            constructor(css: string, opts: LIOpts){
+              this.dom = document.createElement('li')
+              this.dom.style.cssText = css
+              let divDom = new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom
+              // if(opts.level === 2)
+              if(!opts.hasChildren)
+                divDom.id = `_${opts.pageName}_`
+              this.dom.appendChild(divDom)
+              if(opts.hasChildren) {
+                let level2UlCss = {}
+                if(opts.isExtend) {
+                  level2UlCss = Object.assign({...ulCss}, {
+                    height: 'auto',
+                    position: 'relative',
+                    display: 'block'
+                  })
+                } else {
+                  level2UlCss = Object.assign({...ulCss}, {
+                    height: 'auto',
+                    position: 'absolute',
+                    display: 'none'
                   })
                 }
-                children.push({
-                  isIcon: false,
-                  title: c.title,
-                  pageName: c.pageName,
-                  level: c.level,
-                  background: c.backgroundColor.replace('0x', '#'),
-                  hasChildren: false
-                })
-                extendMap.set(c.pageName, child.pageName)
-              }
-              hasChildren = true
-            }
-            if(child.pageName === currentPage || isExtend) {
-              optsList.set(child.pageName, {
-                isIcon: false,
-                isExtend: true,
-                title: child.title,
-                pageName: child.pageName,
-                level: child.level,
-                background: child.backgroundColor.replace('0x', '#'),
-                hasChildren: hasChildren,
-                logoPath: child.logoPath,
-                children: children
-              })
-              if(hasChildren){
-                // @ts-ignore
-                window.navBar.extendSet.add(child.pageName)
-              }
-            } else {
-              optsList.set(child.pageName, {
-                isIcon: false,
-                isExtend: false,
-                title: child.title,
-                pageName: child.pageName,
-                level: child.level,
-                background: child.backgroundColor.replace('0x', '#'),
-                hasChildren: hasChildren,
-                logoPath: child.logoPath,
-                children: children
-              })
-            }
-          }
-          // @ts-ignore
-          window.navBar.list = optsList
-          // @ts-ignore
-          window.navBar.linkMap = childMap
-          // @ts-ignore
-          window.navBar.extendMap = extendMap
-        }
-        // @ts-ignore
-        let navBar = window.navBar
-        let navList = navBar.list
-
-        const toStr = (obj: Object): string => {
-          return JSON.stringify(obj)
-                .replace(new RegExp(',', 'g'), ';')
-                .replace(new RegExp('"', 'g'), '')
-                .replace('{', '')
-                .replace('}', '')
-        }
-
-        interface LIOpts {
-          hasChildren?: boolean
-          level?: number
-          isIcon: boolean
-          title?: string
-          pageName?: string
-          logoPath?: string
-          background?: string
-          isExtend?: boolean
-          children?: Array<LIOpts>
-        }
-
-        class ul {
-          dom: HTMLUListElement
-          constructor(css: string, opts: Array<LIOpts> | Map<string, LIOpts>) {
-            this.dom = document.createElement('ul')
-            this.dom.style.cssText = css
-            opts.forEach(child => {
-              // console.log("CHILD", child)
-              this.dom.appendChild(new li(toStr(liCss), child).dom)
-            })
-          }
-        }
-
-        class li {
-          dom: HTMLLIElement
-          constructor(css: string, opts: LIOpts){
-            this.dom = document.createElement('li')
-            this.dom.style.cssText = css
-            let divDom = new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom
-            // if(opts.level === 2)
-            if(!opts.hasChildren)
-              divDom.id = `_${opts.pageName}_`
-            this.dom.appendChild(divDom)
-            if(opts.hasChildren) {
-              let level2UlCss = {}
-              if(opts.isExtend) {
-                level2UlCss = Object.assign({...ulCss}, {
-                  height: 'auto',
-                  position: 'relative',
-                  display: 'block'
-                })
-              } else {
-                level2UlCss = Object.assign({...ulCss}, {
-                  height: 'auto',
-                  position: 'absolute',
-                  display: 'none'
-                })
-              }
-              let ulD = new ul(toStr(level2UlCss), opts.children as Array<LIOpts>).dom
-              ulD.id = `_${opts.pageName}`
-              this.dom.appendChild(ulD)
-            }
-          }
-        }
-
-        class div {
-          dom: HTMLElement
-          constructor(css:string, opts: LIOpts) {
-            this.dom = document.createElement('div')
-            this.dom.style.cssText = css
-            if(!opts.isIcon) {
-              this.dom.setAttribute("data-key", opts.title as string)
-              if(opts.level === 1) {
-                const logoPathLeft = Number(opts.logoPath?.split('px')[0]) * ratio
-                const logoPathRight = Number(opts.logoPath?.split('px')[1]) * ratio 
-                let iconCss = Object.assign({...divCss}, {
-                  // @ts-ignore
-                  width: 0.1*Number(width) + 'px',
-                  // @ts-ignore
-                  height: Math.ceil((2.5/Number(style?.height))*height)/100 + 'px',
-                  // @ts-ignore
-                  left: Math.ceil((1.5/Number(style?.width))*width)/100 + 'px',
-                  // @ts-ignore
-                  top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
-                  position: 'absolute',
-                  background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
-                  "background-size": `${ratio*originIconWidth}px ${ratio*originIconHeight}px`
-                })
-                this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
-              }
-              let label = document.createElement('div')
-              label.innerHTML = opts.title as string
-              label.style.cssText = toStr(title1Css)
-              label.setAttribute('title-value', `${opts.pageName}`)
-              this.dom.appendChild(label)
-              if(opts.hasChildren) {
-                let imageDom = document.createElement('img')
-                imageDom.src = opts.isExtend ? up : down
-                imageDom.style.cssText = toStr(imgCss)
-                imageDom.setAttribute('title-value', `${opts.pageName}`)
-                imageDom.id = `__${opts.pageName}`
-                this.dom.appendChild(imageDom)
+                let ulD = new ul(toStr(level2UlCss), opts.children as Array<LIOpts>).dom
+                ulD.id = `_${opts.pageName}`
+                this.dom.appendChild(ulD)
               }
             }
           }
-        }
 
-        const draw = () => {
+          class div {
+            dom: HTMLElement
+            constructor(css:string, opts: LIOpts) {
+              this.dom = document.createElement('div')
+              this.dom.style.cssText = css
+              if(!opts.isIcon) {
+                this.dom.setAttribute("data-key", opts.title as string)
+                if(opts.level === 1) {
+                  const logoPathLeft = Number(opts.logoPath?.split('px')[0]) * ratio
+                  const logoPathRight = Number(opts.logoPath?.split('px')[1]) * ratio 
+                  let iconCss = Object.assign({...divCss}, {
+                    // @ts-ignore
+                    width: 0.1*Number(width) + 'px',
+                    // @ts-ignore
+                    height: Math.ceil((2.5/Number(style?.height))*height)/100 + 'px',
+                    // @ts-ignore
+                    left: Math.ceil((1.5/Number(style?.width))*width)/100 + 'px',
+                    // @ts-ignore
+                    top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
+                    position: 'absolute',
+                    background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
+                    "background-size": `${ratio*originIconWidth}px ${ratio*originIconHeight}px`
+                  })
+                  this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
+                }
+                let label = document.createElement('div')
+                label.innerHTML = opts.title as string
+                label.style.cssText = toStr(title1Css)
+                label.setAttribute('title-value', `${opts.pageName}`)
+                this.dom.appendChild(label)
+                if(opts.hasChildren) {
+                  let imageDom = document.createElement('img')
+                  imageDom.src = opts.isExtend ? up : down
+                  imageDom.style.cssText = toStr(imgCss)
+                  imageDom.setAttribute('title-value', `${opts.pageName}`)
+                  imageDom.id = `__${opts.pageName}`
+                  this.dom.appendChild(imageDom)
+                }
+              }
+            }
+          }
           const ulDom = new ul(toStr(ulCss), optsList).dom
 
           node.appendChild(ulDom)
@@ -3395,16 +3390,40 @@ const createExtendedDOMResolvers = function (app: App) {
               }
             }
           })
-        }
 
-        let extendSet = navBar.extendSet
-        
-        if(childMap.has(currentPage)) {
-          // console.log("AAAABC")
-          let info = childMap.get(currentPage)
-          let PAGE = info?.split('|')[0]
-          let BLOCK = info?.split('|')[1]
-          if(navBar.selectedPage !== PAGE) {
+          let extendSet = navBar.extendSet
+          
+          if(childMap.has(currentPage)) {
+            // console.log("AAAABC")
+            let info = childMap.get(currentPage)
+            let PAGE = info?.split('|')[0]
+            let BLOCK = info?.split('|')[1]
+            if(navBar.selectedPage !== PAGE) {
+              extendSet.forEach(v => {
+                if(navList.get(v).hasChildren){
+                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                  (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                  navList.get(v).isExtend = false
+                }
+              })
+              extendSet.clear();
+              extendSet.add(BLOCK);
+              navList.get(BLOCK).isExtend = true;
+              (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.position = 'relative';
+              (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.display = 'block';
+              if(navList.get(BLOCK).hasChildren){ 
+                (<HTMLImageElement>document.getElementById(`__${BLOCK}`)).src = up;
+              }
+              // @ts-ignore
+              navBar.selectedPage = PAGE
+              // @ts-ignore
+              // document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+            }
+          }
+          
+          if(extendMap.has(currentPage)) {
+            let extendPage = extendMap.get(currentPage)
             extendSet.forEach(v => {
               if(navList.get(v).hasChildren){
                 (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
@@ -3414,66 +3433,50 @@ const createExtendedDOMResolvers = function (app: App) {
               }
             })
             extendSet.clear();
-            extendSet.add(BLOCK);
-            navList.get(BLOCK).isExtend = true;
-            (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.position = 'relative';
-            (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.display = 'block';
-            if(navList.get(BLOCK).hasChildren){ 
-              (<HTMLImageElement>document.getElementById(`__${BLOCK}`)).src = up;
+            extendSet.add(extendPage);
+            navList.get(extendPage).isExtend = true;
+            (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.position = 'relative';
+            (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.display = 'block';
+            if(navList.get(extendPage).hasChildren){ 
+              (<HTMLImageElement>document.getElementById(`__${extendPage}`)).src = up;
             }
-            // @ts-ignore
-            navBar.selectedPage = PAGE
-            // @ts-ignore
-            // document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
-          }
-        }
-        
-        if(extendMap.has(currentPage)) {
-          let extendPage = extendMap.get(currentPage)
-          extendSet.forEach(v => {
-            if(navList.get(v).hasChildren){
-              (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-              (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-              (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
-              navList.get(v).isExtend = false
-            }
-          })
-          extendSet.clear();
-          extendSet.add(extendPage);
-          navList.get(extendPage).isExtend = true;
-          (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.position = 'relative';
-          (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.display = 'block';
-          if(navList.get(extendPage).hasChildren){ 
-            (<HTMLImageElement>document.getElementById(`__${extendPage}`)).src = up;
-          }
-          // @ts-ignore
-          window.navBar.selectedPage = currentPage
-        }
-
-        if(optsList.has(currentPage) && !optsList.get(currentPage)?.hasChildren) {
-          extendSet.forEach(v => {
-            if(navList.get(v).hasChildren){
-              (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-              (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-              (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
-              navList.get(v).isExtend = false
-            }
-            extendSet.clear();
             // @ts-ignore
             window.navBar.selectedPage = currentPage
-          })
-        }
+          }
 
-        // @ts-ignore
-        if(navBar.selectedPage) {
-          try {
-            // @ts-ignore
-            document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
-          } catch (error) {
-            
+          if(optsList.has(currentPage) && !optsList.get(currentPage)?.hasChildren) {
+            extendSet.forEach(v => {
+              if(navList.get(v).hasChildren){
+                (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
+                (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
+                (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                navList.get(v).isExtend = false
+              }
+              extendSet.clear();
+              // @ts-ignore
+              window.navBar.selectedPage = currentPage
+            })
+          }
+
+          // @ts-ignore
+          if(navBar.selectedPage) {
+            try {
+              // @ts-ignore
+              document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+            } catch (error) {
+              
+            }
           }
         }
 
+        if(img.complete) {
+          draw()
+        } else {
+          img.onload = () => {
+            draw()
+            img.onload = null
+          }
+        }
       }
     }
   }
