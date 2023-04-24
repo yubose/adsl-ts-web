@@ -1,18 +1,48 @@
 import * as u from '@jsmanifest/utils'
-import type { ConsumerOptions, NDOMPage } from 'noodl-ui'
+import type {
+  ConsumerOptions,
+  NDOMPage,
+  NUIActionObject,
+  Store,
+} from 'noodl-ui'
 import { isAction } from 'noodl-action-chain'
 import { createAction } from 'noodl-ui'
 import log from '../../log'
-import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
 import App from '../../App'
-import { useGotoSpinner } from './goto'
 import { ActionEvent } from '../../constants'
+import * as c from '../../constants'
 import type { AppStateActionEvent, ObjectWithPriority } from '../../app/types'
 
-export type MiddlewareConfigObject = ObjectWithPriority<{
+export type MiddlewareConfig = ObjectWithPriority<{
   id?: string
+  cond?: (args: MiddlewareActionHandlerArgs) => boolean
   fn: MiddlewareFn
+  end?: <Ctx extends Record<string, any> = Record<string, any>>(
+    args: MiddlewareActionHandlerArgs,
+    options: MiddlewareFnOptions<Ctx>,
+  ) => Promise<void> | void
 }>
+
+export interface MiddlewareFn<R = any> {
+  (args: MiddlewareActionHandlerArgs, options: MiddlewareFnOptions):
+    | Promise<R | 'abort' | void>
+    | R
+    | 'abort'
+    | void
+}
+
+export interface MiddlewareFnOptions<
+  Ctx extends Record<string, any> = Record<string, any>,
+> {
+  app: App
+  context: Ctx
+}
+
+export type MiddlewareActionHandlerArgs =
+  | Parameters<Store.ActionObject['fn']>
+  | Parameters<Store.BuiltInObject['fn']>
+  | [destination: string, rest: any]
+  | [obj: NUIActionObject | { pageName: string; goto: string }, rest: any]
 
 /**
  * This file contains middleware functions wrapping functions from
@@ -29,8 +59,6 @@ function getMiddlewares() {
        * destinations for example)
        */
       fn: function onHandleInjectionsMiddleware(args, { app }) {
-        console.log(`[handleInjections]`, args)
-
         const originalArgs = [...args]
         // Dynamically injected goto destination from lvl 3
         if (u.isStr(args[0])) {
@@ -84,6 +112,56 @@ function getMiddlewares() {
         }
       },
     },
+    (function () {
+      return {
+        id: c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME,
+        priority: 1,
+        // @ts-expect-error
+        cond: (args): args is [{ destination: string }, any] =>
+          u.isObj(args?.[0]) && 'destination' in args[0],
+        fn: async function onBuiltInGotoExecutionTimeStart(
+          args,
+          { app, context },
+        ) {
+          const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
+          const start = performance.now()
+          const injectedObject = args?.[0] as { destination: string }
+          context[key] = {
+            title: key,
+            date: Date.now(),
+            mediaType: 'application/json',
+            currentPage: app.currentPage,
+            destination: injectedObject?.destination,
+            start,
+          }
+        },
+        end: async function onBuiltInGotoExecutionTimeEnd(_, { app, context }) {
+          const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
+          const rootNotebookID = app.root.Global?.rootNotebookID
+          const { title, date, mediaType, currentPage, destination, start } =
+            context?.[key] || {}
+          const end = performance.now() - start
+
+          const doc = await app.root.builtIn.utils.createPerformanceLog({
+            type: 10101,
+            title,
+            edge_id: rootNotebookID,
+            mediaType,
+            tags: ['log'],
+            content: {
+              date,
+              currentPage,
+              destination,
+              env: window.build?.ecosEnv,
+              buildTimestamp: window.build?.timestamp,
+              size: end,
+              userAgent: navigator?.userAgent,
+            },
+          })
+          console.log(`[onBuiltInGotoExecutionTimeEnd] Log created`, doc)
+        },
+      }
+    })(),
     {
       id: 'actions-event-state-middleware',
       priority: 5,
@@ -93,13 +171,6 @@ function getMiddlewares() {
        * @param param1
        */
       fn: function onActionsEventStateMiddleware(args, { app }) {
-        console.log(`[actionsEventState]`, args)
-
-        log.log(`[actionsEventState]`, {
-          action: args?.[0],
-          options: args?.[1],
-        })
-
         if (u.isArr(args)) {
           if (isAction(args[0])) {
             const type = args[0]?.actionType
@@ -123,10 +194,6 @@ function getMiddlewares() {
         if (app.getState().actionEvents.length > 50) {
           while (app.getState().actionEvents.length > 50) {
             const actionEvents = app.getState().actionEvents
-            log.debug(
-              `Removing ${actionEvents[0].type} from action events`,
-              actionEvents[0],
-            )
             actionEvents.shift()
           }
         }
@@ -139,8 +206,6 @@ function getMiddlewares() {
         args,
         { app },
       ) {
-        console.log(`[preventAnotherGotoWhenCurrentlyNavigating]`, args)
-
         const action = args?.[0]
 
         if (isAction(action)) {
@@ -185,7 +250,7 @@ function getMiddlewares() {
         }
       },
     },
-  ] as MiddlewareConfigObject[]
+  ] as MiddlewareConfig[]
 
   return middlewares
 }

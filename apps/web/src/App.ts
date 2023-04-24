@@ -23,7 +23,7 @@ import {
   Viewport as VP,
 } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
-import { AuthStatus, CachedPageObject } from './app/types'
+import { CachedPageObject } from './app/types'
 import { actionFactory } from './factories/actionFactory'
 import AppNotification from './app/Notifications'
 import createActions from './handlers/actions'
@@ -574,10 +574,8 @@ class App {
       this.root.getConsumerOptions = this.nui.getConsumerOptions
       this.root.extendedBuiltIn = builtIns
       this.root.localForage = lf
-      u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
-      sortByPriority(middlewares).forEach(({ id, fn }) =>
-        this.actionFactory.createMiddleware(id as string, fn),
-      )
+      doms.forEach((obj) => this.ndom.use({ resolver: obj }))
+      sortByPriority(middlewares).forEach(this.actionFactory.createMiddleware)
 
       this.meeting.onConnected = meetingfns.onConnected
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
@@ -609,7 +607,7 @@ class App {
         this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
         await this.navigate(this.mainPage, parsedUrl?.currentPage)
       } else {
-        startPage = this.noodl.cadlEndpoint?.startPage || ''
+        startPage = this.noodl.cadlEndpoint?.startPage ?? ''
       }
 
       // Override the start page if they were on a previous page
@@ -623,9 +621,8 @@ class App {
       }
       const injectScripts = this.noodl.config?.preloadlib
       if (u.isArr(injectScripts) && injectScripts.length > 0) {
-        injectScripts.forEach((url) => {
-          this.injectScript(url)
-        })
+        // eslint-disable-next-line
+        Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
       }
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
@@ -1104,72 +1101,74 @@ class App {
       let isAborted = false
       const pageObject = this.root[page.page]
       const Mounted = this.root[page.page]?.onMounted
-      if(Mounted && pageObject){
-        const onMounted =  async (current, index, mounted) => {
-            log.debug('', { current, index, mounted, page: page.page })
+      if (Mounted && pageObject) {
+        const onMounted = async (current, index, mounted) => {
+          log.debug('', { current, index, mounted, page: page.page })
 
-            const validateReference = (ref: string) => {
-              const datapath = nu.trimReference(ref as ReferenceString)
-              const location = ref.startsWith(`=.builtIn`)
-                ? 'root'
-                : is.localKey(datapath)
-                ? 'local'
-                : 'root'
-              if (
-                !has(
-                  location === 'local' ? this.root[page.page] : this.root,
-                  datapath.split('.'),
-                )
-              ) {
-                log.error(
-                  `The reference "${ref}" is missing from the ${
-                    location === 'local'
-                      ? `local root for page "${page.page}"`
-                      : 'root'
-                  }`,
-                  {
-                    previous: mounted[index - 1],
-                    current: { value: current, index },
-                    next: mounted[index + 1],
-                    datapath,
-                    location,
-                    page: page.page,
-                    snapshot: cloneDeep(
-                      location === 'root'
-                        ? this.root
-                        : this.root[page.page],
-                    ),
-                  },
-                )
-              }
-            }
-
-            const validateObject = (obj: Record<string, any>) => {
-              for (const [key, value] of u.entries(obj)) {
-                is.reference(key) && validateReference(key)
-                is.reference(value) && validateReference(value)
-                if (u.isObj(value)) validateObject(value)
-              }
-            }
-
-            u.isObj(current) && validateObject(current)
-
-            if (!isAborted) {
-              let currentIndex = this.loadingPages[page.page]?.findIndex?.(
-                (o) => o.id === page.id,
+          const validateReference = (ref: string) => {
+            const datapath = nu.trimReference(ref as ReferenceString)
+            const location = ref.startsWith(`=.builtIn`)
+              ? 'root'
+              : is.localKey(datapath)
+              ? 'local'
+              : 'root'
+            if (
+              !has(
+                location === 'local' ? this.root[page.page] : this.root,
+                datapath.split('.'),
               )
+            ) {
+              log.error(
+                `The reference "${ref}" is missing from the ${
+                  location === 'local'
+                    ? `local root for page "${page.page}"`
+                    : 'root'
+                }`,
+                {
+                  previous: mounted[index - 1],
+                  current: { value: current, index },
+                  next: mounted[index + 1],
+                  datapath,
+                  location,
+                  page: page.page,
+                  snapshot: cloneDeep(
+                    location === 'root' ? this.root : this.root[page.page],
+                  ),
+                },
+              )
+            }
+          }
 
-              if (currentIndex > -1) {
-                if (currentIndex > 0) {
-                  isAborted = true
-                  this.loadingPages[page.page].splice(currentIndex, 1)
-                } else {
-                  this.loadingPages[page.page].shift()
-                }
+          const validateObject = (obj: Record<string, any>) => {
+            for (const [key, value] of u.entries(obj)) {
+              is.reference(key) && validateReference(key)
+              is.reference(value) && validateReference(value)
+              if (u.isObj(value)) validateObject(value)
+            }
+          }
+
+          u.isObj(current) && validateObject(current)
+
+          if (!isAborted) {
+            let currentIndex = this.loadingPages[page.page]?.findIndex?.(
+              (o) => o.id === page.id,
+            )
+
+            if (currentIndex > -1) {
+              if (currentIndex > 0) {
+                isAborted = true
+                this.loadingPages[page.page].splice(currentIndex, 1)
+              } else {
+                this.loadingPages[page.page].shift()
               }
             }
           }
-        this.noodl?.runMounted({pageObject,onInit: onMounted,pageName: page.page})
+        }
+        this.noodl?.runMounted({
+          pageObject,
+          onInit: onMounted,
+          pageName: page.page,
+        })
       }
     }
 
