@@ -383,6 +383,18 @@ const createActions = function createActions(app: App) {
   const goto: Store.ActionObject['fn'] = createActionHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
+
+      if (_pick(action, 'blank') && u.isStr(goto)) {
+        app.disableSpinner()
+        options.ref?.abort() as any
+        let a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = goto
+        a.target = '_blank'
+        a.click()
+        a = null as any
+        return
+      }
       let ndomPage = pickNDOMPageFromOptions(options)
       let destProps: ReturnType<typeof app.parse.destination>
       if (!app.getState().spinner.active) app.enableSpinner()
@@ -446,7 +458,7 @@ const createActions = function createActions(app: App) {
         let a = document.createElement('a')
         a.style.display = 'none'
         app.disableSpinner()
-        options.ref?.abort()
+        options.ref?.abort() as any
         a.href = destProps.destination
         a.target = '_blank'
         a.click()
@@ -1039,7 +1051,7 @@ const createActions = function createActions(app: App) {
                   `waiting on a response. Aborting now...`,
                 action?.snapshot?.(),
               )
-              ref?.abort?.()
+              ref?.abort?.() as any
               resolve()
             }
           } else {
@@ -1156,7 +1168,7 @@ const createActions = function createActions(app: App) {
       }
     } catch (error) {
       toast((error as Error).message, { type: 'error' })
-      ref?.abort?.()
+      ref?.abort?.() as any
     }
   }
   const scanCamera: Store.ActionObject['fn'] = async function onscanCamera(
