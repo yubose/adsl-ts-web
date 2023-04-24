@@ -379,6 +379,18 @@ const createActions = function createActions(app: App) {
   const goto: Store.ActionObject['fn'] = createActionHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
+      
+      if(_pick(action, 'blank')&&u.isStr(goto)){
+        app.disableSpinner();
+        options.ref?.abort();
+        let a = document.createElement("a");
+        a.style.display = "none"
+        a.href = goto;
+        a.target="_blank"
+        a.click()
+        a = null as any;
+        return;
+      }
       let ndomPage = pickNDOMPageFromOptions(options)
       let destProps: ReturnType<typeof app.parse.destination>
       if (!app.getState().spinner.active) app.enableSpinner()
@@ -438,17 +450,7 @@ const createActions = function createActions(app: App) {
           }
         }
       }
-      if(_pick(action, 'blank')&&u.isStr(goto)){
-        let a = document.createElement("a");
-        a.style.display = "none"
-        app.disableSpinner();
-        options.ref?.abort();
-        a.href = destProps.destination;
-        a.target="_blank"
-        a.click()
-        a = null as any;
-        return;
-      }
+     
       if (u.isObj(goto?.dataIn)) {
         const dataIn = goto.dataIn
         'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
