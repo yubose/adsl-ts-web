@@ -22,7 +22,7 @@ export interface AppStateActionEvent {
   type: 'action'
   kind: ActionEvent
   timestamp: number
-  status: 'ready' | 'pending' | 'ended'
+  status: 'ended' | 'pending' | 'ready'
 }
 
 export interface AppSpinnerState {
@@ -32,9 +32,9 @@ export interface AppSpinnerState {
     timeout: number
   }
   page: string | null
-  ref: null | NodeJS.Timeout
-  timeout: null | NodeJS.Timeout
-  trigger: 'inject' | NUITrigger | null
+  ref: NodeJS.Timeout | null
+  timeout: NodeJS.Timeout | null
+  trigger: NUITrigger | 'inject' | null
 }
 
 export interface AppConstructorOptions {
@@ -65,14 +65,14 @@ export interface AppObserver {
   }
 }
 
-export type ActionMetadata<PKey extends string = string> = {
-  action: { instance: NUIAction | undefined; object: ActionObject }
-  trigger: NUITrigger
-} & Record<
+export type ActionMetadata<PKey extends string = string> = Record<
   PKey,
   Record<string, any> | { fromAction?: any; fromComponent?: any }
 > &
-  Record<string, any>
+  Record<string, any> & {
+    action: { instance: NUIAction | undefined; object: ActionObject }
+    trigger: NUITrigger
+  }
 
 export type Meeting = ReturnType<typeof createMeetingFns>
 export type FirebaseApp = firebase.app.App
@@ -112,3 +112,7 @@ export interface GlobalRegisterComponent<EventId extends string = string>
   eventId: EventId
   onEvent(...args: any[]): any
 }
+
+export type ObjectWithPriority<
+  O extends Record<string, any> = Record<string, any>,
+> = O & { priority?: number }

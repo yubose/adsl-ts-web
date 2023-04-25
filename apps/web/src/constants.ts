@@ -24,3 +24,7 @@ export enum ActionEvent {
   GetLocationAddress = 'GetLocationAddress',
   UpdateGlobal = 'UpdateGlobal',
 }
+
+export const actionMiddlewareLogKey = {
+  BUILTIN_GOTO_EXECUTION_TIME: 'builtin-goto-execution-time',
+} as const

@@ -23,7 +23,7 @@ import {
   Viewport as VP,
 } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
-import { AuthStatus, CachedPageObject } from './app/types'
+import { CachedPageObject } from './app/types'
 import { actionFactory } from './factories/actionFactory'
 import AppNotification from './app/Notifications'
 import createActions from './handlers/actions'
@@ -44,7 +44,7 @@ import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
-import { isUnitTestEnv } from './utils/common'
+import { isUnitTestEnv, sortByPriority } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
 
@@ -74,6 +74,7 @@ class App {
       page: '',
     },
   }
+
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #meeting: ReturnType<typeof createMeetingFns>
@@ -307,12 +308,15 @@ class App {
   getRegister() {
     return this.register
   }
-  injectScript(url:string) {
+
+  async injectScript(url: string) {
     return new Promise((resolve, reject) => {
-      if(url.endsWith('js')){
-        const script = document.createElement("script")
-        const tempGlobal = "__tempModuleLoadingVariable" + Math.random().toString(32).substring(2)
-        script.type = "module"
+      if (url.endsWith('js')) {
+        const script = document.createElement('script')
+        const tempGlobal =
+          '__tempModuleLoadingVariable' +
+          Math.random().toString(32).substring(2)
+        script.type = 'module'
         script.async = true
         script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
         script.onload = () => {
@@ -321,25 +325,24 @@ class App {
           script.remove()
         }
         script.onerror = () => {
-          reject(new Error("Failed to load module script with URL " + url))
+          reject(new Error('Failed to load module script with URL ' + url))
           delete window[tempGlobal]
           script.remove()
         }
         document.documentElement.appendChild(script)
-      }else if(url.endsWith('css')){
+      } else if (url.endsWith('css')) {
         let link = document.createElement('link')
         link.href = url
         link.rel = 'stylesheet'
         document.documentElement.appendChild(link)
         link.onload = () => {
-          resolve("loaded module script with URL " + url)
+          resolve('loaded module script with URL ' + url)
         }
         link.onerror = () => {
-          reject(new Error("Failed to load module script with URL " + url))
+          reject(new Error('Failed to load module script with URL ' + url))
           link.remove()
         }
       }
-      
     })
   }
 
@@ -405,7 +408,7 @@ class App {
         }
         localStorage.setItem('tempParams', JSON.stringify(params))
         // await lf.setItem('tempParams', params)
-      }else{
+      } else {
         localStorage.setItem('tempParams', JSON.stringify({}))
       }
 
@@ -479,7 +482,7 @@ class App {
       throw new Error(error as any)
     }
     let e = Date.now()
-    log.log('%c[timerLog]页面整体渲染','color: green;',`${e-s}`)
+    log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
   }
 
   async initialize({
@@ -511,9 +514,7 @@ class App {
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
         } catch (error) {
-          log.error(
-            error instanceof Error ? error : new Error(String(error)),
-          )
+          log.error(error instanceof Error ? error : new Error(String(error)))
         }
       }
 
@@ -573,10 +574,8 @@ class App {
       this.root.getConsumerOptions = this.nui.getConsumerOptions
       this.root.extendedBuiltIn = builtIns
       this.root.localForage = lf
-      u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
-      u.entries(middlewares).forEach(([id, fn]) =>
-        this.actionFactory.createMiddleware(id, fn),
-      )
+      doms.forEach((obj) => this.ndom.use({ resolver: obj }))
+      sortByPriority(middlewares).forEach(this.actionFactory.createMiddleware)
 
       this.meeting.onConnected = meetingfns.onConnected
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
@@ -608,7 +607,7 @@ class App {
         this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
         await this.navigate(this.mainPage, parsedUrl?.currentPage)
       } else {
-        startPage = this.noodl.cadlEndpoint?.startPage || ''
+        startPage = this.noodl.cadlEndpoint?.startPage ?? ''
       }
 
       // Override the start page if they were on a previous page
@@ -621,10 +620,9 @@ class App {
         }
       }
       const injectScripts = this.noodl.config?.preloadlib
-      if(u.isArr(injectScripts) && injectScripts.length>0){
-        injectScripts.forEach((url)=>{
-          this.injectScript(url)
-        })
+      if (u.isArr(injectScripts) && injectScripts.length > 0) {
+        // eslint-disable-next-line
+        Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
       }
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
@@ -904,7 +902,7 @@ class App {
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
             let e2 = Date.now()
-            log.log('%c[timerLog]afterinit','color: green;',`${e2-s2}`)
+            log.log('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -919,7 +917,7 @@ class App {
 
       log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
       let e = Date.now()
-      log.log('%c[timerLog]获取页面和init','color: green;',`${e-s}`)
+      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
 
       if (isAbortedFromSDK) {
         log.info(
@@ -1072,7 +1070,9 @@ class App {
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
       }
-      page.previous && page.previous!==page.page && this.nui.cache.component.clear(page.previous)
+      page.previous &&
+        page.previous !== page.page &&
+        this.nui.cache.component.clear(page.previous)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
@@ -1101,72 +1101,74 @@ class App {
       let isAborted = false
       const pageObject = this.root[page.page]
       const Mounted = this.root[page.page]?.onMounted
-      if(Mounted && pageObject){
-        const onMounted =  async (current, index, mounted) => {
-            log.debug('', { current, index, mounted, page: page.page })
+      if (Mounted && pageObject) {
+        const onMounted = async (current, index, mounted) => {
+          log.debug('', { current, index, mounted, page: page.page })
 
-            const validateReference = (ref: string) => {
-              const datapath = nu.trimReference(ref as ReferenceString)
-              const location = ref.startsWith(`=.builtIn`)
-                ? 'root'
-                : is.localKey(datapath)
-                ? 'local'
-                : 'root'
-              if (
-                !has(
-                  location === 'local' ? this.root[page.page] : this.root,
-                  datapath.split('.'),
-                )
-              ) {
-                log.error(
-                  `The reference "${ref}" is missing from the ${
-                    location === 'local'
-                      ? `local root for page "${page.page}"`
-                      : 'root'
-                  }`,
-                  {
-                    previous: mounted[index - 1],
-                    current: { value: current, index },
-                    next: mounted[index + 1],
-                    datapath,
-                    location,
-                    page: page.page,
-                    snapshot: cloneDeep(
-                      location === 'root'
-                        ? this.root
-                        : this.root[page.page],
-                    ),
-                  },
-                )
-              }
-            }
-
-            const validateObject = (obj: Record<string, any>) => {
-              for (const [key, value] of u.entries(obj)) {
-                is.reference(key) && validateReference(key)
-                is.reference(value) && validateReference(value)
-                if (u.isObj(value)) validateObject(value)
-              }
-            }
-
-            u.isObj(current) && validateObject(current)
-
-            if (!isAborted) {
-              let currentIndex = this.loadingPages[page.page]?.findIndex?.(
-                (o) => o.id === page.id,
+          const validateReference = (ref: string) => {
+            const datapath = nu.trimReference(ref as ReferenceString)
+            const location = ref.startsWith(`=.builtIn`)
+              ? 'root'
+              : is.localKey(datapath)
+              ? 'local'
+              : 'root'
+            if (
+              !has(
+                location === 'local' ? this.root[page.page] : this.root,
+                datapath.split('.'),
               )
+            ) {
+              log.error(
+                `The reference "${ref}" is missing from the ${
+                  location === 'local'
+                    ? `local root for page "${page.page}"`
+                    : 'root'
+                }`,
+                {
+                  previous: mounted[index - 1],
+                  current: { value: current, index },
+                  next: mounted[index + 1],
+                  datapath,
+                  location,
+                  page: page.page,
+                  snapshot: cloneDeep(
+                    location === 'root' ? this.root : this.root[page.page],
+                  ),
+                },
+              )
+            }
+          }
 
-              if (currentIndex > -1) {
-                if (currentIndex > 0) {
-                  isAborted = true
-                  this.loadingPages[page.page].splice(currentIndex, 1)
-                } else {
-                  this.loadingPages[page.page].shift()
-                }
+          const validateObject = (obj: Record<string, any>) => {
+            for (const [key, value] of u.entries(obj)) {
+              is.reference(key) && validateReference(key)
+              is.reference(value) && validateReference(value)
+              if (u.isObj(value)) validateObject(value)
+            }
+          }
+
+          u.isObj(current) && validateObject(current)
+
+          if (!isAborted) {
+            let currentIndex = this.loadingPages[page.page]?.findIndex?.(
+              (o) => o.id === page.id,
+            )
+
+            if (currentIndex > -1) {
+              if (currentIndex > 0) {
+                isAborted = true
+                this.loadingPages[page.page].splice(currentIndex, 1)
+              } else {
+                this.loadingPages[page.page].shift()
               }
             }
           }
-        this.noodl?.runMounted({pageObject,onInit: onMounted,pageName: page.page})
+        }
+        this.noodl?.runMounted({
+          pageObject,
+          onInit: onMounted,
+          pageName: page.page,
+        })
       }
     }
 

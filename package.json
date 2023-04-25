@@ -30,8 +30,8 @@
     "serve:web": "node scripts/web --serve",
     "serve:static": "node scripts/static --serve",
     "start": "node scripts/web --start --test",
-    "start:stable": "npm run start -- --stable",
-    "start:test": "npm run start",
+    "start:stable": "node scripts/web --start --stable",
+    "start:test": "node scripts/web --start --test",
     "start:static": "node scripts/static --start",
     "sync": "node scripts/op sync",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
@@ -39,7 +39,7 @@
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.2.18",
+    "@aitmed/cadl": "^1.2.20",
     "@aitmed/ecos-lvl2-sdk": "^1.4.241",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
