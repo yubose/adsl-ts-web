@@ -24,7 +24,7 @@
     "deploy:stable": "bash s3Deploy.sh output/apps/web",
     "deploy:test": "bash s3Deploy.sh output/apps/web devtest.aitmed.com",
     "deploy:static": "node scripts/static --deploy",
-    "fresh": "rm -rf node_modules package-lock.json apps/static/.cache apps/static/node_modules apps/static/package-lock.json apps/static/public apps/web/node_modules apps/web/package-lock.json apps/web/build && npm i -f",
+    "fresh": "rm -rf node_modules output package-lock.json apps/static/.cache apps/static/node_modules apps/static/package-lock.json apps/static/public apps/web/node_modules apps/web/package-lock.json apps/web/build && npm i -f",
     "postinstall": "node scripts/postinstall",
     "prebuild": "rm -rf apps/web/dist apps/web/build",
     "serve:web": "node scripts/web --serve",
