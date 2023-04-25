@@ -38,6 +38,7 @@ import flatpickr from 'flatpickr'
 import "../../node_modules/flatpickr/dist/themes/material_blue.css"
 import { cloneDeep } from 'lodash'
 import moment from 'moment'
+import { createHash } from 'crypto'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -685,9 +686,6 @@ const createExtendedDOMResolvers = function (app: App) {
                           },
                           "data": []
                         });
-                      // console.error('dataValue');
-                      // console.error(dataValue.dataSource.length);
-
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, "ctime");
                         let signal = moment(_stamp * 1000).format('HH:mm');
@@ -3111,8 +3109,12 @@ const createExtendedDOMResolvers = function (app: App) {
           let extendMap: Map<string, string> = new Map()
           // let extendSet = new Set()
 
+          const hash = createHash('sha256')
+            .update(JSON.stringify(get(app.root, component.get('list'))))
+            .digest('hex')
+
           // @ts-ignore
-          if(!!window.navBar) {
+          if(!!window.navBar && window.navBar.hash === hash) {
             // @ts-ignore
             optsList = window.navBar.list
             // @ts-ignore
@@ -3127,7 +3129,8 @@ const createExtendedDOMResolvers = function (app: App) {
             // @ts-ignore
             window.navBar = {
               selectedPage: currentPage,
-              extendSet: new Set()
+              extendSet: new Set(),
+              hash: hash
             }
             for(let i = 0; i < len; i++) {
               let child = list[i]
