@@ -141,7 +141,6 @@ function getMiddlewares() {
           const { title, date, mediaType, currentPage, destination, start } =
             context?.[key] || {}
           const end = performance.now() - start
-
           const doc = await app.root.builtIn.utils.createPerformanceLog({
             type: 10101,
             title,

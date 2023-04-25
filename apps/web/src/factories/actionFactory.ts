@@ -20,7 +20,6 @@ import type {
   MiddlewareConfig,
   MiddlewareActionHandlerArgs,
   MiddlewareFnOptions,
-  MiddlewareFn,
 } from '../handlers/shared/middlewares'
 
 export type ActionKind = 'action' | 'builtIn'
@@ -32,26 +31,23 @@ export type StoreActionObject<
 export function actionFactory(app: App) {
   const middlewares = [] as MiddlewareConfig[]
 
-  async function runMiddleware(args: MiddlewareActionHandlerArgs) {
-    let context = {} as any
+  function isCondTrue(
+    cond: MiddlewareConfig['cond'],
+    args: MiddlewareActionHandlerArgs,
+  ) {
+    return u.isFnc(cond) && cond(args) === true
+  }
 
-    for (const middleware of middlewares) {
-      if (u.isFnc(middleware.cond) && middleware.cond(args) === false) {
-        continue
-      } else {
-        const opts = { app, context } as MiddlewareFnOptions
-        const control = await middleware.fn?.(args, opts)
-        if (control) {
-          if (control === 'abort') {
-            if (middleware.end) await middleware.end(args, opts)
-            return 'abort'
-          }
-        }
-        if (middleware.end) await middleware.end(args, opts)
-      }
-    }
-
-    return args
+  async function runMiddlewareEndFns(
+    middlewares: MiddlewareConfig[],
+    args: MiddlewareActionHandlerArgs,
+    opts: MiddlewareFnOptions,
+  ) {
+    return Promise.all(
+      middlewares.map(
+        (m) => u.isFnc(m.end) && isCondTrue(m.cond, args) && m.end(args, opts),
+      ),
+    )
   }
 
   /**
@@ -119,11 +115,32 @@ export function actionFactory(app: App) {
       }
 
       try {
-        const args = [action, options, ...rest]
-        const res = await runMiddleware(args as MiddlewareActionHandlerArgs)
-        if (res === 'abort') return
+        let context = {} as any
+        let control: any
+
         // @ts-expect-error
-        return _fn?.(...args)
+        const args = [action, options, ...rest] as MiddlewareActionHandlerArgs
+        const opts = { app, context } as MiddlewareFnOptions
+
+        for (const middleware of middlewares) {
+          if (isCondTrue(middleware.cond, args)) {
+            continue
+          } else {
+            control = await middleware.fn?.(args, opts)
+            if (control === 'abort') break
+          }
+        }
+
+        let result: any
+
+        if (control !== 'abort') {
+          // @ts-expect-error
+          result = await _fn?.(...args)
+        }
+
+        await runMiddlewareEndFns(middlewares, args, opts)
+
+        return result
       } catch (error) {
         throw error instanceof Error ? error : new Error(String(error))
       }
