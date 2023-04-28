@@ -10,6 +10,7 @@ import { createAction } from 'noodl-ui'
 import log from '../../log'
 import App from '../../App'
 import { ActionEvent } from '../../constants'
+import * as perf from '../../utils/performance'
 import * as c from '../../constants'
 import type { AppStateActionEvent, ObjectWithPriority } from '../../app/types'
 
@@ -124,7 +125,6 @@ function getMiddlewares() {
           { app, context },
         ) {
           const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
-          const start = performance.now()
           const injectedObject = args?.[0] as { destination: string }
           context[key] = {
             title: key,
@@ -132,7 +132,7 @@ function getMiddlewares() {
             mediaType: 'application/json',
             currentPage: app.currentPage,
             destination: injectedObject?.destination,
-            start,
+            start: perf.createMark(`${key}.start`),
           }
         },
         end: async function onBuiltInGotoExecutionTimeEnd(_, { app, context }) {
@@ -140,8 +140,9 @@ function getMiddlewares() {
           const rootNotebookID = app.root.Global?.rootNotebookID
           const { title, date, mediaType, currentPage, destination, start } =
             context?.[key] || {}
-          const end = performance.now() - start
-          const doc = await app.root.builtIn.utils.createPerformanceLog({
+          const end = perf.createMark(`${key}.end`)
+          const metric = perf.createMeasure(`${key}.metric`, start, end)
+          const doc = await app.root.builtIn.utils.createSlownessMetric({
             type: 10101,
             title,
             edge_id: rootNotebookID,
@@ -153,7 +154,7 @@ function getMiddlewares() {
               destination,
               env: window.build?.ecosEnv,
               buildTimestamp: window.build?.timestamp,
-              size: end,
+              size: metric.duration,
               userAgent: navigator?.userAgent,
             },
           })
@@ -216,32 +217,28 @@ function getMiddlewares() {
             if (page) {
               const pendingPage = page.requesting
               const currentPage = page.page
-              let newPageRequesting = ''
+              let originalGoto = action.original?.goto
+              let newPageRequesting = u.isStr(originalGoto)
+                ? originalGoto
+                : u.isObj(originalGoto) && u.isStr(originalGoto.desination)
+                ? originalGoto.destination
+                : ''
 
-              if (u.isStr(action.original?.goto)) {
-                newPageRequesting = action.original?.goto
-              } else if (u.isObj(action.original?.goto)) {
-                if (u.isStr(action.original?.goto.destination)) {
-                  newPageRequesting = action.original?.goto.destination
-                }
-              }
-
-              if (pendingPage && currentPage && newPageRequesting) {
-                if (pendingPage !== currentPage) {
-                  if (
-                    pendingPage !== newPageRequesting &&
-                    !pendingPage.startsWith('https://search')
-                  ) {
-                    // This block is reached when the user clicks several buttons too fast and it tries to navigate to all of the pages in the onClicks.
-                    // Prevent the goto
-                    log.error(
-                      `Preventing another goto because there is another one already in process`,
-                    )
-                    // TODO - Finish implementing 'abort' logic
-                    return 'abort'
-                    // debugger
-                  }
-                }
+              if (
+                pendingPage &&
+                currentPage &&
+                newPageRequesting &&
+                pendingPage !== currentPage &&
+                pendingPage !== newPageRequesting &&
+                !pendingPage.startsWith('https://search')
+              ) {
+                // This block is reached when the user clicks several buttons too fast and it tries to navigate to all of the pages in the onClicks.
+                // Prevent the goto
+                log.error(
+                  `Preventing another goto because there is another one already in process`,
+                )
+                // TODO - Finish implementing 'abort' logic
+                return 'abort'
               }
             }
           }

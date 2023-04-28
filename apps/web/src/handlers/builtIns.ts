@@ -634,7 +634,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (!ndomPage || isNuiPage(ndomPage)) {
           ndomPage =
             // @ts-expect-error
-            app.ndom.findPage(pageComponentParent || options.component) ||
+            app.ndom.findPage(pageComponentParent || options?.component) ||
             app.mainPage
         }
       } else if ('targetPage' in destProps) {
@@ -800,19 +800,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     const component = options?.component as NuiComponent.Instance
-    let viewTag
-    if (component) {
-      const metadata = getActionMetadata(action, {
-        component,
-        pickKeys: 'viewTag',
-      })
-      viewTag = metadata['viewTag']
-    } else {
-      viewTag = {
-        fromAction: options['viewTag'],
-        fromComponent: undefined,
-      }
-    }
+    const viewTag = component
+      ? getActionMetadata(action, { component, pickKeys: 'viewTag' })?.[
+          'viewTag'
+        ]
+      : { fromAction: options['viewTag'], fromComponent: undefined }
 
     let components = [] as NuiComponent.Instance[]
     let numComponents = 0

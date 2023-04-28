@@ -51,7 +51,7 @@ declare global {
       searchClient: InstanceType<
         new (options?: BetterSQLite3Options) => {
           search(params: {
-            api: 'ce' | 'cd' | 'cv' | 're' | 'rd' | 'rv' | 'dx'
+            api: 'cd' | 'ce' | 'cv' | 'dx' | 'rd' | 're' | 'rv'
             type: number // ex: 271361
             xfname?: string // ex: 'E.bvid|E.evid'
             id?: string // ex: '.Global.currentUser.vertex.id'
@@ -86,5 +86,13 @@ declare global {
     ndom: NDOM
     streams: any
     cp: Function
+  }
+
+  export interface Performance {
+    memory: {
+      totalJSHeapSize: number
+      jsHeapSizeLimit: number
+      usedJSHeapSize: number
+    }
   }
 }

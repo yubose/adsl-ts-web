@@ -114,36 +114,32 @@ export function actionFactory(app: App) {
         )
       }
 
-      try {
-        let context = {} as any
-        let control: any
+      let context = {} as any
+      let control: any
 
-        // @ts-expect-error
-        const args = [action, options, ...rest] as MiddlewareActionHandlerArgs
-        const opts = { app, context } as MiddlewareFnOptions
+      // @ts-expect-error
+      const args = [action, options, ...rest] as MiddlewareActionHandlerArgs
+      const opts = { app, context } as MiddlewareFnOptions
 
-        for (const middleware of middlewares) {
-          if (isCondTrue(middleware.cond, args)) {
-            continue
-          } else {
-            control = await middleware.fn?.(args, opts)
-            if (control === 'abort') break
-          }
+      for (const middleware of middlewares) {
+        if (!isCondTrue(middleware.cond, args)) {
+          continue
+        } else {
+          control = await middleware.fn?.(args, opts)
+          if (control === 'abort') break
         }
-
-        let result: any
-
-        if (control !== 'abort') {
-          // @ts-expect-error
-          result = await _fn?.(...args)
-        }
-
-        await runMiddlewareEndFns(middlewares, args, opts)
-
-        return result
-      } catch (error) {
-        throw error instanceof Error ? error : new Error(String(error))
       }
+
+      let result: any
+
+      if (control !== 'abort') {
+        // @ts-expect-error
+        result = await _fn?.(...args)
+      }
+
+      await runMiddlewareEndFns(middlewares, args, opts)
+
+      return result
     }
   }
 

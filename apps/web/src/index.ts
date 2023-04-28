@@ -104,11 +104,7 @@ async function initializeApp(
             })
 
             navigator.serviceWorker.addEventListener('message', (msg) => {
-              log.log(
-                `%c[App] serviceWorker message`,
-                `color:#00b406;`,
-                msg,
-              )
+              log.log(`%c[App] serviceWorker message`, `color:#00b406;`, msg)
               if (msg?.type === 'send-skip-waiting') {
                 app.serviceWorkerRegistration?.waiting?.postMessage(
                   'skipWaiting',
@@ -164,6 +160,8 @@ window.addEventListener('load', async (e) => {
     const { Account } = await import('@aitmed/cadl')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
+
+    startObservingAppPerformance()
 
     log.debug('Initializing [App] instance')
     app = await initializeApp({ noodl, Account })
@@ -232,9 +230,7 @@ window.addEventListener('load', async (e) => {
   }
 
   if (__NOODL_SEARCH_CLIENT__ in window) {
-    log.log(
-      `Custom SearchClient available in window.__NOODL_SEARCH_CLIENT__`,
-    )
+    log.log(`Custom SearchClient available in window.__NOODL_SEARCH_CLIENT__`)
     const searchClient = window.__NOODL_SEARCH_CLIENT__({
       timestamp: new Date().toISOString(),
     })
@@ -280,6 +276,24 @@ function attachDebugUtilsToWindow(app: App) {
 }
 
 attachDebugUtilsToWindow.attached = false
+
+function startObservingAppPerformance() {
+  log.log(`Observing app performance through the PerformanceObserver.`)
+  const callback: PerformanceObserverCallback = function onPerformanceObserved(
+    list: PerformanceObserverEntryList,
+    obs: PerformanceObserver,
+  ) {
+    list.getEntries().forEach(function onPerformanceObserverEntry(entry) {
+      const { name, entryType, duration, startTime } = entry
+      const json = entry.toJSON()
+      console.log({ json, entry, name, entryType, duration, startTime })
+      debugger
+    })
+  }
+  const observer = new PerformanceObserver(callback)
+  observer.observe({ entryTypes: ['frame'] })
+  return observer
+}
 
 /**
  * Initializes the Personal Index Worker
@@ -382,18 +396,5 @@ function initPiBackgroundWorker(worker: Worker) {
   })
   piWorker.addEventListener('error', function (evt) {
     log.log(`%c[client] Error`, `color:tomato;`, evt)
-  })
-}
-
-if (module.hot) {
-  module.hot.accept()
-  if (module.hot.status() === 'apply') {
-    app = window.app as App
-    window.app.reset(true)
-    delete window.app
-  }
-
-  module.hot.dispose((data = {}) => {
-    u.keys(data).forEach((key) => delete data[key])
   })
 }

@@ -5,7 +5,7 @@ Dashboard:
         dataIn:
           config: ..config
         dataOut: Dashboard.diagnostics
-  config: patd2
+  config: patient
   diagnostics: null
   components:
     - .BaseHeader: null
