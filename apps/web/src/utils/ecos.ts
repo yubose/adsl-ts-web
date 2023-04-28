@@ -13,6 +13,7 @@ export async function createMemoryUsageMetricDocument({
   title = name,
   start,
   end,
+  additionalData,
 }: Parameters<
   App['noodl']['root']['builtIn']['utils']['createMemoryUsageMetric']
 >[0]['content'] & {
@@ -22,6 +23,7 @@ export async function createMemoryUsageMetricDocument({
   start?: PerformanceMark | string
   end?: PerformanceMark | string
   tags?: string[]
+  additionalData?: any
 }) {
   const metric = createMeasure(name as string, start as string, end as string)
   return app.noodl.root.builtIn.utils.createMemoryUsageMetric({
@@ -36,6 +38,7 @@ export async function createMemoryUsageMetricDocument({
       size: metric.duration,
       userAgent: navigator?.userAgent,
       ...getMemoryUsage(),
+      ...additionalData,
       // ...(u.isObj(rest.content) ? rest.content : undefined),
     },
   })

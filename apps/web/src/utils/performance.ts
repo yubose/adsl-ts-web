@@ -31,14 +31,53 @@ export function createMeasure(
   )
 }
 
-function _markFactory(state: 'end' | 'start', getMarkDetail?: () => any) {
-  return function onCreateMark(name: string) {
-    return performance.mark(`${name}-${state}`, { detail: getMarkDetail?.() })
+function _markFactory(
+  state: 'end' | 'start',
+  name: string,
+  getDetail?: (options: { name: string }) => any,
+) {
+  return function onCreateMark(additionalDetails?: any) {
+    return performance.mark(`${name}-${state}`, {
+      detail: {
+        ...getDetail?.({ name }),
+        ...additionalDetails,
+      },
+    })
   }
 }
 
-export const createStartMemoryUsageMark = _markFactory('start', getMemoryUsage)
-export const createEndMemoryUsageMark = _markFactory('end', getMemoryUsage)
+export const createStartSlownessMark = _markFactory(
+  'start',
+  c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME,
+)
+
+export const createEndSlownessMark = _markFactory(
+  'end',
+  c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME,
+)
+
+export function createSlownessMetric(
+  name: string | null | undefined,
+  start: PerformanceMark | string,
+  end: PerformanceMark | string,
+) {
+  if (name == null) {
+    name = `${c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME}-metric`
+  }
+  return performance.measure(name, _getMarkName(start), _getMarkName(end))
+}
+
+export const createStartMemoryUsageMark = _markFactory(
+  'start',
+  `memory-usage-metric`,
+  getMemoryUsage,
+)
+
+export const createEndMemoryUsageMark = _markFactory(
+  'end',
+  `memory-usage-metric`,
+  getMemoryUsage,
+)
 
 export function createMemoryUsageMetric(
   name: string,

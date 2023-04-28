@@ -43,6 +43,11 @@ import {
   pickActionKey,
   throwError,
 } from '../utils/common'
+import {
+  createMemoryUsageMetricDocument,
+  createSlownessMetricDocument,
+} from '../utils/ecos'
+import * as perf from '../utils/performance'
 import is from '../utils/is'
 import App from '../App'
 import { useGotoSpinner } from './shared/goto'
@@ -54,6 +59,7 @@ import {
   Room,
 } from '../app/types'
 import type { Format as PdfPageFormat } from '../modules/ExportPdf'
+import * as c from '../constants'
 
 const _pick = pickActionKey
 
@@ -556,6 +562,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const goto = createBuiltInHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
+      const startMemUsageMark = perf.createStartMemoryUsageMark()
+
       if (!app.getState().spinner.active) app.enableSpinner()
 
       let destinationParam = ''
@@ -792,6 +800,27 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           )
         }
       }
+
+      const endMemUsageMark = perf.createEndMemoryUsageMark()
+
+      const memUsageMetric = perf.createMemoryUsageMetric(
+        `${c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME}-metric`,
+        startMemUsageMark,
+        endMemUsageMark,
+      )
+
+      const doc = await createMemoryUsageMetricDocument({
+        app,
+        name: memUsageMetric.name,
+        start: startMemUsageMark.name,
+        end: endMemUsageMark.name,
+        additionalData: {
+          start: startMemUsageMark.detail,
+          end: endMemUsageMark.detail,
+        },
+      })
+
+      console.log(`[memory-usage] Log created`, doc)
     }),
   )
 
