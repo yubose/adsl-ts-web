@@ -1,7 +1,5 @@
 // Typical resource timing metrics:
 //   - https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming#typical_resource_timing_metrics
-import * as u from '@jsmanifest/utils'
-import * as c from '../constants'
 
 /**
  * Creates a {@link PerformanceMark}.
@@ -31,71 +29,17 @@ export function createMeasure(
   )
 }
 
-function _markFactory(
-  state: 'end' | 'start',
-  name: string,
-  getDetail?: (options: { name: string }) => any,
-) {
-  return function onCreateMark(additionalDetails?: any) {
-    return performance.mark(`${name}-${state}`, {
-      detail: {
-        ...getDetail?.({ name }),
-        ...additionalDetails,
-      },
-    })
-  }
-}
-
-export const createStartSlownessMark = _markFactory(
-  'start',
-  c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME,
-)
-
-export const createEndSlownessMark = _markFactory(
-  'end',
-  c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME,
-)
-
-export function createSlownessMetric(
-  name: string | null | undefined,
-  start: PerformanceMark | string,
-  end: PerformanceMark | string,
-) {
-  if (name == null) {
-    name = `${c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME}-metric`
-  }
-  return performance.measure(name, _getMarkName(start), _getMarkName(end))
-}
-
-export const createStartMemoryUsageMark = _markFactory(
-  'start',
-  `memory-usage-metric`,
-  getMemoryUsage,
-)
-
-export const createEndMemoryUsageMark = _markFactory(
-  'end',
-  `memory-usage-metric`,
-  getMemoryUsage,
-)
-
-export function createMemoryUsageMetric(
-  name: string,
-  start: PerformanceMark | string,
-  end: PerformanceMark | string,
-) {
-  return performance.measure(name, _getMarkName(start), _getMarkName(end))
-}
-
-function _getMarkName(mark: PerformanceMark | string) {
+export function getMarkName(mark: PerformanceMark | string) {
   return mark instanceof PerformanceMark ? mark.name : mark
 }
 
+export type MemoryUsageObject = ReturnType<typeof getMemoryUsage>
+
 export function getMemoryUsage() {
   return {
-    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-    totalJSHeapSize: performance.memory.totalJSHeapSize,
-    usedJSHeapSize: performance.memory.usedJSHeapSize,
+    heapSizeLimit: performance.memory.jsHeapSizeLimit,
+    heapSizeTotal: performance.memory.totalJSHeapSize,
+    heapSizeUsed: performance.memory.usedJSHeapSize,
   }
 }
 

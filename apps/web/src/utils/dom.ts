@@ -245,6 +245,10 @@ export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
 }
 
+export function getUserAgent() {
+  return typeof window !== 'undefined' ? window.navigator?.userAgent || '' : ''
+}
+
 export function getVcodeElem(dataKey = 'formData.code') {
   return u.array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
 }

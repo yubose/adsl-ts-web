@@ -31,6 +31,7 @@ import createBuiltIns from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
+import createEcosLogger from './modules/ecos/logger'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createNoodlConfigValidator from './modules/NoodlConfigValidator'
@@ -77,6 +78,7 @@ class App {
 
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
+  #ecosLogger: ReturnType<typeof createEcosLogger>
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -199,6 +201,10 @@ class App {
 
   get electron() {
     return this.#electron
+  }
+
+  get ecosLogger() {
+    return this.#ecosLogger as ReturnType<typeof createEcosLogger>
   }
 
   get instances() {
@@ -563,6 +569,8 @@ class App {
       const meetingfns = createMeetingHandlers(this)
       const middlewares = getMiddlewares()
       const transactions = createTransactions(this)
+
+      this.#ecosLogger = createEcosLogger(this)
 
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })

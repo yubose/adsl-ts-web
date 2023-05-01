@@ -27,10 +27,15 @@ export enum ActionEvent {
 
 export const actionMiddlewareLogKey = {
   BUILTIN_GOTO_EXECUTION_TIME: 'builtin-goto-execution-time',
+  BUILTIN_GOTO_EXECUTION_MEMORY_USAGE: 'builtin-goto-memory-usage',
 } as const
 
 export const perf = {
   memoryUsage: {
     onChange: `on-change-memory-usage`,
   },
+} as const
+
+export const mediaType = {
+  json: 'application/json',
 } as const

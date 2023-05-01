@@ -43,10 +43,6 @@ import {
   pickActionKey,
   throwError,
 } from '../utils/common'
-import {
-  createMemoryUsageMetricDocument,
-  createSlownessMetricDocument,
-} from '../utils/ecos'
 import * as perf from '../utils/performance'
 import is from '../utils/is'
 import App from '../App'
@@ -556,13 +552,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
-    ;(await import('@aitmed/cadl')).Account.logout(true)
+    const { Account } = await import('@aitmed/cadl')
+    await Account.logout(true)
     window.location.reload()
   }
 
   const goto = createBuiltInHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
-      const startMemUsageMark = perf.createStartMemoryUsageMark()
+      const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
+        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
+      )
 
       if (!app.getState().spinner.active) app.enableSpinner()
 
@@ -801,26 +800,21 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
 
-      const endMemUsageMark = perf.createEndMemoryUsageMark()
+      const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
+      )
 
-      const memUsageMetric = perf.createMemoryUsageMetric(
-        `${c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME}-metric`,
+      const memUsageMetric = app.ecosLogger.createMemoryUsageMetric(
+        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
         startMemUsageMark,
         endMemUsageMark,
       )
 
-      const doc = await createMemoryUsageMetricDocument({
-        app,
-        name: memUsageMetric.name,
-        start: startMemUsageMark.name,
-        end: endMemUsageMark.name,
-        additionalData: {
-          start: startMemUsageMark.detail,
-          end: endMemUsageMark.detail,
-        },
+      await app.ecosLogger.createMemoryUsageMetricDocument({
+        metricName: memUsageMetric.name,
+        start: startMemUsageMark,
+        end: endMemUsageMark,
       })
-
-      console.log(`[memory-usage] Log created`, doc)
     }),
   )
 

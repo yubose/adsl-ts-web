@@ -126,39 +126,21 @@ function getMiddlewares() {
         ) {
           const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
           const injectedObject = args?.[0] as { destination: string }
-          context[key] = {
-            title: key,
-            date: Date.now(),
-            mediaType: 'application/json',
-            currentPage: app.currentPage,
-            destination: injectedObject?.destination,
-            start: perf.createMark(`${key}.start`),
-          }
+          const destination = injectedObject?.destination
+          const start = app.ecosLogger.createSlownessMetricStartMark(key, {
+            detail: { destination },
+          })
+          context[key] = { currentPage: app.currentPage, destination, start }
         },
         end: async function onBuiltInGotoExecutionTimeEnd(_, { app, context }) {
           const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
-          const rootNotebookID = app.root.Global?.rootNotebookID
-          const { title, date, mediaType, currentPage, destination, start } =
-            context?.[key] || {}
-          const end = perf.createMark(`${key}.end`)
-          const metric = perf.createMeasure(`${key}.metric`, start, end)
-          const doc = await app.root.builtIn.utils.createSlownessMetric({
-            type: 10101,
-            title,
-            edge_id: rootNotebookID,
-            mediaType,
-            tags: ['log'],
-            content: {
-              date,
-              currentPage,
-              destination,
-              env: window.build?.ecosEnv,
-              buildTimestamp: window.build?.timestamp,
-              size: metric.duration,
-              userAgent: navigator?.userAgent,
-            },
+          const { start } = context?.[key] || {}
+          const end = app.ecosLogger.createSlownessMetricEndMark(key)
+          await app.ecosLogger.createSlownessMetricDocument({
+            metricName: key,
+            start,
+            end,
           })
-          console.log(`[onBuiltInGotoExecutionTimeEnd] Log created`, doc)
         },
       }
     })(),
