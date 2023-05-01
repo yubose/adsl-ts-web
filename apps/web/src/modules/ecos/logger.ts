@@ -188,12 +188,12 @@ function createEcosLogger(app: App) {
 
   return {
     createMetric: _internalCreateMeasure,
-    createSlownessMetricDocument,
-    createSlownessMetricStartMark,
-    createSlownessMetricEndMark,
     createMemoryUsageMetricDocument,
     createMemoryUsageMetricStartMark,
     createMemoryUsageMetricEndMark,
+    createSlownessMetricDocument,
+    createSlownessMetricStartMark,
+    createSlownessMetricEndMark,
   }
 }
 

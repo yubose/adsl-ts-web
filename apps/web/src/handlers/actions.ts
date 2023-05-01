@@ -595,12 +595,6 @@ const createActions = function createActions(app: App) {
         c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
       )
 
-      const memUsageMetric = app.ecosLogger.createMetric(
-        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
-        startMemUsageMark,
-        endMemUsageMark,
-      )
-
       try {
         await Promise.all([
           app.ecosLogger.createSlownessMetricDocument({
@@ -609,7 +603,7 @@ const createActions = function createActions(app: App) {
             end: endSlownessMark,
           }),
           app.ecosLogger.createMemoryUsageMetricDocument({
-            metricName: memUsageMetric.name,
+            metricName: c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
             start: startMemUsageMark,
             end: endMemUsageMark,
           }),
