@@ -29,13 +29,6 @@ import {
   Resolve,
 } from 'noodl-ui'
 import App from '../App'
-import is from '../utils/is'
-import {
-  createSlownessMetricDocument,
-  createMemoryUsageMetricDocument,
-} from '../utils/ecos'
-import * as perf from '../utils/performance'
-import { createMark, createMeasure, getMemoryUsage } from '../utils/performance'
 import { hide } from '../utils/dom'
 // import Swiper from 'swiper';
 // import '../../node_modules/swiper/swiper-bundle.css';
@@ -179,26 +172,17 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        const startMark = perf.createStartMemoryUsageMark(
+        const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
           c.perf.memoryUsage.onChange,
         )
         await actionChain?.execute?.(event)
-        const endMark = perf.createEndMemoryUsageMark(
+        const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
           c.perf.memoryUsage.onChange,
         )
-        const name = `${c.perf.memoryUsage.onChange}-metric`
-        const doc = await createMemoryUsageMetricDocument({
-          app,
-          name,
-          edge_id: app.root.Global.rootNotebookID,
+        await app.ecosLogger.createMemoryUsageMetricDocument({
+          metricName: c.perf.memoryUsage.onChange,
           start: startMark,
           end: endMark,
-          tags: ['log'],
-        })
-        console.log(`[${c.perf.memoryUsage.onChange}] Log created`, {
-          startMark,
-          endMark,
-          doc,
         })
       }
     }

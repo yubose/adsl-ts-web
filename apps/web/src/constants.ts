@@ -26,6 +26,8 @@ export enum ActionEvent {
 }
 
 export const actionMiddlewareLogKey = {
+  GOTO_EXECUTION_TIME: 'goto-execution-time',
+  GOTO_EXECUTION_MEMORY_USAGE: 'goto-memory-usage',
   BUILTIN_GOTO_EXECUTION_TIME: 'builtin-goto-execution-time',
   BUILTIN_GOTO_EXECUTION_MEMORY_USAGE: 'builtin-goto-memory-usage',
 } as const
@@ -33,6 +35,9 @@ export const actionMiddlewareLogKey = {
 export const perf = {
   memoryUsage: {
     onChange: `on-change-memory-usage`,
+  },
+  slowness: {
+    goto: 'goto-execution-time',
   },
 } as const
 

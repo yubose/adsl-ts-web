@@ -172,7 +172,9 @@ function createEcosLogger(app: App) {
     additionalData?: any
   } = {}) {
     if (!documentTitle && metricName) documentTitle = metricName
-
+    if (metricName && !metricName.endsWith('metric')) {
+      metricName += '-metric'
+    }
     const data: MemoryUsageMetricDocumentData = {
       metricName,
       currentPage: app.currentPage,

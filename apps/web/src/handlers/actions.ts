@@ -50,6 +50,7 @@ import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
+import * as c from '../constants'
 import Cropper from 'cropperjs'
 
 const _pick = pickActionKey
@@ -384,6 +385,16 @@ const createActions = function createActions(app: App) {
     useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
 
+      const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
+        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+      )
+      const startSlownessMark = app.ecosLogger.createSlownessMetricStartMark(
+        c.perf.slowness.goto,
+        {
+          detail: goto && u.isStr(goto) ? { destination: goto } : undefined,
+        },
+      )
+
       if (_pick(action, 'blank') && u.isStr(goto)) {
         app.disableSpinner()
         options.ref?.abort() as any
@@ -574,6 +585,38 @@ const createActions = function createActions(app: App) {
             { action: action?.snapshot?.(), options },
           )
         }
+      }
+
+      const endSlownessMark = app.ecosLogger.createSlownessMetricEndMark(
+        c.perf.slowness.goto,
+      )
+
+      const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+      )
+
+      const memUsageMetric = app.ecosLogger.createMemoryUsageMetric(
+        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+        startMemUsageMark,
+        endMemUsageMark,
+      )
+
+      try {
+        await Promise.all([
+          app.ecosLogger.createSlownessMetricDocument({
+            metricName: c.perf.slowness.goto,
+            start: startSlownessMark,
+            end: endSlownessMark,
+          }),
+          app.ecosLogger.createMemoryUsageMetricDocument({
+            metricName: memUsageMetric.name,
+            start: startMemUsageMark,
+            end: endMemUsageMark,
+          }),
+        ])
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.error(err)
       }
     }),
   )
