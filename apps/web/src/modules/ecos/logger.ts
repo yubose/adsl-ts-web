@@ -1,6 +1,3 @@
-/**
- * TODO - Merge the duplicated code
- */
 import * as nt from 'noodl-types'
 import {
   createMark,
