@@ -804,7 +804,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
       )
 
-      const memUsageMetric = app.ecosLogger.createMemoryUsageMetric(
+      const memUsageMetric = app.ecosLogger.createMetric(
         c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
         startMemUsageMark,
         endMemUsageMark,

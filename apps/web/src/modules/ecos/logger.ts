@@ -55,32 +55,32 @@ function createEcosLogger(app: App) {
     }
   }
 
-  function createSlownessMetricStartMark(
-    name: string,
-    options?: PerformanceMarkOptions,
-  ) {
-    if (!name.endsWith('start')) name += '-start'
-    const detail = { currentPage: app.currentPage, ...options?.detail }
-    return createMark(name, { ...options, detail })
+  function _internalCreateMark(type: 'end' | 'start', getDetail?: () => any) {
+    return (name: string, options?: PerformanceMarkOptions) => {
+      if (!name.endsWith(type)) name += `-${type}`
+      return createMark(name, {
+        ...options,
+        detail: { ...getDetail?.(), ...options?.detail },
+      })
+    }
   }
 
-  function createSlownessMetricEndMark(
+  function _internalCreateMeasure(
     name: string,
-    options?: PerformanceMarkOptions,
-  ) {
-    if (!name.endsWith('end')) name += '-end'
-    const detail = { currentPage: app.currentPage, ...options?.detail }
-    return createMark(name, { ...options, detail })
-  }
-
-  function createSlownessMetric(
-    name: string,
-    start: PerformanceMark | string,
-    end: PerformanceMark | string,
+    start: PerformanceMark,
+    end: PerformanceMark,
   ) {
     if (!name.endsWith('metric')) name += '-metric'
     return createMeasure(name, getMarkName(start), getMarkName(end))
   }
+
+  const createSlownessMetricStartMark = _internalCreateMark('start', () => ({
+    currentPage: app.currentPage,
+  }))
+
+  const createSlownessMetricEndMark = _internalCreateMark('end', () => ({
+    currentPage: app.currentPage,
+  }))
 
   async function createSlownessMetricDocument({
     metricName = '',
@@ -97,10 +97,10 @@ function createEcosLogger(app: App) {
     additionalData?: any
   } = {}) {
     if (!documentTitle && metricName) documentTitle = metricName
-    const metric = createSlownessMetric(
+    const metric = _internalCreateMeasure(
       metricName,
-      getMarkName(start as PerformanceMark),
-      getMarkName(end as PerformanceMark),
+      start as PerformanceMark,
+      end as PerformanceMark,
     )
     const data: SlownessMetricDocumentData = {
       metricName: metric.name,
@@ -130,32 +130,15 @@ function createEcosLogger(app: App) {
     return doc
   }
 
-  function createMemoryUsageMetricStartMark(
-    name: string,
-    options?: PerformanceMarkOptions,
-  ) {
-    if (!name.endsWith('start')) name += '-start'
-    const detail = { ...getMemoryUsage(), ...options?.detail }
-    return createMark(name, { ...options, detail })
-  }
+  const createMemoryUsageMetricStartMark = _internalCreateMark(
+    'start',
+    getMemoryUsage,
+  )
 
-  function createMemoryUsageMetricEndMark(
-    name: string,
-    options?: PerformanceMarkOptions,
-  ) {
-    if (!name.endsWith('end')) name += '-end'
-    const detail = { ...getMemoryUsage(), ...options?.detail }
-    return createMark(name, { ...options, detail })
-  }
-
-  function createMemoryUsageMetric(
-    name: string,
-    start: PerformanceMark | string,
-    end: PerformanceMark | string,
-  ) {
-    if (!name.endsWith('metric')) name += '-metric'
-    return createMeasure(name, getMarkName(start), getMarkName(end))
-  }
+  const createMemoryUsageMetricEndMark = _internalCreateMark(
+    'end',
+    getMemoryUsage,
+  )
 
   async function createMemoryUsageMetricDocument({
     metricName = '',
@@ -183,10 +166,10 @@ function createEcosLogger(app: App) {
       ...additionalData,
     }
     if (start && end) {
-      const metric = createMemoryUsageMetric(
+      const metric = _internalCreateMeasure(
         metricName,
-        getMarkName(start),
-        getMarkName(end),
+        start as PerformanceMark,
+        end as PerformanceMark,
       )
       data.before = { ...start?.detail }
       data.after = { ...end?.detail }
@@ -207,11 +190,10 @@ function createEcosLogger(app: App) {
   }
 
   return {
-    createSlownessMetric,
+    createMetric: _internalCreateMeasure,
     createSlownessMetricDocument,
     createSlownessMetricStartMark,
     createSlownessMetricEndMark,
-    createMemoryUsageMetric,
     createMemoryUsageMetricDocument,
     createMemoryUsageMetricStartMark,
     createMemoryUsageMetricEndMark,

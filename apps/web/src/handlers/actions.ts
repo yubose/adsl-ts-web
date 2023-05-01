@@ -595,7 +595,7 @@ const createActions = function createActions(app: App) {
         c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
       )
 
-      const memUsageMetric = app.ecosLogger.createMemoryUsageMetric(
+      const memUsageMetric = app.ecosLogger.createMetric(
         c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
         startMemUsageMark,
         endMemUsageMark,
