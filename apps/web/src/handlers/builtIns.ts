@@ -318,6 +318,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 	const disconnectMeeting: Store.BuiltInObject["fn"] =
 		async function onDisconnectMeeting(action) {
 			app.meeting.room?.removeAllListeners?.()
+			app.meeting.room?.localParticipant?.tracks?.forEach((t)=>{
+				//@ts-expect-error
+				t?.track?.stop()
+			})
 			app.meeting.room?.disconnect?.();
 			app.meeting.leave();
 		};
