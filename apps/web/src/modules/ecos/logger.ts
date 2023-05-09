@@ -116,7 +116,10 @@ function createEcosLogger(app: App) {
     }
     const doc = await app.noodl.root.builtIn.utils.createSlownessMetric({
       title: documentTitle,
-      edge_id: app.root.Global.rootNotebookID,
+      // admin side should use facility rootnotebook , otherwise will get error 'jwt permission deny' chenchen.xu 05/09/2023
+      edge_id: app.root.Global.fac_rootNotebook
+        ? app.root.Global.fac_rootNotebook 
+        : app.root.Global.rootNotebookID,
       mediaType: c.mediaType.json,
       tags: commonTags,
       type: DocType.Slowness,
@@ -175,7 +178,9 @@ function createEcosLogger(app: App) {
     }
     const doc = await app.noodl.root.builtIn.utils.createMemoryUsageMetric({
       title: documentTitle,
-      edge_id: app.root.Global.rootNotebookID,
+      edge_id: app.root.Global.fac_rootNotebook
+        ? app.root.Global.fac_rootNotebook 
+        : app.root.Global.rootNotebookID,
       mediaType: c.mediaType.json,
       tags: commonTags,
       type: DocType.MemoryUsage,
