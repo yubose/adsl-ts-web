@@ -438,7 +438,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         _dateTempObj[element]["Diastolic"] = [];
                       });
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, "ctime");
+                        let _stamp = get(item, "deat");
                         let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
                         _dateTempObj[signal]['Systolic']?.push(get(item, "name.data.heightBloodPressure"))
                         _dateTempObj[signal]['Diastolic']?.push(get(item, "name.data.lowBloodPressure"))
@@ -510,7 +510,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] = [];
                       });
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, "ctime");
+                        let _stamp = get(item, "deat");
                         let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
                         if (dataValue.dataType == '386561') {
                           _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
@@ -690,7 +690,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       // console.error(dataValue.dataSource.length);
 
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, "ctime");
+                        let _stamp = get(item, "deat");
                         let signal = moment(_stamp * 1000).format('HH:mm');
                         if (!_dateTempObj[signal]) {
                           _dateTempObj[signal] = {}
@@ -731,7 +731,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           }
                         })
                         dataValue.dataSource.forEach((item) => {
-                          let _stamp = get(item, "ctime");
+                          let _stamp = get(item, "deat");
                           let signal = moment(_stamp * 1000).format('HH:mm');
                           if (!_dateTempObj[signal]) {
                             _dateTempObj[signal] = {}
@@ -757,7 +757,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     if (dataValue.dataSource.length == 0) {
                       _date = new Date();
                     } else {
-                      _date = new Date(dataValue.dataSource[0]["ctime"] * 1000);
+                      _date = new Date(dataValue.dataSource[0]["deat"] * 1000);
                     }
                     settingDay.xAxis.data = Object.keys(_dateTempObj).map((item: any) => {
                       const date = moment({ year: _date.getFullYear(), month: _date.getMonth(), day: _date.getDate(), hour: item.split(":")[0], minute: item.split(":")[1] })
