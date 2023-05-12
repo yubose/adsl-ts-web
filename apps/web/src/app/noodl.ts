@@ -10,6 +10,7 @@
  */
 
 import { CADL as NOODL } from '@aitmed/cadl'
+import type { ApiCacheManager } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 import type { Env } from 'noodl-types'
@@ -72,10 +73,12 @@ export function getInstance(
   opts?: Partial<ConstructorParameters<typeof NOODL>[0]>,
 ) {
   return new NOODL({
+    apiCacheConfig: window.__NOODL_API_CACHE__,
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: lvl3Options.url,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
+
     // get SearchClient() {
     //   if (window.__NOODL_SDK_SEARCH_CLIENT__) {
     //     return window.__NOODL_SDK_SEARCH_CLIENT__
