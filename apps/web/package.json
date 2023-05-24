@@ -1,5 +1,4 @@
 {
-  "_id": "web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
     "@aitmed/cadl": "^1.4.0",
@@ -152,5 +151,5 @@
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts --watch-files ../../aitmed-noodl-lib/noodl-ui/dist/**/*",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
-  "version": "1.0.29"
+  "version": "1.0.32"
 }
