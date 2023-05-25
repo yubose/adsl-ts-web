@@ -75,7 +75,7 @@ function getWebpackConfig(env) {
     mode === 'production' ? `[name].[contenthash].js` : '[name].js'
 
   if (!Number.isNaN(pkgVersionRev)) {
-    buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
+    buildVersion = [...pkgVersionPaths, pkgVersionRev].join('.')
   }
 
   const version = {

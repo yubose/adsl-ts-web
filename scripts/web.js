@@ -1,7 +1,7 @@
 const { execSync } = require('child_process')
 const path = require('path')
 const meow = require('meow')
-
+execSync(`cd apps/web/ && npm version patch -f && cd ../..`)
 const cli = meow('', {
   flags: {
     start: { type: 'boolean' },
