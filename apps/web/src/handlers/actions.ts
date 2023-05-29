@@ -1287,11 +1287,11 @@ const createActions = function createActions(app: App) {
                 const cancelScan = assetsUrl + 'markCancel.png'
                 butCancel.setAttribute('src', cancelScan)
                 butCancel.style.cssText = `
-              position: absolute;
-              width: 8vw;
-              top: 10vh;
-              left: 30px;
-              `
+                position: fixed;
+                width: 8vw;
+                top: 8vh;
+                left: 30px;
+                `;
                 contanierDivImg?.append(butCancel)
                 // let res = document.getElementById("qr-shaded-region") as HTMLElement;
                 // let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
