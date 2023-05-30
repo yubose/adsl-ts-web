@@ -827,6 +827,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let components = [] as NuiComponent.Instance[]
     let numComponents = 0
     let focus = action.original.focus;
+    
+    for (const obj of window.pcomponents) {
+      if (obj) {
+        if (
+          obj?.blueprint?.viewTag &&
+          obj?.get?.('data-viewtag') === viewTag.fromAction
+        ) {
+          components.push(obj)
+          numComponents++
+        }
+      }
+    }
 
     for (const obj of app.cache.component) {
       if (obj) {
