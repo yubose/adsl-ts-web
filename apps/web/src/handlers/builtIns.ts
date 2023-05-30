@@ -823,9 +823,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'viewTag'
         ]
       : { fromAction: options['viewTag'], fromComponent: undefined }
-
+     
     let components = [] as NuiComponent.Instance[]
     let numComponents = 0
+    let focus = action.original.focus;
 
     for (const obj of app.cache.component) {
       if (obj) {
@@ -884,7 +885,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const ndomPage = pickNDOMPageFromOptions(options)
           await app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
-          })
+          },{focus})
           // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
           //   context: ctx,
           // })
