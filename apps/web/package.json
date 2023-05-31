@@ -26,7 +26,7 @@
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.264",
-    "noodl-ui": "^0.1.1131",
+    "noodl-ui": "^0.1.1132",
     "noodl-utils": "^0.0.121",
     "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
