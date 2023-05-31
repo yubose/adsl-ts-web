@@ -36,6 +36,17 @@ export function getMarkName(mark: PerformanceMark | string) {
 export type MemoryUsageObject = ReturnType<typeof getMemoryUsage>
 
 export function getMemoryUsage() {
+  const userAgent = window.navigator.userAgent.toLocaleLowerCase()
+  if(
+    userAgent.match('/safari/i') ||
+    userAgent.match('firefox')
+  ){
+    return {
+      heapSizeLimit: 0,
+      heapSizeTotal: 0,
+      heapSizeUsed: 0,
+    }
+  }
   return {
     heapSizeLimit: performance.memory.jsHeapSizeLimit,
     heapSizeTotal: performance.memory.totalJSHeapSize,
