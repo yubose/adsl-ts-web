@@ -9,7 +9,10 @@ import { getUserAgent } from '../../utils/dom'
 import * as c from '../../constants'
 import type App from '../../App'
 import type { MemoryUsageObject } from '../../utils/performance'
-
+const isWebChrome = ()=> {
+  const userAgent = window.navigator.userAgent
+  return /Chrome/.test(userAgent) && !/Mobile/.test(userAgent)
+}
 export enum DocType {
   Slowness = 10101,
   MemoryUsage = 10100,
@@ -93,6 +96,8 @@ function createEcosLogger(app: App) {
     tags?: string[]
     additionalData?: any
   } = {}) {
+    if (!isWebChrome) return
+    
     if (!documentTitle && metricName) documentTitle = metricName
     const metric = _internalCreateMeasure(
       metricName,
@@ -154,6 +159,7 @@ function createEcosLogger(app: App) {
     tags?: string[]
     additionalData?: any
   } = {}) {
+    if (!isWebChrome) return
     if (!documentTitle && metricName) documentTitle = metricName
     if (metricName && !metricName.endsWith('metric')) {
       metricName += '-metric'
