@@ -826,7 +826,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
      
     let components = [] as NuiComponent.Instance[]
     let numComponents = 0
-    let focus = action.original.focus;
+    let focus = action.original?.focus||action?.["focus"];
 
     for (const obj of app.cache.component) {
       if (obj) {
