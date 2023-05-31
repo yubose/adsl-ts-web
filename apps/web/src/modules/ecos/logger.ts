@@ -176,19 +176,23 @@ function createEcosLogger(app: App) {
     } else {
       Object.assign(data, getMemoryUsage())
     }
-    const doc = await app.noodl.root.builtIn.utils.createMemoryUsageMetric({
-      title: documentTitle,
-      edge_id: app.root.Global.fac_rootNotebook
+    const edge_id = app.root.Global.fac_rootNotebook
         ? app.root.Global.fac_rootNotebook 
-        : app.root.Global.rootNotebookID,
-      mediaType: c.mediaType.json,
-      tags: commonTags,
-      type: DocType.MemoryUsage,
-      content: data,
-    })
-    console.log(`[${metricName}] Log created`, doc)
-    // debugger
-    return doc
+        : app.root.Global.rootNotebookID
+    if(edge_id){
+      const doc = await app.noodl.root.builtIn.utils.createMemoryUsageMetric({
+        title: documentTitle,
+        edge_id: edge_id,
+        mediaType: c.mediaType.json,
+        tags: commonTags,
+        type: DocType.MemoryUsage,
+        content: data,
+      })
+      console.log(`[${metricName}] Log created`, doc)
+      // debugger
+      return doc
+    }
+    return
   }
 
   return {
