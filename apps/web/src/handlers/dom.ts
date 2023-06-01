@@ -3227,6 +3227,9 @@ const createExtendedDOMResolvers = function (app: App) {
         let currentPage = app.currentPage
         console.log('currentPage', currentPage)
 
+        let menuBarInfo = get(app.root, component.get('data-key'))
+        console.log('menuBarInfo', menuBarInfo)
+
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
 
@@ -3565,7 +3568,7 @@ const createExtendedDOMResolvers = function (app: App) {
             app.updateRoot((draft) => {
               set(draft, component.get('data-key'), {
                 pageName: 'ScheduleManagement',
-                isGoto: false,
+                isGoto: false
               })
             })
             if (dom.tagName === 'DIV') {
@@ -3653,6 +3656,17 @@ const createExtendedDOMResolvers = function (app: App) {
           })
 
           let extendSet = navBar.extendSet
+
+          if(menuBarInfo.remainName !== '') {
+            currentPage = menuBarInfo.remainName
+            app.updateRoot(dratf => {
+              set(dratf, component.get('data-key'), {
+                isGoto: menuBarInfo.isGoto,
+                pageName: menuBarInfo.pageName,
+                remainName: ''
+              })
+            })
+          }
 
           if (childMap.has(currentPage)) {
             // console.log("AAAABC")
