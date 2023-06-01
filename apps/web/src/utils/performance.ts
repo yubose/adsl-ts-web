@@ -38,7 +38,7 @@ export type MemoryUsageObject = ReturnType<typeof getMemoryUsage>
 export function getMemoryUsage() {
   const userAgent = window.navigator.userAgent.toLocaleLowerCase()
   if(
-    userAgent.match('/safari/i') ||
+    userAgent.match('safari') ||
     userAgent.match('firefox')
   ){
     return {
