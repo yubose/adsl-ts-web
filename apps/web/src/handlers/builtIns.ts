@@ -54,6 +54,8 @@ import {
 	Room,
 } from "../app/types";
 import type { Format as PdfPageFormat } from "../modules/ExportPdf";
+import getYaml from "./editor/getYaml/getYaml";
+import insertAll from "./editor/test/insertAll";
 
 const _pick = pickActionKey;
 
@@ -1105,6 +1107,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
 
   };
+
+  	const getTemplate = () => {
+		getYaml(window.app.root.editor)
+	}
+
+	const testTemplate = () => {
+		insertAll(window.app.root.editor)
+	}
+
 	const builtIns = {
 		checkField,
 		disconnectMeeting,
@@ -1128,7 +1139,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		extendMeeting,
 		delayTask,
 		getViewTagValue,
-    	countDown
+    	countDown,
+		getTemplate,
+		testTemplate
 	};
 
 	/** Shared common logic for both lock/logout logic */

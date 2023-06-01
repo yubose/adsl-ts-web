@@ -39,6 +39,12 @@ import "../../node_modules/flatpickr/dist/themes/material_blue.css"
 import { cloneDeep } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
+import { editorHtml, styleText }from './editor/editorHtml'
+import { createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
+import editorConfig from "./editor/editor"
+import toolbarConfig from "./editor/toolbar"
+import { matchChar } from './editor/utils/matchChar'
+import getYaml from './editor/getYaml/getYaml'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -3016,6 +3022,9 @@ const createExtendedDOMResolvers = function (app: App) {
         // console.error(component.get('dataKey'))
         let currentPage = app.currentPage
         console.log("currentPage", currentPage)
+        
+        const menuBarInfo = get(app.root, component.get('data-key'))
+        console.log("MenuBarInfo", menuBarInfo)
 
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
@@ -3320,7 +3329,8 @@ const createExtendedDOMResolvers = function (app: App) {
             app.updateRoot(draft => {
               set(draft, component.get('data-key'), {
                 pageName: 'ScheduleManagement',
-                isGoto: false
+                isGoto: false,
+                status: true
               })
             })
             if(dom.tagName === "DIV") {
@@ -3353,7 +3363,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   app.updateRoot(draft => {
                     set(draft, component.get('data-key'), {
                       pageName: value,
-                      isGoto: true
+                      isGoto: true,
+                      status: true
                     })
                   })
                 }
@@ -3483,6 +3494,70 @@ const createExtendedDOMResolvers = function (app: App) {
             img.onload = null
           }
         }
+        
+      }
+    },
+    '[App editor]': {
+      cond: "editor",
+      resolve({ node, component }) {
+        let style = document.createElement("style") as HTMLStyleElement
+        style.innerText = styleText
+        document.body.appendChild(style)
+        node.style.width = "90%"
+        node.style.height = "90%"
+        node.style.display = "flex"
+        node.style.justifyContent = "center"
+        node.style.alignItems = "center"
+        node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-80}px`)
+
+        let oldSHA = ''
+
+        editorConfig.onChange = (editor: IDomEditor) => {
+          // console.log(editor)
+          const str = editor.getHtml()
+          let newSHA = createHash('sha256').update(str).digest('hex')
+          if(newSHA !== oldSHA) {
+              const html = matchChar(str)
+              const oldTemplateInfo = get(app.root, component.get('data-key'))
+              app.updateRoot(draft => {
+                set(draft, component.get("data-key"), Object.assign(oldTemplateInfo, {
+                  html: html,
+                  yaml: getYaml(editor)
+                }))
+              })
+              // @ts-ignore
+              document.getElementById("preView").innerHTML = html
+              oldSHA = newSHA
+              
+              
+          }
+        }
+        
+        const editor = createEditor({
+          content: [],
+          selector: '#editor-container',
+          html: '<p><br></p>',
+          config: editorConfig,
+          mode: 'default', // or 'simple'
+        })
+        
+        const toolbar = createToolbar({
+          editor,
+          selector: '#toolbar-container',
+          config: toolbarConfig,
+          mode: 'default', // or 'simple'
+        })
+        
+        i18nChangeLanguage("en")
+
+        app.updateRoot(draft => {
+          set(draft, "editor", editor);
+          set(draft, 'toolbar', toolbar)
+        })
+
+        const resource = i18nGetResources("en")
+        resource.fontSize["default"] = "Font Size"
+
       }
     }
   }
