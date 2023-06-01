@@ -172,18 +172,18 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
-          c.perf.memoryUsage.onChange,
-        )
+        // const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
+        //   c.perf.memoryUsage.onChange,
+        // )
         await actionChain?.execute?.(event)
-        const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-          c.perf.memoryUsage.onChange,
-        )
-        await app.ecosLogger.createMemoryUsageMetricDocument({
-          metricName: c.perf.memoryUsage.onChange,
-          start: startMark,
-          end: endMark,
-        })
+        // const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+        //   c.perf.memoryUsage.onChange,
+        // )
+        // await app.ecosLogger.createMemoryUsageMetricDocument({
+        //   metricName: c.perf.memoryUsage.onChange,
+        //   start: startMark,
+        //   end: endMark,
+        // })
       }
     }
 
@@ -482,7 +482,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         _dateTempObj[element]['Diastolic'] = []
                       })
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, 'ctime')
+                        let _stamp = get(item, 'deat')
                         let signal = Intl.DateTimeFormat('en-US', {
                           weekday: 'short',
                         }).format(_stamp * 1000)
@@ -578,7 +578,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         ] = []
                       })
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, 'ctime')
+                        let _stamp = get(item, 'deat')
                         let signal = Intl.DateTimeFormat('en-US', {
                           weekday: 'short',
                         }).format(_stamp * 1000)
@@ -784,7 +784,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         },
                       )
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, 'ctime')
+                        let _stamp = get(item, 'deat')
                         let signal = moment(_stamp * 1000).format('HH:mm')
                         if (!_dateTempObj[signal]) {
                           _dateTempObj[signal] = {}
@@ -829,7 +829,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           },
                         })
                         dataValue.dataSource.forEach((item) => {
-                          let _stamp = get(item, 'ctime')
+                          let _stamp = get(item, 'deat')
                           let signal = moment(_stamp * 1000).format('HH:mm')
                           if (!_dateTempObj[signal]) {
                             _dateTempObj[signal] = {}
@@ -885,7 +885,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     if (dataValue.dataSource.length == 0) {
                       _date = new Date()
                     } else {
-                      _date = new Date(dataValue.dataSource[0]['ctime'] * 1000)
+                      _date = new Date(dataValue.dataSource[0]['deat'] * 1000)
                     }
                     settingDay.xAxis.data = Object.keys(_dateTempObj).map(
                       (item: any) => {

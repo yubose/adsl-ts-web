@@ -9,7 +9,10 @@ import { getUserAgent } from '../../utils/dom'
 import * as c from '../../constants'
 import type App from '../../App'
 import type { MemoryUsageObject } from '../../utils/performance'
-
+const isWebChrome = ()=> {
+  const userAgent = window.navigator.userAgent
+  return /Chrome/.test(userAgent) && !/Mobile/.test(userAgent)
+}
 export enum DocType {
   Slowness = 10101,
   MemoryUsage = 10100,
@@ -93,6 +96,8 @@ function createEcosLogger(app: App) {
     tags?: string[]
     additionalData?: any
   } = {}) {
+    if (!isWebChrome) return
+    
     if (!documentTitle && metricName) documentTitle = metricName
     const metric = _internalCreateMeasure(
       metricName,
@@ -116,7 +121,10 @@ function createEcosLogger(app: App) {
     }
     const doc = await app.noodl.root.builtIn.utils.createSlownessMetric({
       title: documentTitle,
-      edge_id: app.root.Global.rootNotebookID,
+      // admin side should use facility rootnotebook , otherwise will get error 'jwt permission deny' chenchen.xu 05/09/2023
+      edge_id: app.root.Global.fac_rootNotebook
+        ? app.root.Global.fac_rootNotebook 
+        : app.root.Global.rootNotebookID,
       mediaType: c.mediaType.json,
       tags: commonTags,
       type: DocType.Slowness,
@@ -151,6 +159,7 @@ function createEcosLogger(app: App) {
     tags?: string[]
     additionalData?: any
   } = {}) {
+    if (!isWebChrome) return
     if (!documentTitle && metricName) documentTitle = metricName
     if (metricName && !metricName.endsWith('metric')) {
       metricName += '-metric'
@@ -173,27 +182,33 @@ function createEcosLogger(app: App) {
     } else {
       Object.assign(data, getMemoryUsage())
     }
-    const doc = await app.noodl.root.builtIn.utils.createMemoryUsageMetric({
-      title: documentTitle,
-      edge_id: app.root.Global.rootNotebookID,
-      mediaType: c.mediaType.json,
-      tags: commonTags,
-      type: DocType.MemoryUsage,
-      content: data,
-    })
-    console.log(`[${metricName}] Log created`, doc)
-    // debugger
-    return doc
+    const edge_id = app.root.Global.fac_rootNotebook
+        ? app.root.Global.fac_rootNotebook 
+        : app.root.Global.rootNotebookID
+    if(edge_id){
+      const doc = await app.noodl.root.builtIn.utils.createMemoryUsageMetric({
+        title: documentTitle,
+        edge_id: edge_id,
+        mediaType: c.mediaType.json,
+        tags: commonTags,
+        type: DocType.MemoryUsage,
+        content: data,
+      })
+      console.log(`[${metricName}] Log created`, doc)
+      // debugger
+      return doc
+    }
+    return
   }
 
   return {
     createMetric: _internalCreateMeasure,
-    createSlownessMetricDocument,
-    createSlownessMetricStartMark,
-    createSlownessMetricEndMark,
     createMemoryUsageMetricDocument,
     createMemoryUsageMetricStartMark,
     createMemoryUsageMetricEndMark,
+    createSlownessMetricDocument,
+    createSlownessMetricStartMark,
+    createSlownessMetricEndMark,
   }
 }
 

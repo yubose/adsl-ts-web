@@ -804,14 +804,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
       )
 
-      const memUsageMetric = app.ecosLogger.createMetric(
-        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-        startMemUsageMark,
-        endMemUsageMark,
-      )
-
       await app.ecosLogger.createMemoryUsageMetricDocument({
-        metricName: memUsageMetric.name,
+        metricName:
+          c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
         start: startMemUsageMark,
         end: endMemUsageMark,
       })
@@ -828,9 +823,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'viewTag'
         ]
       : { fromAction: options['viewTag'], fromComponent: undefined }
-
+     
     let components = [] as NuiComponent.Instance[]
     let numComponents = 0
+    let focus = action.original?.focus||action?.["focus"];
 
     for (const obj of app.cache.component) {
       if (obj) {
@@ -889,7 +885,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const ndomPage = pickNDOMPageFromOptions(options)
           await app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
-          })
+          },{focus})
           // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
           //   context: ctx,
           // })

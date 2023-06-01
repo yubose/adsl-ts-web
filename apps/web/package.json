@@ -1,9 +1,8 @@
 {
-  "_id": "web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.3.1",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.241",
+    "@aitmed/cadl": "^1.4.14",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.244",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
     "@fullcalendar/list": "^5.7.2",
@@ -27,7 +26,7 @@
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.264",
-    "noodl-ui": "^0.1.1129",
+    "noodl-ui": "^0.1.1132",
     "noodl-utils": "^0.0.121",
     "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
@@ -152,5 +151,5 @@
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts --watch-files ../../aitmed-noodl-lib/noodl-ui/dist/**/*",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
-  "version": "1.0.29"
+  "version": "1.0.53"
 }
