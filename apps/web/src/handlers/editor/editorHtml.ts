@@ -1,4 +1,4 @@
-const editorRatio = 70
+const editorRatio = 45
 const previewRatio = 100 - editorRatio
 
 const searchResKeyRatio = 30
@@ -32,6 +32,16 @@ const styleText = `
 .w-e-textarea-video-container{background-image:linear-gradient(45deg,#eee 25%,transparent 0,transparent 75%,#eee 0,#eee),linear-gradient(45deg,#eee 25%,#fff 0,#fff 75%,#eee 0,#eee);background-position:0 0,10px 10px;background-size:20px 20px;border:1px dashed var(--w-e-textarea-border-color);border-radius:5px;margin:10px auto 0;padding:10px 0;text-align:center}
 
 .w-e-text-container [data-slate-editor] pre>code{word-wrap:normal;font-family:Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;-webkit-hyphens:none;hyphens:none;line-height:1.5;margin:.5em 0;overflow:auto;padding:1em;-moz-tab-size:4;-o-tab-size:4;tab-size:4;text-align:left;text-shadow:0 1px #fff;white-space:pre;word-break:normal;word-spacing:normal}.w-e-text-container [data-slate-editor] pre>code .token.cdata,.w-e-text-container [data-slate-editor] pre>code .token.comment,.w-e-text-container [data-slate-editor] pre>code .token.doctype,.w-e-text-container [data-slate-editor] pre>code .token.prolog{color:#708090}.w-e-text-container [data-slate-editor] pre>code .token.punctuation{color:#999}.w-e-text-container [data-slate-editor] pre>code .token.namespace{opacity:.7}.w-e-text-container [data-slate-editor] pre>code .token.boolean,.w-e-text-container [data-slate-editor] pre>code .token.constant,.w-e-text-container [data-slate-editor] pre>code .token.deleted,.w-e-text-container [data-slate-editor] pre>code .token.number,.w-e-text-container [data-slate-editor] pre>code .token.property,.w-e-text-container [data-slate-editor] pre>code .token.symbol,.w-e-text-container [data-slate-editor] pre>code .token.tag{color:#905}.w-e-text-container [data-slate-editor] pre>code .token.attr-name,.w-e-text-container [data-slate-editor] pre>code .token.builtin,.w-e-text-container [data-slate-editor] pre>code .token.char,.w-e-text-container [data-slate-editor] pre>code .token.inserted,.w-e-text-container [data-slate-editor] pre>code .token.selector,.w-e-text-container [data-slate-editor] pre>code .token.string{color:#690}.w-e-text-container [data-slate-editor] pre>code .language-css .token.string,.w-e-text-container [data-slate-editor] pre>code .style .token.string,.w-e-text-container [data-slate-editor] pre>code .token.entity,.w-e-text-container [data-slate-editor] pre>code .token.operator,.w-e-text-container [data-slate-editor] pre>code .token.url{color:#9a6e3a}.w-e-text-container [data-slate-editor] pre>code .token.atrule,.w-e-text-container [data-slate-editor] pre>code .token.attr-value,.w-e-text-container [data-slate-editor] pre>code .token.keyword{color:#07a}.w-e-text-container [data-slate-editor] pre>code .token.class-name,.w-e-text-container [data-slate-editor] pre>code .token.function{color:#dd4a68}.w-e-text-container [data-slate-editor] pre>code .token.important,.w-e-text-container [data-slate-editor] pre>code .token.regex,.w-e-text-container [data-slate-editor] pre>code .token.variable{color:#e90}.w-e-text-container [data-slate-editor] pre>code .token.bold,.w-e-text-container [data-slate-editor] pre>code .token.important{font-weight:700}.w-e-text-container [data-slate-editor] pre>code .token.italic{font-style:italic}.w-e-text-container [data-slate-editor] pre>code .token.entity{cursor:help}
+
+.w-e-scroll::-webkit-scrollbar {
+    display: none;     /* Chrome Safari */
+}
+
+.w-e-scroll{
+    scrollbar-width: none; /* firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    overflow-x: hidden;
+}
 
 .w-editor_popup_confirm {
     background: #005795 !important;
@@ -145,6 +155,15 @@ const styleText = `
     background: #2988e6;
 }
 
+.w-e_full-editor {
+    width: 50% !important;
+}
+
+.w-e_full-preView {
+    width: 50% !important;
+    left: 50% !important;
+}
+
 `
 
 const editorHtml = `
@@ -154,7 +173,8 @@ const editorHtml = `
 </div>
 <div id="preViewBox">
     <div id="preViewTilte">Preview</div>
-    <div id="preView"></div>
+    <div id="preView">
+    </div>
 </div>
 
 <style>
@@ -163,15 +183,18 @@ const editorHtml = `
 }
 #editor—wrapper {
     border: 1px solid #ccc;
-    z-index: 0; /* 按需定义 */
+    z-index: 1; /* 按需定义 */
     width: ${editorRatio}%;
+    height: 100%;
 }
 #toolbar-container { border-bottom: 1px solid #ccc; }
-#editor-container { height: @[EDITORHEIGHT];}
+
 #preViewBox {
     width: ${previewRatio}%;
     height: 100%;
     border: 1px dashed black;
+    background: #ffffff;
+    z-index: 1;
 }
 #preViewTilte{
     width: 100%;
@@ -187,7 +210,6 @@ const editorHtml = `
     /* width: 100%;
     height: auto; */
     width: 100%;
-    height: @[EDITORHEIGHT];
     padding: 0 10px;
     box-sizing: border-box;
     word-wrap: break-word;
@@ -201,55 +223,6 @@ const editorHtml = `
     display: none;     /* Chrome Safari */
 }
 
-#preView p{
-    margin: 15px 0;
-}
-</style>
-`
-const a = 
-`
-<style>
-#editor—wrapper button:hover {
-    opacity: 1;
-}
-
-#editor—wrapper {
-    border: 1px solid #ccc;
-    z-index: 0; /* 按需定义 */
-    width: 100%;
-}
-
-#editor-worker {
-    width: 100%;
-    display: flex;
-}
-
-#toolbar-container { border-bottom: 1px solid #ccc; }
-#editor-container { height: @[EDITORHEIGHT]; width: ${editorRatio}%; border-right: 1px solid #ccc;}
-
-#preViewBox {
-    width: ${previewRatio}%;
-    height: 100%;
-}
-#preViewTilte{
-    width: 100%;
-    height: 40px;
-    font-size: 24px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-bottom: 1px dashed;
-}
-#preView {
-    /* width: 100%;
-    height: auto; */
-    width: 100%;
-    min-height: 300px;
-    padding: 0 10px;
-    box-sizing: border-box;
-    word-wrap: break-word;
-}
 #preView p{
     margin: 15px 0;
 }

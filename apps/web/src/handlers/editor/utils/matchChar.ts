@@ -5,7 +5,7 @@ import sharpHtml from "./sharpHtml"
 import { toReg } from "./utils"
 
 const atReg = /@\[[\w '\(\)]+\]/g
-// const sharpReg = /#\[[\w]+\]/g
+const sharpReg = /#\[[\w]+\]/g
 const sharpTypeReg = /#\[\w+:[^:]+:[^:]+\]/g
 const atSplit = /[@\[\]]/g
 const sharpSplit = /[#\[\]]/g
@@ -13,6 +13,22 @@ const sharpSplit = /[#\[\]]/g
 // const removeReg = /[^\w ]/g
 
 // const atTemplateReg = /@\[[^:]+:\w+\]/g
+
+const HeadHtml = `
+    <div style="
+        width:100%;
+        height: 30px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #005795;
+        border-bottom: 2px solid #005795;
+        margin-top: 10px;
+    ">
+        --Title--
+    </div>
+    <div id="Content"></div>
+`
+
 
 export const matchChar = (html) => {
     const atKeywords = html.match(atReg)
@@ -22,7 +38,7 @@ export const matchChar = (html) => {
         if(DataSource.has(regstr)) 
             html = html.replace(
                 new RegExp(`@\\[${toReg(regstr)}\\]`, 'g'), 
-                `<span style="color:#2988e6;font-weight: bold;">${item.replace()}</span>`
+                `<span style="color:#2988e6;font-weight: bold;border: 2px solid #ccc;border-radius: 4px;padding: 4px;">${item.replace()}</span>`
             )
     })
 
@@ -50,15 +66,15 @@ export const matchChar = (html) => {
         }
     })
 
-    // const asserts = window.app.nui.getAssetsUrl()
+    const asserts = window.app.nui.getAssetsUrl()
 
-    // const sharpKeywords = html.match(sharpReg)
-    // sharpKeywords && sharpKeywords.forEach(item => {
-    //     let regstr = item.replace(sharpSplit, '')
-    //     if(infoTemplate.has(regstr)) {
-    //         html = html.replace(item, infoTemplate.get(regstr)?.replace("@[ASSERTS]", asserts))
-    //     }
-    // })
+    const sharpKeywords = html.match(sharpReg)
+    sharpKeywords && sharpKeywords.forEach(item => {
+        let regstr = item.replace(sharpSplit, '')
+        if(infoTemplate.has(regstr)) {
+            html = html.replace(item, infoTemplate.get(regstr)?.replace("@[ASSERTS]", asserts))
+        }
+    })
 
     // const atTemplateKeywords = html.match(atTemplateReg)
     // atTemplateKeywords && atTemplateKeywords.forEach(item => {
@@ -73,6 +89,8 @@ export const matchChar = (html) => {
     //         </div>`
     //     )
     // })
+
+    // if(title === '') title = "Template Name"
 
     html = html.replace(/<p><\/p>/g, '')
 

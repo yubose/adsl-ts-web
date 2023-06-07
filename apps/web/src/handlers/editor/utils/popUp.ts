@@ -1,8 +1,9 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import { SharpType } from "./config"
+import { insertText } from "./utils"
 
-const inputPopUp = (editor: IDomEditor, type: SharpType) => {
+const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
     Swal.fire({
         // title: "Message",
         html: `
@@ -107,28 +108,33 @@ const inputPopUp = (editor: IDomEditor, type: SharpType) => {
         }
     }).then(res => {
         // console.log(res)
-        let html = editor.getHtml()
+        // let html = editor.getHtml()
+        let s = ''
         if(res.isConfirmed){
-            let str = res.value?.required ? '@(*)' : ''
-            html = html.replace(
-                `-editing-#[${type}:editableTitle:editableText]-editing-`,
-                `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
-            )
+            const str = res.value?.required ? '@(*)' : ''
+            // html = html.replace(
+            //     `-editing-#[${type}:editableTitle:editableText]-editing-`,
+            //     `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
+            // )
+            s = `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "cancel") {
-            html = html.replace(
-                `-editing-#[${type}:editableTitle:editableText]-editing-`,
-                `#[${type}:editableTitle:editableText]`
-            )
+            // html = html.replace(
+            //     `-editing-#[${type}:editableTitle:editableText]-editing-`,
+            //     `#[${type}:editableTitle:editableText]`
+            // )
+            s = `#[${type}:editableTitle:editableText]`
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "close") {
-            html = html.replace(
-                `-editing-#[${type}:editableTitle:editableText]-editing-`,
-                ``
-            )
+            // html = html.replace(
+            //     `-editing-#[${type}:editableTitle:editableText]-editing-`,
+            //     ``
+            // )
+            s = ''
         }
-        editor.setHtml(html)
-        editor.focus(true)
+        // editor.setHtml(html)
+        // editor.focus(true)
+        insertText(editor, s, selection)
     })
 }
 

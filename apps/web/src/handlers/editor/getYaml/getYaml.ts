@@ -7,6 +7,7 @@ import sharpYaml from "./sharpYaml";
 import { SharpType } from "../utils/config";
 // import DataSource from "../dataSource/data";
 import formatKey from "../utils/format";
+import { facilityInfoYaml } from "../dataSource/infoYaml";
 
 const getYaml = (editor: IDomEditor) => {
     try {
@@ -15,6 +16,9 @@ const getYaml = (editor: IDomEditor) => {
         let jsonFix = fixJson(json, BaseJsonCopy)
 
         BaseJsonCopy.components = jsonFix
+
+        // console.log(yaml.stringify(BaseJsonCopy.formData))
+        // console.log(yaml.stringify(BaseJsonCopy.components))
 
         return {
             data: BaseJsonCopy.formData,
@@ -33,25 +37,82 @@ const getYaml = (editor: IDomEditor) => {
 }
 
 const typeConfig = new Map([
-    ["paragraph", "view"]
+    ["paragraph", "view"],
+    ["header1", "view"],
+    ["header2", "view"],
+    ["header3", "view"],
+    ["header4", "view"],
+    ["header5", "view"],
+    ["divider", "divider"]
     // ["paragraph", "label"]
+])
+
+const typeStyle = new Map([
+    ["header1", {
+        fontSize: "=..formData.atrribute.noodl_font.h1",
+        marginBlockStart: "0.67em",
+        // marginBlockEnd: "0.67em",
+        marginInlineStart: "0px",
+        // marginInlineEnd: "0px",
+        fontWeight: 700
+    }],
+    ["header2", {
+        fontSize: "=..formData.atrribute.noodl_font.h2",
+        marginBlockStart: "0.83em",
+        // marginBlockEnd: "0.83em",
+        marginInlineStart: "0px",
+        // marginInlineEnd: "0px",
+        fontWeight: 700
+    }],
+    ["header3", {
+        fontSize: "=..formData.atrribute.noodl_font.h3",
+        marginBlockStart: "1em",
+        // marginBlockEnd: "1em",
+        marginInlineStart: "0px",
+        // marginInlineEnd: "0px",
+        fontWeight: 700
+    }],
+    ["header4", {
+        fontSize: "=..formData.atrribute.noodl_font.h4",
+        marginBlockStart: "1.33em",
+        // marginBlockEnd: "1.33em",
+        marginInlineStart: "0px",
+        // marginInlineEnd: "0px",
+        fontWeight: 700
+    }],
+    ["header5", {
+        fontSize: "=..formData.atrribute.noodl_font.h5",
+        marginBlockStart: "1.67em",
+        // marginBlockEnd: "1.67em",
+        marginInlineStart: "0px",
+        // marginInlineEnd: "0px",
+        fontWeight: 700
+    }],
+    ["divider", {
+        color: "0x9a9a9a"
+    }]
 ])
 
 const styleConfig = new Map([
     ["color", "color"],
     ["bgColor", "backgroundColor"],
-    ["bold", '{"fontWeight": "bold"}'],
+    ["bold", '{"fontWeight": "700"}'],
     ["italic", '{"fontStyle": "italic"}'],
     ["underline", '{"textDecoration": "underline"}'],
+    ["indent", '{"marginLeft": "__REPLACE__"}'],
+    ["textAlign", '{"display": "flex", "justifyContent": "__REPLACE__", "textAlign": "__REPLACE__"}']
 ])
 
+const SkipType = new Set(["divider"])
+
 const colorReg = /rgb\((.)+\)/
-const RefReg = /(@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|@\[[^:]+:\w+\])/g
-const Reg = /@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]/
+const RefReg = /(@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\])/g
+const Reg = /@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\]/
 const AtSplitReg = /[@\[\]]/g
 const SharpSplitReg = /[@#\[\]]/g
 const AtReg = /@\[[\w '\(\)]+\]/
 const SharpTypeReg = /#\[\w+:[^:]+:[^:]+\]/
+const SharpReg = /#\[\w+\]/
 // const AtTemplateReg = /@\[[^:]+:\w+\]/
 
 
@@ -77,23 +138,32 @@ const populate = (obj, BaseJsonCopy) => {
         if("type" in obj) {
             target.type = typeConfig.get(obj.type)
             target.style = {
+                width: "calc(100%)",
                 marginTop: "15px",
-                marginBottom: "15px"
             }
-            target.children = populate(obj.children, BaseJsonCopy).target
+            if(typeStyle.has(obj.type)) {
+                target.style = Object.assign(target.style, typeStyle.get(obj.type))
+            }
+            Object.keys(obj).forEach(key => {
+                if(styleConfig.has(key)) {
+                    target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                }
+            })
+            if(!SkipType.has(obj.type)) {
+                target.children = populate(obj.children, BaseJsonCopy).target
+            }
         } else {
             if(Reg.test(obj.text)) {
                 isConcat = true
                 target = []
                 const arr = obj.text.split(RefReg)
-                // console.log(arr)
                 arr.forEach(item => {
                     if(item !== '') {
                         let txt = { text: item }
                         target.push(oprate(Object.assign({}, obj, txt), BaseJsonCopy))
                     }
                 })
-            } else {
+            } else if(obj.text !== '') {
                 target = oprate(obj, BaseJsonCopy)
             }
         }
@@ -118,15 +188,16 @@ const oprate = (obj, BaseJsonCopy) => {
                     value: "formData.data." + KEY,
                     placeholder: KEY,
                     style: {
-                        display: `=..formData.atrribute._isEdit`,
+                        display: `=..formData.atrribute.is_edit`,
                         width: "200px",
                         height: "40px",
                         boxSizing: "border-box",
                         textIndent: "0.8em",
-                        borderColor: "#DEDEDE",
                         color: "#333333",
                         outline: "none",
-                        borderStyle: "solid",
+                        border: "1px solid #DEDEDE",
+                        // borderColor: "#DEDEDE",
+                        // borderStyle: "solid",
                         borderWidth: "thin",
                         borderRadius: "4px",
                         lineHeight: "40px"
@@ -134,16 +205,15 @@ const oprate = (obj, BaseJsonCopy) => {
                 },
                 {
                     type: "view",
-                    text: "..formData.data." + KEY,
+                    text: "=..formData.data." + KEY,
                     style: {
-                        display: "=..formData.atrribute._isRead",
+                        display: "=..formData.atrribute.is_read",
                         height: "40px",
                         lineHeight: "40px"
                     } 
                 }
             ]
         }
-        
     }
     else if(SharpTypeReg.test(obj.text)) {
         const text = obj.text.replace(SharpSplitReg, '')
@@ -195,40 +265,17 @@ const oprate = (obj, BaseJsonCopy) => {
         // }
         return target
     }
-    // else if(AtTemplateReg.test(obj.text)) {
-    //     const text = obj.text.replace(splitReg, '')
-    //     const title = text.split(":")[0]
-    //     const key = text.split(":")[1]
-    //     BaseJsonCopy.formData[key] = `${title}`
-    //     target = {
-    //         type: "view",
-    //         style: {
-    //             display: "grid",
-    //             // gridTemplateColumns: `${title.length*10}px 200px`
-    //             gridTemplateColumns: `200px 200px`
-    //         },
-    //         children: [
-    //             {
-    //                 type: "view",
-    //                 text: title
-    //             },
-    //             {
-    //                 type: "textField",
-    //                 dataKey: "formData." + key,
-    //                 style: {
-    //                     display: `=..formData._isProvider`
-    //                 }
-    //             },
-    //             {
-    //                 type: "view",
-    //                 text: "..formData." + key,
-    //                 style: {
-    //                     display: "=..formData._isPatient"
-    //                 } 
-    //             }
-    //         ]
-    //     }
-    // }
+    else if(SharpReg.test(obj.text)) {
+        const text = obj.text.replace(SharpSplitReg, '')
+        switch(text) {
+            case "FacilityInfo": 
+                return facilityInfoYaml
+            case "PatientInfo":
+            case "ProviderInfo":
+            default: 
+                return {}
+        }
+    }
     else {
         target["type"] = "label"
         target["text"] = obj.text
@@ -256,7 +303,6 @@ const oprate = (obj, BaseJsonCopy) => {
     Object.keys(obj).forEach(key => {
         if(key !== "text") {
             if(typeof obj[key] === "boolean") {
-                console.log(key, styleConfig.get(key))
                 target["style"] = Object.assign(target["style"], JSON.parse(styleConfig.get(key) as string))
             } else if(colorReg.test(obj[key])) {
                 target["style"][styleConfig.get(key)] = rgb2hex(obj[key])

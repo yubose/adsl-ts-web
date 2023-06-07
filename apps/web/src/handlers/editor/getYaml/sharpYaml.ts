@@ -13,12 +13,14 @@ const sharpYaml = (opts: SharpYamlOption) => {
                 },
                 children: [
                     {
-                        type: "view",
+                        type: "label",
+                        contentType: "html",
                         text: opts.config.title+str,
                         style: {
-                            margin: "15px 0",
+                            marginTop: "15px",
+                            marginBottom: "15px",
                             color: "#333333",
-                            fontSize: "1.039vw",
+                            fontSize: "=..formData.atrribute.noodl_font.text",
                             fontWeight: 600
                         }
                     },
@@ -28,15 +30,14 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         style: {
-                            display: `=..formData.atrribute._isEdit`,
+                            display: `=..formData.atrribute.is_edit`,
                             minHeight: "40px",
                             width: "calc(100%)",
                             boxSizing: "border-box",
                             textIndent: "0.8em",
-                            borderColor: "#DEDEDE",
                             color: "#333333",
                             outline: "none",
-                            borderStyle: "solid",
+                            border: "2px solid #DEDEDE",
                             borderWidth: "thin",
                             borderRadius: "4px"
                         }
@@ -45,8 +46,9 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         type: "view",
                         text: "..formData.data." + formatKey(opts.config.title as string),
                         style: {
-                            display: "=..formData.atrribute._isRead",
-                            wordWrap: "break-word"
+                            display: "=..formData.atrribute.is_read",
+                            wordWrap: "break-word",
+                            marginTop: "15px"
                         } 
                     }
                 ]
@@ -60,12 +62,14 @@ const sharpYaml = (opts: SharpYamlOption) => {
                 },
                 children: [
                     {
-                        type: "view",
+                        type: "label",
+                        contentType: "html",
                         text: opts.config.title+str,
                         style: {
-                            margin: "15px 0",
+                            marginTop: "15px",
+                            marginBottom: "15px",
                             color: "#333333",
-                            fontSize: "1.039vw",
+                            fontSize: "=..formData.atrribute.noodl_font.text",
                             fontWeight: 600
                         }
                     },
@@ -75,15 +79,14 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         style: {
-                            display: `=..formData.atrribute._isEdit`,
+                            display: `=..formData.atrribute.is_edit`,
                             minHeight: "80px",
                             width: "calc(100%)",
                             boxSizing: "border-box",
                             textIndent: "0.8em",
-                            borderColor: "#DEDEDE",
                             color: "#333333",
                             outline: "none",
-                            borderStyle: "solid",
+                            border: "2px solid #DEDEDE",
                             borderWidth: "thin",
                             borderRadius: "4px",
                             lineHeight: "40px"
@@ -93,8 +96,9 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         type: "view",
                         text: "..formData.data." + formatKey(opts.config.title as string),
                         style: {
-                            display: "=..formData.atrribute._isRead",
-                            wordWrap: "break-word"
+                            display: "=..formData.atrribute.is_read",
+                            wordWrap: "break-word",
+                            marginTop: "15px"
                         } 
                     }
                 ]

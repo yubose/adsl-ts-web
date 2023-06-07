@@ -1108,14 +1108,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   };
 
-  	const getTemplate = () => {
-		getYaml(window.app.root.editor)
-	}
-
-	const testTemplate = () => {
-		insertAll(window.app.root.editor)
-	}
-
 	const builtIns = {
 		checkField,
 		disconnectMeeting,
@@ -1140,8 +1132,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		delayTask,
 		getViewTagValue,
     	countDown,
-		getTemplate,
-		testTemplate
 	};
 
 	/** Shared common logic for both lock/logout logic */

@@ -2267,6 +2267,91 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] strictLength textField': {
+      cond: 'textField',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictLength') {
+          console.log("TEST", {node}, component)
+          let strictLength = {
+            max: Number.MAX_VALUE,
+            min: 0
+          }
+          if(component.props.strictLength) {
+            if(component.props.strictLength.max) {
+              strictLength.max = component.props.strictLength.max
+            }
+            if(component.props.strictLength.min) {
+              strictLength.min = component.props.strictLength.min
+            }
+          }
+          const parentNode = node.parentElement as HTMLElement;
+          let oldValue = ''
+          let borderColor = (node as HTMLInputElement).style.borderColor
+
+          let tips = document.createElement("div")
+          tips.innerText = "3 characters minimum"
+          tips.style.cssText = `
+            position: absolute;
+            top: ${node.offsetTop + node.offsetHeight}px;
+            left: ${node.offsetLeft}px;
+            font-size: 12px;
+            color: #ff0000;
+            display: none;
+          `
+          const strict = () => {
+            const value = (node as HTMLInputElement).value
+            if(value.length < strictLength.min) {
+              (node as HTMLInputElement).style.borderColor = "#ff0000";
+              tips.style.display = "block"
+              oldValue = value;
+            } else if(value.length > strictLength.max) {
+              (node as HTMLInputElement).value = oldValue;
+            } else {
+              (node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = "none"
+              oldValue = value
+            }
+          }
+          let isFocus = false
+          parentNode.appendChild(tips)
+          node.addEventListener('focus', () => {
+            isFocus = true
+          })
+          node.addEventListener('blur', () => {
+            if(isFocus) {
+              strict()
+              isFocus = false
+            }
+          })
+          node.addEventListener('input', strict)
+
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+                strict()
+              }
+            });
+          })
+
+          observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['style']
+          })
+
+        } else {
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+                ? contentType
+                : 'text',
+          )
+        }
+      }
+    },
     '[App] VideoChat Timer': {
       cond: ({ component: c }) =>
         c.has('text=func') && c.contentType === 'timer',
@@ -3501,37 +3586,65 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: "editor",
       resolve({ node, component }) {
         let style = document.createElement("style") as HTMLStyleElement
-        style.innerText = styleText
+        style.innerHTML = styleText
         document.body.appendChild(style)
-        node.style.width = "90%"
-        node.style.height = "90%"
+        node.style.width = "100%"
+        node.style.height = "100%"
         node.style.display = "flex"
         node.style.justifyContent = "center"
         node.style.alignItems = "center"
-        node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-80}px`)
+        node.innerHTML = editorHtml;
+
+        // node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-82}px`)
+
+        const assetsUrl = app.nui.getAssetsUrl() || ""
+        const expend = `${assetsUrl}expend.svg`
+        const contract = `${assetsUrl}contract.svg`
+        const img = document.createElement("img") as HTMLImageElement
+        img.src = expend
+        img.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          cursor: pointer;
+          z-index: 1;
+        `
+        node.appendChild(img)
+
+        let isExpend = true
+
+        img.addEventListener("click", ()=> {
+          if(isExpend) {
+            img.src = contract;
+            (document.getElementById("preViewBox") as HTMLElement).style.display = "none";
+            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "100%";
+            isExpend = false
+          } else {
+            img.src = expend;
+            (document.getElementById("preViewBox") as HTMLElement).style.display = "block";
+            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "45%";
+            isExpend = true
+          }
+        })
 
         let oldSHA = ''
-
-        editorConfig.onChange = (editor: IDomEditor) => {
-          // console.log(editor)
+        const change = (editor: IDomEditor) => {
           const str = editor.getHtml()
           let newSHA = createHash('sha256').update(str).digest('hex')
           if(newSHA !== oldSHA) {
-              const html = matchChar(str)
-              const oldTemplateInfo = get(app.root, component.get('data-key'))
-              app.updateRoot(draft => {
-                set(draft, component.get("data-key"), Object.assign(oldTemplateInfo, {
-                  html: html,
-                  yaml: getYaml(editor)
-                }))
+            // const oldTemplateInfo = get(app.root, component.get('data-key'))
+            const html = matchChar(str)
+            app.updateRoot(draft => {
+              set(draft, component.get("data-key"), {
+                html: str,
+                yaml: getYaml(editor)
               })
-              // @ts-ignore
-              document.getElementById("preView").innerHTML = html
-              oldSHA = newSHA
-              
-              
+            });
+            (document.getElementById("preView") as HTMLDivElement).innerHTML = html
+            oldSHA = newSHA
           }
         }
+        editorConfig.onChange = change
         
         const editor = createEditor({
           content: [],
@@ -3548,16 +3661,75 @@ const createExtendedDOMResolvers = function (app: App) {
           mode: 'default', // or 'simple'
         })
         
+        let timer
+        const calculateHeight = () => {
+          let toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          if(toolbarDom.clientHeight) {
+            const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
+            // console.log("TEST", height);
+            (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
+            (document.getElementById("preView") as HTMLDivElement).style.height = height;
+            node.removeEventListener("load", calculateHeight)
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(calculateHeight, 0)
+          }
+        }
+        calculateHeight()
+
+        // node.addEventListener("load", calculateHeight)
+
+        editor.on("fullScreen", () => {
+          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
+          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
+          if(!editorClass) editorClass = '';
+          if(!previewClass) previewClass = '';
+          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
+          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
+          img.style.display = "none";
+        })
+
+        editor.on("unFullScreen", () => {
+          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
+          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
+          if(!editorClass) editorClass = '';
+          if(!previewClass) previewClass = '';
+          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
+          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
+          img.style.display = "block";
+        })
+
         i18nChangeLanguage("en")
 
+        // const oldTemplateInfo = get(app.root, component.get('data-key'))
         app.updateRoot(draft => {
           set(draft, "editor", editor);
-          set(draft, 'toolbar', toolbar)
+          set(draft, 'toolbar', toolbar);
+          set(draft, component.get("data-key"), {
+            html: editor.getHtml(),
+            yaml: getYaml(editor)
+          })
         })
 
         const resource = i18nGetResources("en")
         resource.fontSize["default"] = "Font Size"
 
+      }
+    },
+    '[App templateView]': {
+      cond: "templateView",
+      resolve({ node, component }) {
+        const html = get(app.root, component.get('data-key'))
+        const style = `
+          <style>
+            p {
+              margin: 15px 0;
+            }
+          </style>
+        `
+        node.innerHTML = style + matchChar(html)
       }
     }
   }

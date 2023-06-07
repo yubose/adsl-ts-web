@@ -1,11 +1,11 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import DataSource from "../dataSource/data"
-import { toReg } from "./utils"
+import { insertText, toReg } from "./utils"
 
 const dismiss = new Set(["backdrop", "esc"])
 
-const searchPopUp = (editor: IDomEditor) => {    
+const searchPopUp = (editor: IDomEditor, selection) => {    
     Swal.fire({
         html: `
             <div>
@@ -92,11 +92,12 @@ const searchPopUp = (editor: IDomEditor) => {
         if(key) {
             Swal.close()
             try {
-                let html = editor.getHtml()
-                html = html.replace(`-editing-@[]-editing-`, `@[${key}]`)
-                console.log(html)
-                editor.setHtml(html)
-                editor.focus(true)
+                insertText(editor, `@[${key}]`, selection)
+                // let html = editor.getHtml()
+                // html = html.replace(`-editing-@[]-editing-`, `@[${key}]`)
+                // console.log(html)
+                // editor.setHtml(html)
+                // editor.focus(true)
             } catch (error) {
                 console.log(error)
             }
