@@ -279,7 +279,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     '381441': ['Temperature', '℉/℃', 'temperatureData', 300],
                     '384001': [
                       'Blood Glucose Levels',
-                      'O₂%',
+                      'mg/dl',
                       'bloodGlucoseLevelsData',
                       300,
                     ],
