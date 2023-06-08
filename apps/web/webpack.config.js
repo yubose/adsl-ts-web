@@ -217,6 +217,16 @@ function getWebpackConfig(env) {
         }
         return middlewares
       },
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:9999',
+          secure: false,
+          changeOrigin: true,
+          pathRewrite: {
+            '^/api': ''
+          }
+        }
+      }
     },
     devtool: false,
     externals: [],

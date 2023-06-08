@@ -48,6 +48,7 @@ import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv, sortByPriority } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
+import axios from 'axios'
 
 class App {
   #state: t.AppState = {
@@ -487,6 +488,16 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
+    axios({
+      url: "http://127.0.0.1:9999",
+      method: "POST",
+      headers:{
+        "Content-Type": "text/plain"
+      },
+      data:  this.#noodl?.root
+      
+    })
+
     let e = Date.now()
     log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
   }
