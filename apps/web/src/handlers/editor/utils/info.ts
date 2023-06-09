@@ -91,7 +91,7 @@ const FacilityInfo = [
             },
             {
                 "type": "atblock",
-                "value": "@Facility info",
+                "value": "@Facility Website",
                 "children": [
                     {
                         "text": ""
