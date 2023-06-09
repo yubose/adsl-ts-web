@@ -43,7 +43,7 @@ import { editorHtml, styleText }from './editor/editorHtml'
 import { createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
 import editorConfig from "./editor/editor"
 import toolbarConfig from "./editor/toolbar"
-import { matchChar } from './editor/utils/matchChar'
+import { matchBlock, matchChar } from './editor/utils/matchChar'
 import getYaml from './editor/getYaml/getYaml'
 
 // import moment from "moment"
@@ -2271,7 +2271,7 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'textField',
       resolve({ node, component }) {
         if (component.contentType === 'strictLength') {
-          console.log("TEST", {node}, component)
+          // console.log("TEST", {node}, component)
           let strictLength = {
             max: Number.MAX_VALUE,
             min: 0
@@ -3633,7 +3633,8 @@ const createExtendedDOMResolvers = function (app: App) {
           let newSHA = createHash('sha256').update(str).digest('hex')
           if(newSHA !== oldSHA) {
             // const oldTemplateInfo = get(app.root, component.get('data-key'))
-            const html = matchChar(str)
+            // const html = matchChar(str)
+            const html = matchBlock(str)
             app.updateRoot(draft => {
               set(draft, component.get("data-key"), {
                 html: str,
@@ -3666,10 +3667,20 @@ const createExtendedDOMResolvers = function (app: App) {
           let toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
           if(toolbarDom.clientHeight) {
             const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
-            // console.log("TEST", height);
             (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
             (document.getElementById("preView") as HTMLDivElement).style.height = height;
             node.removeEventListener("load", calculateHeight)
+            const templateInfo = get(app.root, component.get('data-key'))
+            if(templateInfo.title && templateInfo.title !== '') {
+              editor.focus()
+              editor.dangerouslyInsertHtml(templateInfo.html)
+              app.updateRoot(draft => {
+                set(draft, component.get("data-key"), {
+                  html: editor.getHtml(),
+                  yaml: getYaml(editor)
+                })
+              })
+            }
             if(!timer) {
               clearTimeout(timer)
             }
@@ -3703,14 +3714,9 @@ const createExtendedDOMResolvers = function (app: App) {
 
         i18nChangeLanguage("en")
 
-        // const oldTemplateInfo = get(app.root, component.get('data-key'))
         app.updateRoot(draft => {
           set(draft, "editor", editor);
           set(draft, 'toolbar', toolbar);
-          set(draft, component.get("data-key"), {
-            html: editor.getHtml(),
-            yaml: getYaml(editor)
-          })
         })
 
         const resource = i18nGetResources("en")
@@ -3729,7 +3735,8 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           </style>
         `
-        node.innerHTML = style + matchChar(html)
+        // node.innerHTML = style + matchChar(html)
+        node.innerHTML = style + matchBlock(html)
       }
     }
   }

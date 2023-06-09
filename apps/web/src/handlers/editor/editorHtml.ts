@@ -164,6 +164,22 @@ const styleText = `
     left: 50% !important;
 }
 
+.w-e-button {
+    border: 2px solid #2988e6;
+    border-radius: 4px;
+    background: #2988e6;
+    color: white;
+    font-weight: 700;
+    padding: 4px;
+    margin: 0 1px;
+    cursor: pointer;
+}
+
+.w-e-button:hover {
+    background: #ffffff;
+    color: #2988e6;
+}
+
 `
 
 const editorHtml = `

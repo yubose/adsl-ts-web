@@ -1,3 +1,4 @@
+import { MapKind } from "noodl-yaml/dist/constants"
 import DataSource from "../dataSource/data"
 import infoTemplate from "../dataSource/infoTemplate"
 import { SharpType } from "./config"
@@ -14,20 +15,20 @@ const sharpSplit = /[#\[\]]/g
 
 // const atTemplateReg = /@\[[^:]+:\w+\]/g
 
-const HeadHtml = `
-    <div style="
-        width:100%;
-        height: 30px;
-        font-size: 20px;
-        font-weight: bold;
-        color: #005795;
-        border-bottom: 2px solid #005795;
-        margin-top: 10px;
-    ">
-        --Title--
-    </div>
-    <div id="Content"></div>
-`
+// const HeadHtml = `
+//     <div style="
+//         width:100%;
+//         height: 30px;
+//         font-size: 20px;
+//         font-weight: bold;
+//         color: #005795;
+//         border-bottom: 2px solid #005795;
+//         margin-top: 10px;
+//     ">
+//         --Title--
+//     </div>
+//     <div id="Content"></div>
+// `
 
 
 export const matchChar = (html) => {
@@ -91,6 +92,55 @@ export const matchChar = (html) => {
     // })
 
     // if(title === '') title = "Template Name"
+
+    html = html.replace(/<p><\/p>/g, '')
+
+    return html
+}
+
+// const atBlockReg = /<span data-w-e-type="atblock" data-w-e-is-void data-w-e-is-inline data-value="[\w '\(\)]+">@[\w '\(\)]+<\/span>/g
+// const sharpBlockReg = /<button is-sharp>#[\w*]+:[^:]+:[^:]+<\/button>/g
+
+export const matchBlock = (html) => {
+    const REG = `<span data-w-e-type="--type--" data-w-e-is-void data-w-e-is-inline data-value="--key--">--key--<\/span>`
+
+    const atBlockReg = new RegExp(REG.replace(/--type--/g, 'atblock').replace(/--key--/g, `@[\\w '\\(\\)]+`), 'g')
+    const atKeywords = html.match(atBlockReg)
+    // console.log(atBlockReg, atKeywords)
+    atKeywords && atKeywords.forEach(item => {
+        const texts = item.match(/>@[\w '\(\)]+</g)
+        const text = texts[0].replace(/[@><]/g, '')
+        if(DataSource.has(text)) 
+            html = html.replace(
+                new RegExp(toReg(item), 'g'),
+                `<span style="color:#2988e6;font-weight: bold;border: 2px solid #ccc;border-radius: 4px;padding: 4px;">@${text}</span>`
+            )
+    })
+
+    const sharpBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w*]+:[^:]+:[^:]+`), 'g')
+    const sharpKeywords = html.match(sharpBlockReg)
+    sharpKeywords && sharpKeywords.forEach(item => {
+        const texts = item.match(/>#[\w*]+:[^:]+:[^:]+</g)
+        const text = texts[0].replace(/[#><]/g, '')
+        const arr = text.split(/:/g)
+        html = sharpHtml({
+            type: arr[0].replace(/\*/g, '') as SharpType,
+            html: html,
+            split: item,
+            config: {
+                title: arr[1] as string,
+                placeholder: arr[2] as string
+            }
+        })
+        if(arr[0].endsWith('*')) 
+            html = html.replace(arr[1], `
+            <div style="
+                color:#333333;
+                font-size: 1.039vw;
+                font-weight: 600;
+            "><span>${arr[1]} </span><span style="color: red"> *</span>
+            </div>`)
+    })
 
     html = html.replace(/<p><\/p>/g, '')
 

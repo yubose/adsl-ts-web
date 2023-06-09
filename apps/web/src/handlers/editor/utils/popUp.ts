@@ -1,9 +1,20 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import { SharpType } from "./config"
-import { insertText } from "./utils"
+import { insertNode, insertText } from "./utils"
 
-const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
+const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
+
+    const isChange = target instanceof HTMLElement
+    let title = ''
+    let placeholder = ''
+    let isRequired = ''
+    if(isChange) {
+        title = target.innerText.split(/:/)[1];
+        placeholder = target.innerText.split(/:/)[2];
+        isRequired = target.innerText.split(/:/)[0].includes("*") ? "checked" : "";
+    }
+
     Swal.fire({
         // title: "Message",
         html: `
@@ -36,7 +47,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
                     border-radius: 4px;
                 "
                 id="w-editor_title"
-                placeholder="Enter here"
+                placeholder="Enter here",
+                value="${title}"
             />
             <div style="
                 text-align: start;
@@ -61,8 +73,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
                     line-height: 40px;
                 "
                 id="w-editor_placeholder"
-                placeholder="Enter here"
-            ></textarea>
+                placeholder="Enter here",
+            >${placeholder}</textarea>
             <div style="
                 display: flex;
             ">
@@ -74,7 +86,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
                         margin-left: 2px;
                     "
                     type="checkbox"  
-                    id="w-editor_require"
+                    id="w-editor_require",
+                    ${isRequired}
                 />
                 <div style="
                     width: 100%;
@@ -101,29 +114,32 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
             let placeholder = (<HTMLInputElement>document.getElementById("w-editor_placeholder")).value
             let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
             return {
-                title: title === '' ? 'editableTitle' : title,
-                placeholder: placeholder == '' ? 'editableText' : placeholder,
+                title: title === '' ? 'Title' : title,
+                placeholder: placeholder == '' ? 'Enter here' : placeholder,
                 required
             }
         }
     }).then(res => {
-        // console.log(res)
+        console.log(res)
         // let html = editor.getHtml()
         let s = ''
         if(res.isConfirmed){
-            const str = res.value?.required ? '@(*)' : ''
+            // const str = res.value?.required ? '@(*)' : ''
+            const str = res.value?.required ? '*' : ''
             // html = html.replace(
             //     `-editing-#[${type}:editableTitle:editableText]-editing-`,
             //     `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
             // )
-            s = `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
+            // s = `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
+            s = `#${type}${str}:${res.value?.title}:${res.value?.placeholder}`
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "cancel") {
             // html = html.replace(
             //     `-editing-#[${type}:editableTitle:editableText]-editing-`,
             //     `#[${type}:editableTitle:editableText]`
             // )
-            s = `#[${type}:editableTitle:editableText]`
+            // s = `#[${type}:Title:Enter here]`
+            s = `#${type}:Title:Enter here`
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "close") {
             // html = html.replace(
@@ -134,7 +150,12 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection) => {
         }
         // editor.setHtml(html)
         // editor.focus(true)
-        insertText(editor, s, selection)
+
+        /* text */
+        // insertText(editor, s, selection)
+
+        /* block */
+        insertNode(editor, "sharpblock", s, selection, isChange)
     })
 }
 

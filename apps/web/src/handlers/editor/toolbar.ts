@@ -1,10 +1,15 @@
-import { IToolbarConfig, Boot, IModalMenu, IModuleConf, IDomEditor } from "@wangeditor/editor";
+import { IToolbarConfig, Boot, IModalMenu, IModuleConf, IDomEditor, SlateTransforms } from "@wangeditor/editor";
 import DefaultButton from "./class/Button/defaultButton";
 import DefaultSelect from "./class/Select/defaultSelect";
 import keypress from "@atslotus/keypress"
 import { inputPopUp } from "./utils/popUp";
 import searchPopUp from "./utils/search";
 import getImageObject from "./utils/svg";
+import withBlock from "./node/plugIn";
+import { renderAtBlock, renderSharpBlock } from "./node/node";
+import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
+import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
+import { FacilityInfo, PatientInfo, ProviderInfo } from "./utils/info";
 
 const kp = new keypress()
 
@@ -41,7 +46,10 @@ const DynamicFields = new DefaultButton({
         exec: (editor: IDomEditor, value: string | boolean) => {
             // editor.insertText(`-editing-@[]-editing-`)
             const selection = editor.selection
-            searchPopUp(editor, selection)
+            searchPopUp({
+                editor, 
+                selection
+            })
         }
     }
 })
@@ -50,14 +58,34 @@ const InfoSelect = new DefaultSelect({
     title: "info",
     width: 60,
     options: [
-        {value: "Info", text: "Info", styleForRenderMenuList: { display: "none" }},
+        {value: "Info", 
+        text: "Info", styleForRenderMenuList: { display: "none" }},
         {value: "FacilityInfo", text: "FacilityInfo", styleForRenderMenuList: getImageObject('facilityInfo')},
         {value: "PatientInfo", text: "PatientInfo", styleForRenderMenuList: getImageObject('patientInfo')},
         {value: "ProviderInfo", text: "ProviderInfo", styleForRenderMenuList: getImageObject('providerInfo')},
     ],
     classFunctions: {
         exec: (editor: IDomEditor, value: string | boolean) => {
-            editor.insertText(`#[${value}]`)
+            // editor.insertText(`#[${value}]`)
+            switch(value) {
+                case "FacilityInfo":
+                    SlateTransforms.insertNodes(editor, FacilityInfo, {
+                        voids: true
+                    })
+                    break
+                case "PatientInfo":
+                    SlateTransforms.insertNodes(editor, PatientInfo, {
+                        voids: true
+                    })
+                    break
+                case "ProviderInfo":
+                    SlateTransforms.insertNodes(editor, ProviderInfo, {
+                        voids: true
+                    })
+                    break
+                default:
+                    break
+            }
         }
     }
 })
@@ -89,10 +117,14 @@ kp.listen({
     useCombination: 'shift',
     callback: () => {
         if(isUseHotKey) {
-            isUseHotKey = false
             const editor: IDomEditor = window.app.root.editor
-            const newSelection = editor.selection
-            searchPopUp(editor, newSelection)
+            const selection = editor.selection
+            searchPopUp({
+                editor,
+                selection,
+                isUseHotKey
+            })
+            isUseHotKey = false
             // editor.insertText(`-editing-@[]-editing-`)
             // searchPopUp(editor)
         }
@@ -121,8 +153,42 @@ const InfoSelectConf = {
     }
 }
 
+const renderAtBlockConf = {
+    type: 'atblock', // 新元素 type ，重要！！！
+    renderElem: renderAtBlock,
+}
+
+const atBlockToHtmlConf = {
+    type: 'atblock', // 新元素的 type ，重要！！！
+    elemToHtml: AtBlockToHtml,
+}
+
+const parseAtBlockHtmlConf = {
+    selector: 'span[data-w-e-type="atblock"]', // CSS 选择器，匹配特定的 HTML 标签
+    parseElemHtml: parseAtBlockHtml,
+}
+
+const renderSharpBlockConf = {
+    type: 'sharpblock', // 新元素 type ，重要！！！
+    renderElem: renderSharpBlock,
+}
+
+const sharpBlockToHtmlConf = {
+    type: 'sharpblock', // 新元素的 type ，重要！！！
+    elemToHtml: SharpBlockToHtml,
+}
+
+const parseSharpBlockHtmlConf = {
+    selector: 'span[data-w-e-type="sharpblock"]', // CSS 选择器，匹配特定的 HTML 标签
+    parseElemHtml: parseSharpBlockHtml,
+}
+
 const module: Partial<IModuleConf> = {
-    menus: [templateConf, DynamicFieldsConf, InfoSelectConf]
+    menus: [templateConf, DynamicFieldsConf, InfoSelectConf],
+    editorPlugin: withBlock,
+    renderElems: [renderAtBlockConf, renderSharpBlockConf],
+    elemsToHtml: [atBlockToHtmlConf, sharpBlockToHtmlConf],
+    parseElemsHtml: [parseAtBlockHtmlConf, parseSharpBlockHtmlConf]
 }
 
 Boot.registerModule(module)
@@ -170,15 +236,15 @@ const toolbarConfig: Partial<IToolbarConfig> = {
                 "justifyJustify"
             ]
         },
-        {
-            "key": "group-indent",
-            "title": "缩进",
-            "iconSvg": "<svg viewBox=\"0 0 1024 1024\"><path d=\"M0 64h1024v128H0z m384 192h640v128H384z m0 192h640v128H384z m0 192h640v128H384zM0 832h1024v128H0z m0-128V320l256 192z\"></path></svg>",
-            "menuKeys": [
-                "indent",
-                "delIndent"
-            ]
-        },
+        // {
+        //     "key": "group-indent",
+        //     "title": "缩进",
+        //     "iconSvg": "<svg viewBox=\"0 0 1024 1024\"><path d=\"M0 64h1024v128H0z m384 192h640v128H384z m0 192h640v128H384z m0 192h640v128H384zM0 832h1024v128H0z m0-128V320l256 192z\"></path></svg>",
+        //     "menuKeys": [
+        //         "indent",
+        //         "delIndent"
+        //     ]
+        // },
         "|",
         // {
         //     "key": "group-image",

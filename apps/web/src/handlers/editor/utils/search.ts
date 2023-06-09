@@ -1,11 +1,21 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import DataSource from "../dataSource/data"
-import { insertText, toReg } from "./utils"
+import { insertNode, insertText, toReg } from "./utils"
 
 const dismiss = new Set(["backdrop", "esc"])
 
-const searchPopUp = (editor: IDomEditor, selection) => {    
+const searchPopUp = ({ 
+    editor,
+    selection,
+    isChange = false,
+    isUseHotKey = false
+}:{
+    editor: IDomEditor, 
+    selection, 
+    isChange?: boolean, 
+    isUseHotKey?: boolean
+}) => {    
     Swal.fire({
         html: `
             <div>
@@ -74,13 +84,17 @@ const searchPopUp = (editor: IDomEditor, selection) => {
         // console.log(res)
         // @ts-ignore
         if(res.isDismissed && dismiss.has(res.dismiss)) {
-            let html = editor.getHtml()
-            html = html.replace(`-editing-@[]-editing-`, ``)
-            editor.setHtml(html)
+            // let html = editor.getHtml()
+            // html = html.replace(`-editing-@[]-editing-`, ``)
+            // editor.setHtml(html)
         }
     })
     const input = document.getElementById("w-e_search-search") as HTMLInputElement
     const content = document.getElementById("w-e_search-content") as HTMLDivElement
+    if(input.value === '') {
+        const res = search(input.value)
+        content.innerHTML = res;
+    }
     input.addEventListener("input", () => {
         const text = input.value.replace(/@/g, '')
         const res = search(text)
@@ -92,7 +106,18 @@ const searchPopUp = (editor: IDomEditor, selection) => {
         if(key) {
             Swal.close()
             try {
-                insertText(editor, `@[${key}]`, selection)
+                if(isUseHotKey){
+                    editor.focus()
+                    editor.select(selection)
+                    editor.deleteBackward("character")
+                    selection = editor.selection
+                }
+                /* text */
+                // insertText(editor, `@[${key}]`, selection)
+                
+                /* block */
+                insertNode(editor, "atblock", `@${key}`, selection, isChange)
+                
                 // let html = editor.getHtml()
                 // html = html.replace(`-editing-@[]-editing-`, `@[${key}]`)
                 // console.log(html)
@@ -108,19 +133,32 @@ const searchPopUp = (editor: IDomEditor, selection) => {
 
 const search = (value: string) => {
     const Reg = new RegExp(toReg(value), 'i')
-    let res = new Array()
+    let obj = new Object()
+    // let res = new Array()
+    let res = ''
     DataSource.forEach((value, key) => {
         if(Reg.test(key)) {
-            res.push(`
+            // res.push(`
+            //     <div class="w-e_search-item" data-key="${key}" data-source="${value.Source}">
+            //         <div class="title title0">${key}</div>
+            //         <div class="title title1">${value.Expansion}</div>
+            //     </div>
+            // `)
+            obj[key] = `
                 <div class="w-e_search-item" data-key="${key}" data-source="${value.Source}">
                     <div class="title title0">${key}</div>
                     <div class="title title1">${value.Expansion}</div>
                 </div>
-            `)
+            `
         }
     })
+    const arr = Object.keys(obj).sort()
+    arr.forEach(item => {
+        res += obj[item]
+    })
     // res.length > 5 && res.splice(5)
-    return res.join('')
+    return res
+    // return res.join('')
 }
 
 export default searchPopUp

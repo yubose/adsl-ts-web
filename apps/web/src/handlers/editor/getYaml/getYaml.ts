@@ -117,7 +117,8 @@ const SharpReg = /#\[\w+\]/
 
 
 const fixJson = (json, BaseJsonCopy) => {
-    return populate(json, BaseJsonCopy).target
+    // return populate(json, BaseJsonCopy).target
+    return populateBlock(json, BaseJsonCopy)
 }
 
 const populate = (obj, BaseJsonCopy) => {
@@ -277,8 +278,8 @@ const oprate = (obj, BaseJsonCopy) => {
         }
     }
     else {
-        target["type"] = "label"
-        target["text"] = obj.text
+        // target["type"] = "label"
+        // target["text"] = obj.text
         target = {
             type: "label",
             text: obj.text,
@@ -310,6 +311,124 @@ const oprate = (obj, BaseJsonCopy) => {
         }
     })
     if(Object.keys(target["style"]).length === 0) delete target["style"]
+    return target
+}
+
+const populateBlock = (obj, BaseJsonCopy) => {
+    let target
+    if(obj instanceof Array) {
+        target = []
+        obj.forEach(item => {
+            target.push(populateBlock(item, BaseJsonCopy))
+        })
+    } else if(typeof obj === "object" && obj !== null) {
+        target = {}
+        if("type" in obj) {
+            switch(obj.type) {
+                case "atblock":
+                    const KEY = formatKey(obj.value.replace('@', ''))
+                    BaseJsonCopy.formData[KEY] = ``
+                    target = {
+                        type: "view",
+                        style: {
+                            display: "inline-block",
+                            whiteSpace: "pre"
+                        },
+                        children: [
+                            {
+                                type: "textField",
+                                dataKey: "formData.data." + KEY,
+                                value: "formData.data." + KEY,
+                                placeholder: KEY,
+                                style: {
+                                    display: `=..formData.atrribute.is_edit`,
+                                    width: "200px",
+                                    height: "40px",
+                                    boxSizing: "border-box",
+                                    textIndent: "0.8em",
+                                    color: "#333333",
+                                    outline: "none",
+                                    border: "1px solid #DEDEDE",
+                                    borderWidth: "thin",
+                                    borderRadius: "4px",
+                                    lineHeight: "40px"
+                                }
+                            },
+                            {
+                                type: "view",
+                                text: "=..formData.data." + KEY,
+                                style: {
+                                    display: "=..formData.atrribute.is_read",
+                                    height: "40px",
+                                    lineHeight: "40px"
+                                } 
+                            }
+                        ]
+                    }
+                    break;
+                case "sharpblock": 
+                    const text = obj.value.replace(/#/, '')
+                    const splitArr = text.split(/:/g)
+                    let required = false
+                    let title = splitArr[1]
+                    if(splitArr[0].endsWith("*")) {
+                        required = true
+                    }
+                    BaseJsonCopy.formData[formatKey(title)] = ``
+                    target = sharpYaml({
+                        type: splitArr[0].replace("*", '') as SharpType,
+                        config: {
+                            title: title,
+                            placeholder: splitArr[2]
+                        },
+                        isRequired: required
+                    })
+                    break;
+                default:
+                    target = {
+                        type: typeConfig.get(obj.type),
+                        style: {
+                            with: "calc(100%)",
+                            marginTop: "15px"
+                        }
+                    }
+                    if(typeStyle.has(obj.type)) {
+                        target.style = Object.assign(target.style, typeStyle.get(obj.type))
+                    }
+                    Object.keys(obj).forEach(key => {
+                        if(styleConfig.has(key)) {
+                            target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                        }
+                    })
+                    if(!SkipType.has(obj.type)) {
+                        target.children = populateBlock(obj.children, BaseJsonCopy)
+                    }
+                    break;
+            }
+        } else {
+            target = {
+                type: "label",
+                text: obj.text,
+                style: {
+                    height: "40px",
+                    lineHeight: "40px",
+                    display: "inline-block",
+                    whiteSpace: "pre"
+                }
+            }
+            Object.keys(obj).forEach(key => {
+                if(key !== "text") {
+                    if(typeof obj[key] === "boolean") {
+                        target["style"] = Object.assign(target["style"], JSON.parse(styleConfig.get(key) as string))
+                    } else if(colorReg.test(obj[key])) {
+                        // @ts-ignore
+                        target["style"][styleConfig.get(key)] = rgb2hex(obj[key])
+                    }
+                }
+            })
+            if(Object.keys(target["style"]).length === 0) delete target["style"]
+        }
+    }
     return target
 }
 
