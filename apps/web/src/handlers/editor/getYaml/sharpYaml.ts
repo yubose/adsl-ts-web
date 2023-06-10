@@ -46,20 +46,35 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "view",
-                        text: "..formData.data." + formatKey(opts.config.title as string),
                         style: {
-                            display: "=..formData.atrribute.is_read",
-                            wordWrap: "break-word",
                             marginTop: "0.01",
-                            width: "calc(100%)",
+                            backgroundColor: "0xf4f4f4",
+                            width: "auto",
+                            boxSizing: "border-box",
                             height: "auto",
-                            lineHeight: "40px",
-                            outline: "none",
-                            border: "2px solid #DEDEDE",
-                            borderWidth: "thin",
-                            borderRadius: "4px",
-                            boxSizing: "border-box"
-                        } 
+                        },
+                        children: [
+                            {
+                                type: "label",
+                                // text: "..formData.data." + formatKey(opts.config.title as string),
+                                dataKey: "formData.data." + formatKey(opts.config.title as string),
+                                style: {
+                                    display: "=..formData.atrribute.is_read",
+                                    // wordWrap: "break-word",
+                                    marginTop: "0.01",
+                                    width: "calc(100%)",
+                                    height: "auto",
+                                    // lineHeight: "40px",
+                                    verticalAlign: "middle",
+                                    fontSize: "=..formData.atrribute.noodl_font.h4",
+                                    color: "0x666666",
+                                    wordBreak: "keep-all",
+                                    marginLeft: "0.0046",
+                                    paddingTop: "0.0046",
+                                    paddingBottom: "0.0046",
+                                } 
+                            }
+                        ]
                     }
                 ]
             }
@@ -105,21 +120,36 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "view",
-                        text: "..formData.data." + formatKey(opts.config.title as string),
                         style: {
-                            display: "=..formData.atrribute.is_read",
-                            wordWrap: "break-word",
                             marginTop: "0.01",
-                            // minHeight: "80px",
-                            width: "calc(100%)",
+                            backgroundColor: "0xf4f4f4",
+                            width: "auto",
+                            boxSizing: "border-box",
                             height: "auto",
-                            lineHeight: "40px",
-                            outline: "none",
-                            border: "2px solid #DEDEDE",
-                            borderWidth: "thin",
-                            borderRadius: "4px",
-                            boxSizing: "border-box"
-                        } 
+                        },
+                        children: [
+                            {
+                                type: "label",
+                                // text: "..formData.data." + formatKey(opts.config.title as string),
+                                dataKey: "formData.data." + formatKey(opts.config.title as string),
+                                style: {
+                                    display: "=..formData.atrribute.is_read",
+                                    // wordWrap: "break-word",
+                                    marginTop: "0.01",
+                                    // minHeight: "80px",
+                                    width: "calc(100%)",
+                                    height: "auto",
+                                    // lineHeight: "40px",
+                                    verticalAlign: "middle",
+                                    fontSize: "=..formData.atrribute.noodl_font.h4",
+                                    color: "0x666666",
+                                    wordBreak: "keep-all",
+                                    marginLeft: "0.0046",
+                                    paddingTop: "0.0046",
+                                    paddingBottom: "0.0046",
+                                } 
+                            }
+                        ]
                     }
                 ]
             }
