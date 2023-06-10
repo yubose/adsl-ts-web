@@ -33,6 +33,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         contentType,
                         style: {
                             display: `=..formData.atrribute.is_edit`,
+                            marginTop: "0.01",
                             minHeight: "40px",
                             width: "calc(100%)",
                             boxSizing: "border-box",
@@ -106,6 +107,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         contentType,
                         style: {
                             display: `=..formData.atrribute.is_edit`,
+                            marginTop: "0.01",
                             minHeight: "80px",
                             width: "calc(100%)",
                             boxSizing: "border-box",
