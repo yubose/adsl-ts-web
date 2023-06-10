@@ -211,7 +211,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
             //         }
             //     ]
             // }
-            return { "..DocumentTemplateSignature": null }
+            return { "..customComponents.documentTemplateSignature": null }
         default:
             return {}
     }

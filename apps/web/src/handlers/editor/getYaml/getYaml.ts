@@ -385,6 +385,7 @@ const populateBlock = (obj, BaseJsonCopy) => {
                     } else {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData[formatKey(text)] = ''
+                        BaseJsonCopy.formData["signatureId"] = ''
                         target = sharpYaml({
                             type: text,
                             config: {}

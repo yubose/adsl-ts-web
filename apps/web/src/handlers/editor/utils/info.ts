@@ -43,7 +43,7 @@ const FacilityInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Main #: "
+                "text": "Main #:    "
             },
             {
                 "type": "atblock",
@@ -60,7 +60,7 @@ const FacilityInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Email: "
+                "text": "Email:    "
             },
             {
                 "type": "atblock",
@@ -77,7 +77,7 @@ const FacilityInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Fax #: "
+                "text": "Fax #:    "
             },
             {
                 "type": "atblock",
@@ -94,7 +94,7 @@ const FacilityInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Website:"
+                "text": "Website:    "
             },
             {
                 "type": "atblock",
@@ -114,7 +114,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Exam Date:"
+                "text": "Exam Date:    "
             },
             {
                 "type": "atblock",
@@ -124,9 +124,6 @@ const PatientInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -134,7 +131,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Patient Name:"
+                "text": "Patient Name:    "
             },
             {
                 "type": "atblock",
@@ -144,9 +141,6 @@ const PatientInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -154,7 +148,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Data of Birth:"
+                "text": "Data of Birth:    "
             },
             {
                 "type": "atblock",
@@ -164,9 +158,6 @@ const PatientInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -174,7 +165,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Phone #:"
+                "text": "Phone #:    "
             },
             {
                 "type": "atblock",
@@ -184,9 +175,6 @@ const PatientInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -194,7 +182,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Email:"
+                "text": "Email:    "
             },
             {
                 "type": "atblock",
@@ -204,9 +192,6 @@ const PatientInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -214,7 +199,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Patient Address:"
+                "text": "Patient Address:    "
             },
             {
                 "type": "atblock",
@@ -224,9 +209,6 @@ const PatientInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     }
@@ -254,7 +236,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "LIC #:"
+                "text": "LIC #:    "
             },
             {
                 "type": "atblock",
@@ -264,9 +246,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -274,7 +253,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "NPI #:"
+                "text": "NPI #:    "
             },
             {
                 "type": "atblock",
@@ -284,9 +263,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -294,7 +270,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "DEA #:"
+                "text": "DEA #:    "
             },
             {
                 "type": "atblock",
@@ -304,9 +280,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -314,7 +287,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Email:"
+                "text": "Email:    "
             },
             {
                 "type": "atblock",
@@ -324,9 +297,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -334,7 +304,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Fax #:"
+                "text": "Fax #:    "
             },
             {
                 "type": "atblock",
@@ -344,9 +314,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -354,7 +321,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Main #:"
+                "text": "Main #:    "
             },
             {
                 "type": "atblock",
@@ -364,9 +331,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -374,7 +338,7 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Address:"
+                "text": "Address:    "
             },
             {
                 "type": "atblock",
@@ -384,9 +348,6 @@ const ProviderInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     }
