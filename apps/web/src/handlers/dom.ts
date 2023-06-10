@@ -2271,16 +2271,16 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'textField',
       resolve({ node, component }) {
         if (component.contentType === 'strictLength') {
-          // console.log("TEST", {node}, component)
+          console.log("TEST", {node}, component)
           let strictLength = {
             max: Number.MAX_VALUE,
             min: 1
           }
           if(component.props.strictLength) {
-            if(component.props.strictLength.max) {
+            if(component.props.strictLength.max >= 0) {
               strictLength.max = component.props.strictLength.max
             }
-            if(component.props.strictLength.min) {
+            if(component.props.strictLength.min >= 0) {
               strictLength.min = component.props.strictLength.min
             }
           }
@@ -2362,10 +2362,10 @@ const createExtendedDOMResolvers = function (app: App) {
             min: 1
           }
           if(component.props.strictLength) {
-            if(component.props.strictLength.max) {
+            if(component.props.strictLength.max >= 0) {
               strictLength.max = component.props.strictLength.max
             }
-            if(component.props.strictLength.min) {
+            if(component.props.strictLength.min >= 0) {
               strictLength.min = component.props.strictLength.min
             }
           }
