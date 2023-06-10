@@ -117,9 +117,9 @@ export const matchBlock = (html) => {
             )
     })
 
-    const sharpBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w*]+:[^:]+:[^:]+`), 'g')
-    const sharpKeywords = html.match(sharpBlockReg)
-    sharpKeywords && sharpKeywords.forEach(item => {
+    const sharpTextBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w*]+:[^:]+:[^:]+`), 'g')
+    const sharpTextKeywords = html.match(sharpTextBlockReg)
+    sharpTextKeywords && sharpTextKeywords.forEach(item => {
         const texts = item.match(/>#[\w*]+:[^:]+:[^:]+</g)
         const text = texts[0].replace(/[#><]/g, '')
         const arr = text.split(/:/g)
@@ -140,6 +140,18 @@ export const matchBlock = (html) => {
                 font-weight: 600;
             "><span>${arr[1]} </span><span style="color: red"> *</span>
             </div>`)
+    })
+
+    const SharpBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w]+`), 'g')
+    const sharpKeywords = html.match(SharpBlockReg)
+    sharpKeywords && sharpKeywords.forEach(item => {
+        const text = item.match(/>#[\w]+</g)[0].replace(/[#><]/g, '')
+        html = sharpHtml({
+            type: text,
+            html,
+            split: item,
+            config: {}
+        })
     })
 
     html = html.replace(/<p><\/p>/g, '')

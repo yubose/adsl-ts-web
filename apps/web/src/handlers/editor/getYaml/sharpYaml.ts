@@ -103,6 +103,63 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     }
                 ]
             }
+        case "signature":
+            // return {
+            //     type: "view",
+            //     style: {
+            //         marginTop: "10px",
+            //         // width: "0.275",
+            //         // height: "0.165",
+            //         backgroundColor: "0xffffff",
+            //         border:{
+            //             style: "4"
+            //         },
+            //         borderWidth: "2",
+            //         borderColor: "0xa9a9a9",
+            //         "..style.signature.view": null
+            //     },
+            //     onClick: "..event.signature.click",
+            //     children: [
+            //         {
+            //             type: "image",
+            //             path: "null.png",
+            //             viewTag: "..formData.data.signature.viewTag",
+            //             "path=func": "..event.signature.img",
+            //             dataKey: "formData.data.signature.id",
+            //             style: {
+            //                 top: "0",
+            //                 left: "0",
+            //                 // width: "0.275",
+            //                 // height: "0.165",
+            //                 zIndex: "2",
+            //                 "..style.signature.img": null
+            //             }
+            //         },
+            //         {
+            //             type: "label",
+            //             text: "X",
+            //             style: {
+            //                 // top: "0.1",
+            //                 // height: "0.028",
+            //                 // width: "0.225",
+            //                 // left: "0.025",
+            //                 // fontSize: "1.54vw",
+            //                 zIndex: "1",
+            //                 border: {
+            //                     style: "2"
+            //                 },
+            //                 borderColor: "0x707070",
+            //                 borderWidth: "1",
+            //                 boxSizing: "content-box",
+            //                 textAlign:{
+            //                     y: "center"
+            //                 },
+            //                 "..style.signature.label": null
+            //             }
+            //         }
+            //     ]
+            // }
+            return { "..DocumentTemplateSignature": null }
         default:
             return {}
     }

@@ -367,22 +367,31 @@ const populateBlock = (obj, BaseJsonCopy) => {
                     }
                     break;
                 case "sharpblock": 
-                    const text = obj.value.replace(/#/, '')
-                    const splitArr = text.split(/:/g)
-                    let required = false
-                    let title = splitArr[1]
-                    if(splitArr[0].endsWith("*")) {
-                        required = true
+                    if(/#[\w*]+:[^:]+:[^:]+/.test(obj.value)) {
+                        const text = obj.value.replace(/#/, '')
+                        const splitArr = text.split(/:/g)
+                        let required = false
+                        let title = splitArr[1]
+                        if(splitArr[0].endsWith("*")) {
+                            required = true
+                        }
+                        BaseJsonCopy.formData[formatKey(title)] = ``
+                        target = sharpYaml({
+                            type: splitArr[0].replace("*", '') as SharpType,
+                            config: {
+                                title: title,
+                                placeholder: splitArr[2]
+                            },
+                            isRequired: required
+                        })
+                    } else {
+                        const text = obj.value.replace(/#/, '')
+                        BaseJsonCopy.formData[formatKey(text)] = ''
+                        target = sharpYaml({
+                            type: text,
+                            config: {}
+                        })
                     }
-                    BaseJsonCopy.formData[formatKey(title)] = ``
-                    target = sharpYaml({
-                        type: splitArr[0].replace("*", '') as SharpType,
-                        config: {
-                            title: title,
-                            placeholder: splitArr[2]
-                        },
-                        isRequired: required
-                    })
                     break;
                 default:
                     target = {

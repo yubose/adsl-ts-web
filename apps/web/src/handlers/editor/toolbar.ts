@@ -10,6 +10,7 @@ import { renderAtBlock, renderSharpBlock } from "./node/node";
 import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
 import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./utils/info";
+import { insertNode } from "./utils/utils";
 
 const kp = new keypress()
 
@@ -19,7 +20,8 @@ const templateSelect = new DefaultSelect({
     options: [
         {value: "Common", text: "Common", styleForRenderMenuList: { display: "none" }},
         {value: "textField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
-        {value: "textView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')}
+        {value: "textView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
+        {value: "signature", text: `signature`, styleForRenderMenuList: getImageObject('signature')}
     ],
     classFunctions: {
         exec: (editor: IDomEditor, value: string | boolean) => {
@@ -32,6 +34,9 @@ const templateSelect = new DefaultSelect({
                 case "textField":
                     // editor.insertText(`-editing-#[textField:editableTitle:editableText]-editing-`)
                     inputPopUp(editor, value, selection)
+                    break
+                case "signature":
+                    insertNode(editor, "sharpblock", `#${value}`, selection)
                     break
                 default:
                     editor.insertText('')
