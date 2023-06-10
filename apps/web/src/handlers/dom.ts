@@ -29,13 +29,13 @@ import {
   Resolve,
 } from 'noodl-ui'
 import App from '../App'
-import is from '../utils/is'
 import { hide } from '../utils/dom'
 // import Swiper from 'swiper';
 // import '../../node_modules/swiper/swiper-bundle.css';
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
-import "../../node_modules/flatpickr/dist/themes/material_blue.css"
+import '../../node_modules/flatpickr/dist/themes/material_blue.css'
+import * as c from '../constants'
 import { cloneDeep } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
@@ -56,7 +56,7 @@ function addListener(node: NDOMElement, event: string, callback: any) {
     event,
     callback: () => {
       node.removeEventListener(event, callback)
-    }
+    },
   }
 }
 const createExtendedDOMResolvers = function (app: App) {
@@ -75,10 +75,18 @@ const createExtendedDOMResolvers = function (app: App) {
     node: NDOMElement
     evtName: string
     iteratorVar: string
-    page: NDOMPage | ComponentPage,
+    page: ComponentPage | NDOMPage
     initialCapital?: boolean
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '', page, initialCapital } = args
+    let {
+      component,
+      dataKey,
+      node,
+      evtName,
+      iteratorVar = '',
+      page,
+      initialCapital,
+    } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
     let pageName = page.page
 
@@ -90,8 +98,8 @@ const createExtendedDOMResolvers = function (app: App) {
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
         if (initialCapital) {
-          value = value.slice(0, 1).toUpperCase() + value.slice(1);
-          (node as HTMLInputElement).value = value;
+          value = value.slice(0, 1).toUpperCase() + value.slice(1)
+          ;(node as HTMLInputElement).value = value
         }
         if (dataObject) {
           set(
@@ -105,7 +113,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.error(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-            `to update its value but a dataObject was not found`,
+              `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -128,19 +136,19 @@ const createExtendedDOMResolvers = function (app: App) {
             }
 
             if (initialCapital) {
-              value = value.slice(0, 1).toUpperCase() + value.slice(1);
-              (node as HTMLInputElement).value = value;
+              value = value.slice(0, 1).toUpperCase() + value.slice(1)
+              ;(node as HTMLInputElement).value = value
             }
 
             if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
               let newDataKey = u.cloneDeep(dataKey)
               newDataKey = newDataKey.replace('Global.', '')
               set(draft?.['Global'], newDataKey, value)
-            }else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+            } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
               let newDataKey = u.cloneDeep(dataKey)
               newDataKey = newDataKey.replace('BaseBLEData.', '')
               set(draft?.['BaseBLEData'], newDataKey, value)
-            }else{
+            } else {
               set(draft?.[pageName], dataKey, value)
             }
 
@@ -170,32 +178,42 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        // log.log("test actionChain",actionChain)
+        // const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
+        //   c.perf.memoryUsage.onChange,
+        // )
         await actionChain?.execute?.(event)
+        // const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+        //   c.perf.memoryUsage.onChange,
+        // )
+        // await app.ecosLogger.createMemoryUsageMetricDocument({
+        //   metricName: c.perf.memoryUsage.onChange,
+        //   start: startMark,
+        //   end: endMark,
+        // })
       }
     }
 
     return onChange
   }
 
-    ; (function () {
-      let beforeUnload_time = 0,
-        gap_time = 0
-      window.onunload = function () {
-        gap_time = new Date().getTime() - beforeUnload_time
-        if (gap_time <= 2) {
-          //浏览器关闭判断
-          clearCookie()
-        }
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
+    window.onunload = function () {
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 2) {
+        //浏览器关闭判断
+        clearCookie()
       }
-      window.onbeforeunload = function () {
-        beforeUnload_time = new Date().getTime()
-      }
-      function clearCookie() {
-        //清除localstorage
-        window.localStorage.clear()
-      }
-    })()
+    }
+    window.onbeforeunload = function () {
+      beforeUnload_time = new Date().getTime()
+    }
+    function clearCookie() {
+      //清除localstorage
+      window.localStorage.clear()
+    }
+  })()
 
   const antiShake = (fn, wait) => {
     let timer
@@ -234,269 +252,316 @@ const createExtendedDOMResolvers = function (app: App) {
           node.style.width = component.style.width as string
           node.style.height = component.style.height as string
           if (dataValue.chartType || component.get('chartType')) {
-            let chartType = component.get('chartType') || dataValue.chartType.toString();
+            let chartType =
+              component.get('chartType') || dataValue.chartType.toString()
             switch (chartType) {
               case 'graph': {
                 try {
-                  function getSmartDate(s = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date()), list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']): string[] {
-                    const index = list.indexOf(s);
-                    list.unshift(...list.splice(index + 1));
-                    return list;
+                  function getSmartDate(
+                    s = Intl.DateTimeFormat('en-US', {
+                      weekday: 'short',
+                    }).format(new Date()),
+                    list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                  ): string[] {
+                    const index = list.indexOf(s)
+                    list.unshift(...list.splice(index + 1))
+                    return list
                   }
                   const dataType = {
-                    "371201": ['Blood Pressure', "mmHg", "", 300],
-                    "373761": ['Heart Rate', 'bpm', 'heartRateData', 500],
-                    "376321": ['Respiratory Rate', 'breaths/min', 'respiratoryRateData', 300],
-                    "378881": ['Pulse Oximetry', 'O₂%', 'pulseOximetryData', 300],
-                    "381441": ['Temperature', '℉/℃', 'temperatureData', 300],
-                    "384001": ['Blood Glucose Levels', 'O₂%', 'bloodGlucoseLevelsData', 300],
-                    "386561": ['Height', 'ft.,in.', ["heightFt", "heightIn"], 3],
-                    "389121": ['Weight', 'lbs', 'weightData', 300],
-                    "391681": ['BMI', 'kg/㎡', 'bmiData', 300]
-                  };
-                  let setting = null;
-                  let _dateTempObj: { [key in string]: {} } = {};
+                    '371201': ['Blood Pressure', 'mmHg', '', 300],
+                    '373761': ['Heart Rate', 'bpm', 'heartRateData', 500],
+                    '376321': [
+                      'Respiratory Rate',
+                      'breaths/min',
+                      'respiratoryRateData',
+                      300,
+                    ],
+                    '378881': [
+                      'Pulse Oximetry',
+                      'O₂%',
+                      'pulseOximetryData',
+                      300,
+                    ],
+                    '381441': ['Temperature', '℉/℃', 'temperatureData', 300],
+                    '384001': [
+                      'Blood Glucose Levels',
+                      'O₂%',
+                      'bloodGlucoseLevelsData',
+                      300,
+                    ],
+                    '386561': [
+                      'Height',
+                      'ft.,in.',
+                      ['heightFt', 'heightIn'],
+                      3,
+                    ],
+                    '389121': ['Weight', 'lbs', 'weightData', 300],
+                    '391681': ['BMI', 'kg/㎡', 'bmiData', 300],
+                  }
+                  let setting = null
+                  let _dateTempObj: { [key in string]: {} } = {}
                   if (dataValue.dateType === 'week') {
                     let settingWeek = {
-                      "title": {
+                      title: {
                         show: true,
-                        text: "",
-                        x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
+                        text: '',
+                        x: 'center', //'5' | '5%'，title 组件离容器左侧的距离
                         // right: 'auto',//'title 组件离容器右侧的距离
-                        top: '8%',//title 组件离容器上侧的距离
+                        top: '8%', //title 组件离容器上侧的距离
                         // bottom: 'auto',//title 组件离容器下侧的距离
                         textStyle: {
-                          color: " #000",//字体颜色
-                          fontStyle: 'bold',//字体风格
-                          fontWeight: 'normal',//字体粗细
-                          fontFamily: 'sans-serif',//文字字体
-                          fontSize: 18,//字体大小
-                        }
+                          color: ' #000', //字体颜色
+                          fontStyle: 'bold', //字体风格
+                          fontWeight: 'normal', //字体粗细
+                          fontFamily: 'sans-serif', //文字字体
+                          fontSize: 18, //字体大小
+                        },
                       },
-                      "tooltip": {
-                        "trigger": "axis",
-                        "axisPointer": {
-                          "type": "cross",
-                          "axis": "auto",
-                          "snap": true,
-                          "showContent": true
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'cross',
+                          axis: 'auto',
+                          snap: true,
+                          showContent: true,
                         },
                         textStyle: {
-                          color: '#000',     // 文字的颜色
-                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
-                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          color: '#000', // 文字的颜色
+                          fontStyle: 'normal', // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal', // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
                           // fontSize: '20',    // 文字字体大小
                           // lineHeight: '50',    // 行高
-                        }
+                        },
                       },
-                      "grid": {
+                      grid: {
                         show: true,
-                        "top": "20%",
-                        "left": "10%",
-                        "right": "15%",
-                        "bottom": "3%",
-                        "containLabel": true,
+                        top: '20%',
+                        left: '10%',
+                        right: '15%',
+                        bottom: '3%',
+                        containLabel: true,
                       },
-                      "legend": {
-                        "orient": "horizontal",
-                        "x": "left",
-                        "y": "top",
-                        "data": []
+                      legend: {
+                        orient: 'horizontal',
+                        x: 'left',
+                        y: 'top',
+                        data: [],
                       },
-                      "xAxis": {
-                          "type": "category",
-                          "name": "Time",
-                          "axisLine": {
-                              "show": true,
-                              "symbol": [
-                                  "none",
-                                  "arrow"
-                              ],
-                              "lineStyle": {
-                                  "color": "#3366CC",
-                              },
-
+                      xAxis: {
+                        type: 'category',
+                        name: 'Time',
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
                           },
-                          "axisLabel": {
-                              "rotate": 45,
-                              "interval": 0
+                        },
+                        axisLabel: {
+                          rotate: 45,
+                          interval: 0,
+                        },
+                        boundaryGap: false,
+                        data: null,
+                        splitLine: {
+                          //网格线
+                          lineStyle: {
+                            type: 'dashed', //设置网格线类型 dotted：虚线   solid:实线
                           },
-                          "boundaryGap": false,
-                          "data": null,
-                            splitLine :{    //网格线
-                            lineStyle:{
-                                type:'dashed'    //设置网格线类型 dotted：虚线   solid:实线
-                            },
-                            show:true //隐藏或显示
-                          }
+                          show: true, //隐藏或显示
+                        },
                       },
-                      "yAxis": {
-                          "name": "",
-                          "type": "value",
-                          "min": 0,
-                          "max": 500,
-                          "splitNumber": 10,
-                          "axisLine": {
-                              "show": true,
-                              "symbol": [
-                                  "none",
-                                  "arrow"
-                              ],
-                              "lineStyle": {
-                                  "color": "#3366CC",
-                              }
+                      yAxis: {
+                        name: '',
+                        type: 'value',
+                        min: 0,
+                        max: 500,
+                        splitNumber: 10,
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
                           },
-                          axisLabel: {
-                            color: "rgb(51, 102, 204)"
-                        }
+                        },
+                        axisLabel: {
+                          color: 'rgb(51, 102, 204)',
+                        },
                       },
-                      "series": []
+                      series: [],
                     }
-                    settingWeek.xAxis.data = getSmartDate() as any;
-                    if (dataValue.dataType == "371201") {
-                      settingWeek.title.text = "Blood Pressure";
-                      settingWeek.yAxis.name = "mmHg";
-                      settingWeek.yAxis.max = dataType[dataValue.dataType][3];
+                    settingWeek.xAxis.data = getSmartDate() as any
+                    if (dataValue.dataType == '371201') {
+                      settingWeek.title.text = 'Blood Pressure'
+                      settingWeek.yAxis.name = 'mmHg'
+                      settingWeek.yAxis.max = dataType[dataValue.dataType][3]
 
-                      settingWeek.yAxis.axisLabel.color = function(v){
-                        if(v==80||v==120){
+                      settingWeek.yAxis.axisLabel.color = function (v) {
+                        if (v == 80 || v == 120) {
                           return '#48aaff'
-                        }else{
+                        } else {
                           return 'rgb(51, 102, 204)'
                         }
-                    } as any;
-                      //@ts-ignore
-                      settingWeek.legend.data.push("Systolic", "Diastolic")
-                      //@ts-ignore
-                      settingWeek.series.push({
-                        "name": "Systolic",
-                        "type": dataValue.type,
-                        "symbolSize": 8,
-                        "data": [],
-                        connectNulls: true,
-                        "itemStyle": {
-                          "normal": {
-                            "label": {
-                              "show": true
-                            },
-                            "lineStyle": {
-                              "width": 2,
-                              "type": "solid"
-                            }
-                        }
-                      },
-                        markLine: {  //设置标记线
-                          symbol: ['none', 'none'], // 去掉箭头
-                          label: {
-                            show: false
-                          },
-                          data: [
-                            {
-                              // type: 'average',
-                              name: '阈值',
-                              yAxis: 80,
-                              lineStyle:  //设置标记点的样式
-                              {
-                                normal: { type: "solid", color: '#48aaff' }
-                              },
-                            }],
-                        },
-                      },
+                      } as any
+                      //@ts-expect-error
+                      settingWeek.legend.data.push('Systolic', 'Diastolic')
+                      //@ts-expect-error
+                      settingWeek.series.push(
                         {
-                          "name": "Diastolic",
-                          "type": dataValue.type,
-                          "symbol": "circle",
-                          "symbolSize": 8,
+                          name: 'Systolic',
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 80,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          name: 'Diastolic',
+                          type: dataValue.type,
+                          symbol: 'circle',
+                          symbolSize: 8,
                           // "smooth": 0.5,
                           connectNulls: true,
-                          "itemStyle": {
-                            "normal": {
-                              "label": {
-                                "show": true
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
                               },
-                              "lineStyle": {
-                                "width": 2,
-                                "type": "solid"
-                              }
-                          }
-                      },
-                      markLine: {  //设置标记线
-                        symbol: ['none', 'none'], // 去掉箭头
-                        label: {
-                          show: false
-                        },
-                        data: [
-                          {
-                            // type: 'average',
-                            name: '阈值',
-                            yAxis: 120,
-                            lineStyle:  //设置标记点的样式
-                            {
-                              normal: { type: "solid", color: '#48aaff' }
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
                             },
-                          }],
-                      },
-                      "data": []
-                  });
-                      (settingWeek.xAxis.data as any).forEach(element => {
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 120,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                          data: [],
+                        },
+                      )
+                      ;(settingWeek.xAxis.data as any).forEach((element) => {
                         _dateTempObj[element] = {}
-                        _dateTempObj[element]["Systolic"] = [];
-                        _dateTempObj[element]["Diastolic"] = [];
-                      });
+                        _dateTempObj[element]['Systolic'] = []
+                        _dateTempObj[element]['Diastolic'] = []
+                      })
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, "deat");
-                        let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
-                        _dateTempObj[signal]['Systolic']?.push(get(item, "name.data.heightBloodPressure"))
-                        _dateTempObj[signal]['Diastolic']?.push(get(item, "name.data.lowBloodPressure"))
+                        let _stamp = get(item, 'deat')
+                        let signal = Intl.DateTimeFormat('en-US', {
+                          weekday: 'short',
+                        }).format(_stamp * 1000)
+                        _dateTempObj[signal]['Systolic']?.push(
+                          get(item, 'name.data.heightBloodPressure'),
+                        )
+                        _dateTempObj[signal]['Diastolic']?.push(
+                          get(item, 'name.data.lowBloodPressure'),
+                        )
                       })
                       Object.values(_dateTempObj).forEach((item) => {
-                        if (item["Systolic"].length > 0) {
-                          // @ts-ignore
-                          settingWeek.series[0]["data"].push((item["Systolic"]?.reduce((e, f) => +e + +f) / item["Systolic"].length).toFixed())
-                          // @ts-ignore
-                          settingWeek.series[1]["data"].push((item["Diastolic"]?.reduce((e, f) => +e + +f) / item["Diastolic"].length).toFixed())
+                        if (item['Systolic'].length > 0) {
+                          // @ts-expect-error
+                          settingWeek.series[0]['data'].push(
+                            (
+                              item['Systolic']?.reduce((e, f) => +e + +f) /
+                              item['Systolic'].length
+                            ).toFixed(),
+                          )
+                          // @ts-expect-error
+                          settingWeek.series[1]['data'].push(
+                            (
+                              item['Diastolic']?.reduce((e, f) => +e + +f) /
+                              item['Diastolic'].length
+                            ).toFixed(),
+                          )
                         } else {
-                          (settingWeek.series[0]["data"] as any[]).push(undefined);
-                          (settingWeek.series[1]["data"] as any[]).push(undefined);
+                          ;(settingWeek.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                          ;(settingWeek.series[1]['data'] as any[]).push(
+                            undefined,
+                          )
                         }
                       })
 
-                      setting = settingWeek as any;
+                      setting = settingWeek as any
                     } else {
-                      settingWeek.title.text = dataType[dataValue.dataType][0];
-                      settingWeek.yAxis.name = dataType[dataValue.dataType][1];
-                      settingWeek.yAxis.max = dataType[dataValue.dataType][3];
-                      if(dataValue.dataType == "373761"){
-                        settingWeek.yAxis.axisLabel.color = function(v){
-                          if(v==100){
+                      settingWeek.title.text = dataType[dataValue.dataType][0]
+                      settingWeek.yAxis.name = dataType[dataValue.dataType][1]
+                      settingWeek.yAxis.max = dataType[dataValue.dataType][3]
+                      if (dataValue.dataType == '373761') {
+                        settingWeek.yAxis.axisLabel.color = function (v) {
+                          if (v == 100) {
                             return '#48aaff'
-                          }else{
+                          } else {
                             return 'rgb(51, 102, 204)'
                           }
-                      } as any;
+                        } as any
                       }
-                      //@ts-ignore
+                      //@ts-expect-error
                       settingWeek.series.push({
-                        "name": dataType[dataValue.dataType][0],
-                        "type": dataValue.type,
-                        "symbolSize": 8,
-                        "data": [],
+                        name: dataType[dataValue.dataType][0],
+                        type: dataValue.type,
+                        symbolSize: 8,
+                        data: [],
                         connectNulls: true,
-                        "itemStyle": {
-                          "normal": {
-                            "label": {
-                              "show": true
+                        itemStyle: {
+                          normal: {
+                            label: {
+                              show: true,
                             },
-                            "lineStyle": {
-                              "width": 2,
-                              "type": "solid"
-                            }
-                        }
-                      },
-                        markLine: {  //设置标记线
+                            lineStyle: {
+                              width: 2,
+                              type: 'solid',
+                            },
+                          },
+                        },
+                        markLine: {
+                          //设置标记线
                           symbol: ['none', 'none'], // 去掉箭头
                           label: {
-                            show: false
+                            show: false,
                           },
                           data: [
                             {
@@ -504,255 +569,318 @@ const createExtendedDOMResolvers = function (app: App) {
                               name: '阈值',
                               // show: false,
                               yAxis: 100,
-                              lineStyle:  //设置标记点的样式
-                              {
-                                normal: { type: "solid", color: '#48aaff' }
+                              //设置标记点的样式
+                              lineStyle: {
+                                normal: { type: 'solid', color: '#48aaff' },
                               },
-                            }],
+                            },
+                          ],
                         },
-                      });
-                      (settingWeek.xAxis.data as any).forEach(element => {
+                      })
+                      ;(settingWeek.xAxis.data as any).forEach((element) => {
                         _dateTempObj[element] = {}
-                        _dateTempObj[element][`${dataType[dataValue.dataType][0]}`] = [];
-                      });
+                        _dateTempObj[element][
+                          `${dataType[dataValue.dataType][0]}`
+                        ] = []
+                      })
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, "deat");
-                        let signal = Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(_stamp * 1000);
+                        let _stamp = get(item, 'deat')
+                        let signal = Intl.DateTimeFormat('en-US', {
+                          weekday: 'short',
+                        }).format(_stamp * 1000)
                         if (dataValue.dataType == '386561') {
-                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2][0]}`,
+                            ) +
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
+                          )
                         } else {
-                          _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2]}`,
+                            ),
+                          )
                         }
                       })
                       Object.values(_dateTempObj).forEach((item) => {
-                        if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
-                          let cum = (item[`${dataType[dataValue.dataType][0]}`].reduce((e, f) => +e + +f) / item[`${dataType[dataValue.dataType][0]}`].length);
-                          if (dataValue.dataType == "381441") {
-                            // @ts-ignore
-                            settingWeek.series[0]["data"].push(cum.toFixed(1))
+                        if (
+                          item[`${dataType[dataValue.dataType][0]}`].length > 0
+                        ) {
+                          let cum =
+                            item[`${dataType[dataValue.dataType][0]}`].reduce(
+                              (e, f) => +e + +f,
+                            ) /
+                            item[`${dataType[dataValue.dataType][0]}`].length
+                          if (dataValue.dataType == '381441') {
+                            // @ts-expect-error
+                            settingWeek.series[0]['data'].push(cum.toFixed(1))
                           } else {
-                            // @ts-ignore
-                            settingWeek.series[0]["data"].push(cum.toFixed())
+                            // @ts-expect-error
+                            settingWeek.series[0]['data'].push(cum.toFixed())
                           }
-
                         } else {
-                          (settingWeek.series[0]["data"] as any[]).push(undefined);
+                          ;(settingWeek.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
                         }
                       })
 
-                    setting = settingWeek as any;
+                      setting = settingWeek as any
                     }
-                    console.log((settingWeek.series[0]["data"]))
-                    //@ts-ignore
+                    console.log(settingWeek.series[0]['data'])
+                    //@ts-expect-error
 
-                    setting.yAxis.max = Math.max(...(settingWeek.series[0]["data"]).filter(x=>x))+50;
+                    setting.yAxis.max =
+                      Math.max(
+                        ...settingWeek.series[0]['data'].filter((x) => x),
+                      ) + 50
 
                     // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
                   } else if (dataValue.dateType === 'day') {
                     let settingDay = {
-                      "title": {
+                      title: {
                         show: true,
-                        text: "Blood Pressure",
-                        x: 'center',//'5' | '5%'，title 组件离容器左侧的距离
+                        text: 'Blood Pressure',
+                        x: 'center', //'5' | '5%'，title 组件离容器左侧的距离
                         // right: 'auto',//'title 组件离容器右侧的距离
-                        top: '8%',//title 组件离容器上侧的距离
+                        top: '8%', //title 组件离容器上侧的距离
                         // bottom: 'auto',//title 组件离容器下侧的距离
                         textStyle: {
-                          color: " #000",//字体颜色
-                          fontStyle: 'bold',//字体风格
-                          fontWeight: 'normal',//字体粗细
-                          fontFamily: 'sans-serif',//文字字体
-                          fontSize: 18,//字体大小
-                        }
+                          color: ' #000', //字体颜色
+                          fontStyle: 'bold', //字体风格
+                          fontWeight: 'normal', //字体粗细
+                          fontFamily: 'sans-serif', //文字字体
+                          fontSize: 18, //字体大小
+                        },
                       },
-                      "tooltip": {
-                        "trigger": "axis",
-                        "axisPointer": {
-                          "type": "cross",
-                          "axis": "auto",
-                          "snap": true,
-                          "showContent": true
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'cross',
+                          axis: 'auto',
+                          snap: true,
+                          showContent: true,
                         },
                         textStyle: {
-                          color: '#000',     // 文字的颜色
-                          fontStyle: 'normal',    // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
-                          fontWeight: 'normal',    // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          color: '#000', // 文字的颜色
+                          fontStyle: 'normal', // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal', // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
                           // fontSize: '20',    // 文字字体大小
                           // lineHeight: '50',    // 行高
-                        }
+                        },
                       },
-                      "grid": {
+                      grid: {
                         show: true,
-                        "top": "20%",
-                        "left": "10%",
-                        "right": "15%",
-                        "bottom": "3%",
-                        "containLabel": true,
+                        top: '20%',
+                        left: '10%',
+                        right: '15%',
+                        bottom: '3%',
+                        containLabel: true,
                         // width: "820px",
                         // height: "280px"
-
                       },
-                      "legend": {
-                        "orient": "horizontal",
-                        "x": "left",
-                        "y": "top",
-                        "data": []
+                      legend: {
+                        orient: 'horizontal',
+                        x: 'left',
+                        y: 'top',
+                        data: [],
                       },
-                      "xAxis": {
-                          type: "category",
-                          // type: "time",
+                      xAxis: {
+                        type: 'category',
+                        // type: "time",
+                        show: true,
+                        // min: 0,
+                        // max: 24,
+                        name: 'Time',
+                        axisLine: {
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        // splitNumber: 2,
+                        axisLabel: {
+                          formatter: null,
+                          // "rotate": 45,
+                          // "interval": 0
+                        },
+                        boundaryGap: false,
+                        data: [],
+                        splitLine: {
+                          //网格线
+                          lineStyle: {
+                            type: 'dashed',
+                          },
                           show: true,
-                          // min: 0,
-                          // max: 24,
-                          "name": "Time",
-                          "axisLine": {
-                              "symbol": [
-                                  "none",
-                                  "arrow"
-                              ],
-                              "lineStyle": {
-                                  "color": "#3366CC"
-                              }
-                          },
-                          // splitNumber: 2,
-                          "axisLabel": {
-                            formatter: null
-                              // "rotate": 45,
-                              // "interval": 0
-                          },
-                          "boundaryGap": false,
-                          "data": [],
-                          splitLine :{    //网格线
-                            lineStyle:{
-                                type:'dashed'
-                            },
-                            show:true
-                          }
+                        },
                       },
-                      "yAxis": {
-                        "name": "",
-                        "type": "value",
-                        "min": 0,
-                        "max": 300,
-                        "splitNumber": 10,
-                        "axisLine": {
-                          "show": true,
-                          "symbol": [
-                            "none",
-                            "arrow"
-                          ],
-                          "lineStyle": {
-                            "color": "#3366CC"
-                          }
-                        }
+                      yAxis: {
+                        name: '',
+                        type: 'value',
+                        min: 0,
+                        max: 300,
+                        splitNumber: 10,
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
                       },
-                      "series": []
+                      series: [],
                     }
 
-                    if(dataValue.dataType == "371201"){
-                      settingDay.yAxis.name = "mmHg";
-                      settingDay.title.text = "Blood Pressure"
-                      settingDay.yAxis.max = dataType[dataValue.dataType][3];
-                      //@ts-ignore
-                      settingDay.legend.data.push("Systolic", "Diastolic")
-                      //@ts-ignore
-                      settingDay.series.push({
-                        "name": "Systolic",
-                        "type": dataValue.type,
-                        "symbolSize": 8,
-                        "data": [],
-                        "itemStyle": {
-                          "normal": {
-                            "label": {
-                              "show": true
-                            },
-                            "lineStyle": {
-                              "width": 2,
-                              "type": "solid"
-                            }
-                          }
-                        }
-                      },
+                    if (dataValue.dataType == '371201') {
+                      settingDay.yAxis.name = 'mmHg'
+                      settingDay.title.text = 'Blood Pressure'
+                      settingDay.yAxis.max = dataType[dataValue.dataType][3]
+                      //@ts-expect-error
+                      settingDay.legend.data.push('Systolic', 'Diastolic')
+                      //@ts-expect-error
+                      settingDay.series.push(
                         {
-                          "name": "Diastolic",
-                          "type": dataValue.type,
-                          "symbol": "circle",
-                          "symbolSize": 8,
-                          // "smooth": 0.5,
-                          "itemStyle": {
-                            "normal": {
-                              "label": {
-                                "show": true
+                          name: 'Systolic',
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
                               },
-                              "lineStyle": {
-                                "width": 2,
-                                "type": "solid"
-                              }
-                            }
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
                           },
-                          "data": []
-                        });
-                      // console.error('dataValue');
-                      // console.error(dataValue.dataSource.length);
-
+                        },
+                        {
+                          name: 'Diastolic',
+                          type: dataValue.type,
+                          symbol: 'circle',
+                          symbolSize: 8,
+                          // "smooth": 0.5,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          data: [],
+                        },
+                      )
                       dataValue.dataSource.forEach((item) => {
-                        let _stamp = get(item, "deat");
-                        let signal = moment(_stamp * 1000).format('HH:mm');
+                        let _stamp = get(item, 'deat')
+                        let signal = moment(_stamp * 1000).format('HH:mm')
                         if (!_dateTempObj[signal]) {
                           _dateTempObj[signal] = {}
-                          _dateTempObj[signal]["Systolic"] = []
+                          _dateTempObj[signal]['Systolic'] = []
                           _dateTempObj[signal]['Diastolic'] = []
                         }
-                        _dateTempObj[signal]['Systolic']?.push(get(item, "name.data.heightBloodPressure"))
-                        _dateTempObj[signal]['Diastolic']?.push(get(item, "name.data.lowBloodPressure"))
+                        _dateTempObj[signal]['Systolic']?.push(
+                          get(item, 'name.data.heightBloodPressure'),
+                        )
+                        _dateTempObj[signal]['Diastolic']?.push(
+                          get(item, 'name.data.lowBloodPressure'),
+                        )
                       })
                       Object.values(_dateTempObj).forEach((item) => {
-                        // @ts-ignore
-                        settingDay.series[0]["data"].push(...item["Systolic"])
-                        // @ts-ignore
-                        settingDay.series[1]["data"].push(...item["Diastolic"])
+                        // @ts-expect-error
+                        settingDay.series[0]['data'].push(...item['Systolic'])
+                        // @ts-expect-error
+                        settingDay.series[1]['data'].push(...item['Diastolic'])
                       })
                     } else {
                       try {
-                        //@ts-ignore
+                        //@ts-expect-error
                         settingDay.title.text = dataType[dataValue.dataType][0]
-                        settingDay.yAxis.name = dataType[dataValue.dataType][1];
-                        settingDay.yAxis.max = dataType[dataValue.dataType][3];
-                        //@ts-ignore
+                        settingDay.yAxis.name = dataType[dataValue.dataType][1]
+                        settingDay.yAxis.max = dataType[dataValue.dataType][3]
+                        //@ts-expect-error
                         settingDay.series.push({
-                          "name": dataType[dataValue.dataType][0],
-                          "type": dataValue.type,
-                          "symbolSize": 8,
-                          "data": [],
-                          "itemStyle": {
-                            "normal": {
-                              "label": {
-                                "show": true
+                          name: dataType[dataValue.dataType][0],
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
                               },
-                              "lineStyle": {
-                                "width": 2,
-                                "type": "solid"
-                              }
-                            }
-                          }
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
                         })
                         dataValue.dataSource.forEach((item) => {
-                          let _stamp = get(item, "deat");
-                          let signal = moment(_stamp * 1000).format('HH:mm');
+                          let _stamp = get(item, 'deat')
+                          let signal = moment(_stamp * 1000).format('HH:mm')
                           if (!_dateTempObj[signal]) {
                             _dateTempObj[signal] = {}
-                            _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`] = []
+                            _dateTempObj[signal][
+                              `${dataType[dataValue.dataType][0]}`
+                            ] = []
                           }
                           if (dataValue.dataType == '386561') {
-                            _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push((get(item, `name.data.${dataType[dataValue.dataType][2][0]}`) + '.' + get(item, `name.data.${dataType[dataValue.dataType][2][1]}`)))
+                            _dateTempObj[signal][
+                              `${dataType[dataValue.dataType][0]}`
+                            ]?.push(
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][0]
+                                }`,
+                              ) +
+                                '.' +
+                                get(
+                                  item,
+                                  `name.data.${
+                                    dataType[dataValue.dataType][2][1]
+                                  }`,
+                                ),
+                            )
                           } else {
-                            _dateTempObj[signal][`${dataType[dataValue.dataType][0]}`]?.push(get(item, `name.data.${dataType[dataValue.dataType][2]}`))
+                            _dateTempObj[signal][
+                              `${dataType[dataValue.dataType][0]}`
+                            ]?.push(
+                              get(
+                                item,
+                                `name.data.${dataType[dataValue.dataType][2]}`,
+                              ),
+                            )
                           }
                         })
                         Object.values(_dateTempObj).forEach((item) => {
-                          if (item[`${dataType[dataValue.dataType][0]}`].length > 0) {
-                            // @ts-ignore
-                            settingDay.series[0]["data"].push(...item[`${dataType[dataValue.dataType][0]}`])
+                          if (
+                            item[`${dataType[dataValue.dataType][0]}`].length >
+                            0
+                          ) {
+                            // @ts-expect-error
+                            settingDay.series[0]['data'].push(
+                              ...item[`${dataType[dataValue.dataType][0]}`],
+                            )
                           }
                         })
                       } catch (error) {
@@ -761,31 +889,38 @@ const createExtendedDOMResolvers = function (app: App) {
                     }
                     let _date: Date
                     if (dataValue.dataSource.length == 0) {
-                      _date = new Date();
+                      _date = new Date()
                     } else {
-                      _date = new Date(dataValue.dataSource[0]["deat"] * 1000);
+                      _date = new Date(dataValue.dataSource[0]['deat'] * 1000)
                     }
-                    settingDay.xAxis.data = Object.keys(_dateTempObj).map((item: any) => {
-                      const date = moment({ year: _date.getFullYear(), month: _date.getMonth(), day: _date.getDate(), hour: item.split(":")[0], minute: item.split(":")[1] })
-                      let showD = date.format('MM-DD');
-                      let showH = date.format('HH:mm');
-                      return showD + '\n' + showH;
-                    }) as any
+                    settingDay.xAxis.data = Object.keys(_dateTempObj).map(
+                      (item: any) => {
+                        const date = moment({
+                          year: _date.getFullYear(),
+                          month: _date.getMonth(),
+                          day: _date.getDate(),
+                          hour: item.split(':')[0],
+                          minute: item.split(':')[1],
+                        })
+                        let showD = date.format('MM-DD')
+                        let showH = date.format('HH:mm')
+                        return showD + '\n' + showH
+                      },
+                    ) as any
                     console.log(settingDay.series[0])
-                      //@ts-ignore
-                    settingDay.yAxis.max = Math.max(...(settingDay.series[0]["data"]))+50;
+                    //@ts-expect-error
+                    settingDay.yAxis.max =
+                      Math.max(...settingDay.series[0]['data']) + 50
 
-                    setting = settingDay as any;
-
-
+                    setting = settingDay as any
                   } else if (dataValue.dateType === 'month') {
                   }
-                    // console.log( Math.max(...["33","66","67","33","99"]))
+                  // console.log( Math.max(...["33","66","67","33","99"]))
 
-                  //@ts-ignore
+                  //@ts-expect-error
                   let myChart = echarts.init(node)
                   dataValue && myChart.setOption(setting)
-                } catch(error) {
+                } catch (error) {
                   log.error(error)
                 }
                 break
@@ -907,7 +1042,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   callback: () => {
                     gridPages?.removeEventListener('click', stopProp)
                     gridSearch?.removeEventListener('click', stopProp)
-                  }
+                  },
                 })
                 break
               }
@@ -922,9 +1057,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     center: 'title',
                     right: 'timeGridDay,timeGridWeek',
                   }
-                  let defaultData = dataValue.chartData;
+                  let defaultData = dataValue.chartData
                   defaultData = defaultData.filter((element) => {
-                    if (!(+element.etime - +element.stime === 86400)) return element;
+                    if (!(+element.etime - +element.stime === 86400))
+                      return element
                   })
                   if (u.isArr(defaultData)) {
                     defaultData.forEach((element) => {
@@ -956,15 +1092,15 @@ const createExtendedDOMResolvers = function (app: App) {
                       element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
                       if ((element.tage & 0xf000) >> 12 === 3) {
-                        element.coverageType = "Personal Injury"
+                        element.coverageType = 'Personal Injury'
                       } else if ((element.tage & 0xf000) >> 12 === 1) {
-                        element.coverageType = "Medical Insurance"
+                        element.coverageType = 'Medical Insurance'
                       } else if ((element.tage & 0xf000) >> 12 === 2) {
-                        element.coverageType = "Workers Comp"
+                        element.coverageType = 'Workers Comp'
                       } else if ((element.tage & 0xf000) >> 12 === 4) {
-                        element.coverageType = "Self Pay"
+                        element.coverageType = 'Self Pay'
                       } else if ((element.tage & 0xf000) >> 12 === 0) {
-                        element.coverageType = "No Selected"
+                        element.coverageType = 'No Selected'
                       }
                       delete element.stime
                       delete element.etime
@@ -974,12 +1110,12 @@ const createExtendedDOMResolvers = function (app: App) {
                   } else {
                     defaultData = []
                   }
-                  let initialView = "timeGridDay";
-                  if (dataValue.dataWeek == "week") {
-                    if (dataValue.dataDay === "day") {
-                      initialView = "timeGridDay";
+                  let initialView = 'timeGridDay'
+                  if (dataValue.dataWeek == 'week') {
+                    if (dataValue.dataDay === 'day') {
+                      initialView = 'timeGridDay'
                     } else {
-                      initialView = "timeGridWeek";
+                      initialView = 'timeGridWeek'
                     }
                   }
                   let calendar = new Calendar(node, {
@@ -1012,7 +1148,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) { },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -1033,14 +1169,15 @@ const createExtendedDOMResolvers = function (app: App) {
                           info.event._def.extendedProps.visitType +
                           '</div>\
                                         <div style="padding-top:3px">Reason ：' +
-                          (info.event._def.extendedProps.name ?? info.event._def.extendedProps.Reason) +
+                          (info.event._def.extendedProps.name ??
+                            info.event._def.extendedProps.Reason) +
                           '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                            new Date().getTimezoneOffset() * 60 * 1000,
+                              new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '<div  style="padding-top:3px">Duration：' +
@@ -1049,14 +1186,13 @@ const createExtendedDOMResolvers = function (app: App) {
                           '</div>' +
                           '<div  style="padding-top:3px">Coverage Type: ' +
                           info.event._def.extendedProps.coverageType +
-                          '</div>'
-                        ,
+                          '</div>',
                         allowHTML: true,
                         //theme: 'translucent',
                         interactive: true,
                         placement: 'top',
                         // followCursor: true,
-                        appendTo: () => node
+                        appendTo: () => node,
                         // plugins: [followCursor],
                         // duration: [0, 0],
                       })
@@ -1076,7 +1212,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   if (dataValue.start && dataValue.end) {
                     if (dataValue.currentDate) {
-                      if (dataValue.dataWeek == "week") {
+                      if (dataValue.dataWeek == 'week') {
                         calendar.gotoDate(dataValue.start * 1000)
                       } else {
                         calendar.gotoDate(dataValue.currentDate * 1000)
@@ -1087,7 +1223,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       calendar.gotoDate(dataValue.start * 1000)
                     }
                   }
-                  calendar.render();
+                  calendar.render()
                   component.addEventListeners({
                     event: 'calendar',
                     callback: () => {
@@ -1095,14 +1231,14 @@ const createExtendedDOMResolvers = function (app: App) {
                         calendar.destroy()
                         clearTimeout(timer)
                       }, 10000)
-                    }
+                    },
                   })
                   window.setTimeout(() => {
-                    (
+                    ;(
                       document.querySelectorAll(
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
-                    )?.scrollIntoView({ behavior: 'smooth' });
+                    )?.scrollIntoView({ behavior: 'smooth' })
                     let docEventPrevClick: HTMLButtonElement =
                       document.querySelectorAll(
                         '.fc-prev-button',
@@ -1119,8 +1255,11 @@ const createExtendedDOMResolvers = function (app: App) {
                       document.querySelectorAll(
                         '.fc-timeGridWeek-button',
                       )[0] as HTMLButtonElement
-                    let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
-                    let titleTime = document.getElementsByClassName('fc-toolbar-title')[0];
+                    let timeTable = document.querySelector(
+                      '[data-name=timeTable]',
+                    ) as HTMLElement
+                    let titleTime =
+                      document.getElementsByClassName('fc-toolbar-title')[0]
                     let months = [
                       'January',
                       'February',
@@ -1134,7 +1273,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       'October',
                       'November',
                       'December',
-                    ];
+                    ]
                     let abbMonths = [
                       'Jan',
                       'Feb',
@@ -1148,7 +1287,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       'Oct',
                       'Nov',
                       'Dec',
-                    ];
+                    ]
                     const timeClick = (e) => {
                       dataValue.data = ''
                     }
@@ -1157,78 +1296,117 @@ const createExtendedDOMResolvers = function (app: App) {
                       event: 'click',
                       callback: () => {
                         timeTable.removeEventListener('click', timeClick)
-                      }
+                      },
                     })
                     function getEventTime() {
-                      let getMonth = titleTime.textContent?.split(" ")[0] as string;
-                      let getDay = titleTime.textContent?.split(" ")[1]?.split(",")[0] as string;
-                      let getYear = titleTime.textContent?.split(",")[1] as string;
-                      let getTimeNow = new Date(+getYear, (+months.indexOf(getMonth)), +getDay).getTime();
+                      let getMonth = titleTime.textContent?.split(
+                        ' ',
+                      )[0] as string
+                      let getDay = titleTime.textContent
+                        ?.split(' ')[1]
+                        ?.split(',')[0] as string
+                      let getYear = titleTime.textContent?.split(
+                        ',',
+                      )[1] as string
+                      let getTimeNow = new Date(
+                        +getYear,
+                        +months.indexOf(getMonth),
+                        +getDay,
+                      ).getTime()
                       if (dataValue.currentDate !== dataValue.start) {
-                        dataValue.start = dataValue.currentDate;
-                        dataValue.end = dataValue.currentDate + 86400;
+                        dataValue.start = dataValue.currentDate
+                        dataValue.end = dataValue.currentDate + 86400
                       } else {
-                        dataValue.start = getTimeNow / 1000;
-                        dataValue.end = getTimeNow / 1000 + 86400;
+                        dataValue.start = getTimeNow / 1000
+                        dataValue.end = getTimeNow / 1000 + 86400
                       }
                     }
                     function getEventTimeWeek() {
-                      let getMonth = titleTime.textContent?.split(" ")[0] as string;
-                      let getDay = titleTime.textContent?.split("-")[0]?.split(" ")[1] as string;
-                      let getYear = titleTime.textContent?.split(",")[1] as string;
-                      let getTimeNow = new Date(+getYear, (+abbMonths.indexOf(getMonth)), +getDay).getTime();
-                      dataValue.start = getTimeNow / 1000;
-                      dataValue.end = getTimeNow / 1000 + 604800;
+                      let getMonth = titleTime.textContent?.split(
+                        ' ',
+                      )[0] as string
+                      let getDay = titleTime.textContent
+                        ?.split('-')[0]
+                        ?.split(' ')[1] as string
+                      let getYear = titleTime.textContent?.split(
+                        ',',
+                      )[1] as string
+                      let getTimeNow = new Date(
+                        +getYear,
+                        +abbMonths.indexOf(getMonth),
+                        +getDay,
+                      ).getTime()
+                      dataValue.start = getTimeNow / 1000
+                      dataValue.end = getTimeNow / 1000 + 604800
                       if (!dataValue.currentDate) {
-                        dataValue.currentDate = new Date(new Date().toLocaleDateString()).getTime() / 1000;
+                        dataValue.currentDate =
+                          new Date(new Date().toLocaleDateString()).getTime() /
+                          1000
                       }
                     }
                     const prevClick = (e) => {
-                      if (!dataValue.dataWeek && dataValue.dataWeek !== 'week') {
-                        getEventTime();
+                      if (
+                        !dataValue.dataWeek &&
+                        dataValue.dataWeek !== 'week'
+                      ) {
+                        getEventTime()
                       } else {
                         getEventTimeWeek()
                       }
-                      if (!(dataValue.dataDay || dataValue.dataWeek) || (dataValue.dataDay == "day" && dataValue.dataWeek == '')) {
-                        dataValue.currentDate = dataValue.start;
+                      if (
+                        !(dataValue.dataDay || dataValue.dataWeek) ||
+                        (dataValue.dataDay == 'day' && dataValue.dataWeek == '')
+                      ) {
+                        dataValue.currentDate = dataValue.start
                       }
-                      dataValue.data = 'prev';
+                      dataValue.data = 'prev'
                     }
                     const nextClick = (e) => {
-                      if (!dataValue.dataWeek && dataValue.dataWeek !== 'week') {
-                        getEventTime();
+                      if (
+                        !dataValue.dataWeek &&
+                        dataValue.dataWeek !== 'week'
+                      ) {
+                        getEventTime()
                       } else {
                         getEventTimeWeek()
                       }
-                      if (!(dataValue.dataDay || dataValue.dataWeek) || (dataValue.dataDay == "day" && dataValue.dataWeek == '')) {
-                        dataValue.currentDate = dataValue.start;
+                      if (
+                        !(dataValue.dataDay || dataValue.dataWeek) ||
+                        (dataValue.dataDay == 'day' && dataValue.dataWeek == '')
+                      ) {
+                        dataValue.currentDate = dataValue.start
                       }
-                      dataValue.data = 'next';
+                      dataValue.data = 'next'
                     }
                     docEventPrevClick.addEventListener('click', prevClick)
                     component.addEventListeners({
                       event: 'click',
                       callback: () => {
-                        docEventPrevClick.removeEventListener('click', prevClick)
-                      }
+                        docEventPrevClick.removeEventListener(
+                          'click',
+                          prevClick,
+                        )
+                      },
                     })
                     docEventNextClick.addEventListener('click', nextClick)
                     component.addEventListeners({
                       event: 'click',
                       callback: () => {
-                        docEventNextClick.removeEventListener('click', nextClick)
-                      }
+                        docEventNextClick.removeEventListener(
+                          'click',
+                          nextClick,
+                        )
+                      },
                     })
                     const dayClick = (e) => {
-                      getEventTime();
+                      getEventTime()
                       dataValue.data = 'day'
                       dataValue.dataDay = 'day'
                       dataValue.dataWeek = ''
-                      titleTime.textContent = ""
-
+                      titleTime.textContent = ''
                     }
                     const weekClick = (e) => {
-                      getEventTimeWeek();
+                      getEventTimeWeek()
                       dataValue.data = 'week'
                       dataValue.dataWeek = 'week'
                       dataValue.dataDay = ''
@@ -1238,14 +1416,17 @@ const createExtendedDOMResolvers = function (app: App) {
                       event: 'click',
                       callback: () => {
                         docEventDayClick.removeEventListener('click', dayClick)
-                      }
+                      },
                     })
                     docEventWeekClick.addEventListener('click', weekClick)
                     component.addEventListeners({
                       event: 'click',
                       callback: () => {
-                        docEventWeekClick.removeEventListener('click', weekClick)
-                      }
+                        docEventWeekClick.removeEventListener(
+                          'click',
+                          weekClick,
+                        )
+                      },
                     })
                   }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
@@ -1287,12 +1468,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] data-value': {
       cond: ({ node }) => isTextFieldLike(node),
       before({ node, component }) {
-        ; (node as HTMLInputElement).value = component.get('data-value') || ''
+        ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ; (node as HTMLSelectElement)['selectedIndex'] = 0
+            ;(node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -1300,9 +1481,9 @@ const createExtendedDOMResolvers = function (app: App) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
-        const maxLen = component.get('maxLength') || '';
-        const showFocus = component.get('showSoftInput') || '';
-        const initialCapital = component.get('initialCapital') || '';
+        const maxLen = component.get('maxLength') || ''
+        const showFocus = component.get('showSoftInput') || ''
+        const initialCapital = component.get('initialCapital') || ''
         if (maxLen) {
           node?.setAttribute('maxlength', maxLen)
         }
@@ -1352,26 +1533,26 @@ const createExtendedDOMResolvers = function (app: App) {
             if (component?.type == 'textField') {
               const executeFunc = component.blueprint.debounce
                 ? antiShake(
-                  getOnChange({
+                    getOnChange({
+                      component,
+                      dataKey,
+                      evtName: 'onInput',
+                      node: node as NDOMElement,
+                      iteratorVar,
+                      page,
+                      initialCapital,
+                    }),
+                    component.blueprint.debounce,
+                  )
+                : getOnChange({
                     component,
                     dataKey,
                     evtName: 'onInput',
                     node: node as NDOMElement,
                     iteratorVar,
                     page,
-                    initialCapital
-                  }),
-                  component.blueprint.debounce,
-                )
-                : getOnChange({
-                  component,
-                  dataKey,
-                  evtName: 'onInput',
-                  node: node as NDOMElement,
-                  iteratorVar,
-                  page,
-                  initialCapital
-                })
+                    initialCapital,
+                  })
               const listener = addListener(node, 'input', executeFunc)
               component.addEventListeners(listener)
               // node.addEventListener(
@@ -1451,9 +1632,9 @@ const createExtendedDOMResolvers = function (app: App) {
           // )
         }
         if (showFocus) {
-          node?.setAttribute("showSoftInput", "true")
+          node?.setAttribute('showSoftInput', 'true')
           const timer = setTimeout(() => {
-            node?.focus();
+            node?.focus()
             clearTimeout(timer)
           }, 100)
         }
@@ -1564,7 +1745,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            ; (node as HTMLImageElement).src = url
+            ;(node as HTMLImageElement).src = url
           })
         }
       },
@@ -1804,8 +1985,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1835,10 +2016,10 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               let featuresData: any[] = []
               dataValue.data.forEach((element: any) => {
-                var str = ''
-                var showName = ''
-                var specialityArr = element.information.speciality
-                var Name = element.information.name
+                let str = ''
+                let showName = ''
+                let specialityArr = element.information.speciality
+                let Name = element.information.name
                 str = specialityArr
                 if (Name == 'undefined undefined') {
                   showName = 'No Name'
@@ -1974,14 +2155,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                      Name +
-                      ' </span><br> <span style="font-size: 1vh;">' +
-                      Speciality +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      phoneNumber +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      address +
-                      '</span>',
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
+                        Speciality +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        phoneNumber +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
@@ -2010,8 +2191,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -2092,14 +2273,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (app.subStreams.elementExists(node)) {
               log.error(
                 `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+                  `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
           } else {
             log.error(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-              `was not available`,
+                `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
@@ -2261,8 +2442,8 @@ const createExtendedDOMResolvers = function (app: App) {
             /number|integer/i.test(contentType)
               ? 'number'
               : u.isStr(contentType)
-                ? contentType
-                : 'text',
+              ? contentType
+              : 'text',
           )
         }
       },
@@ -2271,7 +2452,6 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'textField',
       resolve({ node, component }) {
         if (component.contentType === 'strictLength') {
-          console.log("TEST", {node}, component)
           let strictLength = {
             max: Number.MAX_VALUE,
             min: 1
@@ -2356,7 +2536,6 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'textView',
       resolve({ node, component }) {
         if (component.contentType === 'strictLength') {
-          // console.log("TEST", {node}, component)
           let strictLength = {
             max: Number.MAX_VALUE,
             min: 1
@@ -2486,23 +2665,23 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node && component.get('data-value').length) {
           type optionSetting = {
             borderRadius?: number
-            direction?: 'vertical' | 'horizontal'
+            direction?: 'horizontal' | 'vertical'
             spaceBetween?: number
             autoplay?:
-            | boolean
-            | {
-              delay: number
-              stopOnLastSlide?: boolean
-              disableOnInteraction?: boolean
-            }
+              | boolean
+              | {
+                  delay: number
+                  stopOnLastSlide?: boolean
+                  disableOnInteraction?: boolean
+                }
             slidesPerView?: number
-            effect?: 'slide' | 'fade' | 'cube' | 'coverflow' | 'flip'
+            effect?: 'coverflow' | 'cube' | 'fade' | 'flip' | 'slide'
             pagination?:
-            | boolean
-            | {
-              type?: 'bullets' | 'fraction' | 'progressbar' | 'custom'
-              clickable?: boolean
-            }
+              | boolean
+              | {
+                  type?: 'bullets' | 'custom' | 'fraction' | 'progressbar'
+                  clickable?: boolean
+                }
             navigation?: boolean
             childStyle?: {
               width?: number | string
@@ -2512,8 +2691,8 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 
           const dataValue = component.get('data-value') as (
-            | { [key in string]: any }
             | string
+            | { [key in string]: any }
           )[]
           const videoData = component.get('video-option')
           const option: optionSetting = component.get('data-option') as {
@@ -2571,11 +2750,11 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           for (let index = 0; index < listDom.childElementCount; index++) {
-            ; (listDom.children[index] as HTMLLIElement).setAttribute(
+            ;(listDom.children[index] as HTMLLIElement).setAttribute(
               'class',
               'swiper-slide',
             )
-              ; (listDom.children[index] as HTMLLIElement).style.cssText = `
+            ;(listDom.children[index] as HTMLLIElement).style.cssText = `
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -2649,7 +2828,7 @@ const createExtendedDOMResolvers = function (app: App) {
             on: {
               slideChangeTransitionStart: function () {
                 if (v) {
-                  // @ts-ignore
+                  // @ts-expect-error
                   if (this.activeIndex !== 0) {
                     v.pause()
                   }
@@ -2706,12 +2885,14 @@ const createExtendedDOMResolvers = function (app: App) {
             component.get('data-key') || component.blueprint?.dataKey || ''
           const dataValue = (component.get('data-option') as {})['reason'] as {}
           const dataOptions = component.get('data-option') as {}
-          let fragment: null | DocumentFragment =
+          let fragment: DocumentFragment | null =
             document.createDocumentFragment()
           // let childrenConta = document.createElement('div')
-          node.textContent = "";
-          if (get(app.root.Global, dataOptions["checkName"]).length) {
-            dataValue['selectedData'] = cloneDeep(get(app.root.Global, dataOptions["checkName"]))
+          node.textContent = ''
+          if (get(app.root.Global, dataOptions['checkName']).length) {
+            dataValue['selectedData'] = cloneDeep(
+              get(app.root.Global, dataOptions['checkName']),
+            )
           }
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
@@ -2758,9 +2939,14 @@ const createExtendedDOMResolvers = function (app: App) {
           let C = `{
             appearance: none;
         }`
-          let cadlVersion = JSON.parse(localStorage.getItem("config") as string).web.cadlVersion.stable;
-          let cadlConfigUrl = (JSON.parse(localStorage.getItem("config") as string).cadlBaseUrl as string)
-          let url = cadlConfigUrl.startsWith("http") ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion : "/admin/admin";
+          let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
+            .web.cadlVersion.stable
+          let cadlConfigUrl = JSON.parse(
+            localStorage.getItem('config') as string,
+          ).cadlBaseUrl as string
+          let url = cadlConfigUrl.startsWith('http')
+            ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion
+            : '/admin/admin'
           let chechedC = `{
           content: "";
           display: inline-block;
@@ -2821,17 +3007,24 @@ const createExtendedDOMResolvers = function (app: App) {
             let spanDom = document.createElement('div')
             let contanierDiv = document.createElement('div')
 
-            if (dataOptions["module"] === "radio") {
-              childInput.type = 'radio';
-              childInput.name = "radio";
+            if (dataOptions['module'] === 'radio') {
+              childInput.type = 'radio'
+              childInput.name = 'radio'
             } else {
               childInput.type = 'checkbox'
             }
-            childInput.value = i + '';
+            childInput.value = i + ''
 
-            spanDom.textContent = get(dataValue['allData'][i], dataValue["path"])
-            if (dataValue['selectedData'].includes(get(dataValue['allData'][i], dataValue["path"]))) {
-              childInput.checked = true;
+            spanDom.textContent = get(
+              dataValue['allData'][i],
+              dataValue['path'],
+            )
+            if (
+              dataValue['selectedData'].includes(
+                get(dataValue['allData'][i], dataValue['path']),
+              )
+            ) {
+              childInput.checked = true
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, [i])
               })
@@ -2845,7 +3038,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['inputStyle'])[index]}`
               let styleValue =
                 dataOptions['inputStyle'][
-                `${Object.keys(dataOptions['inputStyle'])[index]}`
+                  `${Object.keys(dataOptions['inputStyle'])[index]}`
                 ]
               childInput.style[styleKey] = styleValue
             }
@@ -2857,7 +3050,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['textStyle'])[index]}`
               let styleValue =
                 dataOptions['textStyle'][
-                `${Object.keys(dataOptions['textStyle'])[index]}`
+                  `${Object.keys(dataOptions['textStyle'])[index]}`
                 ]
               spanDom.style[styleKey] = styleValue
             }
@@ -2866,11 +3059,12 @@ const createExtendedDOMResolvers = function (app: App) {
               index < Object.keys(dataOptions['containerStyle']).length;
               index++
             ) {
-              let styleKey = `${Object.keys(dataOptions['containerStyle'])[index]
-                }`
+              let styleKey = `${
+                Object.keys(dataOptions['containerStyle'])[index]
+              }`
               let styleValue =
                 dataOptions['containerStyle'][
-                `${Object.keys(dataOptions['containerStyle'])[index]}`
+                  `${Object.keys(dataOptions['containerStyle'])[index]}`
                 ]
               contanierDiv.style[styleKey] = styleValue
             }
@@ -2882,12 +3076,12 @@ const createExtendedDOMResolvers = function (app: App) {
           node.append(fragment)
           fragment = null
           node.addEventListener('click', (e) => {
-            let dataInput = +(e.target as HTMLInputElement).value;
+            let dataInput = +(e.target as HTMLInputElement).value
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
               let selected = dataValue['selectedData'] as any
-              if (dataOptions["module"] === "radio") {
-                selected = [];
-                selected[0] = dataInput;
+              if (dataOptions['module'] === 'radio') {
+                selected = []
+                selected[0] = dataInput
               } else {
                 !selected.includes(dataInput)
                   ? selected?.push(dataInput)
@@ -2900,22 +3094,34 @@ const createExtendedDOMResolvers = function (app: App) {
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, selected)
               })
-              if (dataOptions["data"]) {
-                const keys = Object.keys(dataOptions["data"]);
-                const values = Object.values(dataOptions["data"]);
+              if (dataOptions['data']) {
+                const keys = Object.keys(dataOptions['data'])
+                const values = Object.values(dataOptions['data'])
 
                 for (let i = 0; i < keys.length; i++) {
                   app.updateRoot((draft) => {
-                    if (values[i] === "$") {
-                      set(draft?.[pageName], keys[i], dataValue['allData'][dataInput]);
+                    if (values[i] === '$') {
+                      set(
+                        draft?.[pageName],
+                        keys[i],
+                        dataValue['allData'][dataInput],
+                      )
                     } else {
-                      set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput], `${values[i]}`));
+                      set(
+                        draft?.[pageName],
+                        keys[i],
+                        get(dataValue['allData'][dataInput], `${values[i]}`),
+                      )
                     }
                   })
                 }
               }
               // app.root.Global.checkboxArr = selected
-              set(app.root.Global, dataOptions["checkName"], dataValue['allData'][selected].name.data.category);
+              set(
+                app.root.Global,
+                dataOptions['checkName'],
+                dataValue['allData'][selected].name.data.category,
+              )
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
@@ -2926,15 +3132,15 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Calendar': {
       cond: 'calendar',
       resolve({ node, component }) {
-        const inputTarget = document.createElement("input");
-        inputTarget.style.width = node.style.width;
-        inputTarget.style.height = node.style.height;
+        const inputTarget = document.createElement('input')
+        inputTarget.style.width = node.style.width
+        inputTarget.style.height = node.style.height
         // inputTarget.setAttribute("class","latpickr form-control input")
         flatpickr(inputTarget, {
           // altInput: true,
           // enableTime: true,
           appendTo: node,
-          dateFormat: "Y-m-d",
+          dateFormat: 'Y-m-d',
           // altFormat: "DD-MM-YYYY",
           allowInput: true,
           // inline: true,
@@ -2950,8 +3156,8 @@ const createExtendedDOMResolvers = function (app: App) {
 
           //   instance.calendarContainer.style.visibility = "visible"
           // }
-        });
-        node.append(inputTarget);
+        })
+        node.append(inputTarget)
 
         // if (node && Object.keys(component.get('data-value'))) {
         // }
@@ -3012,10 +3218,10 @@ const createExtendedDOMResolvers = function (app: App) {
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
             let chatBackground: string
-              ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
-                domNode,
-                this.IsOwner(Msg.bsig),
-              )
+            ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+            )
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
@@ -3043,10 +3249,10 @@ const createExtendedDOMResolvers = function (app: App) {
           private createPdfNode(Msg: any): HTMLElement {
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
-              ;[domNode, domNodeContent] = this.judgeIsOwner(
-                domNode,
-                this.IsOwner(Msg.bsig),
-              )
+            ;[domNode, domNodeContent] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+            )
             let pdfInfo = this.judgePdfIsOwner(
               domNodeContent,
               this.IsOwner(Msg.bsig),
@@ -3148,14 +3354,17 @@ const createExtendedDOMResolvers = function (app: App) {
             pdfIcon.style.cssText = `
               width: ${this.pdfCss.pdfIconWidth}px;
               height: ${this.pdfCss.pdfIconHeight}px;
-              margin: ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-              }px 10px ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-              }px 10px;
+              margin: ${
+                (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px ${
+              (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+            }px 10px;
             `
             let pdfInfo = document.createElement('div')
             pdfInfo.style.cssText = `
-                width: ${this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
-              }px;
+                width: ${
+                  this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
+                }px;
                 height: auto;
                 margin: 5px 10px 5px 10px;
                 display: flex;
@@ -3180,31 +3389,26 @@ const createExtendedDOMResolvers = function (app: App) {
         node.innerHTML = liveChatBox.innerHTML
         // node.appendChild(liveChatBox)
         setTimeout(() => {
-          node.scrollTop = scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
+          node.scrollTop =
+            scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
         }, 0)
-
       },
     },
     '[App] navBar': {
       cond: 'navBar',
       resolve({ node, component }) {
-
         // console.error(component.get('dataKey'))
         let currentPage = app.currentPage
-        console.log("currentPage", currentPage)
-        
         const menuBarInfo = get(app.root, component.get('data-key'))
-        console.log("MenuBarInfo", menuBarInfo)
-
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
 
-        const assetsUrl = app.nui.getAssetsUrl() || ""
-        let style = component.get("style")
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+        let style = component.get('style')
         const sprites = `${assetsUrl}sprites.png`
         const up = `${assetsUrl}arrowUp.svg`
         const down = `${assetsUrl}arrowDown.svg`
-        
+
         const img = new Image()
         img.src = sprites
 
@@ -3214,76 +3418,78 @@ const createExtendedDOMResolvers = function (app: App) {
           originIconWidth = img.width
           originIconHeight = img.height
           const originWidth = 278.25
-          let ratio = Math.floor(100*(width/originWidth))/100
+          let ratio = Math.floor(100 * (width / originWidth)) / 100
 
           let ulCss = {
-            "width": width+'px',
-            "height": height+'px',
-            "left": "0px",
-            "top": "0px",
-            "margin": "0px",
-            "position": "absolute",
-            "outline": "none",
-            "display": "block",
-            "list-style": "none"
+            width: width + 'px',
+            height: height + 'px',
+            left: '0px',
+            top: '0px',
+            margin: '0px',
+            position: 'absolute',
+            outline: 'none',
+            display: 'block',
+            'list-style': 'none',
           }
 
           let liCss = {
-            "left": "0px",
-            "margin-top": "0px",
-            "width": width+'px',
-            "position": "relative",
-            "outline": "none",
-            "height": "auto",
-            "list-style": "none",
-            "border-style": "none",
-            "border-radius": "0px"
+            left: '0px',
+            'margin-top': '0px',
+            width: width + 'px',
+            position: 'relative',
+            outline: 'none',
+            height: 'auto',
+            'list-style': 'none',
+            'border-style': 'none',
+            'border-radius': '0px',
           }
 
           let divCss = {
             // "background-color": "#005795",
-            //@ts-ignore
-            "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
-            "position": "relative",
-            "outline": "none",
-            "margin-top": "0px"
+            //@ts-expect-error
+            height:
+              Math.ceil((5 / Number(style?.height)) * height) / 100 + 'px',
+            position: 'relative',
+            outline: 'none',
+            'margin-top': '0px',
           }
 
           let imgCss = {
-            // @ts-ignore
-            "width": Math.ceil((0.7/Number(style?.width))*width)/100 + 'px',
-            // @ts-ignore
-            "top": Math.ceil((2/Number(style?.height))*height)/100 + 'px',
-            // @ts-ignore
-            "left": Math.ceil((14.5/Number(style?.width))*width)/100 + 'px',
-            "display": "block",
-            "cursor": "pointer",
-            "position": "absolute",
-            "outline": "none",
-            "object-fit": "contain",
-            "margin-top": "0px"
+            // @ts-expect-error
+            width: Math.ceil((0.7 / Number(style?.width)) * width) / 100 + 'px',
+            // @ts-expect-error
+            top: Math.ceil((2 / Number(style?.height)) * height) / 100 + 'px',
+            // @ts-expect-error
+            left: Math.ceil((14.5 / Number(style?.width)) * width) / 100 + 'px',
+            display: 'block',
+            cursor: 'pointer',
+            position: 'absolute',
+            outline: 'none',
+            'object-fit': 'contain',
+            'margin-top': '0px',
           }
 
           let title1Css = {
-            // @ts-ignore
-            "width": Math.ceil((10/Number(style?.width))*width)/100 + 'px',
-            "top": "0",
-            // @ts-ignore
-            "left": Math.ceil((4/Number(style?.width))*width)/100 + 'px',
-            // @ts-ignore
-            "height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
-            // @ts-ignore
+            // @ts-expect-error
+            width: Math.ceil((10 / Number(style?.width)) * width) / 100 + 'px',
+            top: '0',
+            // @ts-expect-error
+            left: Math.ceil((4 / Number(style?.width)) * width) / 100 + 'px',
+            // @ts-expect-error
+            height:
+              Math.ceil((5 / Number(style?.height)) * height) / 100 + 'px',
+            // @ts-expect-error
             // "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
-            "box-sizing": "border-box",
-            "color": "#ffffff",
-            "font-size": "13.5px",
-            "cursor": "pointer",
-            "position": "absolute",
-            "outline": "none",
-            "display": "flex",
-            "align-items": "center",
-            "justify-content": "flex-start",
-            "margin-top": "0px",
+            'box-sizing': 'border-box',
+            color: '#ffffff',
+            'font-size': '13.5px',
+            cursor: 'pointer',
+            position: 'absolute',
+            outline: 'none',
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'flex-start',
+            'margin-top': '0px',
           }
 
           let optsList: Map<string, LIOpts> = new Map()
@@ -3295,41 +3501,41 @@ const createExtendedDOMResolvers = function (app: App) {
             .update(JSON.stringify(get(app.root, component.get('list'))))
             .digest('hex')
 
-          // @ts-ignore
-          if(!!window.navBar && window.navBar.hash === hash) {
-            // @ts-ignore
+          // @ts-expect-error
+          if (!!window.navBar && window.navBar.hash === hash) {
+            // @ts-expect-error
             optsList = window.navBar.list
-            // @ts-ignore
+            // @ts-expect-error
             childMap = window.navBar.linkMap
-            // @ts-ignore
+            // @ts-expect-error
             extendMap = window.navBar.extendMap
           } else {
-            console.warn("REFRESH")
+            console.warn('REFRESH')
             // const list = component.get('test')
             const list = get(app.root, component.get('list'))
             const len = list.length
-            // @ts-ignore
+            // @ts-expect-error
             window.navBar = {
               selectedPage: currentPage,
               extendSet: new Set(),
-              hash: hash
+              hash: hash,
             }
-            for(let i = 0; i < len; i++) {
+            for (let i = 0; i < len; i++) {
               let child = list[i]
               let children: Array<LIOpts> = []
               let hasChildren = false
               let isExtend = false
-              if(child.hasChildren === "block") {
+              if (child.hasChildren === 'block') {
                 let l = child.childList.length
                 let t = 0
-                for(t = 0; t < l; t++) {
+                for (t = 0; t < l; t++) {
                   let c = child.childList[t]
-                  if(c.pageName === currentPage) {
+                  if (c.pageName === currentPage) {
                     isExtend = true
                   }
-                  if(c.childList instanceof Array) {
-                    c.childList.forEach(item => {
-                      childMap.set(item, c.pageName+'|'+child.pageName)
+                  if (c.childList instanceof Array) {
+                    c.childList.forEach((item) => {
+                      childMap.set(item, c.pageName + '|' + child.pageName)
                     })
                   }
                   children.push({
@@ -3338,13 +3544,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     pageName: c.pageName,
                     level: c.level,
                     background: c.backgroundColor.replace('0x', '#'),
-                    hasChildren: false
+                    hasChildren: false,
                   })
                   extendMap.set(c.pageName, child.pageName)
                 }
                 hasChildren = true
               }
-              if(child.pageName === currentPage || isExtend) {
+              if (child.pageName === currentPage || isExtend) {
                 optsList.set(child.pageName, {
                   isIcon: false,
                   isExtend: true,
@@ -3354,10 +3560,10 @@ const createExtendedDOMResolvers = function (app: App) {
                   background: child.backgroundColor.replace('0x', '#'),
                   hasChildren: hasChildren,
                   logoPath: child.logoPath,
-                  children: children
+                  children: children,
                 })
-                if(hasChildren){
-                  // @ts-ignore
+                if (hasChildren) {
+                  // @ts-expect-error
                   window.navBar.extendSet.add(child.pageName)
                 }
               } else {
@@ -3370,27 +3576,27 @@ const createExtendedDOMResolvers = function (app: App) {
                   background: child.backgroundColor.replace('0x', '#'),
                   hasChildren: hasChildren,
                   logoPath: child.logoPath,
-                  children: children
+                  children: children,
                 })
               }
             }
-            // @ts-ignore
+            // @ts-expect-error
             window.navBar.list = optsList
-            // @ts-ignore
+            // @ts-expect-error
             window.navBar.linkMap = childMap
-            // @ts-ignore
+            // @ts-expect-error
             window.navBar.extendMap = extendMap
           }
-          // @ts-ignore
+          // @ts-expect-error
           let navBar = window.navBar
           let navList = navBar.list
 
           const toStr = (obj: Object): string => {
             return JSON.stringify(obj)
-                  .replace(new RegExp(',', 'g'), ';')
-                  .replace(new RegExp('"', 'g'), '')
-                  .replace('{', '')
-                  .replace('}', '')
+              .replace(new RegExp(',', 'g'), ';')
+              .replace(new RegExp('"', 'g'), '')
+              .replace('{', '')
+              .replace('}', '')
           }
 
           interface LIOpts {
@@ -3407,10 +3613,13 @@ const createExtendedDOMResolvers = function (app: App) {
 
           class ul {
             dom: HTMLUListElement
-            constructor(css: string, opts: Array<LIOpts> | Map<string, LIOpts>) {
+            constructor(
+              css: string,
+              opts: Array<LIOpts> | Map<string, LIOpts>,
+            ) {
               this.dom = document.createElement('ul')
               this.dom.style.cssText = css
-              opts.forEach(child => {
+              opts.forEach((child) => {
                 // console.log("CHILD", child)
                 this.dom.appendChild(new li(toStr(liCss), child).dom)
               })
@@ -3419,30 +3628,43 @@ const createExtendedDOMResolvers = function (app: App) {
 
           class li {
             dom: HTMLLIElement
-            constructor(css: string, opts: LIOpts){
+            constructor(css: string, opts: LIOpts) {
               this.dom = document.createElement('li')
               this.dom.style.cssText = css
-              let divDom = new div(toStr(Object.assign({...divCss}, {background: opts.background})), opts).dom
+              let divDom = new div(
+                toStr(
+                  Object.assign({ ...divCss }, { background: opts.background }),
+                ),
+                opts,
+              ).dom
               // if(opts.level === 2)
-              if(!opts.hasChildren)
-                divDom.id = `_${opts.pageName}_`
+              if (!opts.hasChildren) divDom.id = `_${opts.pageName}_`
               this.dom.appendChild(divDom)
-              if(opts.hasChildren) {
+              if (opts.hasChildren) {
                 let level2UlCss = {}
-                if(opts.isExtend) {
-                  level2UlCss = Object.assign({...ulCss}, {
-                    height: 'auto',
-                    position: 'relative',
-                    display: 'block'
-                  })
+                if (opts.isExtend) {
+                  level2UlCss = Object.assign(
+                    { ...ulCss },
+                    {
+                      height: 'auto',
+                      position: 'relative',
+                      display: 'block',
+                    },
+                  )
                 } else {
-                  level2UlCss = Object.assign({...ulCss}, {
-                    height: 'auto',
-                    position: 'absolute',
-                    display: 'none'
-                  })
+                  level2UlCss = Object.assign(
+                    { ...ulCss },
+                    {
+                      height: 'auto',
+                      position: 'absolute',
+                      display: 'none',
+                    },
+                  )
                 }
-                let ulD = new ul(toStr(level2UlCss), opts.children as Array<LIOpts>).dom
+                let ulD = new ul(
+                  toStr(level2UlCss),
+                  opts.children as Array<LIOpts>,
+                ).dom
                 ulD.id = `_${opts.pageName}`
                 this.dom.appendChild(ulD)
               }
@@ -3451,35 +3673,52 @@ const createExtendedDOMResolvers = function (app: App) {
 
           class div {
             dom: HTMLElement
-            constructor(css:string, opts: LIOpts) {
+            constructor(css: string, opts: LIOpts) {
               this.dom = document.createElement('div')
               this.dom.style.cssText = css
-              if(!opts.isIcon) {
-                this.dom.setAttribute("data-key", opts.title as string)
-                if(opts.level === 1) {
-                  const logoPathLeft = Number(opts.logoPath?.split('px')[0]) * ratio
-                  const logoPathRight = Number(opts.logoPath?.split('px')[1]) * ratio 
-                  let iconCss = Object.assign({...divCss}, {
-                    // @ts-ignore
-                    width: 0.1*Number(width) + 'px',
-                    // @ts-ignore
-                    height: Math.ceil((2.5/Number(style?.height))*height)/100 + 'px',
-                    // @ts-ignore
-                    left: Math.ceil((1.5/Number(style?.width))*width)/100 + 'px',
-                    // @ts-ignore
-                    top: Math.ceil((1.5/Number(style?.height))*height)/100 + 'px',
-                    position: 'absolute',
-                    background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
-                    "background-size": `${ratio*originIconWidth}px ${ratio*originIconHeight}px`
-                  })
-                  this.dom.appendChild(new div(toStr(iconCss), {isIcon: true}).dom)
+              if (!opts.isIcon) {
+                this.dom.setAttribute('data-key', opts.title as string)
+                if (opts.level === 1) {
+                  const logoPathLeft =
+                    Number(opts.logoPath?.split('px')[0]) * ratio
+                  const logoPathRight =
+                    Number(opts.logoPath?.split('px')[1]) * ratio
+                  let iconCss = Object.assign(
+                    { ...divCss },
+                    {
+                      // @ts-expect-error
+                      width: 0.1 * Number(width) + 'px',
+                      // @ts-expect-error
+                      height:
+                        Math.ceil((2.5 / Number(style?.height)) * height) /
+                          100 +
+                        'px',
+                      // @ts-expect-error
+                      left:
+                        Math.ceil((1.5 / Number(style?.width)) * width) / 100 +
+                        'px',
+                      // @ts-expect-error
+                      top:
+                        Math.ceil((1.5 / Number(style?.height)) * height) /
+                          100 +
+                        'px',
+                      position: 'absolute',
+                      background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
+                      'background-size': `${ratio * originIconWidth}px ${
+                        ratio * originIconHeight
+                      }px`,
+                    },
+                  )
+                  this.dom.appendChild(
+                    new div(toStr(iconCss), { isIcon: true }).dom,
+                  )
                 }
                 let label = document.createElement('div')
                 label.innerHTML = opts.title as string
                 label.style.cssText = toStr(title1Css)
                 label.setAttribute('title-value', `${opts.pageName}`)
                 this.dom.appendChild(label)
-                if(opts.hasChildren) {
+                if (opts.hasChildren) {
                   let imageDom = document.createElement('img')
                   imageDom.src = opts.isExtend ? up : down
                   imageDom.style.cssText = toStr(imgCss)
@@ -3494,43 +3733,51 @@ const createExtendedDOMResolvers = function (app: App) {
 
           node.appendChild(ulDom)
 
-          ulDom.addEventListener('click', event => {
+          ulDom.addEventListener('click', (event) => {
             let dom = event.target as HTMLImageElement
-            app.updateRoot(draft => {
+            app.updateRoot((draft) => {
               set(draft, component.get('data-key'), {
                 pageName: 'ScheduleManagement',
                 isGoto: false,
                 status: true
               })
             })
-            if(dom.tagName === "DIV") {
+            if (dom.tagName === 'DIV') {
               try {
                 const action = (value: string) => {
-                  // @ts-ignore
+                  // @ts-expect-error
                   navBar.selectedPage = value
-                  // @ts-ignore
-                  document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+                  // @ts-expect-error
+                  document.getElementById(
+                    `_${navBar.selectedPage}_`,
+                  ).style.background = '#1871b3'
                   try {
                     let isExtend = navList.get(value).isExtend
-                    if(!isExtend) {
-                      extendSet.forEach(v => {
-                        if(navList.get(v).hasChildren){
-                          (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                          (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                          (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+                    if (!isExtend) {
+                      extendSet.forEach((v) => {
+                        if (navList.get(v).hasChildren) {
+                          ;(
+                            document.getElementById(`_${v}`) as HTMLUListElement
+                          ).style.position = 'absolute'
+                          ;(
+                            document.getElementById(`_${v}`) as HTMLUListElement
+                          ).style.display = 'none'
+                          ;(
+                            document.getElementById(
+                              `__${v}`,
+                            ) as HTMLImageElement
+                          ).src = down
                           navList.get(v).isExtend = false
                         }
                       })
                       extendSet.clear()
                     }
-                    if(navList.get(value).hasChildren) {
+                    if (navList.get(value).hasChildren) {
                       extendSet.add(value)
                       navList.get(value).isExtend = true
                     }
-                  } catch (error) {
-                    
-                  }
-                  app.updateRoot(draft => {
+                  } catch (error) {}
+                  app.updateRoot((draft) => {
                     set(draft, component.get('data-key'), {
                       pageName: value,
                       isGoto: true,
@@ -3539,30 +3786,32 @@ const createExtendedDOMResolvers = function (app: App) {
                   })
                 }
                 let value = dom.getAttribute('title-value') as string
-                let img = document.getElementById(`__${value}`)  as HTMLImageElement
-                if(img) {
+                let img = document.getElementById(
+                  `__${value}`,
+                ) as HTMLImageElement
+                if (img) {
                   let value = dom.getAttribute('title-value')
-                  // @ts-ignore
+                  // @ts-expect-error
                   let isExtend = navList.get(value).isExtend
-                  let ul = document.getElementById(`_${value}`) as HTMLUListElement
-                  if(!isExtend){
+                  let ul = document.getElementById(
+                    `_${value}`,
+                  ) as HTMLUListElement
+                  if (!isExtend) {
                     ul.style.position = 'relative'
                     ul.style.display = 'block'
                     img.src = up
                   }
                 }
                 action(value)
-              } catch (error) {
-                
-              }
-            } else if(dom.tagName === "IMG") {
+              } catch (error) {}
+            } else if (dom.tagName === 'IMG') {
               let value = dom.getAttribute('title-value')
-              // @ts-ignore
+              // @ts-expect-error
               let isExtend = navList.get(value).isExtend
               let ul = document.getElementById(`_${value}`) as HTMLUListElement
-              // @ts-ignore
+              // @ts-expect-error
               window.app.root.Global.pageName = ''
-              if(isExtend) {
+              if (isExtend) {
                 ul.style.position = 'absolute'
                 ul.style.display = 'none'
                 dom.src = down
@@ -3579,84 +3828,125 @@ const createExtendedDOMResolvers = function (app: App) {
           })
 
           let extendSet = navBar.extendSet
-          
-          if(childMap.has(currentPage)) {
+
+          if(menuBarInfo.remainName !== '') {
+            currentPage = menuBarInfo.remainName
+            app.updateRoot(dratf => {
+              set(dratf, component.get('data-key'), {
+                isGoto: menuBarInfo.isGoto,
+                pageName: menuBarInfo.pageName,
+                remainName: ''
+              })
+            })
+          }
+
+          if (childMap.has(currentPage)) {
             // console.log("AAAABC")
             let info = childMap.get(currentPage)
             let PAGE = info?.split('|')[0]
             let BLOCK = info?.split('|')[1]
-            if(navBar.selectedPage !== PAGE) {
-              extendSet.forEach(v => {
-                if(navList.get(v).hasChildren){
-                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                  (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                  (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+            if (navBar.selectedPage !== PAGE) {
+              extendSet.forEach((v) => {
+                if (navList.get(v).hasChildren) {
+                  ;(
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.position = 'absolute'
+                  ;(
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.display = 'none'
+                  ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                    down
                   navList.get(v).isExtend = false
                 }
               })
-              extendSet.clear();
-              extendSet.add(BLOCK);
-              navList.get(BLOCK).isExtend = true;
-              (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.position = 'relative';
-              (<HTMLUListElement>document.getElementById(`_${BLOCK}`)).style.display = 'block';
-              if(navList.get(BLOCK).hasChildren){ 
-                (<HTMLImageElement>document.getElementById(`__${BLOCK}`)).src = up;
+              extendSet.clear()
+              extendSet.add(BLOCK)
+              navList.get(BLOCK).isExtend = true
+              ;(
+                document.getElementById(`_${BLOCK}`) as HTMLUListElement
+              ).style.position = 'relative'
+              ;(
+                document.getElementById(`_${BLOCK}`) as HTMLUListElement
+              ).style.display = 'block'
+              if (navList.get(BLOCK).hasChildren) {
+                ;(
+                  document.getElementById(`__${BLOCK}`) as HTMLImageElement
+                ).src = up
               }
-              // @ts-ignore
+              // @ts-expect-error
               navBar.selectedPage = PAGE
-              // @ts-ignore
+              // @ts-expect-error
               // document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
             }
           }
-          
-          if(extendMap.has(currentPage)) {
+
+          if (extendMap.has(currentPage)) {
             let extendPage = extendMap.get(currentPage)
-            extendSet.forEach(v => {
-              if(navList.get(v).hasChildren){
-                (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+            extendSet.forEach((v) => {
+              if (navList.get(v).hasChildren) {
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.position = 'absolute'
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.display = 'none'
+                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                  down
                 navList.get(v).isExtend = false
               }
             })
-            extendSet.clear();
-            extendSet.add(extendPage);
-            navList.get(extendPage).isExtend = true;
-            (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.position = 'relative';
-            (<HTMLUListElement>document.getElementById(`_${extendPage}`)).style.display = 'block';
-            if(navList.get(extendPage).hasChildren){ 
-              (<HTMLImageElement>document.getElementById(`__${extendPage}`)).src = up;
+            extendSet.clear()
+            extendSet.add(extendPage)
+            navList.get(extendPage).isExtend = true
+            ;(
+              document.getElementById(`_${extendPage}`) as HTMLUListElement
+            ).style.position = 'relative'
+            ;(
+              document.getElementById(`_${extendPage}`) as HTMLUListElement
+            ).style.display = 'block'
+            if (navList.get(extendPage).hasChildren) {
+              ;(
+                document.getElementById(`__${extendPage}`) as HTMLImageElement
+              ).src = up
             }
-            // @ts-ignore
+            // @ts-expect-error
             window.navBar.selectedPage = currentPage
           }
 
-          if(optsList.has(currentPage) && !optsList.get(currentPage)?.hasChildren) {
-            extendSet.forEach(v => {
-              if(navList.get(v).hasChildren){
-                (<HTMLUListElement>document.getElementById(`_${v}`)).style.position = 'absolute';
-                (<HTMLUListElement>document.getElementById(`_${v}`)).style.display = 'none';
-                (<HTMLImageElement>document.getElementById(`__${v}`)).src = down;
+          if (
+            optsList.has(currentPage) &&
+            !optsList.get(currentPage)?.hasChildren
+          ) {
+            extendSet.forEach((v) => {
+              if (navList.get(v).hasChildren) {
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.position = 'absolute'
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.display = 'none'
+                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                  down
                 navList.get(v).isExtend = false
               }
-              extendSet.clear();
-              // @ts-ignore
+              extendSet.clear()
+              // @ts-expect-error
               window.navBar.selectedPage = currentPage
             })
           }
 
-          // @ts-ignore
-          if(navBar.selectedPage) {
+          // @ts-expect-error
+          if (navBar.selectedPage) {
             try {
-              // @ts-ignore
-              document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
-            } catch (error) {
-              
-            }
+              // @ts-expect-error
+              document.getElementById(
+                `_${navBar.selectedPage}_`,
+              ).style.background = '#1871b3'
+            } catch (error) {}
           }
         }
 
-        if(img.complete) {
+        if (img.complete) {
           draw()
         } else {
           img.onload = () => {

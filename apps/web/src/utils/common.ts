@@ -8,15 +8,15 @@ import { ActionMetadata } from '../app/types'
 import log from '../log'
 
 export function getActionMetadata<PKey extends string = string>(
-  action: NUIAction | nt.ActionObject | undefined,
+  action: nt.ActionObject | NUIAction | undefined,
   {
     component,
     pickKeys,
     ...other
-  }: {
-    component?: NuiComponent.Instance | nt.ComponentObject
+  }: Partial<Record<string, any>> & {
+    component?: nt.ComponentObject | NuiComponent.Instance
     pickKeys?: PKey | PKey[]
-  } & Partial<Record<string, any>> = {},
+  } = {},
 ) {
   const metadata = {
     action: {} as any,
@@ -146,6 +146,35 @@ export function logError(err?: any) {
   log.log(`[${err.name}] ${err.message}`, err.stack)
 }
 
+/**
+ * Sorts a list of objects by priority. Each item in the list is an object with an optional `priority` property with a value as a number between 1 and 5. 1 indicates the highest priority.
+ */
+export function sortByPriority<
+  O extends Record<string, any> & { priority?: number },
+>(objs: O[]) {
+  return objs.sort((obj1, obj2) => {
+    if (u.isObj(obj1)) {
+      if (u.isObj(obj2)) {
+        if ('priority' in obj1) {
+          if ('priority' in obj2) {
+            return (obj1.priority as number) > (obj2.priority as number)
+              ? 1
+              : -1
+          }
+          return -1
+        } else if ('priority' in obj2) {
+          return 1
+        }
+      } else {
+        return -1
+      }
+    } else if (u.isObj(obj2)) {
+      return 1
+    }
+    return 0
+  })
+}
+
 export function throwError(err?: any) {
   if (err) {
     if (err instanceof Error) throw err
@@ -153,4 +182,3 @@ export function throwError(err?: any) {
   }
   throw new Error('Error occurred')
 }
-

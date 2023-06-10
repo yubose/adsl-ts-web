@@ -56,7 +56,19 @@ function createAppDebugger({
   })
 
   function _findMatchingFileName(filepaths, n) {
-    return filepaths.find((fp) => fp.includes(n))
+    return filepaths.find((fp) => {
+      const isMatch = path.basename(fp, path.extname(fp)) === n
+      if (isMatch) {
+        console.log(
+          `[createAppDebugger] Found matching filepath "${fp}" for file name "${n}".`,
+        )
+      } else {
+        console.log(
+          `[createAppDebugger] Could not find a matching filepath for file name "${n}".`,
+        )
+      }
+      return isMatch
+    })
   }
 
   function _getRouteFilePath(r, ext = '') {

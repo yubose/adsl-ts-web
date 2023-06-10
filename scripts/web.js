@@ -62,6 +62,7 @@ if (cli.flags.deploy) {
       env.ECOS_ENV = 'test'
       cmd += 'ECOS_ENV=test '
     } else {
+      execSync(`cd apps/web/ && npm version patch -f && cd ../..`)
       env.ECOS_ENV = 'stable'
       cmd += 'ECOS_ENV=stable '
     }

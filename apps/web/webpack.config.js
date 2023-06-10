@@ -12,7 +12,7 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
-const TerserPlugin = require("terser-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin')
 const serializeErr = (err) => ({
   name: err.name,
   message: err.message,
@@ -75,7 +75,7 @@ function getWebpackConfig(env) {
     mode === 'production' ? `[name].[contenthash].js` : '[name].js'
 
   if (!Number.isNaN(pkgVersionRev)) {
-    buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
+    buildVersion = [...pkgVersionPaths, pkgVersionRev].join('.')
   }
 
   const version = {
@@ -153,25 +153,24 @@ function getWebpackConfig(env) {
     test: /\.ts$/,
     use: [
       {
-        loader: path.resolve(__dirname, "./dropConsole.js"),
+        loader: path.resolve(__dirname, './dropConsole.js'),
         options: {
-          name: "web"
-        }
+          name: 'web',
+        },
       },
     ],
   }
-  let arrObject = [];
-  (mode==="production")&&arrObject.push(obj);
+  let arrObject = []
+  mode === 'production' && arrObject.push(obj)
 
   let headers = {
     'Access-Control-Allow-Credentials': true,
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers':
       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-  };
-  (mode==="production")&&(headers['Cache-Control']='max-age=86400');
+  }
+  mode === 'production' && (headers['Cache-Control'] = 'max-age=86400')
   const webpackOptions = {
-  
     entry: {
       main: [
         process.env.SAMPLE
@@ -201,8 +200,8 @@ function getWebpackConfig(env) {
       host: '127.0.0.1',
       hot: 'only',
       headers: headers,
-      client:{
-        overlay: false
+      client: {
+        overlay: false,
       },
       port: 3000,
       ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
@@ -304,7 +303,7 @@ function getWebpackConfig(env) {
             '@aitmed/ecos-lvl2-sdk': version.lvl2,
             '@aitmed/cadl': version.lvl3,
             'noodl-types': version.noodlTypes,
-            'noodl-ui': version.noodlUi
+            'noodl-ui': version.noodlUi,
           },
           timestamp: new Date().toLocaleString(),
         },
@@ -381,9 +380,9 @@ function getWebpackConfig(env) {
         []),
       new webpack.DefinePlugin({
         'process.env': {
-          NODE_ENV: JSON.stringify(process.env.NODE_ENV)
-        }
-      })
+          NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+        },
+      }),
     ],
     optimization:
       mode === 'production'
@@ -391,15 +390,17 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
-            minimizer: [new TerserPlugin({
-              terserOptions:{
-              warnings: false,
-              compress: {
-                      drop_console: false,
-                      drop_debugger: false
-                    }
-              }
-            })],
+            minimizer: [
+              new TerserPlugin({
+                terserOptions: {
+                  warnings: false,
+                  compress: {
+                    drop_console: false,
+                    drop_debugger: false,
+                  },
+                },
+              }),
+            ],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
@@ -423,7 +424,6 @@ function getWebpackConfig(env) {
                 },
               },
             },
-
           }
         : undefined,
   }

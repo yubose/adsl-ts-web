@@ -50,6 +50,7 @@ import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
+import * as c from '../constants'
 import Cropper from 'cropperjs'
 
 const _pick = pickActionKey
@@ -153,9 +154,14 @@ const createActions = function createActions(app: App) {
                   const isPossiblyGoto =
                     'goto' in result || 'destination' in result
 
-                  if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                  if (
+                    isPossiblyAction ||
+                    isPossiblyToastMsg ||
+                    isPossiblyGoto
+                  ) {
                     if (isPossiblyGoto) {
-                      const destination = result.goto || result.destination || ''
+                      const destination =
+                        result.goto || result.destination || ''
                       const pageComponentParent = findParent(
                         options?.component,
                         is.component.page,
@@ -187,7 +193,6 @@ const createActions = function createActions(app: App) {
                 }
               }
             }
-
 
             // log.debug(`Emitted`, {
             //   action: action?.snapshot?.(),
@@ -379,17 +384,27 @@ const createActions = function createActions(app: App) {
   const goto: Store.ActionObject['fn'] = createActionHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
-      
-      if(_pick(action, 'blank')&&u.isStr(goto)){
-        app.disableSpinner();
-        options.ref?.abort();
-        let a = document.createElement("a");
-        a.style.display = "none"
-        a.href = goto;
-        a.target="_blank"
+
+      const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
+        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+      )
+      const startSlownessMark = app.ecosLogger.createSlownessMetricStartMark(
+        c.perf.slowness.goto,
+        {
+          detail: goto && u.isStr(goto) ? { destination: goto } : undefined,
+        },
+      )
+
+      if (_pick(action, 'blank') && u.isStr(goto)) {
+        app.disableSpinner()
+        options.ref?.abort() as any
+        let a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = goto
+        a.target = '_blank'
         a.click()
-        a = null as any;
-        return;
+        a = null as any
+        return
       }
       let ndomPage = pickNDOMPageFromOptions(options)
       let destProps: ReturnType<typeof app.parse.destination>
@@ -420,9 +435,9 @@ const createActions = function createActions(app: App) {
             })
           : destinationParam,
       )
-      if(destinationParam.startsWith('blob') ){
-        app.disableSpinner();
-        return void window.open(destProps.destination, '_blank');
+      if (destinationParam.startsWith('blob')) {
+        app.disableSpinner()
+        return void window.open(destProps.destination, '_blank')
       }
       let { destination, id = '', isSamePage, duration } = destProps
 
@@ -450,7 +465,17 @@ const createActions = function createActions(app: App) {
           }
         }
       }
-     
+      if (_pick(action, 'blank') && u.isStr(goto)) {
+        let a = document.createElement('a')
+        a.style.display = 'none'
+        app.disableSpinner()
+        options.ref?.abort() as any
+        a.href = destProps.destination
+        a.target = '_blank'
+        a.click()
+        a = null as any
+        return
+      }
       if (u.isObj(goto?.dataIn)) {
         const dataIn = goto.dataIn
         'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
@@ -552,7 +577,7 @@ const createActions = function createActions(app: App) {
           ndomPage,
           destination,
           { isGoto: true },
-          destinationParam.startsWith('http')? true : false,
+          destinationParam.startsWith('http') ? true : false,
         )
         if (!destination) {
           log.error(
@@ -561,29 +586,59 @@ const createActions = function createActions(app: App) {
           )
         }
       }
+
+      const endSlownessMark = app.ecosLogger.createSlownessMetricEndMark(
+        c.perf.slowness.goto,
+      )
+
+      const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+      )
+
+      try {
+        await Promise.all([
+          app.ecosLogger.createSlownessMetricDocument({
+            metricName: c.perf.slowness.goto,
+            start: startSlownessMark,
+            end: endSlownessMark,
+          }),
+          app.ecosLogger.createMemoryUsageMetricDocument({
+            metricName: c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+            start: startMemUsageMark,
+            end: endMemUsageMark,
+          }),
+        ])
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.error(err)
+      }
     }),
   )
 
-  const getBlob = (file:File | undefined,action,options):Promise<Blob>=>{
-    return new Promise((res,rej)=>{
-      let blob:Blob = new Blob();
-      let img = document.createElement("img") as HTMLImageElement;
-      let rootDom = document.getElementsByTagName("body")[0];
-      let titleText = document.createElement("h4") as HTMLHeadingElement;
-      let divRootDom = document.createElement("div") as HTMLDivElement;
-      let divImgDom = document.createElement("div") as HTMLDivElement;
-      let btnResult = document.createElement("button") as HTMLButtonElement;
-      let btnCancel = document.createElement("button") as HTMLButtonElement;
-      let divDom = document.createElement("div") as HTMLDivElement;
-      let divBtn = document.createElement("div") as HTMLDivElement;
-      let cropper;
-        titleText.innerHTML = "Upload Files"
-        btnResult.textContent = "Confirm";
-        btnCancel.textContent = "Cancel";
-        divRootDom.setAttribute("id","rootDom");
-        let w = document.documentElement.scrollWidth;
-        let h = document.documentElement.scrollHeight;
-        divRootDom.style.cssText = `
+  const getBlob = async (
+    file: File | undefined,
+    action,
+    options,
+  ): Promise<Blob> => {
+    return new Promise((res, rej) => {
+      let blob: Blob = new Blob()
+      let img = document.createElement('img') as HTMLImageElement
+      let rootDom = document.getElementsByTagName('body')[0]
+      let titleText = document.createElement('h4') as HTMLHeadingElement
+      let divRootDom = document.createElement('div') as HTMLDivElement
+      let divImgDom = document.createElement('div') as HTMLDivElement
+      let btnResult = document.createElement('button') as HTMLButtonElement
+      let btnCancel = document.createElement('button') as HTMLButtonElement
+      let divDom = document.createElement('div') as HTMLDivElement
+      let divBtn = document.createElement('div') as HTMLDivElement
+      let cropper
+      titleText.innerHTML = 'Upload Files'
+      btnResult.textContent = 'Confirm'
+      btnCancel.textContent = 'Cancel'
+      divRootDom.setAttribute('id', 'rootDom')
+      let w = document.documentElement.scrollWidth
+      let h = document.documentElement.scrollHeight
+      divRootDom.style.cssText = `
             position: relative;
             background-color: rgba(0,0,0,0.3);
             z-index: 10000000;
@@ -742,7 +797,7 @@ const createActions = function createActions(app: App) {
   }
   const _getInjectBlob: (
     name: string,
-  ) => Store.ActionObject['fn'] | Function = (name) =>
+  ) => Function | Store.ActionObject['fn'] = (name) =>
     // true?function hh(){}:
     async function getInjectBlob(action, options) {
       options.ref?.clear('timeout')
@@ -761,7 +816,7 @@ const createActions = function createActions(app: App) {
           const shearState = _pick(action, 'shearState')
           let fileRell: File | undefined
 
-          if (Boolean(shearState)) {
+          if (shearState) {
             const hreFile = await getBlob(files?.[0], action, options)
             fileRell = new File(
               [hreFile],
@@ -781,10 +836,10 @@ const createActions = function createActions(app: App) {
               app.updateRoot(downloadStatus, status)
             }
             if (fileType) {
-              log.error('files');
-              log.error(files);
+              log.error('files')
+              log.error(files)
 
-const type = files?.[0]?.name.split('.').at(-1)
+              const type = files?.[0]?.name.split('.').at(-1)
               ac.data.set(fileType, type)
               app.updateRoot(fileType, type)
             }
@@ -803,7 +858,7 @@ const type = files?.[0]?.name.split('.').at(-1)
                 })
                 app.updateRoot(dataKey, ac.data.get(dataKey))
 
-     break
+                break
               } else {
                 await imageConversion
                   .compressAccurately(fileRell || ac.data.get(dataKey), size)
@@ -944,12 +999,15 @@ const type = files?.[0]?.name.split('.').at(-1)
 
           if (elem?.style) {
             if (is.action.popUp(action) && !u.isNum(_pick(action, 'wait'))) {
-              let inp_dom:NodeListOf<HTMLInputElement> = elem.querySelectorAll("input");
-              for(let di_inp of inp_dom){
-                if((di_inp as HTMLInputElement).getAttribute("showSoftInput")){
-                    setTimeout(()=>{
-                      di_inp?.focus();
-                    },100)
+              let inp_dom: NodeListOf<HTMLInputElement> =
+                elem.querySelectorAll('input')
+              for (let di_inp of inp_dom) {
+                if (
+                  (di_inp as HTMLInputElement).getAttribute('showSoftInput')
+                ) {
+                  setTimeout(() => {
+                    di_inp?.focus()
+                  }, 100)
                 }
               }
               show(elem)
@@ -1030,7 +1088,7 @@ const type = files?.[0]?.name.split('.').at(-1)
                   `waiting on a response. Aborting now...`,
                 action?.snapshot?.(),
               )
-              ref?.abort?.()
+              ref?.abort?.() as any
               resolve()
             }
           } else {
@@ -1075,7 +1133,6 @@ const type = files?.[0]?.name.split('.').at(-1)
             }
           }
         })
-
       } catch (error) {
         reject(error instanceof Error ? error : new Error(String(error)))
       }
@@ -1148,7 +1205,7 @@ const type = files?.[0]?.name.split('.').at(-1)
       }
     } catch (error) {
       toast((error as Error).message, { type: 'error' })
-      ref?.abort?.()
+      ref?.abort?.() as any
     }
   }
   const scanCamera: Store.ActionObject['fn'] = async function onscanCamera(
@@ -1491,12 +1548,14 @@ const type = files?.[0]?.name.split('.').at(-1)
       }
     }
 
-  const updateGlobal:Store.ActionObject['fn'] =
-    async function onUpdateGlobal(action,options){
-      await app?.noodl?.dispatch({
-          type: 'UPDATE_LOCAL_STORAGE'
-        })
-    }
+  const updateGlobal: Store.ActionObject['fn'] = async function onUpdateGlobal(
+    action,
+    options,
+  ) {
+    await app?.noodl?.dispatch({
+      type: 'UPDATE_LOCAL_STORAGE',
+    })
+  }
 
   return {
     anonymous,

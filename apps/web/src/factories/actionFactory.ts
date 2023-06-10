@@ -16,80 +16,38 @@ import type {
 } from 'noodl-ui'
 import type App from '../App'
 import log from '../log'
+import type {
+  MiddlewareConfig,
+  MiddlewareActionHandlerArgs,
+  MiddlewareFnOptions,
+} from '../handlers/shared/middlewares'
 
 export type ActionKind = 'action' | 'builtIn'
-
-export type ActionHandlerArgs =
-  | [destination: string, rest: any]
-  | [obj: NUIActionObject | { pageName: string; goto: string }, rest: any]
-  | Parameters<Store.ActionObject['fn']>
-  | Parameters<Store.BuiltInObject['fn']>
-
-export interface MiddlewareObject {
-  id: string
-  fn: MiddlewareFn | null
-}
-
-export interface MiddlewareFn {
-  (args: ActionHandlerArgs, options: MiddlewareFnOptions): Promise<void> | void
-}
-
-export interface MiddlewareFnOptions {
-  app: App
-}
 
 export type StoreActionObject<
   T extends Exclude<NUIActionGroupedType, 'anonymous'> | 'builtIn' | 'emit',
 > = T extends 'builtIn' ? Store.BuiltInObject : Store.ActionObject<T>
 
-class Middleware {
-  #id = ''
-  #middleware: MiddlewareObject
-  #run: MiddlewareObject['fn']
-
-  constructor(middleware: MiddlewareObject) {
-    this.#id = middleware?.id
-    this.#middleware = middleware
-    this.#run = middleware.fn
-  }
-
-  run(args: any[]) {
-    // this.#run(args)
-    return args
-  }
-}
-
 export function actionFactory(app: App) {
-  const middlewares = [] as MiddlewareObject[]
+  const middlewares = [] as MiddlewareConfig[]
 
-  /**
-   * @param { ActionHandlerArgs } args
-   * @returns { Promise<any>[] }
-   */
-  async function runMiddleware(args: ActionHandlerArgs) {
-    for (const middleware of middlewares) {
-      const control = await middleware.fn?.(args, { app })
-      if (control) {
-        if (control === 'abort') return 'abort'
-      }
-    }
-    return args
+  function isCondTrue(
+    cond: MiddlewareConfig['cond'],
+    args: MiddlewareActionHandlerArgs,
+  ) {
+    return u.isFnc(cond) && cond(args) === true
   }
 
-  /**
-   * Adds a new middleware object containing the function which will be called
-   * with the incoming args when actions call their handlers
-   * @param { string } id
-   * @param { MiddlewareFn } fn
-   */
-  // @ts-expect-error
-  function _createMiddleware(id: string, fn?: MiddlewareFn): Middleware
-  function _createMiddleware(fn: MiddlewareFn): Middleware
-  function _createMiddleware(id: string | MiddlewareFn, fn?: MiddlewareFn) {
-    middlewares.push({
-      id: u.isStr(id) ? id : '',
-      fn: u.isFnc(id) ? id : u.isFnc(fn) ? fn : null,
-    })
+  async function runMiddlewareEndFns(
+    middlewares: MiddlewareConfig[],
+    args: MiddlewareActionHandlerArgs,
+    opts: MiddlewareFnOptions,
+  ) {
+    return Promise.all(
+      middlewares.map(
+        (m) => u.isFnc(m.end) && isCondTrue(m.cond, args) && m.end(args, opts),
+      ),
+    )
   }
 
   /**
@@ -99,11 +57,11 @@ export function actionFactory(app: App) {
    */
   // @ts-expect-error
   function _createActionHandler(
-    kind?: 'action' | Store.ActionObject['fn'],
+    kind?: Store.ActionObject['fn'] | 'action',
   ): Store.ActionObject['fn']
 
   function _createActionHandler(
-    kind: 'builtIn' | Store.BuiltInObject['fn'] | never,
+    kind: Store.BuiltInObject['fn'] | never | 'builtIn',
     fn?: Store.BuiltInObject['fn'],
   ): Store.BuiltInObject['fn']
 
@@ -140,9 +98,9 @@ export function actionFactory(app: App) {
         : K extends 'builtIn'
         ? Store.BuiltInObject['fn']
         :
+            | NUIActionObject
             | Store.ActionObject['fn']
             | Store.BuiltInObject['fn']
-            | NUIActionObject
             | string,
       options?: ConsumerOptions,
       ...rest: any[]
@@ -156,15 +114,32 @@ export function actionFactory(app: App) {
         )
       }
 
-      try {
-        const args = [action, options, ...rest]
-        const res = await runMiddleware(args as ActionHandlerArgs)
-        if (res === 'abort') return
-        // @ts-expect-error
-        return _fn?.(...args)
-      } catch (error) {
-        throw error instanceof Error ? error : new Error(String(error))
+      let context = {} as any
+      let control: any
+
+      // @ts-expect-error
+      const args = [action, options, ...rest] as MiddlewareActionHandlerArgs
+      const opts = { app, context } as MiddlewareFnOptions
+
+      for (const middleware of middlewares) {
+        if (!isCondTrue(middleware.cond, args)) {
+          continue
+        } else {
+          control = await middleware.fn?.(args, opts)
+          if (control === 'abort') break
+        }
       }
+
+      let result: any
+
+      if (control !== 'abort') {
+        // @ts-expect-error
+        result = await _fn?.(...args)
+      }
+
+      await runMiddlewareEndFns(middlewares, args, opts)
+
+      return result
     }
   }
 
@@ -175,10 +150,8 @@ export function actionFactory(app: App) {
     createBuiltInHandler(fn: Store.ActionObject['fn']) {
       return _createActionHandler('builtIn', fn)
     },
-    createMiddleware(idProp: string | MiddlewareFn, fnProp?: MiddlewareFn) {
-      const id = u.isStr(idProp) ? idProp : ''
-      const fn = u.isFnc(idProp) ? idProp : u.isFnc(fnProp) ? fnProp : null
-      if (fn) _createMiddleware(id, fn)
+    createMiddleware(middleware: MiddlewareConfig) {
+      middlewares.push(middleware)
     },
   }
 

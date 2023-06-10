@@ -241,6 +241,12 @@ export function getWindowDebugUtils(app: App) {
     get uid() {
       return app.root.Global?.currentUser?.vertex?.uid
     },
+    uint8ArrayToBase64: (data: Uint8Array) =>
+      btoa(
+        Array.from(data)
+          .map((c) => String.fromCharCode(c))
+          .join(''),
+      ),
   }
 
   return o
