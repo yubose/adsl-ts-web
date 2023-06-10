@@ -18,8 +18,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         contentType: "html",
                         text: opts.config.title+str,
                         style: {
-                            marginTop: "15px",
-                            marginBottom: "15px",
+                            marginTop: "0.01",
+                            // marginBottom: "15px",
                             color: "#333333",
                             fontSize: "=..formData.atrribute.noodl_font.text",
                             fontWeight: 600
@@ -50,7 +50,15 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         style: {
                             display: "=..formData.atrribute.is_read",
                             wordWrap: "break-word",
-                            marginTop: "15px"
+                            marginTop: "0.01",
+                            width: "calc(100%)",
+                            height: "auto",
+                            lineHeight: "40px",
+                            outline: "none",
+                            border: "2px solid #DEDEDE",
+                            borderWidth: "thin",
+                            borderRadius: "4px",
+                            boxSizing: "border-box"
                         } 
                     }
                 ]
@@ -68,8 +76,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         contentType: "html",
                         text: opts.config.title+str,
                         style: {
-                            marginTop: "15px",
-                            marginBottom: "15px",
+                            marginTop: "0.01",
+                            // marginBottom: "15px",
                             color: "#333333",
                             fontSize: "=..formData.atrribute.noodl_font.text",
                             fontWeight: 600
@@ -92,7 +100,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             border: "2px solid #DEDEDE",
                             borderWidth: "thin",
                             borderRadius: "4px",
-                            lineHeight: "40px"
+                            lineHeight: "40px",
                         }
                     },
                     {
@@ -101,7 +109,16 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         style: {
                             display: "=..formData.atrribute.is_read",
                             wordWrap: "break-word",
-                            marginTop: "15px"
+                            marginTop: "0.01",
+                            // minHeight: "80px",
+                            width: "calc(100%)",
+                            height: "auto",
+                            lineHeight: "40px",
+                            outline: "none",
+                            border: "2px solid #DEDEDE",
+                            borderWidth: "thin",
+                            borderRadius: "4px",
+                            boxSizing: "border-box"
                         } 
                     }
                 ]

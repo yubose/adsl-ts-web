@@ -17,9 +17,6 @@ const getYaml = (editor: IDomEditor) => {
 
         BaseJsonCopy.components = jsonFix
 
-        // console.log(yaml.stringify(BaseJsonCopy.formData))
-        // console.log(yaml.stringify(BaseJsonCopy.components))
-
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components
@@ -332,7 +329,8 @@ const populateBlock = (obj, BaseJsonCopy) => {
                         type: "view",
                         style: {
                             display: "inline-block",
-                            whiteSpace: "pre"
+                            whiteSpace: "pre",
+                            marginTop: "0.01"
                         },
                         children: [
                             {
@@ -359,8 +357,8 @@ const populateBlock = (obj, BaseJsonCopy) => {
                                 text: "=..formData.data." + KEY,
                                 style: {
                                     display: "=..formData.atrribute.is_read",
-                                    height: "40px",
-                                    lineHeight: "40px"
+                                    // height: "40px",
+                                    // lineHeight: "40px"
                                 } 
                             }
                         ]
@@ -397,8 +395,11 @@ const populateBlock = (obj, BaseJsonCopy) => {
                     target = {
                         type: typeConfig.get(obj.type),
                         style: {
-                            with: "calc(100%)",
-                            marginTop: "15px"
+                            width: "calc(100%)",
+                            marginTop: "0.01",
+                            height: "auto",
+                            display: "flex",
+                            alignItems: "center"
                         }
                     }
                     if(typeStyle.has(obj.type)) {
@@ -415,14 +416,16 @@ const populateBlock = (obj, BaseJsonCopy) => {
                     break;
             }
         } else {
+            if(obj.text === '') return {}
             target = {
                 type: "label",
                 text: obj.text,
                 style: {
-                    height: "40px",
-                    lineHeight: "40px",
+                    // height: "40px",
+                    // lineHeight: "40px",
                     display: "inline-block",
-                    whiteSpace: "pre"
+                    whiteSpace: "pre",
+                    marginTop: "0.01"
                 }
             }
             Object.keys(obj).forEach(key => {

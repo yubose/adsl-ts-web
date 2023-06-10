@@ -53,9 +53,14 @@ const FacilityInfo = [
                         "text": ""
                     }
                 ]
-            },
+            }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
             {
-                "text": "        Email: "
+                "text": "Email: "
             },
             {
                 "type": "atblock",
@@ -65,9 +70,6 @@ const FacilityInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
     },
@@ -85,9 +87,14 @@ const FacilityInfo = [
                         "text": ""
                     }
                 ]
-            },
+            }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
             {
-                "text": "             Website:"
+                "text": "Website:"
             },
             {
                 "type": "atblock",
@@ -97,12 +104,9 @@ const FacilityInfo = [
                         "text": ""
                     }
                 ]
-            },
-            {
-                "text": ""
             }
         ]
-    }
+    },
 ]
 
 const PatientInfo = [
