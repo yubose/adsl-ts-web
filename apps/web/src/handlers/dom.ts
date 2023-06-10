@@ -2274,7 +2274,7 @@ const createExtendedDOMResolvers = function (app: App) {
           // console.log("TEST", {node}, component)
           let strictLength = {
             max: Number.MAX_VALUE,
-            min: 0
+            min: 1
           }
           if(component.props.strictLength) {
             if(component.props.strictLength.max) {
@@ -2289,7 +2289,92 @@ const createExtendedDOMResolvers = function (app: App) {
           let borderColor = (node as HTMLInputElement).style.borderColor
 
           let tips = document.createElement("div")
-          tips.innerText = "3 characters minimum"
+          tips.innerText = `${strictLength.min} characters minimum`
+          tips.style.cssText = `
+            position: absolute;
+            top: ${node.offsetTop + node.offsetHeight}px;
+            left: ${node.offsetLeft}px;
+            font-size: 12px;
+            color: #ff0000;
+            display: none;
+          `
+          const strict = () => {
+            const value = (node as HTMLInputElement).value
+            if(value.length < strictLength.min) {
+              (node as HTMLInputElement).style.borderColor = "#ff0000";
+              tips.style.display = "block"
+              oldValue = value;
+            } else if(value.length > strictLength.max) {
+              (node as HTMLInputElement).value = oldValue;
+            } else {
+              (node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = "none"
+              oldValue = value
+            }
+          }
+          let isFocus = false
+          parentNode.appendChild(tips)
+          node.addEventListener('focus', () => {
+            isFocus = true
+          })
+          node.addEventListener('blur', () => {
+            if(isFocus) {
+              strict()
+              isFocus = false
+            }
+          })
+          node.addEventListener('input', strict)
+
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+                strict()
+              }
+            });
+          })
+
+          observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['style']
+          })
+
+        } else {
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+                ? contentType
+                : 'text',
+          )
+        }
+      }
+    },
+    '[App] strictLength textView': {
+      cond: 'textView',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictLength') {
+          // console.log("TEST", {node}, component)
+          let strictLength = {
+            max: Number.MAX_VALUE,
+            min: 1
+          }
+          if(component.props.strictLength) {
+            if(component.props.strictLength.max) {
+              strictLength.max = component.props.strictLength.max
+            }
+            if(component.props.strictLength.min) {
+              strictLength.min = component.props.strictLength.min
+            }
+          }
+          const parentNode = node.parentElement as HTMLElement;
+          let oldValue = ''
+          let borderColor = (node as HTMLInputElement).style.borderColor
+
+          let tips = document.createElement("div")
+          tips.innerText = `${strictLength.min} characters minimum`
           tips.style.cssText = `
             position: absolute;
             top: ${node.offsetTop + node.offsetHeight}px;

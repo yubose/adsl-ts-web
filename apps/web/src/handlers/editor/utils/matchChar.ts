@@ -106,7 +106,6 @@ export const matchBlock = (html) => {
 
     const atBlockReg = new RegExp(REG.replace(/--type--/g, 'atblock').replace(/--key--/g, `@[\\w '\\(\\)]+`), 'g')
     const atKeywords = html.match(atBlockReg)
-    // console.log(atBlockReg, atKeywords)
     atKeywords && atKeywords.forEach(item => {
         const texts = item.match(/>@[\w '\(\)]+</g)
         const text = texts[0].replace(/[@><]/g, '')
@@ -117,7 +116,7 @@ export const matchBlock = (html) => {
             )
     })
 
-    const sharpTextBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w*]+:[^:]+:[^:]+`), 'g')
+    const sharpTextBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w*]+:[^":]+:[^":]+`), 'g')
     const sharpTextKeywords = html.match(sharpTextBlockReg)
     sharpTextKeywords && sharpTextKeywords.forEach(item => {
         const texts = item.match(/>#[\w*]+:[^:]+:[^:]+</g)

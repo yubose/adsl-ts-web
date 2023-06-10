@@ -9,7 +9,6 @@ const sharpHtml = (opts: SharpOption) => {
                     <div style="
                         margin: 15px 0;
                         color:#333333;
-                        font-size: 1.039vw;
                         font-weight: 600;
                     ">${opts.config.title}</div>
                     <textarea 
@@ -38,7 +37,6 @@ const sharpHtml = (opts: SharpOption) => {
                     <div style="
                         margin: 15px 0;
                         color:#333333;
-                        font-size: 1.039vw;
                         font-weight: 600;
                     ">${opts.config.title}</div>
                     <input 
@@ -65,7 +63,6 @@ const sharpHtml = (opts: SharpOption) => {
                 `
                 <div style="
                     color: #333333;
-                    font-size: 1.039vw;
                     font-weight: 600;
                     wordBreak: keep-all
                 ">

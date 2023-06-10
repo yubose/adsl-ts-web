@@ -3,6 +3,7 @@ import formatKey from "../utils/format"
 
 const sharpYaml = (opts: SharpYamlOption) => {
     let str = opts.isRequired ? `<span style="color:red"> *</span>` : ''
+    let contentType = opts.isRequired ? 'strictLength' : null
     switch (opts.type) {
         case "textField": 
             return {
@@ -29,6 +30,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         dataKey: "formData.data." + formatKey(opts.config.title as string),
                         value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
+                        contentType,
                         style: {
                             display: `=..formData.atrribute.is_edit`,
                             minHeight: "40px",
@@ -78,6 +80,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         dataKey: "formData.data." + formatKey(opts.config.title as string),
                         value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
+                        contentType,
                         style: {
                             display: `=..formData.atrribute.is_edit`,
                             minHeight: "80px",
