@@ -1,7 +1,6 @@
 import { IToolbarConfig, Boot, IModalMenu, IModuleConf, IDomEditor, SlateTransforms } from "@wangeditor/editor";
 import DefaultButton from "./class/Button/defaultButton";
 import DefaultSelect from "./class/Select/defaultSelect";
-import keypress from "@atslotus/keypress"
 import { inputPopUp } from "./utils/popUp";
 import searchPopUp from "./utils/search";
 import getImageObject from "./utils/svg";
@@ -11,8 +10,6 @@ import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
 import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./utils/info";
 import { insertNode } from "./utils/utils";
-
-const kp = new keypress()
 
 const templateSelect = new DefaultSelect({
     title: 'template',
@@ -91,49 +88,9 @@ const InfoSelect = new DefaultSelect({
                 default:
                     break
             }
+            editor.insertBreak()
+            // editor.focus(true)
         }
-    }
-})
-
-let isUseHotKey = false
-
-kp.listen({
-    type: "keydown",
-    key: ' ',
-    callback: () => {
-        isUseHotKey = true
-    }
-})
-
-kp.listen({
-    type: "keydown",
-    skip: [
-        ' ',
-        'shift@'
-    ],
-    callback: (event) => {
-        if(isUseHotKey) isUseHotKey = false
-    }
-})
-
-kp.listen({
-    type: 'keydown',
-    key: '@',
-    useCombination: 'shift',
-    callback: () => {
-        if(isUseHotKey) {
-            const editor: IDomEditor = window.app.root.editor
-            const selection = editor.selection
-            searchPopUp({
-                editor,
-                selection,
-                isUseHotKey
-            })
-            isUseHotKey = false
-            // editor.insertText(`-editing-@[]-editing-`)
-            // searchPopUp(editor)
-        }
-        // console.log(editor.selection)
     }
 })
 

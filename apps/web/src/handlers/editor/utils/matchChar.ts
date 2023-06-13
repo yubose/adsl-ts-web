@@ -102,9 +102,13 @@ export const matchChar = (html) => {
 // const sharpBlockReg = /<button is-sharp>#[\w*]+:[^:]+:[^:]+<\/button>/g
 
 export const matchBlock = (html) => {
-    const REG = `<span data-w-e-type="--type--" data-w-e-is-void data-w-e-is-inline data-value="--key--">--key--<\/span>`
+    const REG = `<span data-w-e-type="--type--" data-w-e-is-void --isInline-- data-value="--key--">--key--<\/span>`
 
-    const atBlockReg = new RegExp(REG.replace(/--type--/g, 'atblock').replace(/--key--/g, `@[\\w '\\(\\)]+`), 'g')
+    const atBlockReg = new RegExp(
+        REG
+        .replace(/--type--/g, 'atblock')
+        .replace(/--key--/g, `@[\\w '\\(\\)]+`)
+        .replace(/--isInline--/g, `data-w-e-is-inline`), 'g')
     const atKeywords = html.match(atBlockReg)
     atKeywords && atKeywords.forEach(item => {
         const texts = item.match(/>@[\w '\(\)]+</g)
@@ -116,7 +120,11 @@ export const matchBlock = (html) => {
             )
     })
 
-    const sharpTextBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w*]+:[^":]+:[^":]+`), 'g')
+    const sharpTextBlockReg = new RegExp(
+        REG
+        .replace(/--type--/g, 'sharpblock')
+        .replace(/--key--/g, `#[\\w*]+:[^":]+:[^":]+`)
+        .replace(/--isInline-- /g, ``), 'g')
     const sharpTextKeywords = html.match(sharpTextBlockReg)
     sharpTextKeywords && sharpTextKeywords.forEach(item => {
         const texts = item.match(/>#[\w*]+:[^:]+:[^:]+</g)
@@ -141,7 +149,11 @@ export const matchBlock = (html) => {
             </div>`)
     })
 
-    const SharpBlockReg = new RegExp(REG.replace(/--type--/g, 'sharpblock').replace(/--key--/g, `#[\\w]+`), 'g')
+    const SharpBlockReg = new RegExp(
+        REG
+        .replace(/--type--/g, 'sharpblock')
+        .replace(/--key--/g, `#[\\w]+`)
+        .replace(/--isInline-- /g, ``), 'g')
     const sharpKeywords = html.match(SharpBlockReg)
     sharpKeywords && sharpKeywords.forEach(item => {
         const text = item.match(/>#[\w]+</g)[0].replace(/[#><]/g, '')

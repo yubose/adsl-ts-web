@@ -76,10 +76,14 @@ const searchPopUp = ({
             </div>
         `,
         customClass: {
-            htmlContainer: "w-e_search-container"
+            htmlContainer: "w-e_search-container",
+            closeButton: "w-editor_popup_close",
+            container: "w-editor_swal_container"
         },
+        showCloseButton: true,
         width: 600,
-        showConfirmButton: false
+        showConfirmButton: false,
+        allowOutsideClick: false
     }).then(res => {
         // console.log(res)
         // @ts-ignore

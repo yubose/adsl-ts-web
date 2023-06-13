@@ -47,7 +47,7 @@ const FacilityInfo = [
             },
             {
                 "type": "atblock",
-                "value": "@Main Phone Number",
+                "value": "@Main Number",
                 "children": [
                     {
                         "text": ""
@@ -148,7 +148,7 @@ const PatientInfo = [
         "type": "paragraph",
         "children": [
             {
-                "text": "Data of Birth:    "
+                "text": "Date of Birth:    "
             },
             {
                 "type": "atblock",
@@ -169,7 +169,7 @@ const PatientInfo = [
             },
             {
                 "type": "atblock",
-                "value": "@Patient Alternate Phone Number",
+                "value": "@Patient Phone Number",
                 "children": [
                     {
                         "text": ""
@@ -325,7 +325,7 @@ const ProviderInfo = [
             },
             {
                 "type": "atblock",
-                "value": "@Main Phone Number",
+                "value": "@Main Number",
                 "children": [
                     {
                         "text": ""

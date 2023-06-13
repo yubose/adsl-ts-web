@@ -43,6 +43,12 @@ const styleText = `
     overflow-x: hidden;
 }
 
+.w-editor_swal_container{
+    width: @[SWAL_WIDTH];
+    margin: auto;
+    padding-left: @[SWAL_LEFT];
+}
+
 .w-editor_popup_confirm {
     background: #005795 !important;
     outline: none;
@@ -65,10 +71,10 @@ const styleText = `
 
 .w-editor_popup_close {
     outline: none;
-    width: 30px;
-    height: 30px;
-    margin-top: 10px;
-    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    margin-top: 15px;
+    margin-right: 15px;
 }
 
 .w-editor_popup_close:focus {
@@ -126,7 +132,7 @@ const styleText = `
 }
 
 .w-e_search-display .title {
-    height: 60px;
+    height: 50px;
     display: flex;
     align-items: center;
     margin-left: 20px;
@@ -204,6 +210,7 @@ const editorHtml = `
     height: 100%;
 }
 #toolbar-container { border-bottom: 1px solid #ccc; }
+#editor-container { height: 400px; }
 
 #preViewBox {
     width: ${previewRatio}%;

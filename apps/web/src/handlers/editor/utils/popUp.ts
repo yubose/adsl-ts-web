@@ -7,7 +7,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
 
     const isChange = target instanceof HTMLElement
     let title = ''
-    let placeholder = ''
+    let placeholder = 'Enter here'
     let isRequired = ''
     if(isChange) {
         title = target.innerText.split(/:/)[1];
@@ -45,6 +45,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
                     border-style: solid;
                     border-width: thin;
                     border-radius: 4px;
+                    margin-top: 6px;
                 "
                 id="w-editor_title"
                 placeholder="Enter here",
@@ -57,7 +58,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
                 color:#33333;
                 font-size: 1.039vw;
                 font-weight: 600;
-            ">Placeholder</div>
+            ">Prompt text</div>
             <textarea 
                 style="
                     box-sizing: border-box;
@@ -71,6 +72,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
                     border-width: thin;
                     border-radius: 4px;
                     line-height: 40px;
+                    margin-top: 6px;
                 "
                 id="w-editor_placeholder"
                 placeholder="Enter here",
@@ -103,11 +105,13 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
         confirmButtonText: "Confirm",
         cancelButtonText: "Cancel",
         reverseButtons: true,
+        allowOutsideClick: false,
         customClass: {
             confirmButton: "w-editor_popup_confirm",
             cancelButton: "w-editor_popup_cancel",
             closeButton: "w-editor_popup_close",
-            actions: "w-editor_popup_actions"
+            actions: "w-editor_popup_actions",
+            container: "w-editor_swal_container"
         },
         preConfirm: ()=>{
             let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
@@ -120,7 +124,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             }
         }
     }).then(res => {
-        console.log(res)
+        // console.log(res)
         // let html = editor.getHtml()
         let s = ''
         if(res.isConfirmed){
@@ -139,7 +143,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             //     `#[${type}:editableTitle:editableText]`
             // )
             // s = `#[${type}:Title:Enter here]`
-            s = `#${type}:Title:Enter here`
+            // s = `#${type}:Title:Enter here`
+            s = ``
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "close") {
             // html = html.replace(

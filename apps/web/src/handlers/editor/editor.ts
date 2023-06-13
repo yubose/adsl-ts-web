@@ -2,6 +2,7 @@ import { IEditorConfig } from "@wangeditor/editor"
 
 const editorConfig: Partial<IEditorConfig> = {
     placeholder: 'Type here...',
+    autoFocus: true,
     hoverbarKeys: {
         // link: {
         //     menuKeys: []

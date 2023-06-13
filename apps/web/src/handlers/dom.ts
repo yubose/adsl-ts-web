@@ -45,6 +45,8 @@ import editorConfig from "./editor/editor"
 import toolbarConfig from "./editor/toolbar"
 import { matchBlock, matchChar } from './editor/utils/matchChar'
 import getYaml from './editor/getYaml/getYaml'
+import keypress from "@atslotus/keypress"
+import searchPopUp from './editor/utils/search'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -3961,7 +3963,11 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: "editor",
       resolve({ node, component }) {
         let style = document.createElement("style") as HTMLStyleElement
-        style.innerHTML = styleText
+        const ROOT_CHILD = document.getElementById("root")?.children[0] as HTMLDivElement
+        style.innerHTML = 
+          styleText
+          .replace("@[SWAL_WIDTH]", `${ROOT_CHILD.clientWidth}px`)
+          .replace("@[SWAL_LEFT]", `${0.16 * ROOT_CHILD.clientWidth}px`)
         document.body.appendChild(style)
         node.style.width = "100%"
         node.style.height = "100%"
@@ -3986,6 +3992,50 @@ const createExtendedDOMResolvers = function (app: App) {
         `
         node.appendChild(img)
 
+        const kp = new keypress()
+        let isUseHotKey = false;
+
+        kp.clean()
+        kp.listen({
+            type: "keydown",
+            key: ' ',
+            callback: () => {
+                isUseHotKey = true
+            }
+        })
+
+        kp.listen({
+            type: "keydown",
+            skip: [
+                ' ',
+                'shift@'
+            ],
+            callback: (event) => {
+                if(isUseHotKey) isUseHotKey = false
+            }
+        })
+
+        kp.listen({
+            type: 'keydown',
+            key: '@',
+            useCombination: 'shift',
+            callback: () => {
+                if(isUseHotKey) {
+                    const editor: IDomEditor = window.app.root.editor
+                    const selection = editor.selection
+                    searchPopUp({
+                        editor,
+                        selection,
+                        isUseHotKey
+                    })
+                    isUseHotKey = false
+                    // editor.insertText(`-editing-@[]-editing-`)
+                    // searchPopUp(editor)
+                }
+                // console.log(editor.selection)
+            }
+        })
+        
         let isExpend = true
 
         img.addEventListener("click", ()=> {
@@ -4048,7 +4098,8 @@ const createExtendedDOMResolvers = function (app: App) {
             const templateInfo = get(app.root, component.get('data-key'))
             if(templateInfo.title && templateInfo.title !== '') {
               editor.focus()
-              editor.dangerouslyInsertHtml(templateInfo.html)
+              // editor.dangerouslyInsertHtml(templateInfo.html)
+              editor.setHtml(templateInfo.html)
               app.updateRoot(draft => {
                 set(draft, component.get("data-key"), {
                   html: editor.getHtml(),
@@ -4059,6 +4110,7 @@ const createExtendedDOMResolvers = function (app: App) {
             if(!timer) {
               clearTimeout(timer)
             }
+            editor.focus(true)
           } else {
             timer = setTimeout(calculateHeight, 0)
           }
