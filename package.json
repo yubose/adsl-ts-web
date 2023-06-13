@@ -38,7 +38,7 @@
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.4.23",
+    "@aitmed/cadl": "^1.4.25",
     "@aitmed/ecos-lvl2-sdk": "^1.4.246",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
@@ -71,7 +71,7 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
     "winston": "^3.8.1",
-    "yaml": "^2.1.0"
+    "yaml": "^2.3.1"
   },
   "eslintConfig": {
     "root": true,
@@ -186,6 +186,7 @@
   "dependencies": {
     "html5-qrcode": "^2.2.1",
     "noodl-types": "^1.0.264",
-    "noodl-ui": "^0.1.1132"
+    "noodl-ui": "^0.1.1132",
+    "sweetalert2": "^11.7.6"
   }
 }

@@ -48,15 +48,14 @@ import is from '../utils/is'
 import App from '../App'
 import { useGotoSpinner } from './shared/goto'
 import {
-  LocalAudioTrack,
-  LocalAudioTrackPublication,
-  LocalVideoTrack,
-  LocalVideoTrackPublication,
-  Room,
-} from '../app/types'
-import type { Format as PdfPageFormat } from '../modules/ExportPdf'
+	LocalAudioTrack,
+	LocalAudioTrackPublication,
+	LocalVideoTrack,
+	LocalVideoTrackPublication,
+	Room,
+} from "../app/types";
+import type { Format as PdfPageFormat } from "../modules/ExportPdf";
 import * as c from '../constants'
-
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
