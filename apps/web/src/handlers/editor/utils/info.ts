@@ -291,7 +291,7 @@ const ProviderInfo = [
             },
             {
                 "type": "atblock",
-                "value": "@Facility Email",
+                "value": "@Provider Email",
                 "children": [
                     {
                         "text": ""

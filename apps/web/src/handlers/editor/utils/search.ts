@@ -15,7 +15,7 @@ const searchPopUp = ({
     selection, 
     isChange?: boolean, 
     isUseHotKey?: boolean
-}) => {    
+}) => {   
     Swal.fire({
         html: `
             <div>
@@ -95,6 +95,7 @@ const searchPopUp = ({
     })
     const input = document.getElementById("w-e_search-search") as HTMLInputElement
     const content = document.getElementById("w-e_search-content") as HTMLDivElement
+    input.focus()
     if(input.value === '') {
         const res = search(input.value)
         content.innerHTML = res;

@@ -1,9 +1,14 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
+import { Calculate, getCalc } from "./calculate"
 import { SharpType } from "./config"
+import formatKey from "./format"
+import getTitleList from "./getTitleList"
 import { insertNode, insertText } from "./utils"
 
 const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
+
+    const calc = getCalc() as Calculate
 
     const isChange = target instanceof HTMLElement
     let title = ''
@@ -48,9 +53,15 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
                     margin-top: 6px;
                 "
                 id="w-editor_title"
-                placeholder="Enter here",
+                placeholder="Enter here"
                 value="${title}"
             />
+            <div id="w-editor_tip" style="
+                font-size: 12px;
+                color: red;
+                text-align: start;
+                display: none
+            "></div>
             <div style="
                 text-align: start;
                 margin-top: 10px;
@@ -118,7 +129,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             let placeholder = (<HTMLInputElement>document.getElementById("w-editor_placeholder")).value
             let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
             return {
-                title: title === '' ? 'Title' : title,
+                title: title === '' ? `Title${calc.count}` : title,
                 placeholder: placeholder == '' ? 'Enter here' : placeholder,
                 required
             }
@@ -136,6 +147,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             // )
             // s = `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
             s = `#${type}${str}:${res.value?.title}:${res.value?.placeholder}`
+            !isChange && calc.add()
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "cancel") {
             // html = html.replace(
@@ -161,6 +173,39 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
 
         /* block */
         insertNode(editor, "sharpblock", s, selection, isChange)
+    })
+
+    const duplicateStr = `There are duplicate keywords`
+    const titleStr = `Enter a title, please`
+
+    const titleList = getTitleList(editor)
+    isChange && titleList.delete(formatKey(title))
+    const tip = document.getElementById("w-editor_tip") as HTMLDivElement
+    const titleInput = document.getElementById("w-editor_title") as HTMLInputElement
+    titleInput.focus()
+    if(titleInput.value === '') {
+        tip.style.display = "block"
+        titleInput.style.borderColor = "#ff0000"
+        tip.innerText = titleStr
+        Swal.disableButtons()
+    }
+    titleInput.addEventListener("input", () => {
+        const title = titleInput.value
+        if(titleList.has(formatKey(title))) {
+            tip.style.display = "block"
+            titleInput.style.borderColor = "#ff0000"
+            tip.innerText = duplicateStr
+            Swal.disableButtons()
+        } else if(title === '') {
+            tip.style.display = "block"
+            titleInput.style.borderColor = "#ff0000"
+            tip.innerText = titleStr
+            Swal.disableButtons()
+        } else {
+            tip.style.display = "none"
+            titleInput.style.borderColor = "rgb(222,222,222)"
+            Swal.enableButtons()
+        }
     })
 }
 

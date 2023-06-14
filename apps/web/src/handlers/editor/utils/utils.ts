@@ -18,18 +18,21 @@ const isInlineList = new Set(["divider", "sharpblock"])
 const insertNode = (editor: IDomEditor, type: string, value: string, selection, isChange: boolean = false) => {
 
     const ischangeNode = (isInline: boolean) => {
+        let isInsertBreak = true
         if(!isInline) {
             if(isChange) {
-                editor.deleteBackward("block")
+                editor.deleteBackward("word")
                 let html = HTML
                     .replace(/--type--/g, type)
                     .replace(/--key--/g, value)
                     .replace(/--isInline-- /g, "")
                 editor.dangerouslyInsertHtml(html)
+                editor.select(selection)
             } else {
                 const selectNode = editor.getFragment()
                 // @ts-ignore
                 if(isInlineList.has(selectNode[0].type)) {
+                    isInsertBreak = false
                     insertBreak(editor)
                 }
                 const node = {
@@ -42,8 +45,9 @@ const insertNode = (editor: IDomEditor, type: string, value: string, selection, 
                     ]
                 }
                 editor.insertNode(node)
+                // insertBreak(editor)
             }
-            insertBreak(editor)
+            isInsertBreak && insertBreak(editor)
         } else {
             isChange && editor.deleteBackward("block")
             let html = HTML
@@ -53,10 +57,10 @@ const insertNode = (editor: IDomEditor, type: string, value: string, selection, 
             editor.dangerouslyInsertHtml(html)
         }
     }
-
+    editor.focus()
+    editor.select(selection)
     if(value !== ''){
-        editor.focus()
-        editor.select(selection)
+        
         if(type === "sharpblock"){
             ischangeNode(false)
         }

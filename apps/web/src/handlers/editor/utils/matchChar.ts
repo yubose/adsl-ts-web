@@ -131,7 +131,7 @@ export const matchBlock = (html) => {
         const text = texts[0].replace(/[#><]/g, '')
         const arr = text.split(/:/g)
         html = sharpHtml({
-            type: arr[0].replace(/\*/g, '') as SharpType,
+            type: arr[0] as SharpType,
             html: html,
             split: item,
             config: {
@@ -139,14 +139,13 @@ export const matchBlock = (html) => {
                 placeholder: arr[2] as string
             }
         })
-        if(arr[0].endsWith('*')) 
-            html = html.replace(arr[1], `
-            <div style="
-                color:#333333;
-                font-size: 1.039vw;
-                font-weight: 600;
-            "><span>${arr[1]} </span><span style="color: red"> *</span>
-            </div>`)
+        // if(arr[0].endsWith('*')) 
+        //     html = html.replace(arr[1], `
+        //     <div style="
+        //         color:#333333;
+        //         font-weight: 600;
+        //     "><span>${arr[1]} </span><span style="color: red"> *</span>
+        //     </div>`)
     })
 
     const SharpBlockReg = new RegExp(
