@@ -338,9 +338,9 @@ const createExtendedDOMResolvers = function (app: App) {
                       grid: {
                         show: true,
                         top: '20%',
-                        left: '10%',
-                        right: '15%',
-                        bottom: '3%',
+                        left: '0',
+                        // right: '15%',
+                        // bottom: '3%',
                         containLabel: true,
                       },
                       legend: {
@@ -642,7 +642,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                       setting = settingWeek as any
                     }
-                    console.log(settingWeek.series[0]['data'])
+                    console.log(settingWeek.series)
                     //@ts-expect-error
 
                     setting.yAxis.max =
@@ -687,9 +687,9 @@ const createExtendedDOMResolvers = function (app: App) {
                       grid: {
                         show: true,
                         top: '20%',
-                        left: '10%',
-                        right: '15%',
-                        bottom: '3%',
+                        left: '0',
+                        // right: '15%',
+                        // bottom: '3%',
                         containLabel: true,
                         // width: "820px",
                         // height: "280px"
@@ -916,10 +916,385 @@ const createExtendedDOMResolvers = function (app: App) {
 
                     setting = settingDay as any
                   } else if (dataValue.dateType === 'month') {
-                  }
-                  // console.log( Math.max(...["33","66","67","33","99"]))
+                    
+                    let settingMonth = {
+                      title: {
+                        show: true,
+                        text: '',
+                        x: 'center', //'5' | '5%'，title 组件离容器左侧的距离
+                        // right: 'auto',//'title 组件离容器右侧的距离
+                        top: '8%', //title 组件离容器上侧的距离
+                        // bottom: 'auto',//title 组件离容器下侧的距离
+                        textStyle: {
+                          color: ' #000', //字体颜色
+                          fontStyle: 'bold', //字体风格
+                          fontWeight: 'normal', //字体粗细
+                          fontFamily: 'sans-serif', //文字字体
+                          fontSize: 18, //字体大小
+                        },
+                      },
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'cross',
+                          axis: 'auto',
+                          snap: true,
+                          showContent: true,
+                        },
+                        textStyle: {
+                          color: '#000', // 文字的颜色
+                          fontStyle: 'normal', // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal', // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                        },
+                      },
+                      grid: {
+                        show: true,
+                        top: '20%',
+                        left: '0',
+                        // right: '15%',
+                        // bottom: '3%',
+                        containLabel: true,
+                      },
+                      legend: {
+                        orient: 'horizontal',
+                        x: 'left',
+                        y: 'top',
+                        data: [],
+                      },
+                      xAxis: {
+                        type: 'category',
+                        name: 'Time',
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        axisLabel: {
+                          rotate: 45,
+                          interval: 0,  
+                        },
+                        // boundaryGap: false,
+                        data: null,
+                        splitLine: {
+                          //网格线
+                          lineStyle: {
+                            type: 'dashed', //设置网格线类型 dotted：虚线   solid:实线
+                          },
+                          show: true, //隐藏或显示
+                        },
+                      },
+                      dataZoom: [
+                        {
+                          type: 'inside',
+                          startValue: 0,
+                          endValue: 6,
+                          smooth: true,
+                          // handleSize: '100%', // 设置滑动条的宽度，使其覆盖整个区域
+                          realtime: true, // 实时更新图表显示
+                          xAxisIndex: [0],
+                          // minSpan: 5, // 设置最小缩放程度为1个数据点
+                          moveOnMouseMove: true,
+                          moveOnMouseWheel: false,
+                          zoomOnMouseWheel: true
+                        },
+                      ],
+                      yAxis: {
+                        name: '',
+                        type: 'value',
+                        min: 0,
+                        max: 500,
+                        splitNumber: 10,
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        axisLabel: {
+                          color: 'rgb(51, 102, 204)',
+                        },
+                      },
+                      // height: "80%",
+                      series: [],
+                    }
+                    const getDateX = ()=>{
+                      const arr:string[] = [];
+                      // for (let index = 0; index < 6; index++) {
+                      //   arr.unshift(moment().subtract(index ===5 ?30: index*7,"days").format("MM-DD"))
+                      // }
+                      for (let index = 0; index < 31; index++) {
+                        arr.unshift(moment().subtract(index,"days").format("MM-DD"))
+                      }
+                      return arr
+                    }
+                    // settingMonth.xAxis.data =  getSmartDate() as any
+                    settingMonth.xAxis.data =   getDateX() as any
+                    if (dataValue.dataType == '371201') {
+                      settingMonth.title.text = 'Blood Pressure'
+                      settingMonth.yAxis.name = 'mmHg'
+                      settingMonth.yAxis.max = dataType[dataValue.dataType][3]
 
+                      settingMonth.yAxis.axisLabel.color = function (v) {
+                        if (v == 80 || v == 120) {
+                          return '#48aaff'
+                        } else {
+                          return 'rgb(51, 102, 204)'
+                        }
+                      } as any
+                      //@ts-expect-error
+                      settingMonth.legend.data.push('Systolic', 'Diastolic')
+                      //@ts-expect-error
+                      settingMonth.series.push(
+                        {
+                          name: 'Systolic',
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                                position: 'top',
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 80,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          name: 'Diastolic',
+                          type: dataValue.type,
+                          symbol: 'circle',
+                          symbolSize: 8,
+                          // "smooth": 0.5,
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                                position: 'top',
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 120,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                          data: [],
+                        }
+                      )
+                      ;(settingMonth.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element]['Systolic'] = []
+                        _dateTempObj[element]['Diastolic'] = []
+                      })
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = moment(_stamp * 1000).format("MM-DD");
+                        _dateTempObj[signal]['Systolic']?.push(
+                          get(item, 'name.data.heightBloodPressure'),
+                        )
+                        _dateTempObj[signal]['Diastolic']?.push(
+                          get(item, 'name.data.lowBloodPressure'),
+                        )
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (item['Systolic'].length > 0) {
+                          // @ts-expect-error
+                          settingMonth.series[0]['data'].push(
+                            (
+                              item['Systolic']?.reduce((e, f) => +e + +f) /
+                              item['Systolic'].length
+                            ).toFixed(),
+                          )
+                          // @ts-expect-error
+                          settingMonth.series[1]['data'].push(
+                            (
+                              item['Diastolic']?.reduce((e, f) => +e + +f) /
+                              item['Diastolic'].length
+                            ).toFixed(),
+                          )
+                        } else {
+                          ;(settingMonth.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                          ;(settingMonth.series[1]['data'] as any[]).push(
+                            undefined,
+                          )
+                        }
+                      })
+
+                      setting = settingMonth as any
+                    } else {
+                      settingMonth.title.text = dataType[dataValue.dataType][0]
+                      settingMonth.yAxis.name = dataType[dataValue.dataType][1]
+                      settingMonth.yAxis.max = dataType[dataValue.dataType][3]
+                      if (dataValue.dataType == '373761') {
+                        settingMonth.yAxis.axisLabel.color = function (v) {
+                          if (v == 100) {
+                            return '#48aaff'
+                          } else {
+                            return 'rgb(51, 102, 204)'
+                          }
+                        } as any
+                      }
+                      //@ts-expect-error
+                      settingMonth.series.push({
+                        name: dataType[dataValue.dataType][0],
+                        type: dataValue.type,
+                        symbolSize: 8,
+                        data: [],
+                        connectNulls: true,
+                        itemStyle: {
+                          normal: {
+                            label: {
+                              show: true,
+                              position: 'center',
+                            },
+                            lineStyle: {
+                              width: 2,
+                              type: 'solid',
+                            },
+                          },
+                        },
+                        markLine: {
+                          //设置标记线
+                          symbol: ['none', 'none'], // 去掉箭头
+                          label: {
+                            show: false,
+                          },
+                          data: [
+                            {
+                              // type: 'average',
+                              name: '阈值',
+                              // show: false,
+                              yAxis: 100,
+                              //设置标记点的样式
+                              lineStyle: {
+                                normal: { type: 'solid', color: '#48aaff' },
+                              },
+                            },
+                          ],
+                        },
+                      })
+                      ;
+                      (settingMonth.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element][
+                          `${dataType[dataValue.dataType][0]}`
+                        ] = []
+                      })
+
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = moment(_stamp * 1000).format("MM-DD");
+                        if (dataValue.dataType == '386561') {
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2][0]}`,
+                            ) +
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
+                          )
+                        } else {
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2]}`,
+                            ),
+                          )
+                        }
+                      })
+
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (
+                          item[`${dataType[dataValue.dataType][0]}`].length > 0
+                        ) {
+                          let cum =
+                            item[`${dataType[dataValue.dataType][0]}`].reduce(
+                              (e, f) => +e + +f,
+                            ) /
+                            item[`${dataType[dataValue.dataType][0]}`].length
+                          if (dataValue.dataType == '381441') {
+                            // @ts-expect-error
+                            settingMonth.series[0]['data'].push(cum.toFixed(1))
+                          } else {
+                            // @ts-expect-error
+                            settingMonth.series[0]['data'].push(cum.toFixed())
+                          }
+                        } else {
+                          ;(settingMonth.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                        }
+                      })
+                      setting = settingMonth as any
+                    }
+                    //@ts-expect-error
+                    setting.yAxis.max =
+                      Math.max(
+                        ...settingMonth.series[0]['data'].filter((x) => x),
+                      ) + 50
+
+                  }
                   //@ts-expect-error
+                  // setting.height =  "80%";
+                  setting!.grid!.left =  "3%";
+                  setting!.grid!.bottom =  "2%";
                   let myChart = echarts.init(node)
                   dataValue && myChart.setOption(setting)
                 } catch (error) {

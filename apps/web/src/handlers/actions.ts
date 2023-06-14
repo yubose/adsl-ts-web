@@ -52,6 +52,7 @@ import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
 import * as c from '../constants'
 import Cropper from 'cropperjs'
+import Papa from 'papaparse'
 
 const _pick = pickActionKey
 const _has = pickHasActionKey
@@ -767,6 +768,10 @@ const createActions = function createActions(app: App) {
     })
   }
   const requireCsv = async (files, dataKey, ac, comp) => {
+    const parseCSV = (datacsv,csvTitleKbn:string[])=>{
+      const result = Papa.parse(datacsv, { header: true, transformHeader: (_, index) => csvTitleKbn[index] ,  skipEmptyLines: true});
+      return result.data;
+    }
     const CSVToJSON = (data, csvTitleKbn: string[], delimiter = ',') => {
       let hanleData: string[] = data.slice(data.indexOf('\n') + 1).split('\n')
       return hanleData.filter(Boolean).map((v) => {
@@ -786,11 +791,13 @@ const createActions = function createActions(app: App) {
     let result = new Promise((res) => {
       reader.addEventListener('load', (csvText: ProgressEvent<FileReader>) => {
         // 将CSV文本转换为JSON数据
-        const jsonFromCsvFile = CSVToJSON(
-          csvText.target?.result,
-          comp.get('data-option') as string[],
-        )
-        res(jsonFromCsvFile)
+        // const jsonFromCsvFile = CSVToJSON(
+        //   csvText.target?.result,
+        //   comp.get('data-option') as string[],
+        // )
+        const parseCSVData = parseCSV(csvText.target?.result, comp.get('data-option') as string[]);
+
+        res(parseCSVData)
       })
     })
     return await result
