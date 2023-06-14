@@ -47,6 +47,7 @@ import { matchBlock, matchChar } from './editor/utils/matchChar'
 import getYaml from './editor/getYaml/getYaml'
 import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
+import { CalculateInit } from './editor/utils/calculate'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -4367,48 +4368,57 @@ const createExtendedDOMResolvers = function (app: App) {
         `
         node.appendChild(img)
 
+        CalculateInit()
+
         const kp = new keypress()
         let isUseHotKey = false;
 
+        const id = node.id
+
         kp.clean()
         kp.listen({
-            type: "keydown",
-            key: ' ',
-            callback: () => {
-                isUseHotKey = true
+          type: "keydown",
+          key: ' ',
+          callback: () => {
+            // console.log(document.getElementById(id))
+            if(document.getElementById(id) !== null)
+              isUseHotKey = true
+            else {
+              kp.clean()
             }
+          }
         })
 
         kp.listen({
-            type: "keydown",
-            skip: [
-                ' ',
-                'shift@'
-            ],
-            callback: (event) => {
-                if(isUseHotKey) isUseHotKey = false
-            }
+          type: "keydown",
+          skip: [
+            ' ',
+            'shift@'
+          ],
+          callback: (event) => {
+            if(isUseHotKey) isUseHotKey = false
+          }
         })
 
         kp.listen({
-            type: 'keydown',
-            key: '@',
-            useCombination: 'shift',
-            callback: () => {
-                if(isUseHotKey) {
-                    const editor: IDomEditor = window.app.root.editor
-                    const selection = editor.selection
-                    searchPopUp({
-                        editor,
-                        selection,
-                        isUseHotKey
-                    })
-                    isUseHotKey = false
-                    // editor.insertText(`-editing-@[]-editing-`)
-                    // searchPopUp(editor)
-                }
-                // console.log(editor.selection)
+          type: 'keydown',
+          key: '@',
+          useCombination: 'shift',
+          callback: () => {
+          if(isUseHotKey) {
+              const editor: IDomEditor = window.app.root.editor
+              const selection = editor.selection
+              searchPopUp({
+                  editor,
+                  selection,
+                  isUseHotKey
+              })
+              isUseHotKey = false
+              // editor.insertText(`-editing-@[]-editing-`)
+              // searchPopUp(editor)
             }
+              // console.log(editor.selection)
+          }
         })
         
         let isExpend = true

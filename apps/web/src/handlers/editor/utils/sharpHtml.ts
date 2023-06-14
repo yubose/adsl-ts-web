@@ -1,8 +1,12 @@
 import { SharpOption, SharpType } from "./config"
 
 const sharpHtml = (opts: SharpOption) => {
-    switch (opts.type) {
+    let Asterisk = ``
+    let type = opts.type.replace(/\*/g, '')
+    switch (type) {
         case "textView":
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
             return opts.html.replace(
                 opts.split, 
                 `<div style="margin: 15px 0;">
@@ -10,7 +14,7 @@ const sharpHtml = (opts: SharpOption) => {
                         margin: 15px 0;
                         color:#333333;
                         font-weight: 600;
-                    ">${opts.config.title}</div>
+                    ">${opts.config.title}${Asterisk}</div>
                     <textarea 
                         type="text" 
                         style="
@@ -31,6 +35,8 @@ const sharpHtml = (opts: SharpOption) => {
                 </div>`
             )
         case "textField": 
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
             return opts.html.replace(
                 opts.split,
                 `<div style="margin: 15px 0;">
@@ -38,7 +44,7 @@ const sharpHtml = (opts: SharpOption) => {
                         margin: 15px 0;
                         color:#333333;
                         font-weight: 600;
-                    ">${opts.config.title}</div>
+                    ">${opts.config.title}${Asterisk}</div>
                     <input 
                         type="text" 
                         style="

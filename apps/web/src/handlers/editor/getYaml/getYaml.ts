@@ -2,7 +2,7 @@ import { IDomEditor } from "@wangeditor/editor";
 // import atMap from "../formDataMap/atMap";
 import { deepCopy } from "../utils/deepCopy";
 import BaseJson from "./BaseJson";
-import * as yaml from "yaml"
+// import * as yaml from "yaml"
 import sharpYaml from "./sharpYaml";
 import { SharpType } from "../utils/config";
 // import DataSource from "../dataSource/data";
@@ -19,7 +19,8 @@ const getYaml = (editor: IDomEditor) => {
 
         return {
             data: BaseJsonCopy.formData,
-            components: BaseJsonCopy.components
+            components: BaseJsonCopy.components,
+            required: BaseJsonCopy.required
         }
 
         // return {
@@ -328,45 +329,69 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                 case "atblock":
                     const KEY = formatKey(obj.value.replace('@', ''))
                     BaseJsonCopy.formData[KEY] = ``
-                    target = {
-                        type: "view",
-                        style: {
-                            display: "inline-block",
-                            // whiteSpace: "pre",
-                            // marginTop: "0.01"
-                        },
-                        children: [
-                            {
-                                type: "textField",
-                                dataKey: "formData.data." + KEY,
-                                value: "formData.data." + KEY,
-                                placeholder: "Enter here",
-                                style: {
-                                    display: `..formData.atrribute.is_edit`,
-                                    width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                    // height: "40px",
-                                    boxSizing: "border-box",
-                                    textIndent: "0.8em",
-                                    color: "#333333",
-                                    outline: "none",
-                                    border: "1px solid #DEDEDE",
-                                    borderWidth: "thin",
-                                    borderRadius: "4px",
-                                    // lineHeight: "40px"
-                                    lineHeight: "..formData.atrribute.noodl_font.lineHeight"
-                                }
+                    if(KEY === "DateOrDateOfService") {
+                        target = {
+                            type: "view",
+                            style: {
+                                display: "inline-block",
+                                // whiteSpace: "pre",
+                                // marginTop: "0.01"
                             },
-                            {
-                                type: "label",
-                                text: "=..formData.data." + KEY,
-                                style: {
-                                    display: "..formData.atrribute.is_read",
-                                    // height: "40px",
-                                    // lineHeight: "40px"
-                                } 
-                            }
-                        ]
+                            children: [
+                                {
+                                    type: "label",
+                                    dataKey: "formData.data." + KEY,
+                                    style: {
+                                        // display: "..formData.atrribute.is_read",
+                                        // height: "40px",
+                                        // lineHeight: "40px"
+                                    } 
+                                }
+                            ]
+                        }
+                    } else {
+                        target = {
+                            type: "view",
+                            style: {
+                                display: "inline-block",
+                                // whiteSpace: "pre",
+                                // marginTop: "0.01"
+                            },
+                            children: [
+                                {
+                                    type: "textField",
+                                    dataKey: "formData.data." + KEY,
+                                    value: "formData.data." + KEY,
+                                    placeholder: "Enter here",
+                                    style: {
+                                        display: `..formData.atrribute.is_edit`,
+                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
+                                        // height: "40px",
+                                        boxSizing: "border-box",
+                                        textIndent: "0.8em",
+                                        color: "#333333",
+                                        outline: "none",
+                                        border: "1px solid #DEDEDE",
+                                        borderWidth: "thin",
+                                        borderRadius: "4px",
+                                        // lineHeight: "40px"
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                                    }
+                                },
+                                {
+                                    type: "label",
+                                    dataKey: "formData.data." + KEY,
+                                    text: "--",
+                                    style: {
+                                        display: "..formData.atrribute.is_read",
+                                        // height: "40px",
+                                        // lineHeight: "40px"
+                                    } 
+                                }
+                            ]
+                        }
                     }
+                    
                     break;
                 case "sharpblock": 
                     if(/#[\w*]+:[^:]+:[^:]+/.test(obj.value)) {
@@ -377,7 +402,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                         if(splitArr[0].endsWith("*")) {
                             required = true
                         }
-                        BaseJsonCopy.formData[formatKey(title)] = ``
+                        BaseJsonCopy.formData[formatKey(title, true)] = ``
+                        required && BaseJson.required.push(formatKey(title, true))
                         target = sharpYaml({
                             type: splitArr[0].replace("*", '') as SharpType,
                             config: {
@@ -406,7 +432,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             width: "calc(100%)",
                             marginTop: "0.005",
                             paddingTop: paddingTop,
-                            // height: "..formData.atrribute.noodl_font.lineHeight",
+                            height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "center",
                             fontSize: "..formData.atrribute.noodl_font.text"

@@ -4,6 +4,7 @@ import formatKey from "../utils/format"
 const sharpYaml = (opts: SharpYamlOption) => {
     let str = opts.isRequired ? `<span style="color:red"> *</span>` : ''
     let contentType = opts.isRequired ? 'strictLength' : null
+    let viewTag = opts.isRequired ? `${formatKey(opts.config.title as string)}Tag` : null
     switch (opts.type) {
         case "textField": 
             return {
@@ -27,10 +28,11 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "textField",
-                        dataKey: "formData.data." + formatKey(opts.config.title as string),
-                        value: "formData.data." + formatKey(opts.config.title as string),
+                        dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                        // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         contentType,
+                        viewTag,
                         style: {
                             display: `..formData.atrribute.is_edit`,
                             marginTop: "0.01",
@@ -59,7 +61,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             {
                                 type: "label",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
-                                dataKey: "formData.data." + formatKey(opts.config.title as string),
+                                dataKey: "formData.data." + formatKey(opts.config.title as string, true),
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",
@@ -102,10 +104,11 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "textView",
-                        dataKey: "formData.data." + formatKey(opts.config.title as string),
-                        value: "formData.data." + formatKey(opts.config.title as string),
+                        dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                        // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         contentType,
+                        viewTag,
                         style: {
                             display: `..formData.atrribute.is_edit`,
                             marginTop: "0.01",
@@ -134,7 +137,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             {
                                 type: "label",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
-                                dataKey: "formData.data." + formatKey(opts.config.title as string),
+                                dataKey: "formData.data." + formatKey(opts.config.title as string, true),
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",

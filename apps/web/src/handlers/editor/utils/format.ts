@@ -1,6 +1,6 @@
 const removeReg = /[^\w ]/g
 
-const formatKey = (str: string) => {
+const formatKey = (str: string, isSharp = false) => {
     const arr = str.replace(removeReg, ' ').split(/ /)
     let key = ''
     arr.forEach((item: string) => {
@@ -10,6 +10,7 @@ const formatKey = (str: string) => {
             key += item
         }
     })
+    if(isSharp) key += "Sharp"
     return key
 }
 

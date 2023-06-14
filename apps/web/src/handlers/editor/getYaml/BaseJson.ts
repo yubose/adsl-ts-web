@@ -2,6 +2,7 @@ const BaseJson = {
     formData: {
         
     },
+    required: new Array<string>(),
     components: {
         
     }
