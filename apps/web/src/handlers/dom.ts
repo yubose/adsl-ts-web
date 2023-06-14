@@ -39,6 +39,14 @@ import * as c from '../constants'
 import { cloneDeep } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
+import { editorHtml, styleText }from './editor/editorHtml'
+import { createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
+import editorConfig from "./editor/editor"
+import toolbarConfig from "./editor/toolbar"
+import { matchBlock, matchChar } from './editor/utils/matchChar'
+import getYaml from './editor/getYaml/getYaml'
+import keypress from "@atslotus/keypress"
+import searchPopUp from './editor/utils/search'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -2442,6 +2450,174 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] strictLength textField': {
+      cond: 'textField',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictLength') {
+          let strictLength = {
+            max: Number.MAX_VALUE,
+            min: 1
+          }
+          if(component.props.strictLength) {
+            if(component.props.strictLength.max >= 0) {
+              strictLength.max = component.props.strictLength.max
+            }
+            if(component.props.strictLength.min >= 0) {
+              strictLength.min = component.props.strictLength.min
+            }
+          }
+          const parentNode = node.parentElement as HTMLElement;
+          let oldValue = ''
+          let borderColor = (node as HTMLInputElement).style.borderColor
+
+          let tips = document.createElement("div")
+          tips.innerText = `${strictLength.min} characters minimum`
+          tips.style.cssText = `
+            position: absolute;
+            top: ${node.offsetTop + node.offsetHeight}px;
+            left: ${node.offsetLeft}px;
+            font-size: 12px;
+            color: #ff0000;
+            display: none;
+          `
+          const strict = () => {
+            const value = (node as HTMLInputElement).value
+            if(value.length < strictLength.min) {
+              (node as HTMLInputElement).style.borderColor = "#ff0000";
+              tips.style.display = "block"
+              oldValue = value;
+            } else if(value.length > strictLength.max) {
+              (node as HTMLInputElement).value = oldValue;
+            } else {
+              (node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = "none"
+              oldValue = value
+            }
+          }
+          let isFocus = false
+          parentNode.appendChild(tips)
+          node.addEventListener('focus', () => {
+            isFocus = true
+          })
+          node.addEventListener('blur', () => {
+            if(isFocus) {
+              strict()
+              isFocus = false
+            }
+          })
+          node.addEventListener('input', strict)
+
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+                strict()
+              }
+            });
+          })
+
+          observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['style']
+          })
+
+        } else {
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+                ? contentType
+                : 'text',
+          )
+        }
+      }
+    },
+    '[App] strictLength textView': {
+      cond: 'textView',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictLength') {
+          let strictLength = {
+            max: Number.MAX_VALUE,
+            min: 1
+          }
+          if(component.props.strictLength) {
+            if(component.props.strictLength.max >= 0) {
+              strictLength.max = component.props.strictLength.max
+            }
+            if(component.props.strictLength.min >= 0) {
+              strictLength.min = component.props.strictLength.min
+            }
+          }
+          const parentNode = node.parentElement as HTMLElement;
+          let oldValue = ''
+          let borderColor = (node as HTMLInputElement).style.borderColor
+
+          let tips = document.createElement("div")
+          tips.innerText = `${strictLength.min} characters minimum`
+          tips.style.cssText = `
+            position: absolute;
+            top: ${node.offsetTop + node.offsetHeight}px;
+            left: ${node.offsetLeft}px;
+            font-size: 12px;
+            color: #ff0000;
+            display: none;
+          `
+          const strict = () => {
+            const value = (node as HTMLInputElement).value
+            if(value.length < strictLength.min) {
+              (node as HTMLInputElement).style.borderColor = "#ff0000";
+              tips.style.display = "block"
+              oldValue = value;
+            } else if(value.length > strictLength.max) {
+              (node as HTMLInputElement).value = oldValue;
+            } else {
+              (node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = "none"
+              oldValue = value
+            }
+          }
+          let isFocus = false
+          parentNode.appendChild(tips)
+          node.addEventListener('focus', () => {
+            isFocus = true
+          })
+          node.addEventListener('blur', () => {
+            if(isFocus) {
+              strict()
+              isFocus = false
+            }
+          })
+          node.addEventListener('input', strict)
+
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+                strict()
+              }
+            });
+          })
+
+          observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['style']
+          })
+
+        } else {
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+                ? contentType
+                : 'text',
+          )
+        }
+      }
+    },
     '[App] VideoChat Timer': {
       cond: ({ component: c }) =>
         c.has('text=func') && c.contentType === 'timer',
@@ -3225,11 +3401,7 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         // console.error(component.get('dataKey'))
         let currentPage = app.currentPage
-        console.log('currentPage', currentPage)
-
-        let menuBarInfo = get(app.root, component.get('data-key'))
-        console.log('menuBarInfo', menuBarInfo)
-
+        const menuBarInfo = get(app.root, component.get('data-key'))
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
 
@@ -3568,7 +3740,8 @@ const createExtendedDOMResolvers = function (app: App) {
             app.updateRoot((draft) => {
               set(draft, component.get('data-key'), {
                 pageName: 'ScheduleManagement',
-                isGoto: false
+                isGoto: false,
+                status: true
               })
             })
             if (dom.tagName === 'DIV') {
@@ -3610,6 +3783,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     set(draft, component.get('data-key'), {
                       pageName: value,
                       isGoto: true,
+                      status: true
                     })
                   })
                 }
@@ -3782,8 +3956,216 @@ const createExtendedDOMResolvers = function (app: App) {
             img.onload = null
           }
         }
-      },
+        
+      }
     },
+    '[App editor]': {
+      cond: "editor",
+      resolve({ node, component }) {
+        let style = document.createElement("style") as HTMLStyleElement
+        const ROOT_CHILD = document.getElementById("root")?.children[0] as HTMLDivElement
+        style.innerHTML = 
+          styleText
+          .replace("@[SWAL_WIDTH]", `${ROOT_CHILD.clientWidth}px`)
+          .replace("@[SWAL_LEFT]", `${0.16 * ROOT_CHILD.clientWidth}px`)
+        document.body.appendChild(style)
+        node.style.width = "100%"
+        node.style.height = "100%"
+        node.style.display = "flex"
+        node.style.justifyContent = "center"
+        node.style.alignItems = "center"
+        node.innerHTML = editorHtml;
+
+        // node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-82}px`)
+
+        const assetsUrl = app.nui.getAssetsUrl() || ""
+        const expend = `${assetsUrl}expend.svg`
+        const contract = `${assetsUrl}contract.svg`
+        const img = document.createElement("img") as HTMLImageElement
+        img.src = expend
+        img.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          cursor: pointer;
+          z-index: 1;
+        `
+        node.appendChild(img)
+
+        const kp = new keypress()
+        let isUseHotKey = false;
+
+        kp.clean()
+        kp.listen({
+            type: "keydown",
+            key: ' ',
+            callback: () => {
+                isUseHotKey = true
+            }
+        })
+
+        kp.listen({
+            type: "keydown",
+            skip: [
+                ' ',
+                'shift@'
+            ],
+            callback: (event) => {
+                if(isUseHotKey) isUseHotKey = false
+            }
+        })
+
+        kp.listen({
+            type: 'keydown',
+            key: '@',
+            useCombination: 'shift',
+            callback: () => {
+                if(isUseHotKey) {
+                    const editor: IDomEditor = window.app.root.editor
+                    const selection = editor.selection
+                    searchPopUp({
+                        editor,
+                        selection,
+                        isUseHotKey
+                    })
+                    isUseHotKey = false
+                    // editor.insertText(`-editing-@[]-editing-`)
+                    // searchPopUp(editor)
+                }
+                // console.log(editor.selection)
+            }
+        })
+        
+        let isExpend = true
+
+        img.addEventListener("click", ()=> {
+          if(isExpend) {
+            img.src = contract;
+            (document.getElementById("preViewBox") as HTMLElement).style.display = "none";
+            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "100%";
+            isExpend = false
+          } else {
+            img.src = expend;
+            (document.getElementById("preViewBox") as HTMLElement).style.display = "block";
+            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "45%";
+            isExpend = true
+          }
+        })
+
+        let oldSHA = ''
+        const change = (editor: IDomEditor) => {
+          const str = editor.getHtml()
+          let newSHA = createHash('sha256').update(str).digest('hex')
+          if(newSHA !== oldSHA) {
+            // const oldTemplateInfo = get(app.root, component.get('data-key'))
+            // const html = matchChar(str)
+            const html = matchBlock(str)
+            app.updateRoot(draft => {
+              set(draft, component.get("data-key"), {
+                html: str,
+                yaml: getYaml(editor)
+              })
+            });
+            (document.getElementById("preView") as HTMLDivElement).innerHTML = html
+            oldSHA = newSHA
+          }
+        }
+        editorConfig.onChange = change
+        
+        const editor = createEditor({
+          content: [],
+          selector: '#editor-container',
+          html: '<p><br></p>',
+          config: editorConfig,
+          mode: 'default', // or 'simple'
+        })
+        
+        const toolbar = createToolbar({
+          editor,
+          selector: '#toolbar-container',
+          config: toolbarConfig,
+          mode: 'default', // or 'simple'
+        })
+        
+        let timer
+        const calculateHeight = () => {
+          let toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          if(toolbarDom.clientHeight) {
+            const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
+            (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
+            (document.getElementById("preView") as HTMLDivElement).style.height = height;
+            node.removeEventListener("load", calculateHeight)
+            const templateInfo = get(app.root, component.get('data-key'))
+            if(templateInfo.title && templateInfo.title !== '') {
+              editor.focus()
+              // editor.dangerouslyInsertHtml(templateInfo.html)
+              editor.setHtml(templateInfo.html)
+              app.updateRoot(draft => {
+                set(draft, component.get("data-key"), {
+                  html: editor.getHtml(),
+                  yaml: getYaml(editor)
+                })
+              })
+            }
+            if(!timer) {
+              clearTimeout(timer)
+            }
+            editor.focus(true)
+          } else {
+            timer = setTimeout(calculateHeight, 0)
+          }
+        }
+        calculateHeight()
+
+        // node.addEventListener("load", calculateHeight)
+
+        editor.on("fullScreen", () => {
+          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
+          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
+          if(!editorClass) editorClass = '';
+          if(!previewClass) previewClass = '';
+          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
+          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
+          img.style.display = "none";
+        })
+
+        editor.on("unFullScreen", () => {
+          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
+          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
+          if(!editorClass) editorClass = '';
+          if(!previewClass) previewClass = '';
+          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
+          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
+          img.style.display = "block";
+        })
+
+        i18nChangeLanguage("en")
+
+        app.updateRoot(draft => {
+          set(draft, "editor", editor);
+          set(draft, 'toolbar', toolbar);
+        })
+
+        const resource = i18nGetResources("en")
+        resource.fontSize["default"] = "Font Size"
+
+      }
+    },
+    '[App templateView]': {
+      cond: "templateView",
+      resolve({ node, component }) {
+        const html = get(app.root, component.get('data-key'))
+        const style = `
+          <style>
+            p {
+              margin: 15px 0;
+            }
+          </style>
+        `
+        // node.innerHTML = style + matchChar(html)
+        node.innerHTML = style + matchBlock(html)
+      }
+    }
   }
 
   return u

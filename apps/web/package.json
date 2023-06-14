@@ -1,16 +1,19 @@
 {
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.4.24-1",
+    "@aitmed/cadl": "^1.4.26",
     "@aitmed/ecos-lvl2-sdk": "^1.4.246",
+    "@atslotus/keypress": "^1.0.6",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
     "@fullcalendar/list": "^5.7.2",
     "@fullcalendar/resource-timeline": "^5.7.2",
     "@fullcalendar/timegrid": "^5.7.2",
+    "@wangeditor/editor": "^5.1.23",
     "axios": "^0.21.1",
     "browserify-zlib": "^0.2.0",
     "cropperjs": "^1.5.12",
+    "crypto-js": "^4.1.1",
     "date-fns": "^2.21.2",
     "elasticsearch-browser": "^16.7.1",
     "firebase": "^8.7.0",
@@ -32,6 +35,7 @@
     "qrcode": "^1.4.4",
     "signature_pad": "^3.0.0-beta.4",
     "sql.js": "^1.6.2",
+    "sweetalert2": "^11.7.12",
     "tippy.js": "^6.3.1",
     "util": "^0.12.3",
     "vercel-toast": "^1.6.1"
