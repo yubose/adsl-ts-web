@@ -31,6 +31,7 @@ const sharpHtml = (opts: SharpOption) => {
                             line-height: 40px;
                         "
                         placeholder="${opts.config.placeholder}"
+                        readonly
                     ></textarea>
                 </div>`
             )
@@ -60,6 +61,7 @@ const sharpHtml = (opts: SharpOption) => {
                             border-radius: 4px;
                         " 
                         placeholder="${opts.config.placeholder}"
+                        readonly
                     ></input>
                 </div>`
             )

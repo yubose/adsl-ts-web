@@ -1,8 +1,13 @@
+interface REQUIRED {
+    key: string
+    title: string
+}
+
 const BaseJson = {
     formData: {
         
     },
-    required: new Array<string>(),
+    required: new Array<REQUIRED>(),
     components: {
         
     }

@@ -8,6 +8,8 @@ import { insertNode, insertText } from "./utils"
 
 const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
 
+    const TITLE = type === "textField" ? `Single line input box` : `Multiline input box`
+
     const calc = getCalc() as Calculate
 
     const isChange = target instanceof HTMLElement
@@ -30,14 +32,14 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
                     margin: 10px 0;
                     font-weight:bold;
                 "
-            >Single line input box</div>
+            >${TITLE}</div>
             <div style="
                 text-align: start;
                 font-weight:bold;
                 color:#33333;
                 font-size: 1.039vw;
                 font-weight: 600;
-            ">Title text</div>
+            ">Title text <span style="color: red">*</span></div>
             <input 
                 style="
                     box-sizing: border-box;
@@ -56,12 +58,12 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
                 placeholder="Enter here"
                 value="${title}"
             />
-            <div id="w-editor_tip" style="
+            <!-- <div id="w-editor_tip" style="
                 font-size: 12px;
                 color: red;
                 text-align: start;
                 display: none
-            "></div>
+            "></div> -->
             <div style="
                 text-align: start;
                 margin-top: 10px;
@@ -90,6 +92,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             >${placeholder}</textarea>
             <div style="
                 display: flex;
+                margin-top: "10px";
             ">
                 <input 
                     style= "
@@ -175,34 +178,34 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
         insertNode(editor, "sharpblock", s, selection, isChange)
     })
 
-    const duplicateStr = `There are duplicate keywords`
-    const titleStr = `Enter a title, please`
+    // const duplicateStr = `There are duplicate keywords`
+    // const titleStr = `Enter a title, please`
 
     const titleList = getTitleList(editor)
     isChange && titleList.delete(formatKey(title))
-    const tip = document.getElementById("w-editor_tip") as HTMLDivElement
+    // const tip = document.getElementById("w-editor_tip") as HTMLDivElement
     const titleInput = document.getElementById("w-editor_title") as HTMLInputElement
     titleInput.focus()
     if(titleInput.value === '') {
-        tip.style.display = "block"
-        titleInput.style.borderColor = "#ff0000"
-        tip.innerText = titleStr
+        // tip.style.display = "block"
+        // titleInput.style.borderColor = "#ff0000"
+        // tip.innerText = titleStr
         Swal.disableButtons()
     }
     titleInput.addEventListener("input", () => {
         const title = titleInput.value
         if(titleList.has(formatKey(title))) {
-            tip.style.display = "block"
+            // tip.style.display = "block"
             titleInput.style.borderColor = "#ff0000"
-            tip.innerText = duplicateStr
+            // tip.innerText = duplicateStr
             Swal.disableButtons()
         } else if(title === '') {
-            tip.style.display = "block"
+            // tip.style.display = "block"
             titleInput.style.borderColor = "#ff0000"
-            tip.innerText = titleStr
+            // tip.innerText = titleStr
             Swal.disableButtons()
         } else {
-            tip.style.display = "none"
+            // tip.style.display = "none"
             titleInput.style.borderColor = "rgb(222,222,222)"
             Swal.enableButtons()
         }
