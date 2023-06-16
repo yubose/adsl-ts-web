@@ -53,7 +53,7 @@ import is from '../utils/is'
 import * as c from '../constants'
 import Cropper from 'cropperjs'
 import Papa from 'papaparse'
-
+import XLSX from "xlsx"
 const _pick = pickActionKey
 const _has = pickHasActionKey
 
@@ -772,6 +772,10 @@ const createActions = function createActions(app: App) {
       const result = Papa.parse(datacsv, { header: true, transformHeader: (_, index) => csvTitleKbn[index] ,  skipEmptyLines: true});
       return result.data;
     }
+    // const parseXLSX = (datacsv,csvTitleKbn:string[])=>{
+    //   const result = XLSX.read(datacsv,{type: "string"});
+    //   return result.data;
+    // }
     const CSVToJSON = (data, csvTitleKbn: string[], delimiter = ',') => {
       let hanleData: string[] = data.slice(data.indexOf('\n') + 1).split('\n')
       return hanleData.filter(Boolean).map((v) => {
