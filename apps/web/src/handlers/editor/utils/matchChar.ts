@@ -102,13 +102,13 @@ export const matchChar = (html) => {
 // const sharpBlockReg = /<button is-sharp>#[\w*]+:[^:]+:[^:]+<\/button>/g
 
 export const matchBlock = (html) => {
-    const REG = `<span data-w-e-type="--type--" data-w-e-is-void --isInline-- data-value="--key--">--key--<\/span>`
+    const REG = `<span data-w-e-type="--type--" data-w-e-is-void(="")? --isInline-- data-value="--key--">--key--<\/span>`
 
     const atBlockReg = new RegExp(
         REG
         .replace(/--type--/g, 'atblock')
         .replace(/--key--/g, `@[\\w '\\(\\)]+`)
-        .replace(/--isInline--/g, `data-w-e-is-inline`), 'g')
+        .replace(/--isInline--/g, `data-w-e-is-inline(="")?`), 'g')
     const atKeywords = html.match(atBlockReg)
     atKeywords && atKeywords.forEach(item => {
         const texts = item.match(/>@[\w '\(\)]+</g)

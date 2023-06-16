@@ -352,7 +352,6 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                                     type: "label",
                                     dataKey: "formData.data." + KEY,
                                     style: {
-                                        display: "..formData.atrribute.is_read",
                                         width: "..formData.atrribute.noodl_font.atBlockWidth",
                                         wordWrap: "break-word"
                                         // display: "..formData.atrribute.is_read",

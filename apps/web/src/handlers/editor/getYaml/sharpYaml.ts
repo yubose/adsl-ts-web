@@ -60,6 +60,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         children: [
                             {
                                 type: "label",
+                                text: "No Content",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
                                 dataKey: "formData.data." + formatKey(opts.config.title as string, true),
                                 style: {
@@ -137,6 +138,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             {
                                 type: "label",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
+                                text: "No Content",
                                 dataKey: "formData.data." + formatKey(opts.config.title as string, true),
                                 style: {
                                     display: "..formData.atrribute.is_read",

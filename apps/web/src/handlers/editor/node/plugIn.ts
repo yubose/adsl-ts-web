@@ -21,7 +21,7 @@ function withBlock<T extends IDomEditor>(editor: T) {
         if(type === "sharpblock") return true
         // if(type === "infoblock") return true
         return isVoid(elem) 
-    }
+    } 
 
     // newEditor.insertNode = async elem => {
     //     const type = DomEditor.getNodeType(elem)
