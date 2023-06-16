@@ -236,6 +236,23 @@ const ProviderInfo = [
         "type": "paragraph",
         "children": [
             {
+                "text": ""
+            },
+            {
+                "type": "atblock",
+                "value": "@Specialty",
+                "children": [
+                    {
+                        "text": ""
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            {
                 "text": "LIC #:    "
             },
             {

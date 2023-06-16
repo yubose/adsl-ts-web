@@ -8,6 +8,7 @@ import { SharpType } from "../utils/config";
 // import DataSource from "../dataSource/data";
 import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
+import getTitleList from "../utils/getTitleList";
 
 const getYaml = (editor: IDomEditor) => {
     try {
@@ -17,10 +18,20 @@ const getYaml = (editor: IDomEditor) => {
 
         BaseJsonCopy.components = jsonFix
 
+        const requiredSet = getTitleList(editor, true)
+        let required = new Array()
+
+        requiredSet.forEach((item: string) => {
+            required.push({
+                key: formatKey(item, true),
+                title: item
+            })
+        })
+
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
-            required: BaseJsonCopy.required
+            required: required
         }
 
         // return {
@@ -333,15 +344,16 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                         target = {
                             type: "view",
                             style: {
-                                display: "inline-block",
-                                // whiteSpace: "pre",
-                                // marginTop: "0.01"
+                                flexGrow:0,
+                                flexShrink:0
                             },
                             children: [
                                 {
                                     type: "label",
                                     dataKey: "formData.data." + KEY,
                                     style: {
+                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
+                                        wordWrap: "break-word"
                                         // display: "..formData.atrribute.is_read",
                                         // height: "40px",
                                         // lineHeight: "40px"
@@ -353,9 +365,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                         target = {
                             type: "view",
                             style: {
-                                display: "inline-block",
-                                // whiteSpace: "pre",
-                                // marginTop: "0.01"
+                                flexGrow:0,
+                                flexShrink:0
                             },
                             children: [
                                 {
@@ -384,6 +395,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                                     text: "--",
                                     style: {
                                         display: "..formData.atrribute.is_read",
+                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
+                                        wordWrap: "break-word"
                                         // height: "40px",
                                         // lineHeight: "40px"
                                     } 
@@ -401,9 +414,12 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                         let title = splitArr[1]
                         if(splitArr[0].endsWith("*")) {
                             required = true
+                            // BaseJson.required.push({
+                            //     key: formatKey(title, true),
+                            //     title: title
+                            // })
                         }
                         BaseJsonCopy.formData[formatKey(title, true)] = ``
-                        required && BaseJson.required.push(formatKey(title, true))
                         target = sharpYaml({
                             type: splitArr[0].replace("*", '') as SharpType,
                             config: {
@@ -432,10 +448,10 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             width: "calc(100%)",
                             marginTop: "0.005",
                             paddingTop: paddingTop,
-                            height: "..formData.atrribute.noodl_font.lineHeight",
+                            // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
-                            alignItems: "center",
-                            fontSize: "..formData.atrribute.noodl_font.text"
+                            alignItems: "..formData.atrribute.alignItems",
+                            fontSize: "..formData.atrribute.text"
                         }
                     }
                     let inheritStyle = {}
@@ -454,6 +470,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                         }
                     })
                     if(!SkipType.has(obj.type)) {
+                        target.style.minHeight = "..formData.atrribute.noodl_font.lineHeight"
                         target.children = populateBlock(obj.children, BaseJsonCopy, inheritStyle)
                     }
                     break;
@@ -466,10 +483,10 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                 style: {
                     // height: "40px",
                     // lineHeight: "40px",
-                    display: "inline-block",
+                    flexGrow:0,
+                    flexShrink:0,
                     // whiteSpace: "pre",
                     // marginTop: "0.005",
-                    wordBreak: "break-word",
                     // fontSize: "..formData.atrribute.noodl_font.text"
                 }
             }
