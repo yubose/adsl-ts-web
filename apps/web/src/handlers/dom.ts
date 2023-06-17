@@ -4554,17 +4554,35 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App horizontalScroll]': {
       cond: "horizontalScroll",
       resolve({ node, component }) {
+        
+        const currentPage = app.currentPage
+
         const horizontalScroll = document.createElement('div')
         horizontalScroll.style.width = "inherit"
         horizontalScroll.style.height = "inherit"
         const Items = new Array<HTMLDivElement>()
-        const list = get(app.root, component.get('list'))
+        const list = get(app.root?.[currentPage], component.get('list'))
+        const path = component.get("path")
         const dataKey = component.get("data-key")
 
-        console.log("TEST", list)
-
         if(list instanceof Array) {
-          console.log("TEST")
+          const WIDTH = horizontalScroll.clientWidth
+          const ALLWIDTHS = new Array<number>()
+          const SHOWWIDTHS = new Array<number>()
+          list.forEach((item, index) => {
+            const Item = document.createElement("div")
+            console.log(get(item, path))
+            Item.innerText = get(item, path) ? get(list, path) : ""
+            Item.style.cssText = `
+              background: "#f0f0f0";
+              textDecoration: "underline";
+              color: "#005795";
+              textAlign: "center";
+              display: "flex";
+              alignItems: "center"
+            `
+            horizontalScroll.appendChild(Item)
+          })
           node.appendChild(horizontalScroll)
         } else {
           log.debug("err")
