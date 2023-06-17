@@ -4555,35 +4555,157 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: "horizontalScroll",
       resolve({ node, component }) {
         
+        node.style.display = 'flex'
         const currentPage = app.currentPage
-
         const horizontalScroll = document.createElement('div')
-        horizontalScroll.style.width = "inherit"
-        horizontalScroll.style.height = "inherit"
-        const Items = new Array<HTMLDivElement>()
+        const BTWidth = 100;
+        horizontalScroll.style.cssText = `
+          width: calc(100% - ${BTWidth}px);
+          height: inherit;
+          display: flex;
+          overflow-x: scroll;
+          overflow-y: hidden;
+        `
         const list = get(app.root?.[currentPage], component.get('list'))
-        const path = component.get("path")
+        const titlePath = component.get("titlePath")
         const dataKey = component.get("data-key")
 
         if(list instanceof Array) {
-          const WIDTH = horizontalScroll.clientWidth
+          const Items = new Array<HTMLDivElement>()
           const ALLWIDTHS = new Array<number>()
           const SHOWWIDTHS = new Array<number>()
           list.forEach((item, index) => {
             const Item = document.createElement("div")
-            console.log(get(item, path))
-            Item.innerText = get(item, path) ? get(list, path) : ""
+            Item.innerText = get(item, titlePath)
             Item.style.cssText = `
-              background: "#f0f0f0";
-              textDecoration: "underline";
-              color: "#005795";
-              textAlign: "center";
-              display: "flex";
-              alignItems: "center"
+              background: #f0f0f0;
+              text-decoration: underline;
+              color: #005795;
+              text-align: center;
+              display: flex;
+              align-items: center;
+              flex-shrink: 0;
+              padding: 0px 30px;
+              border-top-left-radius: 7px;
+              border-top-right-radius: 7px;
             `
+            // if(index !== 0) Item.style.marginLeft = "4px"
+            Items.push(Item)
             horizontalScroll.appendChild(Item)
           })
+          const style = document.createElement("style")
+          style.innerText = `
+            ::-webkit-scrollbar {
+              display: none;
+            }
+          `
+          node.appendChild(style)
           node.appendChild(horizontalScroll)
+          const BT = document.createElement("div")
+          BT.style.cssText = `
+            width: ${BTWidth}px;
+            height: inherit;
+            display: flex;
+            justify-content: space-around;
+          `
+          const LEFT = document.createElement("div")
+          LEFT.style.cssText = `
+            width: 40px;
+            cursor: pointer;
+          `
+          LEFT.innerText = "L"
+          const RIGHT = document.createElement("div")
+          RIGHT.style.cssText = `
+            width: 40px;
+            cursor: pointer;
+          `
+          RIGHT.innerText = "R"
+          BT.appendChild(LEFT)
+          BT.appendChild(RIGHT)
+          node.append(BT)
+          
+          let timer
+          const getAllWidths = () => {
+            if(horizontalScroll.clientWidth) {
+              const WIDTH = horizontalScroll.clientWidth
+              Items.forEach(item => {
+                ALLWIDTHS.push(item.clientWidth)
+              })
+              const blank = document.createElement("div")
+              blank.style.cssText = `
+                width: ${WIDTH}px;
+                height: inherit;
+                flex-shrink: 0;
+              `
+              horizontalScroll.appendChild(blank)
+              if(!timer) {
+                clearTimeout(timer)
+              }
+            } else {
+              timer = setTimeout(getAllWidths, 0)
+            }
+          }
+          getAllWidths()
+
+          const sum = (arr: Array<number>) => {
+            let res = 0
+            arr.forEach(item => {
+              res += item
+            })
+            return res
+          }
+
+          const getShowWidths = (start: number) => {
+            let count = 0
+            const WIDTH = horizontalScroll.clientWidth
+            SHOWWIDTHS.length = 0
+            do {
+              if(ALLWIDTHS[start]) {
+                SHOWWIDTHS.push(ALLWIDTHS[start])
+                count += ALLWIDTHS[start]
+                start++
+              } else {
+                break
+              }
+            } while (count < WIDTH);
+          }
+
+          let index = 0
+          const calculateRight = (WIDTH) => {
+            if(sum(SHOWWIDTHS) >= WIDTH) {
+              console.log(ALLWIDTHS[index])
+              horizontalScroll.scrollLeft += ALLWIDTHS[index]
+              index++
+            }
+          }
+          const calculateLeft = () => {
+            if(index > 0) {
+              horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
+              index--
+            }
+          }
+          horizontalScroll.addEventListener("wheel", (event: WheelEvent) => {
+            event.preventDefault()
+            const WIDTH = horizontalScroll.clientWidth
+            getShowWidths(index)
+            if(event.deltaY > 0) {
+              calculateRight(WIDTH)
+            } else {
+              calculateLeft()
+            }
+          })
+
+          LEFT.addEventListener("click", () => {
+            getShowWidths(index)
+            calculateLeft()
+          })
+
+          RIGHT.addEventListener("click", () => {
+            const WIDTH = horizontalScroll.clientWidth
+            getShowWidths(index)
+            calculateRight(WIDTH)
+          })
+          
         } else {
           log.debug("err")
         }
