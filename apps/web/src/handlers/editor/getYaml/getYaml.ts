@@ -494,6 +494,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                             // display: "flex",
                             // alignItems: "..formData.atrribute.alignItems",
                             fontSize: "..formData.atrribute.text",
+                            wordBreak: "break-all"
                             // flexWrap: "wrap"
                         }
                     }
