@@ -45,7 +45,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             outline: "none",
                             border: "2px solid #DEDEDE",
                             borderWidth: "thin",
-                            borderRadius: "4px"
+                            borderRadius: "4px",
+                            padding: "2px"
                         }
                     },
                     {
@@ -123,6 +124,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             borderWidth: "thin",
                             borderRadius: "4px",
                             lineHeight: "..formData.atrribute.noodl_font.lineHeight",
+                            padding: "2px"
                         }
                     },
                     {

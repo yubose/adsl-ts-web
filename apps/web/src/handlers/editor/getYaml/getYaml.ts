@@ -349,7 +349,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                         target = [
                             {
                                 text: "--",
-                                dataKey: "formData.data." + KEY
+                                dataKey: "formData.data." + KEY,
+                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
                             }
                         ]
                     } else {
@@ -375,6 +376,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                                 text: "--",
                                 dataKey: "formData.data." + KEY,
                                 display: "..formData.atrribute.is_read",
+                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
                             }
                         ]
                     }
@@ -545,6 +547,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
             if(isText) {
                 target = {
                     text: obj.text,
+                    lineHeight: "..formData.atrribute.noodl_font.lineHeight" 
                 }
                 Object.keys(obj).forEach(key => {
                     if(key !== "text") {
