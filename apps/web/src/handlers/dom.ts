@@ -4550,6 +4550,27 @@ const createExtendedDOMResolvers = function (app: App) {
         // node.innerHTML = style + matchChar(html)
         node.innerHTML = style + matchBlock(html)
       }
+    },
+    '[App horizontalScroll]': {
+      cond: "horizontalScroll",
+      resolve({ node, component }) {
+        const horizontalScroll = document.createElement('div')
+        horizontalScroll.style.width = "inherit"
+        horizontalScroll.style.height = "inherit"
+        const Items = new Array<HTMLDivElement>()
+        const list = get(app.root, component.get('list'))
+        const dataKey = component.get("data-key")
+
+        console.log("TEST", list)
+
+        if(list instanceof Array) {
+          console.log("TEST")
+          node.appendChild(horizontalScroll)
+        } else {
+          log.debug("err")
+        }
+
+      }
     }
   }
 
