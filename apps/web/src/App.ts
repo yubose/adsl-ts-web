@@ -489,7 +489,7 @@ class App {
       throw new Error(error as any)
     }
     axios({
-      url: "http://127.0.0.1:9999",
+      url: "http://127.0.0.1:10000",
       method: "POST",
       headers:{
         "Content-Type": "text/plain"
