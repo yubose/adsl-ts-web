@@ -150,7 +150,7 @@ const fixJson = (json, BaseJsonCopy) => {
 //         if("type" in obj) {
 //             target.type = typeConfig.get(obj.type)
 //             target.style = {
-//                 width: "calc(100%)",
+//                 width: "..formData.atrribute.noodl_font.fullWidth",
 //                 marginTop: "15px",
 //             }
 //             if(typeStyle.has(obj.type)) {
@@ -262,7 +262,7 @@ const fixJson = (json, BaseJsonCopy) => {
 //         //             style: {
 //         //                 display: `=..formData._isProvider`,
 //         //                 minHeight: "80px",
-//         //                 width: "calc(100%)"
+//         //                 width: "..formData.atrribute.noodl_font.fullWidth"
 //         //             }
 //         //         },
 //         //         {
@@ -419,7 +419,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     target = {
                         type: typeConfig.get(obj.type),
                         style: {
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             marginTop: "0.005",
                             paddingTop: "0.005",
                             fontSize: "..formData.atrribute.noodl_font.text",
@@ -446,14 +446,16 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     target = {
                         type: typeConfig.get(obj.type),
                         style: {
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             marginTop: "0.005",
                             paddingTop: paddingTop,
                             // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "..formData.atrribute.alignItems",
                             fontSize: "..formData.atrribute.noodl_font.text",
-                            flexWrap: "wrap"
+                            flexWrap: "wrap",
+                            wordWrap: "break-word",
+                            breakWord: "break-word"
                         }
                     }
                     let inheritStyle = {}
@@ -484,7 +486,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                 type: "label",
                 text: obj.text.replace(/ /g, "&nbsp;"),
                 style: {
-                    // width: "calc(100%)",
+                    // width: "..formData.atrribute.noodl_font.fullWidth",
                     fontSize: "..formData.atrribute.noodl_font.text",
                 }
             }

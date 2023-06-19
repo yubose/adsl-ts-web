@@ -10,13 +10,13 @@ const sharpYaml = (opts: SharpYamlOption) => {
             return {
                 type: "view",
                 style: {
-                    width: "calc(100%)",
+                    width: "..formData.atrribute.noodl_font.fullWidth",
                     margin: "auto",
-                    contentType: "html"
                 },
                 children: [
                     {
                         type: "label",
+                        contentType: "html",
                         text: opts.config.title+str,
                         style: {
                             marginTop: "0.01",
@@ -38,7 +38,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             marginTop: "0.01",
                             // minHeight: "40px",
                             lineHeight: "..formData.atrribute.noodl_font.lineHeight",
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             boxSizing: "border-box",
                             textIndent: "0.8em",
                             color: "#333333",
@@ -54,7 +54,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         style: {
                             marginTop: "0.01",
                             backgroundColor: "0xf4f4f4",
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             boxSizing: "border-box",
                             height: "auto",
                         },
@@ -67,14 +67,14 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",
-                                    marginTop: "0.01",
-                                    width: "calc(100%)",
+                                    // marginTop: "0.01",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
                                     height: "auto",
                                     // lineHeight: "40px",
                                     verticalAlign: "middle",
                                     fontSize: "..formData.atrribute.noodl_font.h4",
                                     color: "0x666666",
-                                    wordBreak: "keep-all",
+                                    wordWrap: "break-word",
                                     marginLeft: "0.0046",
                                     paddingTop: "0.0046",
                                     paddingBottom: "0.0046",
@@ -88,7 +88,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
             return {
                 type: "view",
                 style: {
-                    width: "calc(100%)",
+                    width: "..formData.atrribute.noodl_font.fullWidth",
                     margin: "auto"
                 },
                 children: [
@@ -115,7 +115,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                             display: `..formData.atrribute.is_edit`,
                             marginTop: "0.01",
                             minHeight: "..formData.atrribute.noodl_font.doubleLineHeight",
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             boxSizing: "border-box",
                             textIndent: "0.8em",
                             color: "#333333",
@@ -132,7 +132,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         style: {
                             marginTop: "0.01",
                             backgroundColor: "0xf4f4f4",
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             boxSizing: "border-box",
                             height: "auto",
                         },
@@ -145,15 +145,15 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",
-                                    marginTop: "0.01",
+                                    // marginTop: "0.01",
                                     // minHeight: "80px",
-                                    width: "calc(100%)",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
                                     height: "auto",
                                     // lineHeight: "40px",
                                     verticalAlign: "middle",
                                     fontSize: "..formData.atrribute.noodl_font.h4",
                                     color: "0x666666",
-                                    wordBreak: "keep-all",
+                                    wordWrap: "break-word",
                                     marginLeft: "0.0046",
                                     paddingTop: "0.0046",
                                     paddingBottom: "0.0046",
