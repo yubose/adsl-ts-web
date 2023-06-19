@@ -4504,6 +4504,15 @@ const createExtendedDOMResolvers = function (app: App) {
 
         // node.addEventListener("load", calculateHeight)
 
+        const adaptHeight = () => {
+          const toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          const editorDom = document.getElementById("editor-container") as HTMLDivElement
+          // console.log(height);
+          console.log(`${editorDom.clientHeight}px`);
+          (document.getElementById("preView") as HTMLDivElement ).style.height = `${editorDom.clientHeight}px`;
+          (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
+        }
+
         editor.on("fullScreen", () => {
           let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
           let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
@@ -4512,6 +4521,7 @@ const createExtendedDOMResolvers = function (app: App) {
           (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
           (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
           img.style.display = "none";
+          adaptHeight()
         })
 
         editor.on("unFullScreen", () => {
@@ -4522,6 +4532,7 @@ const createExtendedDOMResolvers = function (app: App) {
           (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
           (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
           img.style.display = "block";
+          adaptHeight()
         })
 
         i18nChangeLanguage("en")

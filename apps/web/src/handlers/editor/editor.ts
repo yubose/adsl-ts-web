@@ -12,12 +12,12 @@ const editorConfig: Partial<IEditorConfig> = {
                 "headerSelect",
                 // "insertLink",
                 // "bulletedList",
-                "|",
-                "bold",
-                // "through",
-                "color",
-                "bgColor",
-                "clearStyle"
+                // "|",
+                // "bold",
+                // // "through",
+                // "color",
+                // "bgColor",
+                // "clearStyle"
             ]
         }
     }

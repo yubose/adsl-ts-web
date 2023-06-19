@@ -46,7 +46,7 @@ const getYaml = (editor: IDomEditor) => {
 }
 
 const typeConfig = new Map([
-    ["paragraph", "richtext"],
+    ["paragraph", "view"],
     ["header1", "view"],
     ["header2", "view"],
     ["header3", "view"],
@@ -326,17 +326,12 @@ const fixJson = (json, BaseJsonCopy) => {
 //     return target
 // }
 
-const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
+const populateBlock = (obj, BaseJsonCopy, style = {}) => {
     let target
     if(obj instanceof Array) {
         target = []
         obj.forEach(item => {
-            const res = populateBlock(item, BaseJsonCopy, style, isText)
-            if(res instanceof Array) {
-                target = target.concat(res)
-            } else {
-                target.push(res)
-            }
+            target.push(populateBlock(item, BaseJsonCopy, style))
         })
     } else if(typeof obj === "object" && obj !== null) {
         target = {}
@@ -346,109 +341,52 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                     const KEY = formatKey(obj.value.replace('@', ''))
                     BaseJsonCopy.formData[KEY] = ``
                     if(KEY === "DateOrDateOfService") {
-                        target = [
-                            {
-                                text: "--",
-                                dataKey: "formData.data." + KEY,
-                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
-                            }
-                        ]
+                        target = {
+                            type: "view",
+                            children: [
+                                {
+                                    type: "label",
+                                    text: "--",
+                                    dataKey: "formData.data." + KEY,
+                                    style: {
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                                    }
+                                }
+                            ]
+                        }
                     } else {
-                        target = [
-                            {
-                                textField: "",
-                                dataKey: "formData.data." + KEY,
-                                placeholder: "Enter here",
-                                display: `..formData.atrribute.is_edit`,
-                                width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                // height: "40px",
-                                boxSizing: "border-box",
-                                textIndent: "0.8em",
-                                color: "#333333",
-                                outline: "none",
-                                border: "1px solid #DEDEDE",
-                                borderWidth: "thin",
-                                borderRadius: "4px",
-                                // lineHeight: "40px"
-                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
-                            },
-                            {
-                                text: "--",
-                                dataKey: "formData.data." + KEY,
-                                display: "..formData.atrribute.is_read",
-                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
-                            }
-                        ]
+                        target = {
+                            type: "view",
+                            children: [
+                                {
+                                    type: "textField",
+                                    dataKey: "formData.data." + KEY,
+                                    placeholder: "Enter here",
+                                    style: {
+                                        display: `..formData.atrribute.is_edit`,
+                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
+                                        boxSizing: "border-box",
+                                        textIndent: "0.8em",
+                                        color: "#333333",
+                                        outline: "none",
+                                        border: "1px solid #DEDEDE",
+                                        borderWidth: "thin",
+                                        borderRadius: "4px",
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                                    }
+                                },
+                                {
+                                    type: "label",
+                                    text: "--",
+                                    dataKey: "formData.data." + KEY,
+                                    style: {
+                                        display: "..formData.atrribute.is_read",
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                    }
+                                }
+                            ]
+                        }
                     }
-                    // if(KEY === "DateOrDateOfService") {
-                    //     target = {
-                    //         type: "view",
-                    //         style: {
-                    //             flexGrow:0,
-                    //             flexShrink:0
-                    //         },
-                    //         children: [
-                    //             {
-                    //                 type: "label",
-                    //                 dataKey: "formData.data." + KEY,
-                    //                 style: {
-                    //                     width: "..formData.atrribute.noodl_font.atBlockWidth",
-                    //                     wordWrap: "break-word"
-                    //                     // display: "..formData.atrribute.is_read",
-                    //                     // height: "40px",
-                    //                     // lineHeight: "40px"
-                    //                 } 
-                    //             }
-                    //         ]
-                    //     }
-                    // } else {
-                    //     target = {
-                    //         type: "view",
-                    //         style: {
-                    //             flexGrow:0,
-                    //             flexShrink:0
-                    //         },
-                    //         children: [
-                    //             {
-                    //                 type: "textField",
-                    //                 dataKey: "formData.data." + KEY,
-                    //                 value: "formData.data." + KEY,
-                    //                 placeholder: "Enter here",
-                    //                 contentType: "strictLength",
-                    //                 strictLength: {
-                    //                     min: 0,
-                    //                     max: 100
-                    //                 },
-                    //                 style: {
-                    //                     display: `..formData.atrribute.is_edit`,
-                    //                     width: "..formData.atrribute.noodl_font.atBlockWidth",
-                    //                     // height: "40px",
-                    //                     boxSizing: "border-box",
-                    //                     textIndent: "0.8em",
-                    //                     color: "#333333",
-                    //                     outline: "none",
-                    //                     border: "1px solid #DEDEDE",
-                    //                     borderWidth: "thin",
-                    //                     borderRadius: "4px",
-                    //                     // lineHeight: "40px"
-                    //                     lineHeight: "..formData.atrribute.noodl_font.lineHeight"
-                    //                 }
-                    //             },
-                    //             {
-                    //                 type: "label",
-                    //                 dataKey: "formData.data." + KEY,
-                    //                 text: "--",
-                    //                 style: {
-                    //                     display: "..formData.atrribute.is_read",
-                    //                     width: "..formData.atrribute.noodl_font.atBlockWidth",
-                    //                     wordWrap: "break-word"
-                    //                     // height: "40px",
-                    //                     // lineHeight: "40px"
-                    //                 } 
-                    //             }
-                    //         ]
-                    //     }
-                    // }
                     break;
                 case "sharpblock": 
                     if(/#[\w*]+:[^:]+:[^:]+/.test(obj.value)) {
@@ -458,10 +396,6 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                         let title = splitArr[1]
                         if(splitArr[0].endsWith("*")) {
                             required = true
-                            // BaseJson.required.push({
-                            //     key: formatKey(title, true),
-                            //     title: title
-                            // })
                         }
                         BaseJsonCopy.formData[formatKey(title, true)] = ``
                         target = sharpYaml({
@@ -474,8 +408,6 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                         })
                     } else {
                         const text = obj.value.replace(/#/, '')
-                        // BaseJsonCopy.formData[formatKey(text)] = ''
-                        // BaseJsonCopy.fromData["signatureTime"] = ''
                         BaseJsonCopy.formData["signatureId"] = ''
                         target = sharpYaml({
                             type: text,
@@ -490,21 +422,23 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                             width: "calc(100%)",
                             marginTop: "0.005",
                             paddingTop: "0.005",
-                            // height: "..formData.atrribute.noodl_font.lineHeight",
-                            // display: "flex",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            wordBreak: "break-all",
+                            minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                            display: "flex",
                             // alignItems: "..formData.atrribute.alignItems",
-                            fontSize: "..formData.atrribute.text",
-                            wordBreak: "break-all"
-                            // flexWrap: "wrap"
+                            alignItems: "center",
+                            flexWrap: "wrap"
                         }
                     }
+                    let inherit = {}
                     Object.keys(obj).forEach(key => {
                         if(styleConfig.has(key)) {
                             target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                            inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
-                    target.style.minHeight = "..formData.atrribute.noodl_font.lineHeight"
-                    target.textBoard = populateBlock(obj.children, BaseJsonCopy, {}, true)
+                    target.children = populateBlock(obj.children, BaseJsonCopy, inherit)
                     break
                 default: 
                     let paddingTop = '0.005'
@@ -518,7 +452,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                             // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "..formData.atrribute.alignItems",
-                            fontSize: "..formData.atrribute.text",
+                            fontSize: "..formData.atrribute.noodl_font.text",
                             flexWrap: "wrap"
                         }
                     }
@@ -535,6 +469,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
                     Object.keys(obj).forEach(key => {
                         if(styleConfig.has(key)) {
                             target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                            inheritStyle = Object.assign(inheritStyle, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
                     if(!SkipType.has(obj.type)) {
@@ -545,51 +480,28 @@ const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
             }
         } else {
             if(obj.text === '') return {}
-            if(isText) {
-                target = {
-                    text: obj.text,
-                    lineHeight: "..formData.atrribute.noodl_font.lineHeight" 
+            target = {
+                type: "label",
+                text: obj.text.replace(/ /g, "&nbsp;"),
+                style: {
+                    // width: "calc(100%)",
+                    fontSize: "..formData.atrribute.noodl_font.text",
                 }
-                Object.keys(obj).forEach(key => {
-                    if(key !== "text") {
-                        if(typeof obj[key] === "boolean") {
-                            target = Object.assign(target, JSON.parse(styleConfig.get(key) as string))
-                        } else if(colorReg.test(obj[key])) {
-                            // @ts-ignore
-                            target[styleConfig.get(key)] = rgb2hex(obj[key])
-                        }
-                    }
-                })
-            } else {
-                target = {
-                    type: "label",
-                    text: obj.text.replace(/ /g, "&nbsp;"),
-                    style: {
-                        // height: "40px",
-                        // lineHeight: "40px",
-                        flexGrow:0,
-                        flexShrink:0,
-                        // whiteSpace: "pre",
-                        // marginTop: "0.005",
-                        // fontSize: "..formData.atrribute.noodl_font.text"
-                    }
-                }
-                Object.keys(obj).forEach(key => {
-                    if(key !== "text") {
-                        if(typeof obj[key] === "boolean") {
-                            target["style"] = Object.assign(target["style"], JSON.parse(styleConfig.get(key) as string))
-                        } else if(colorReg.test(obj[key])) {
-                            // @ts-ignore
-                            target["style"][styleConfig.get(key)] = rgb2hex(obj[key])
-                        }
-                    }
-                })
-                if(Object.keys(style).length !== 0) {
-                    target.style = Object.assign(target.style, style)
-                }
-                if(Object.keys(target["style"]).length === 0) delete target["style"]
             }
-            
+            Object.keys(obj).forEach(key => {
+                if(key !== "text") {
+                    if(typeof obj[key] === "boolean") {
+                        target["style"] = Object.assign(target["style"], JSON.parse(styleConfig.get(key) as string))
+                    } else if(colorReg.test(obj[key])) {
+                        // @ts-ignore
+                        target["style"][styleConfig.get(key)] = rgb2hex(obj[key])
+                    }
+                }
+            })
+            if(Object.keys(style).length !== 0) {
+                target.style = Object.assign(target.style, style)
+            }
+            if(Object.keys(target["style"]).length === 0) delete target["style"]
         }
     }
     return target
