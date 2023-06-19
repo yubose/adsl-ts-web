@@ -116,7 +116,14 @@ export const matchBlock = (html) => {
         if(DataSource.has(text)) 
             html = html.replace(
                 new RegExp(toReg(item), 'g'),
-                `<span style="color:#2988e6;font-weight: bold;border: 2px solid #ccc;border-radius: 4px;padding: 4px;">@${text}</span>`
+                `<span style="
+                    color:#2988e6;
+                    font-weight: bold;
+                    border: thin solid #ccc;
+                    border-radius: 4px;
+                    padding: 0px 4px;
+                    margin: 0px 2px;
+                ">@${text}</span>`
             )
     })
 

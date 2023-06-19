@@ -46,7 +46,7 @@ const getYaml = (editor: IDomEditor) => {
 }
 
 const typeConfig = new Map([
-    ["paragraph", "view"],
+    ["paragraph", "richtext"],
     ["header1", "view"],
     ["header2", "view"],
     ["header3", "view"],
@@ -326,12 +326,17 @@ const fixJson = (json, BaseJsonCopy) => {
 //     return target
 // }
 
-const populateBlock = (obj, BaseJsonCopy, style = {}) => {
+const populateBlock = (obj, BaseJsonCopy, style = {}, isText = false) => {
     let target
     if(obj instanceof Array) {
         target = []
         obj.forEach(item => {
-            target.push(populateBlock(item, BaseJsonCopy, style))
+            const res = populateBlock(item, BaseJsonCopy, style, isText)
+            if(res instanceof Array) {
+                target = target.concat(res)
+            } else {
+                target.push(res)
+            }
         })
     } else if(typeof obj === "object" && obj !== null) {
         target = {}
@@ -341,70 +346,109 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     const KEY = formatKey(obj.value.replace('@', ''))
                     BaseJsonCopy.formData[KEY] = ``
                     if(KEY === "DateOrDateOfService") {
-                        target = {
-                            type: "view",
-                            style: {
-                                flexGrow:0,
-                                flexShrink:0
-                            },
-                            children: [
-                                {
-                                    type: "label",
-                                    dataKey: "formData.data." + KEY,
-                                    style: {
-                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                        wordWrap: "break-word"
-                                        // display: "..formData.atrribute.is_read",
-                                        // height: "40px",
-                                        // lineHeight: "40px"
-                                    } 
-                                }
-                            ]
-                        }
+                        target = [
+                            {
+                                text: "--",
+                                dataKey: "formData.data." + KEY,
+                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                            }
+                        ]
                     } else {
-                        target = {
-                            type: "view",
-                            style: {
-                                flexGrow:0,
-                                flexShrink:0
+                        target = [
+                            {
+                                textField: "",
+                                dataKey: "formData.data." + KEY,
+                                placeholder: "Enter here",
+                                display: `..formData.atrribute.is_edit`,
+                                width: "..formData.atrribute.noodl_font.atBlockWidth",
+                                // height: "40px",
+                                boxSizing: "border-box",
+                                textIndent: "0.8em",
+                                color: "#333333",
+                                outline: "none",
+                                border: "1px solid #DEDEDE",
+                                borderWidth: "thin",
+                                borderRadius: "4px",
+                                // lineHeight: "40px"
+                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
                             },
-                            children: [
-                                {
-                                    type: "textField",
-                                    dataKey: "formData.data." + KEY,
-                                    value: "formData.data." + KEY,
-                                    placeholder: "Enter here",
-                                    style: {
-                                        display: `..formData.atrribute.is_edit`,
-                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                        // height: "40px",
-                                        boxSizing: "border-box",
-                                        textIndent: "0.8em",
-                                        color: "#333333",
-                                        outline: "none",
-                                        border: "1px solid #DEDEDE",
-                                        borderWidth: "thin",
-                                        borderRadius: "4px",
-                                        // lineHeight: "40px"
-                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight"
-                                    }
-                                },
-                                {
-                                    type: "label",
-                                    dataKey: "formData.data." + KEY,
-                                    text: "--",
-                                    style: {
-                                        display: "..formData.atrribute.is_read",
-                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                        wordWrap: "break-word"
-                                        // height: "40px",
-                                        // lineHeight: "40px"
-                                    } 
-                                }
-                            ]
-                        }
+                            {
+                                text: "--",
+                                dataKey: "formData.data." + KEY,
+                                display: "..formData.atrribute.is_read",
+                                lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                            }
+                        ]
                     }
-                    
+                    // if(KEY === "DateOrDateOfService") {
+                    //     target = {
+                    //         type: "view",
+                    //         style: {
+                    //             flexGrow:0,
+                    //             flexShrink:0
+                    //         },
+                    //         children: [
+                    //             {
+                    //                 type: "label",
+                    //                 dataKey: "formData.data." + KEY,
+                    //                 style: {
+                    //                     width: "..formData.atrribute.noodl_font.atBlockWidth",
+                    //                     wordWrap: "break-word"
+                    //                     // display: "..formData.atrribute.is_read",
+                    //                     // height: "40px",
+                    //                     // lineHeight: "40px"
+                    //                 } 
+                    //             }
+                    //         ]
+                    //     }
+                    // } else {
+                    //     target = {
+                    //         type: "view",
+                    //         style: {
+                    //             flexGrow:0,
+                    //             flexShrink:0
+                    //         },
+                    //         children: [
+                    //             {
+                    //                 type: "textField",
+                    //                 dataKey: "formData.data." + KEY,
+                    //                 value: "formData.data." + KEY,
+                    //                 placeholder: "Enter here",
+                    //                 contentType: "strictLength",
+                    //                 strictLength: {
+                    //                     min: 0,
+                    //                     max: 100
+                    //                 },
+                    //                 style: {
+                    //                     display: `..formData.atrribute.is_edit`,
+                    //                     width: "..formData.atrribute.noodl_font.atBlockWidth",
+                    //                     // height: "40px",
+                    //                     boxSizing: "border-box",
+                    //                     textIndent: "0.8em",
+                    //                     color: "#333333",
+                    //                     outline: "none",
+                    //                     border: "1px solid #DEDEDE",
+                    //                     borderWidth: "thin",
+                    //                     borderRadius: "4px",
+                    //                     // lineHeight: "40px"
+                    //                     lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                    //                 }
+                    //             },
+                    //             {
+                    //                 type: "label",
+                    //                 dataKey: "formData.data." + KEY,
+                    //                 text: "--",
+                    //                 style: {
+                    //                     display: "..formData.atrribute.is_read",
+                    //                     width: "..formData.atrribute.noodl_font.atBlockWidth",
+                    //                     wordWrap: "break-word"
+                    //                     // height: "40px",
+                    //                     // lineHeight: "40px"
+                    //                 } 
+                    //             }
+                    //         ]
+                    //     }
+                    // }
                     break;
                 case "sharpblock": 
                     if(/#[\w*]+:[^:]+:[^:]+/.test(obj.value)) {
@@ -439,7 +483,30 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                         })
                     }
                     break;
-                default:
+                case "paragraph":
+                    target = {
+                        type: typeConfig.get(obj.type),
+                        style: {
+                            width: "calc(100%)",
+                            marginTop: "0.005",
+                            paddingTop: "0.005",
+                            // height: "..formData.atrribute.noodl_font.lineHeight",
+                            // display: "flex",
+                            // alignItems: "..formData.atrribute.alignItems",
+                            fontSize: "..formData.atrribute.text",
+                            wordBreak: "break-all"
+                            // flexWrap: "wrap"
+                        }
+                    }
+                    Object.keys(obj).forEach(key => {
+                        if(styleConfig.has(key)) {
+                            target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                        }
+                    })
+                    target.style.minHeight = "..formData.atrribute.noodl_font.lineHeight"
+                    target.textBoard = populateBlock(obj.children, BaseJsonCopy, {}, true)
+                    break
+                default: 
                     let paddingTop = '0.005'
                     if(SkipType.has(obj.type)) paddingTop = "0"
                     target = {
@@ -451,7 +518,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "..formData.atrribute.alignItems",
-                            fontSize: "..formData.atrribute.text"
+                            fontSize: "..formData.atrribute.text",
+                            flexWrap: "wrap"
                         }
                     }
                     let inheritStyle = {}
@@ -477,33 +545,51 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
             }
         } else {
             if(obj.text === '') return {}
-            target = {
-                type: "label",
-                text: obj.text.replace(/ /g, "&nbsp;"),
-                style: {
-                    // height: "40px",
-                    // lineHeight: "40px",
-                    flexGrow:0,
-                    flexShrink:0,
-                    // whiteSpace: "pre",
-                    // marginTop: "0.005",
-                    // fontSize: "..formData.atrribute.noodl_font.text"
+            if(isText) {
+                target = {
+                    text: obj.text,
+                    lineHeight: "..formData.atrribute.noodl_font.lineHeight" 
                 }
-            }
-            Object.keys(obj).forEach(key => {
-                if(key !== "text") {
-                    if(typeof obj[key] === "boolean") {
-                        target["style"] = Object.assign(target["style"], JSON.parse(styleConfig.get(key) as string))
-                    } else if(colorReg.test(obj[key])) {
-                        // @ts-ignore
-                        target["style"][styleConfig.get(key)] = rgb2hex(obj[key])
+                Object.keys(obj).forEach(key => {
+                    if(key !== "text") {
+                        if(typeof obj[key] === "boolean") {
+                            target = Object.assign(target, JSON.parse(styleConfig.get(key) as string))
+                        } else if(colorReg.test(obj[key])) {
+                            // @ts-ignore
+                            target[styleConfig.get(key)] = rgb2hex(obj[key])
+                        }
+                    }
+                })
+            } else {
+                target = {
+                    type: "label",
+                    text: obj.text.replace(/ /g, "&nbsp;"),
+                    style: {
+                        // height: "40px",
+                        // lineHeight: "40px",
+                        flexGrow:0,
+                        flexShrink:0,
+                        // whiteSpace: "pre",
+                        // marginTop: "0.005",
+                        // fontSize: "..formData.atrribute.noodl_font.text"
                     }
                 }
-            })
-            if(Object.keys(style).length !== 0) {
-                target.style = Object.assign(target.style, style)
+                Object.keys(obj).forEach(key => {
+                    if(key !== "text") {
+                        if(typeof obj[key] === "boolean") {
+                            target["style"] = Object.assign(target["style"], JSON.parse(styleConfig.get(key) as string))
+                        } else if(colorReg.test(obj[key])) {
+                            // @ts-ignore
+                            target["style"][styleConfig.get(key)] = rgb2hex(obj[key])
+                        }
+                    }
+                })
+                if(Object.keys(style).length !== 0) {
+                    target.style = Object.assign(target.style, style)
+                }
+                if(Object.keys(target["style"]).length === 0) delete target["style"]
             }
-            if(Object.keys(target["style"]).length === 0) delete target["style"]
+            
         }
     }
     return target
