@@ -54,7 +54,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         style: {
                             marginTop: "0.01",
                             backgroundColor: "0xf4f4f4",
-                            width: "auto",
+                            width: "calc(100%)",
                             boxSizing: "border-box",
                             height: "auto",
                         },
@@ -132,7 +132,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                         style: {
                             marginTop: "0.01",
                             backgroundColor: "0xf4f4f4",
-                            width: "auto",
+                            width: "calc(100%)",
                             boxSizing: "border-box",
                             height: "auto",
                         },

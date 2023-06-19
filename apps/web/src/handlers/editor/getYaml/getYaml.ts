@@ -109,7 +109,7 @@ const styleConfig = new Map([
     ["italic", '{"fontStyle": "italic"}'],
     ["underline", '{"textDecoration": "underline"}'],
     // ["indent", '{"marginLeft": "__REPLACE__"}'],
-    ["textAlign", '{"display": "flex", "justifyContent": "__REPLACE__", "textAlign": "__REPLACE__"}']
+    ["textAlign", '{"display": "flex", "justifyContent": "__REPLACE__", "textAlign": {"x": "__REPLACE__"}}']
 ])
 
 const inheritStyleList = new Set(["fontSize", "fontWeight"])
