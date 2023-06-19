@@ -381,7 +381,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                                     dataKey: "formData.data." + KEY,
                                     style: {
                                         display: "..formData.atrribute.is_read",
-                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     }
                                 }
                             ]
@@ -422,20 +422,23 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             width: "calc(100%)",
                             marginTop: "0.005",
                             paddingTop: "0.005",
-                            fontSize: "..formData.atrribute.text",
+                            fontSize: "..formData.atrribute.noodl_font.text",
                             wordBreak: "break-all",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
-                            alignItems: "..formData.atrribute.alignItems",
+                            // alignItems: "..formData.atrribute.alignItems",
+                            alignItems: "center",
                             flexWrap: "wrap"
                         }
                     }
+                    let inherit = {}
                     Object.keys(obj).forEach(key => {
                         if(styleConfig.has(key)) {
                             target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                            inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
-                    target.children = populateBlock(obj.children, BaseJsonCopy, {})
+                    target.children = populateBlock(obj.children, BaseJsonCopy, inherit)
                     break
                 default: 
                     let paddingTop = '0.005'
@@ -449,7 +452,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "..formData.atrribute.alignItems",
-                            fontSize: "..formData.atrribute.text",
+                            fontSize: "..formData.atrribute.noodl_font.text",
                             flexWrap: "wrap"
                         }
                     }
@@ -466,6 +469,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     Object.keys(obj).forEach(key => {
                         if(styleConfig.has(key)) {
                             target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                            inheritStyle = Object.assign(inheritStyle, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
                     if(!SkipType.has(obj.type)) {
@@ -480,7 +484,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                 type: "label",
                 text: obj.text.replace(/ /g, "&nbsp;"),
                 style: {
-
+                    // width: "calc(100%)",
+                    fontSize: "..formData.atrribute.noodl_font.text",
                 }
             }
             Object.keys(obj).forEach(key => {
