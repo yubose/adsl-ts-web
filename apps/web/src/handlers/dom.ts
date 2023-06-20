@@ -97,6 +97,7 @@ const createExtendedDOMResolvers = function (app: App) {
       pageName !== page.page && (pageName = page.page)
 
       let value = (event.target as any)?.value || ''
+      if(component?.has('richtext')) value = (event.target as any)?.textContent || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
@@ -154,7 +155,6 @@ const createExtendedDOMResolvers = function (app: App) {
             } else {
               set(draft?.[pageName], dataKey, value)
             }
-
             component.edit('data-value', value)
             node.dataset.value = value
 
@@ -1844,7 +1844,7 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: ({ node }) => isTextFieldLike(node),
+      cond: ({ node,component }) => isTextFieldLike(node) || component.has('richtext'),
       before({ node, component }) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
@@ -1984,6 +1984,19 @@ const createExtendedDOMResolvers = function (app: App) {
               //   }),
               // )
             }
+            if(component.has('richtext')){
+              const executeFunc = getOnChange({
+                component,
+                dataKey,
+                evtName: 'onBlur',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              const listener = addListener(node, 'blur', executeFunc)
+              component.addEventListeners(listener)
+            }
+            
           }
         }
         if (component.blueprint?.onBlur) {
@@ -2008,13 +2021,6 @@ const createExtendedDOMResolvers = function (app: App) {
           //     page,
           //   }),
           // )
-        }
-        if (showFocus) {
-          node?.setAttribute('showSoftInput', 'true')
-          const timer = setTimeout(() => {
-            node?.focus()
-            clearTimeout(timer)
-          }, 100)
         }
       },
     },
