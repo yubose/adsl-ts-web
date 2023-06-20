@@ -4643,6 +4643,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const Items = new Array<HTMLDivElement>()
           const ALLWIDTHS = new Array<number>()
           const SHOWWIDTHS = new Array<number>()
+          const SHOWITEM = new Map<number, HTMLDivElement>()
           list.forEach((item, index) => {
             const Item = document.createElement("div")
             Item.innerHTML = `<span>${get(item, titlePath)}</span>`
@@ -4739,15 +4740,20 @@ const createExtendedDOMResolvers = function (app: App) {
             let count = 0
             const WIDTH = horizontalScroll.clientWidth
             SHOWWIDTHS.length = 0
+            SHOWITEM.clear()
             do {
               if(ALLWIDTHS[start]) {
                 SHOWWIDTHS.push(ALLWIDTHS[start])
+                SHOWITEM.set(start, Items[start])
                 count += ALLWIDTHS[start]
                 start++
               } else {
                 break
               }
             } while (count < WIDTH);
+            if(sum(SHOWWIDTHS) > WIDTH) {
+              SHOWITEM.delete(start-1)
+            }
           }
 
           let index = 0
@@ -4806,21 +4812,31 @@ const createExtendedDOMResolvers = function (app: App) {
 
           horizontalScroll.addEventListener("click", (event: MouseEvent) => {
             const target = event.target as HTMLDivElement
-            const index = parseInt(target.getAttribute("alt") as string)
-            app.updateRoot(draft => {
-              set(draft?.[currentPage], dataKey, list[index])
-            })
-            Items.forEach(item => {
-              if(item === target) {
-                item.style.background = listStyle.color
-                item.style.color = "#ffffff"
-                item.style.fontWeight = "700"
-              } else {
-                item.style.background = listStyle.background
-                item.style.color = listStyle.color
-                item.style.fontWeight = "normal"
+            const WIDTH = horizontalScroll.clientWidth
+            const idx = parseInt(target.getAttribute("alt") as string)
+            console.log(!Number.isNaN(idx))
+            if(!Number.isNaN(idx)) {
+              app.updateRoot(draft => {
+                set(draft?.[currentPage], dataKey, list[idx])
+              })
+              Items.forEach(item => {
+                if(item === target) {
+                  item.style.background = listStyle.color
+                  item.style.color = "#ffffff"
+                  item.style.fontWeight = "700"
+                } else {
+                  item.style.background = listStyle.background
+                  item.style.color = listStyle.color
+                  item.style.fontWeight = "normal"
+                }
+              })
+              refreshAllWidth()
+              getShowWidths(index)
+              console.log(SHOWITEM, idx, !SHOWITEM.has(idx))
+              if(!SHOWITEM.has(idx)) {
+                calculateRight(WIDTH)
               }
-            })
+            }
           })
           
         } else {
