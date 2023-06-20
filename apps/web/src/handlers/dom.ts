@@ -4556,6 +4556,7 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         
         node.style.display = 'flex'
+        const assetsUrl = app.nui.getAssetsUrl() || ''
 
         let listStyle = {
           color: "#005795", 
@@ -4625,15 +4626,29 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         const currentPage = app.currentPage
+
+        const MENU = document.createElement("div")
+        MENU.style.cssText = `
+          width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
+          height: inherit;
+          display: flex;
+          flex-shrink: 0;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        `
+        MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.75 * listStyle.buttonWidth}" height="${0.75 * listStyle.buttonWidth}">`
+
         const horizontalScroll = document.createElement('div')
         // const BTWidth = 100;
         horizontalScroll.style.cssText = `
-          width: calc(100% - ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
+          width: calc(100% - ${3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
           height: inherit;
           display: flex;
           overflow-x: scroll;
           overflow-y: hidden;
           scroll-behavior: smooth;
+          flex-shrink: 0;
         `
         const list = get(app.root?.[currentPage], component.get('list'))
         const titlePath = component.get("titlePath")
@@ -4644,9 +4659,10 @@ const createExtendedDOMResolvers = function (app: App) {
           const ALLWIDTHS = new Array<number>()
           const SHOWWIDTHS = new Array<number>()
           const SHOWITEM = new Map<number, HTMLDivElement>()
+
           list.forEach((item, index) => {
             const Item = document.createElement("div")
-            Item.innerHTML = `<span>${get(item, titlePath)}</span>`
+            Item.innerText = `${get(item, titlePath)}`
             Item.style.cssText = `
               background: ${listStyle.background};
               text-decoration: underline;
@@ -4675,6 +4691,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           `
           node.appendChild(style)
+          node.appendChild(MENU)
           node.appendChild(horizontalScroll)
           const BT = document.createElement("div")
           BT.style.cssText = `
@@ -4682,22 +4699,30 @@ const createExtendedDOMResolvers = function (app: App) {
             height: inherit;
             display: flex;
             justify-content: space-around;
+            flex-shrink: 0;
           `
           const LEFT = document.createElement("div")
           LEFT.style.cssText = `
             width: ${listStyle.buttonWidth}px;
             cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
           `
-          LEFT.innerText = "L"
+          LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
           const RIGHT = document.createElement("div")
           RIGHT.style.cssText = `
             width: ${listStyle.buttonWidth}px;
             cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all .1;
           `
-          RIGHT.innerText = "R"
+          RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
           BT.appendChild(LEFT)
           BT.appendChild(RIGHT)
-          node.append(BT)
+          node.appendChild(BT)
           
           let timer
           const getAllWidths = () => {
@@ -4758,17 +4783,40 @@ const createExtendedDOMResolvers = function (app: App) {
 
           let index = 0
           const calculateRight = (WIDTH) => {
+            refreshAllWidth()
+            getShowWidths(index)
             if(sum(SHOWWIDTHS) >= WIDTH) {
               horizontalScroll.scrollLeft += ALLWIDTHS[index]
               index++
             }
+            changBT()
           }
           const calculateLeft = () => {
+            refreshAllWidth()
+            getShowWidths(index)
             if(index > 0) {
               horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
               index--
             }
+            changBT()
           }
+
+          const changBT = () => {
+            if(index === 0) {
+              LEFT.style.filter = "grayscale(100%)"
+            } else {
+              LEFT.style.filter = "none"
+            }
+            refreshAllWidth()
+            getShowWidths(index)
+            const WIDTH = horizontalScroll.clientWidth
+            if(sum(SHOWWIDTHS) >= WIDTH) {
+              RIGHT.style.filter = "none"
+            } else {
+              RIGHT.style.filter = "grayscale(100%)"
+            }
+          }
+          changBT()
 
           function debounce(fn, delay = 500) {
             // timer 是在闭包中的
@@ -4798,15 +4846,11 @@ const createExtendedDOMResolvers = function (app: App) {
           }, 200))
 
           LEFT.addEventListener("click", debounce(() => {
-            refreshAllWidth()
-            getShowWidths(index)
             calculateLeft()
           }, 200))
 
           RIGHT.addEventListener("click", debounce(() => {
             const WIDTH = horizontalScroll.clientWidth
-            refreshAllWidth()
-            getShowWidths(index)
             calculateRight(WIDTH)
           }, 200))
 
@@ -4814,7 +4858,6 @@ const createExtendedDOMResolvers = function (app: App) {
             const target = event.target as HTMLDivElement
             const WIDTH = horizontalScroll.clientWidth
             const idx = parseInt(target.getAttribute("alt") as string)
-            console.log(!Number.isNaN(idx))
             if(!Number.isNaN(idx)) {
               app.updateRoot(draft => {
                 set(draft?.[currentPage], dataKey, list[idx])
@@ -4832,7 +4875,6 @@ const createExtendedDOMResolvers = function (app: App) {
               })
               refreshAllWidth()
               getShowWidths(index)
-              console.log(SHOWITEM, idx, !SHOWITEM.has(idx))
               if(!SHOWITEM.has(idx)) {
                 calculateRight(WIDTH)
               }
