@@ -4478,6 +4478,7 @@ const createExtendedDOMResolvers = function (app: App) {
           if(toolbarDom.clientHeight) {
             const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
             (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
+            (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
             (document.getElementById("preView") as HTMLDivElement).style.height = height;
             node.removeEventListener("load", calculateHeight)
             const templateInfo = get(app.root, component.get('data-key'))
