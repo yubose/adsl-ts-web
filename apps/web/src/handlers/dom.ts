@@ -4645,7 +4645,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const SHOWWIDTHS = new Array<number>()
           list.forEach((item, index) => {
             const Item = document.createElement("div")
-            Item.innerText = get(item, titlePath)
+            Item.innerHTML = `<span>${get(item, titlePath)}</span>`
             Item.style.cssText = `
               background: ${listStyle.background};
               text-decoration: underline;
@@ -4660,6 +4660,7 @@ const createExtendedDOMResolvers = function (app: App) {
               margin-left: ${listStyle.marginLeft}px;
               margin-right: ${listStyle.marginRight}px;
               cursor: pointer;
+              box-sizing: border-box;
             `
             Item.setAttribute("alt", `${index}`)
             // if(index !== 0) Item.style.marginLeft = "4px"
@@ -4719,6 +4720,12 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           getAllWidths()
+          const refreshAllWidth = () => {
+            ALLWIDTHS.length = 0
+            Items.forEach(item => {
+              ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+            })
+          }
 
           const sum = (arr: Array<number>) => {
             let res = 0
@@ -4775,6 +4782,7 @@ const createExtendedDOMResolvers = function (app: App) {
           horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
             event.preventDefault()
             const WIDTH = horizontalScroll.clientWidth
+            refreshAllWidth()
             getShowWidths(index)
             if(event.deltaY > 0) {
               calculateRight(WIDTH)
@@ -4784,15 +4792,36 @@ const createExtendedDOMResolvers = function (app: App) {
           }, 200))
 
           LEFT.addEventListener("click", debounce(() => {
+            refreshAllWidth()
             getShowWidths(index)
             calculateLeft()
           }, 200))
 
           RIGHT.addEventListener("click", debounce(() => {
             const WIDTH = horizontalScroll.clientWidth
+            refreshAllWidth()
             getShowWidths(index)
             calculateRight(WIDTH)
           }, 200))
+
+          horizontalScroll.addEventListener("click", (event: MouseEvent) => {
+            const target = event.target as HTMLDivElement
+            const index = parseInt(target.getAttribute("alt") as string)
+            app.updateRoot(draft => {
+              set(draft?.[currentPage], dataKey, list[index])
+            })
+            Items.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          })
           
         } else {
           log.debug("err")
