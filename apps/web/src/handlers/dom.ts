@@ -4556,15 +4556,84 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         
         node.style.display = 'flex'
+
+        let listStyle = {
+          color: "#005795", 
+          background: "#f0f0f0",
+          textDecoration: "underline",
+          marginLeft: 10,
+          marginRight: 0,
+          buttonWidth: 40
+        }
+
+        let liStyle = component.get("listStyle")
+
+        // console.log(liStyle, document.getElementById("root")?.clientWidth)
+        if(liStyle) {
+          const fullWidth = document.getElementById("root")?.children[0].clientWidth as number
+          const floatReg = /^0.[0-9]*$/
+          const pxReg = /^[1-9][0-9]*px$/
+          if("marginLeft" in liStyle) {
+            if(floatReg.test(liStyle["marginLeft"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["marginLeft"]) * fullWidth
+            else if(pxReg.test((liStyle["marginLeft"])))
+              liStyle["marginLeft"] = liStyle["marginLeft"].replace("px", "")
+            else
+              delete liStyle["marginLeft"]
+          }
+          if("margin-left" in liStyle) {
+            if(floatReg.test(liStyle["margin-left"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["margin-left"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-left"])))
+              liStyle["marginLeft"] = liStyle["margin-left"].replace("px", "")
+            else
+              delete liStyle["margin-left"]
+          }
+          if("marginRight" in liStyle) {
+            if(floatReg.test(liStyle["marginRight"]))
+              liStyle["marginRight"] = parseFloat(liStyle["marginRight"]) * fullWidth
+            else if(pxReg.test((liStyle["marginRight"])))
+              liStyle["marginRight"] = liStyle["marginRight"].replace("px", "")
+            else
+              delete liStyle["marginRight"]
+          }
+          if("margin-right" in liStyle) {
+            if(floatReg.test(liStyle["margin-right"]))
+              liStyle["marginRight"] = parseFloat(liStyle["margin-right"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-right"])))
+              liStyle["marginRight"] = liStyle["margin-right"].replace("px", "")
+            else
+              delete liStyle["margin-right"]
+          }
+          if("buttonWidth" in liStyle) {
+            if(floatReg.test(liStyle["buttonWidth"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["buttonWidth"]) * fullWidth
+            else if(pxReg.test((liStyle["buttonWidth"])))
+              liStyle["buttonWidth"] = liStyle["buttonWidth"].replace("px", "")
+            else
+              delete liStyle["buttonWidth"]
+          }
+          if("button-width" in liStyle) {
+            if(floatReg.test(liStyle["button-width"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * full-width
+            else if(pxReg.test((liStyle["button-width"])))
+              liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
+            else
+              delete liStyle["button-width"]
+          }
+          listStyle = Object.assign(listStyle, liStyle)
+        }
+
         const currentPage = app.currentPage
         const horizontalScroll = document.createElement('div')
-        const BTWidth = 100;
+        // const BTWidth = 100;
         horizontalScroll.style.cssText = `
-          width: calc(100% - ${BTWidth}px);
+          width: calc(100% - ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
           height: inherit;
           display: flex;
           overflow-x: scroll;
           overflow-y: hidden;
+          scroll-behavior: smooth;
         `
         const list = get(app.root?.[currentPage], component.get('list'))
         const titlePath = component.get("titlePath")
@@ -4578,9 +4647,9 @@ const createExtendedDOMResolvers = function (app: App) {
             const Item = document.createElement("div")
             Item.innerText = get(item, titlePath)
             Item.style.cssText = `
-              background: #f0f0f0;
+              background: ${listStyle.background};
               text-decoration: underline;
-              color: #005795;
+              color: ${listStyle.color};
               text-align: center;
               display: flex;
               align-items: center;
@@ -4588,7 +4657,11 @@ const createExtendedDOMResolvers = function (app: App) {
               padding: 0px 30px;
               border-top-left-radius: 7px;
               border-top-right-radius: 7px;
+              margin-left: ${listStyle.marginLeft}px;
+              margin-right: ${listStyle.marginRight}px;
+              cursor: pointer;
             `
+            Item.setAttribute("alt", `${index}`)
             // if(index !== 0) Item.style.marginLeft = "4px"
             Items.push(Item)
             horizontalScroll.appendChild(Item)
@@ -4603,20 +4676,20 @@ const createExtendedDOMResolvers = function (app: App) {
           node.appendChild(horizontalScroll)
           const BT = document.createElement("div")
           BT.style.cssText = `
-            width: ${BTWidth}px;
+            width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
             height: inherit;
             display: flex;
             justify-content: space-around;
           `
           const LEFT = document.createElement("div")
           LEFT.style.cssText = `
-            width: 40px;
+            width: ${listStyle.buttonWidth}px;
             cursor: pointer;
           `
           LEFT.innerText = "L"
           const RIGHT = document.createElement("div")
           RIGHT.style.cssText = `
-            width: 40px;
+            width: ${listStyle.buttonWidth}px;
             cursor: pointer;
           `
           RIGHT.innerText = "R"
@@ -4629,7 +4702,7 @@ const createExtendedDOMResolvers = function (app: App) {
             if(horizontalScroll.clientWidth) {
               const WIDTH = horizontalScroll.clientWidth
               Items.forEach(item => {
-                ALLWIDTHS.push(item.clientWidth)
+                ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
               })
               const blank = document.createElement("div")
               blank.style.cssText = `
@@ -4673,7 +4746,6 @@ const createExtendedDOMResolvers = function (app: App) {
           let index = 0
           const calculateRight = (WIDTH) => {
             if(sum(SHOWWIDTHS) >= WIDTH) {
-              console.log(ALLWIDTHS[index])
               horizontalScroll.scrollLeft += ALLWIDTHS[index]
               index++
             }
@@ -4684,7 +4756,23 @@ const createExtendedDOMResolvers = function (app: App) {
               index--
             }
           }
-          horizontalScroll.addEventListener("wheel", (event: WheelEvent) => {
+
+          function debounce(fn, delay = 500) {
+            // timer 是在闭包中的
+            let timer: NodeJS.Timeout | null = null;
+            
+            return function() {
+                if (timer) {
+                    clearTimeout(timer)
+                }
+                timer = setTimeout(() => {
+                    fn.apply(this, arguments)
+                    timer = null
+                }, delay)
+            }
+          }
+
+          horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
             event.preventDefault()
             const WIDTH = horizontalScroll.clientWidth
             getShowWidths(index)
@@ -4693,18 +4781,18 @@ const createExtendedDOMResolvers = function (app: App) {
             } else {
               calculateLeft()
             }
-          })
+          }, 200))
 
-          LEFT.addEventListener("click", () => {
+          LEFT.addEventListener("click", debounce(() => {
             getShowWidths(index)
             calculateLeft()
-          })
+          }, 200))
 
-          RIGHT.addEventListener("click", () => {
+          RIGHT.addEventListener("click", debounce(() => {
             const WIDTH = horizontalScroll.clientWidth
             getShowWidths(index)
             calculateRight(WIDTH)
-          })
+          }, 200))
           
         } else {
           log.debug("err")
