@@ -488,15 +488,15 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    axios({
-      url: "http://127.0.0.1:10000",
-      method: "POST",
-      headers:{
-        "Content-Type": "text/plain"
-      },
-      data:  this.#noodl?.root
+    // axios({
+    //   url: "http://127.0.0.1:10000",
+    //   method: "POST",
+    //   headers:{
+    //     "Content-Type": "text/plain"
+    //   },
+    //   data:  this.#noodl?.root
       
-    })
+    // })
 
     let e = Date.now()
     log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)

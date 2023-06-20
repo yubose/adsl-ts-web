@@ -887,14 +887,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           await app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
           },{focus})
-          axios({
-            url: "http://127.0.0.1:10000",
-            method: "POST",
-            headers:{
-              "Content-Type": "text/plain"
-            },
-            data:  app.root
-          })
+          // axios({
+          //   url: "http://127.0.0.1:10000",
+          //   method: "POST",
+          //   headers:{
+          //     "Content-Type": "text/plain"
+          //   },
+          //   data:  app.root
+          // })
 
           // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
           //   context: ctx,
