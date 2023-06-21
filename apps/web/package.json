@@ -159,5 +159,5 @@
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts --watch-files ../../aitmed-noodl-lib/noodl-ui/dist/**/*",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
-  "version": "1.0.57"
+  "version": "1.0.58"
 }
