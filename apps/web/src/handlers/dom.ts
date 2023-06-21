@@ -4657,6 +4657,7 @@ const createExtendedDOMResolvers = function (app: App) {
           border-radius: 10px;
           overflow-x: hidden;
           overflew-y: scroll;
+          scroll-behavior: smooth;
           box-shadow: 0px 2px 5px #cccccc
         `
         // MENU.appendChild(MENULIST)
@@ -4958,6 +4959,10 @@ const createExtendedDOMResolvers = function (app: App) {
 
         horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
           event.preventDefault()
+          try {
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch { }
           // const WIDTH = horizontalScroll.clientWidth
           refreshAllWidth()
           getShowWidths(index)
@@ -4981,6 +4986,10 @@ const createExtendedDOMResolvers = function (app: App) {
           const target = event.target as HTMLDivElement
           // const WIDTH = horizontalScroll.clientWidth
           const idx = parseInt(target.getAttribute("alt") as string)
+          try { 
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch {}
           if(!Number.isNaN(idx)) {
             selectIndex = idx
             refreshAllWidth()
@@ -5016,7 +5025,6 @@ const createExtendedDOMResolvers = function (app: App) {
             MENU.appendChild(MENULIST)
             if(selectIndex > MenuShowNumber - 1) {
               const step = selectIndex - (MenuShowNumber - 1)
-              console.log(step)
               MENULIST.scrollTop += step * MenuItemHeight
             }
             const target = MenuItems[selectIndex]
@@ -5034,17 +5042,17 @@ const createExtendedDOMResolvers = function (app: App) {
           } else {
             MENU.removeChild(MENULIST)
           }
-        })
-
-        MENULIST.addEventListener("click", (event) => {
           const target = event.target as HTMLDivElement
           // const WIDTH = horizontalScroll.clientWidth
           const idx = parseInt(target.getAttribute("alt") as string)
           if(!Number.isNaN(idx)) {
-            MENU.removeChild(MENULIST)
             gotoIndex(idx)
           }
         })
+
+        // MENULIST.addEventListener("click", (event) => {
+          
+        // })
 
         const listenLoad = async () => {
           if(horizontalScroll.clientWidth) {
