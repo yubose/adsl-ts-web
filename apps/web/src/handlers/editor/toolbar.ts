@@ -10,34 +10,36 @@ import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
 import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./utils/info";
 import { insertNode } from "./utils/utils";
+import selectTemplate from "./utils/selectTemplate";
 
 const templateSelect = new DefaultSelect({
     title: 'template',
     width: 100,
     options: [
         {value: "Common", text: "Common", styleForRenderMenuList: { display: "none" }},
-        {value: "textField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
-        {value: "textView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
-        {value: "signature", text: `signature`, styleForRenderMenuList: getImageObject('signature')}
+        {value: "TextField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
+        {value: "TextView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
+        {value: "Signature", text: `signature`, styleForRenderMenuList: getImageObject('signature')}
     ],
     classFunctions: {
         exec: (editor: IDomEditor, value: string | boolean) => {
-            const selection = editor.selection
-            switch(value) {
-                case "textView":
-                    // editor.insertText(`-editing-#[textView:editableTitle:editableText]-editing
-                    inputPopUp(editor, value, selection)
-                    break
-                case "textField":
-                    // editor.insertText(`-editing-#[textField:editableTitle:editableText]-editing-`)
-                    inputPopUp(editor, value, selection)
-                    break
-                case "signature":
-                    insertNode(editor, "sharpblock", `#${value}`, selection)
-                    break
-                default:
-                    editor.insertText('')
-            }
+            // const selection = editor.selection
+            // switch(value) {
+            //     case "TextView":
+            //         // editor.insertText(`-editing-#[textView:editableTitle:editableText]-editing
+            //         inputPopUp(editor, value, selection)
+            //         break
+            //     case "TextField":
+            //         // editor.insertText(`-editing-#[textField:editableTitle:editableText]-editing-`)
+            //         inputPopUp(editor, value, selection)
+            //         break
+            //     case "Signature":
+            //         insertNode(editor, "sharpblock", `#${value}`, selection)
+            //         break
+            //     default:
+            //         editor.insertText('')
+            // }
+            selectTemplate(editor, value)
         }
     }
 })
@@ -69,26 +71,27 @@ const InfoSelect = new DefaultSelect({
     classFunctions: {
         exec: (editor: IDomEditor, value: string | boolean) => {
             // editor.insertText(`#[${value}]`)
-            switch(value) {
-                case "FacilityInfo":
-                    SlateTransforms.insertNodes(editor, FacilityInfo, {
-                        voids: true
-                    })
-                    break
-                case "PatientInfo":
-                    SlateTransforms.insertNodes(editor, PatientInfo, {
-                        voids: true
-                    })
-                    break
-                case "ProviderInfo":
-                    SlateTransforms.insertNodes(editor, ProviderInfo, {
-                        voids: true
-                    })
-                    break
-                default:
-                    break
-            }
-            editor.insertBreak()
+            // switch(value) {
+            //     case "FacilityInfo":
+            //         SlateTransforms.insertNodes(editor, FacilityInfo, {
+            //             voids: true
+            //         })
+            //         break
+            //     case "PatientInfo":
+            //         SlateTransforms.insertNodes(editor, PatientInfo, {
+            //             voids: true
+            //         })
+            //         break
+            //     case "ProviderInfo":
+            //         SlateTransforms.insertNodes(editor, ProviderInfo, {
+            //             voids: true
+            //         })
+            //         break
+            //     default:
+            //         break
+            // }
+            selectTemplate(editor, value)
+            // editor.insertBreak()
             // editor.focus(true)
         }
     }

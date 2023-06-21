@@ -4,7 +4,7 @@ const sharpHtml = (opts: SharpOption) => {
     let Asterisk = ``
     let type = opts.type.replace(/\*/g, '')
     switch (type) {
-        case "textView":
+        case "TextView":
             if(opts.type?.endsWith("*")) 
                 Asterisk = `<span style="color: red"> *</span>`
             return opts.html.replace(
@@ -35,7 +35,7 @@ const sharpHtml = (opts: SharpOption) => {
                     ></textarea>
                 </div>`
             )
-        case "textField": 
+        case "TextField": 
             if(opts.type?.endsWith("*")) 
                 Asterisk = `<span style="color: red"> *</span>`
             return opts.html.replace(
@@ -65,7 +65,7 @@ const sharpHtml = (opts: SharpOption) => {
                     ></input>
                 </div>`
             )
-        case "signature":
+        case "Signature":
             return opts.html.replace(
                 opts.split,
                 `
@@ -105,7 +105,36 @@ const sharpHtml = (opts: SharpOption) => {
                 `
             )
         default:
-            return opts.html 
+            // console.log(opts)
+            // return opts.html
+            return opts.html.replace(
+                opts.split,
+                `<div style="margin: 15px 0;">
+                    <div style="
+                        margin: 15px 0;
+                        color:#333333;
+                        font-weight: 600;
+                    ">${opts.type}</div>
+                    <textarea 
+                        type="text" 
+                        style="
+                            box-sizing: border-box;
+                            width: 100%;
+                            text-indent: 0.8em;
+                            min-height: 80px;
+                            border-color: rgb(222,222,222);
+                            color: rgb(51,51,51);
+                            outline: none;
+                            border-style: solid;
+                            border-width: thin;
+                            border-radius: 4px;
+                            line-height: 40px;
+                        "
+                        placeholder="Enter here"
+                        readonly
+                    ></textarea>
+                </div>`
+            )
     }
 }
 

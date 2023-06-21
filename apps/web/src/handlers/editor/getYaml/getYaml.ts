@@ -117,6 +117,7 @@ const inheritStyleList = new Set(["fontSize", "fontWeight"])
 const SkipType = new Set(["divider"])
 
 const colorReg = /rgb\((.)+\)/
+// const colorReg = /rgb\((2[0-4][0-9]|25[0-5]|1?[0-9]{0,2}), (2[0-4][0-9]|25[0-5]|1?[0-9]{0,2}), (2[0-4][0-9]|25[0-5]|1?[0-9]{0,2})\)/
 // const RefReg = /(@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\])/g
 // const Reg = /@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\]/
 // const AtSplitReg = /[@\[\]]/g
@@ -406,9 +407,16 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             },
                             isRequired: required
                         })
-                    } else {
+                    } else if(obj.value === "#Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["signatureId"] = ''
+                        target = sharpYaml({
+                            type: text,
+                            config: {}
+                        })
+                    } else {
+                        const text = obj.value.replace(/#/, '')
+                        BaseJsonCopy.formData[formatKey(text)] = ''
                         target = sharpYaml({
                             type: text,
                             config: {}

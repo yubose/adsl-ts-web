@@ -1,4 +1,4 @@
-export type SharpType = "textView"|"textField"|"signature"
+export type SharpType = "TextView"|"TextField"|"Signature"
 
 export interface SharpOption {
     html: string

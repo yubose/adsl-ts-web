@@ -8,7 +8,7 @@ import { insertNode, insertText } from "./utils"
 
 const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
 
-    const TITLE = type === "textField" ? `Single line input box` : `Multiline input box`
+    const TITLE = type === "TextField" ? `Single line input box` : `Multiline input box`
 
     const calc = getCalc() as Calculate
 
