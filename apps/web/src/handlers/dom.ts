@@ -48,6 +48,7 @@ import getYaml from './editor/getYaml/getYaml'
 import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
+import { id } from 'date-fns/locale'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -4616,7 +4617,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           if("button-width" in liStyle) {
             if(floatReg.test(liStyle["button-width"]))
-              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * full-width
+              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * fullWidth
             else if(pxReg.test((liStyle["button-width"])))
               liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
             else
@@ -4627,17 +4628,38 @@ const createExtendedDOMResolvers = function (app: App) {
 
         const currentPage = app.currentPage
 
+        const MenuShowNumber = 5
+        const MenuItemHeight = 40
+
         const MENU = document.createElement("div")
         MENU.style.cssText = `
           width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
           height: inherit;
-          display: flex;
           flex-shrink: 0;
-          align-items: center;
-          justify-content: center;
+          border: 2px solid #3080b9;
+          border-radius: 6px;
           cursor: pointer;
+          box-sizing: border-box;
+          background: url(${assetsUrl}menuIcon.svg) no-repeat;
+          background-size: 50% 50%;
+          background-position: center;
         `
-        MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.75 * listStyle.buttonWidth}" height="${0.75 * listStyle.buttonWidth}">`
+        // MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.5 * listStyle.buttonWidth}" height="${0.5 * listStyle.buttonWidth}">`
+
+        const MENULIST = document.createElement("div")
+        MENULIST.style.cssText = `
+          width: ${MenuShowNumber*MenuItemHeight}px;
+          height: 200px;
+          background: #ffffff;
+          position: absolute;
+          top: 2px;
+          left: 0;
+          border-radius: 10px;
+          overflow-x: hidden;
+          overflew-y: scroll;
+          box-shadow: 0px 2px 5px #cccccc
+        `
+        // MENU.appendChild(MENULIST)
 
         const horizontalScroll = document.createElement('div')
         // const BTWidth = 100;
@@ -4654,236 +4676,388 @@ const createExtendedDOMResolvers = function (app: App) {
         const titlePath = component.get("titlePath")
         const dataKey = component.get("data-key")
 
-        if(list instanceof Array) {
-          const Items = new Array<HTMLDivElement>()
-          const ALLWIDTHS = new Array<number>()
-          const SHOWWIDTHS = new Array<number>()
-          const SHOWITEM = new Map<number, HTMLDivElement>()
+        const Items = new Array<HTMLDivElement>()
+        const MenuItems = new Array<HTMLDivElement>()
+        const ALLWIDTHS = new Array<number>()
+        const SHOWWIDTHS = new Array<number>()
+        const SHOWITEM = new Map<number, HTMLDivElement>()
 
-          list.forEach((item, index) => {
-            const Item = document.createElement("div")
-            Item.innerText = `${get(item, titlePath)}`
-            Item.style.cssText = `
-              background: ${listStyle.background};
-              text-decoration: underline;
-              color: ${listStyle.color};
-              text-align: center;
-              display: flex;
-              align-items: center;
-              flex-shrink: 0;
-              padding: 0px 30px;
-              border-top-left-radius: 7px;
-              border-top-right-radius: 7px;
-              margin-left: ${listStyle.marginLeft}px;
-              margin-right: ${listStyle.marginRight}px;
-              cursor: pointer;
-              box-sizing: border-box;
-            `
-            Item.setAttribute("alt", `${index}`)
-            // if(index !== 0) Item.style.marginLeft = "4px"
-            Items.push(Item)
-            horizontalScroll.appendChild(Item)
-          })
-          const style = document.createElement("style")
-          style.innerText = `
-            ::-webkit-scrollbar {
-              display: none;
-            }
-          `
-          node.appendChild(style)
-          node.appendChild(MENU)
-          node.appendChild(horizontalScroll)
-          const BT = document.createElement("div")
-          BT.style.cssText = `
-            width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
-            height: inherit;
+        let currentItem = {}
+        let currentIndex = 0
+        if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+          currentItem = get(app.root, dataKey)
+        } else {
+          currentItem = get(app.root?.[currentPage], dataKey)
+        }
+
+        list.forEach((item, index) => {
+          const Item = document.createElement("div")
+          Item.innerText = `${get(item, titlePath)}`
+          Item.style.cssText = `
+            background: ${listStyle.background};
+            text-decoration: underline;
+            color: ${listStyle.color};
+            text-align: center;
             display: flex;
-            justify-content: space-around;
+            align-items: center;
             flex-shrink: 0;
-          `
-          const LEFT = document.createElement("div")
-          LEFT.style.cssText = `
-            width: ${listStyle.buttonWidth}px;
+            padding: 0px 30px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            margin-left: ${listStyle.marginLeft}px;
+            margin-right: ${listStyle.marginRight}px;
             cursor: pointer;
+            box-sizing: border-box;
+          `
+          Item.setAttribute("class", "horizontal")
+          Item.setAttribute("alt", `${index}`)
+          // if(index !== 0) Item.style.marginLeft = "4px"
+          Items.push(Item)
+          horizontalScroll.appendChild(Item)
+          const MENUItem = document.createElement("div")
+          MENUItem.setAttribute("class", "li")
+          MENUItem.setAttribute("alt", `${index}`)
+          MENUItem.innerText = `${get(item, titlePath)}`
+          MENUItem.style.cssText = `
+            color: ${listStyle.color};
+            background: ${listStyle.background};
+            width: inherit;
+            height: ${MenuItemHeight}px;
             display: flex;
             justify-content: center;
             align-items: center;
+            text-align: center;
           `
-          LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
-          const RIGHT = document.createElement("div")
-          RIGHT.style.cssText = `
-            width: ${listStyle.buttonWidth}px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all .1;
-          `
-          RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
-          BT.appendChild(LEFT)
-          BT.appendChild(RIGHT)
-          node.appendChild(BT)
-          
-          let timer
-          const getAllWidths = () => {
-            if(horizontalScroll.clientWidth) {
-              const WIDTH = horizontalScroll.clientWidth
-              Items.forEach(item => {
-                ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
-              })
-              const blank = document.createElement("div")
-              blank.style.cssText = `
-                width: ${WIDTH}px;
-                height: inherit;
-                flex-shrink: 0;
-              `
-              horizontalScroll.appendChild(blank)
-              if(!timer) {
-                clearTimeout(timer)
-              }
-            } else {
-              timer = setTimeout(getAllWidths, 0)
-            }
+          MenuItems.push(MENUItem)
+          MENULIST.appendChild(MENUItem)
+          // 仅校验标题
+          if(currentItem 
+            && get(currentItem, titlePath) 
+            && get(currentItem, titlePath) === get(item, titlePath)) {
+            currentIndex = index
           }
-          getAllWidths()
-          const refreshAllWidth = () => {
-            ALLWIDTHS.length = 0
+        })
+        const style = document.createElement("style")
+        style.innerText = `
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          .li:hover {
+            background: ${listStyle.color} !important;
+            color: #ffffff !important;
+            font-weight: 700;
+          }
+          .horizontal:hover{
+            background: ${listStyle.color} !important;
+            color: #ffffff !important;
+            font-weight: 700;
+          }
+        `
+        node.appendChild(style)
+        node.appendChild(MENU)
+        node.appendChild(horizontalScroll)
+        const BT = document.createElement("div")
+        BT.style.cssText = `
+          width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
+          height: inherit;
+          display: flex;
+          justify-content: space-around;
+          flex-shrink: 0;
+        `
+        const LEFT = document.createElement("div")
+        LEFT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        `
+        LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
+        const RIGHT = document.createElement("div")
+        RIGHT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all .1;
+        `
+        RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
+        BT.appendChild(LEFT)
+        BT.appendChild(RIGHT)
+        node.appendChild(BT)
+        
+        // dom渲染监听
+        let timer
+        const getAllWidths = () => {
+          if(horizontalScroll.clientWidth) {
+            const WIDTH = horizontalScroll.clientWidth
+            const HEIGHT = horizontalScroll.clientHeight
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
             })
-          }
-
-          const sum = (arr: Array<number>) => {
-            let res = 0
-            arr.forEach(item => {
-              res += item
-            })
-            return res
-          }
-
-          const getShowWidths = (start: number) => {
-            let count = 0
-            const WIDTH = horizontalScroll.clientWidth
-            SHOWWIDTHS.length = 0
-            SHOWITEM.clear()
-            do {
-              if(ALLWIDTHS[start]) {
-                SHOWWIDTHS.push(ALLWIDTHS[start])
-                SHOWITEM.set(start, Items[start])
-                count += ALLWIDTHS[start]
-                start++
-              } else {
-                break
-              }
-            } while (count < WIDTH);
-            if(sum(SHOWWIDTHS) > WIDTH) {
-              SHOWITEM.delete(start-1)
+            const blank = document.createElement("div")
+            blank.style.cssText = `
+              width: ${WIDTH}px;
+              height: inherit;
+              flex-shrink: 0;
+            `
+            horizontalScroll.appendChild(blank)
+            MENULIST.style.marginTop = `${HEIGHT}px`
+            if(!timer) {
+              clearTimeout(timer)
             }
+          } else {
+            timer = setTimeout(getAllWidths, 0)
           }
+        }
+        getAllWidths()
+        const refreshAllWidth = () => {
+          ALLWIDTHS.length = 0
+          Items.forEach(item => {
+            ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+          })
+        }
 
-          let index = 0
-          const calculateRight = (WIDTH) => {
-            refreshAllWidth()
-            getShowWidths(index)
-            if(sum(SHOWWIDTHS) >= WIDTH) {
-              horizontalScroll.scrollLeft += ALLWIDTHS[index]
-              index++
-            }
-            changBT()
-          }
-          const calculateLeft = () => {
-            refreshAllWidth()
-            getShowWidths(index)
-            if(index > 0) {
-              horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
-              index--
-            }
-            changBT()
-          }
+        const sum = (arr: Array<number>) => {
+          let res = 0
+          arr.forEach(item => {
+            res += item
+          })
+          return res
+        }
 
-          const changBT = () => {
-            if(index === 0) {
-              LEFT.style.filter = "grayscale(100%)"
+        const getShowWidths = (start: number) => {
+          let count = 0
+          const WIDTH = horizontalScroll.clientWidth
+          SHOWWIDTHS.length = 0
+          SHOWITEM.clear()
+          do {
+            if(ALLWIDTHS[start]) {
+              SHOWWIDTHS.push(ALLWIDTHS[start])
+              SHOWITEM.set(start, Items[start])
+              count += ALLWIDTHS[start]
+              start++
             } else {
-              LEFT.style.filter = "none"
+              break
             }
-            refreshAllWidth()
-            getShowWidths(index)
-            const WIDTH = horizontalScroll.clientWidth
-            if(sum(SHOWWIDTHS) >= WIDTH) {
-              RIGHT.style.filter = "none"
-            } else {
-              RIGHT.style.filter = "grayscale(100%)"
-            }
+          } while (count < WIDTH);
+          if(sum(SHOWWIDTHS) > WIDTH) {
+            SHOWITEM.delete(start-1)
+          }
+        }
+        let index = 0
+        let selectIndex = 0
+        getShowWidths(index)
+        let lastIndex = index + SHOWWIDTHS.length - 1
+        const calculateRight = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          // if(sum(SHOWWIDTHS) >= WIDTH) {
+          if(lastIndex < ALLWIDTHS.length) {
+            horizontalScroll.scrollLeft += ALLWIDTHS[index]
+            index++
+            lastIndex = index + SHOWWIDTHS.length - 1
           }
           changBT()
+        }
+        const calculateLeft = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          if(index > 0) {
+            horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
+            index--
+            lastIndex = index + SHOWWIDTHS.length -1
+          }
+          changBT()
+        }
 
-          function debounce(fn, delay = 500) {
-            // timer 是在闭包中的
-            let timer: NodeJS.Timeout | null = null;
-            
-            return function() {
-                if (timer) {
-                    clearTimeout(timer)
-                }
-                timer = setTimeout(() => {
-                    fn.apply(this, arguments)
-                    timer = null
-                }, delay)
+        const changBT = () => {
+          if(index === 0) {
+            LEFT.style.filter = "grayscale(100%)"
+          } else {
+            LEFT.style.filter = "none"
+          }
+          refreshAllWidth()
+          getShowWidths(index)
+          const WIDTH = horizontalScroll.clientWidth
+          // if(sum(SHOWWIDTHS) >= WIDTH) {
+          if(lastIndex < ALLWIDTHS.length) {
+            RIGHT.style.filter = "none"
+          } else {
+            RIGHT.style.filter = "grayscale(100%)"
+          }
+        }
+        changBT()
+
+        function delay_frame(delay:number){
+          let count=0;     
+          return new Promise(function (resolve, reject) {
+            (function raf(){
+                count++;
+                let id =window.requestAnimationFrame(raf);
+            if( count>delay){
+                window.cancelAnimationFrame(id);
+                resolve(true);
+            }
+          }())
+          })
+        };
+
+        const gotoIndex = async (target: number) => {
+          selectIndex = target
+          if(target > lastIndex) {
+            const step = target-lastIndex
+            // console.log(target, lastIndex)
+            for(let i = 0; i < step; i++) {
+              calculateRight()
+              await delay_frame(20)
+            }
+          } else if(target < index) {
+            const step = index - target
+            for(let i = 0; i < step; i++) {
+              calculateLeft()
+              await delay_frame(20)
             }
           }
-
-          horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
-            event.preventDefault()
-            const WIDTH = horizontalScroll.clientWidth
-            refreshAllWidth()
-            getShowWidths(index)
-            if(event.deltaY > 0) {
-              calculateRight(WIDTH)
+          const targetDom = Items[target]
+          app.updateRoot(draft => {
+            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+              set(draft, dataKey, list[target])
             } else {
-              calculateLeft()
-            }
-          }, 200))
-
-          LEFT.addEventListener("click", debounce(() => {
-            calculateLeft()
-          }, 200))
-
-          RIGHT.addEventListener("click", debounce(() => {
-            const WIDTH = horizontalScroll.clientWidth
-            calculateRight(WIDTH)
-          }, 200))
-
-          horizontalScroll.addEventListener("click", (event: MouseEvent) => {
-            const target = event.target as HTMLDivElement
-            const WIDTH = horizontalScroll.clientWidth
-            const idx = parseInt(target.getAttribute("alt") as string)
-            if(!Number.isNaN(idx)) {
-              app.updateRoot(draft => {
-                set(draft?.[currentPage], dataKey, list[idx])
-              })
-              Items.forEach(item => {
-                if(item === target) {
-                  item.style.background = listStyle.color
-                  item.style.color = "#ffffff"
-                  item.style.fontWeight = "700"
-                } else {
-                  item.style.background = listStyle.background
-                  item.style.color = listStyle.color
-                  item.style.fontWeight = "normal"
-                }
-              })
-              refreshAllWidth()
-              getShowWidths(index)
-              if(!SHOWITEM.has(idx)) {
-                calculateRight(WIDTH)
-              }
+              set(draft?.[currentPage], dataKey, list[target])
             }
           })
-          
-        } else {
-          log.debug("err")
+          Items.forEach(item => {
+            if(item === targetDom) {
+              item.style.background = listStyle.color
+              item.style.color = "#ffffff"
+              item.style.fontWeight = "700"
+            } else {
+              item.style.background = listStyle.background
+              item.style.color = listStyle.color
+              item.style.fontWeight = "normal"
+            }
+          })
         }
+
+        function debounce(fn, delay = 500) {
+          // timer 是在闭包中的
+          let timer: NodeJS.Timeout | null = null;
+          
+          return function() {
+              if (timer) {
+                  clearTimeout(timer)
+              }
+              timer = setTimeout(() => {
+                  fn.apply(this, arguments)
+                  timer = null
+              }, delay)
+          }
+        }
+
+        horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
+          event.preventDefault()
+          // const WIDTH = horizontalScroll.clientWidth
+          refreshAllWidth()
+          getShowWidths(index)
+          if(event.deltaY > 0) {
+            calculateRight()
+          } else {
+            calculateLeft()
+          }
+        }, 200))
+
+        LEFT.addEventListener("click", debounce(() => {
+          calculateLeft()
+        }, 200))
+
+        RIGHT.addEventListener("click", debounce(() => {
+          // const WIDTH = horizontalScroll.clientWidth
+          calculateRight()
+        }, 200))
+
+        horizontalScroll.addEventListener("click", (event: MouseEvent) => {
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          if(!Number.isNaN(idx)) {
+            selectIndex = idx
+            refreshAllWidth()
+            getShowWidths(index)
+            if(!SHOWITEM.has(idx)) {
+              calculateRight()
+            }
+            app.updateRoot(draft => {
+              if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+                set(draft, dataKey, list[idx])
+              } else {
+                set(draft?.[currentPage], dataKey, list[idx])
+              }
+            })
+            Items.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          }
+        })
+        
+        let isShow = false
+        MENU.addEventListener("click", (event: MouseEvent) => {
+          isShow = !isShow
+          if(isShow) {
+            MENU.appendChild(MENULIST)
+            if(selectIndex > MenuShowNumber - 1) {
+              const step = selectIndex - (MenuShowNumber - 1)
+              console.log(step)
+              MENULIST.scrollTop += step * MenuItemHeight
+            }
+            const target = MenuItems[selectIndex]
+            MenuItems.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          } else {
+            MENU.removeChild(MENULIST)
+          }
+        })
+
+        MENULIST.addEventListener("click", (event) => {
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          if(!Number.isNaN(idx)) {
+            MENU.removeChild(MENULIST)
+            gotoIndex(idx)
+          }
+        })
+
+        const listenLoad = async () => {
+          if(horizontalScroll.clientWidth) {
+            await delay_frame(10)
+            gotoIndex(currentIndex)
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(listenLoad, 0)
+          }
+        }
+        listenLoad()
 
       }
     }
