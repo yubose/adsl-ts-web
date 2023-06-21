@@ -4731,10 +4731,10 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           MenuItems.push(MENUItem)
           MENULIST.appendChild(MENUItem)
-          // 仅校验标题
+          // 校验ID, 无ID
           if(currentItem 
-            && get(currentItem, titlePath) 
-            && get(currentItem, titlePath) === get(item, titlePath)) {
+            && get(currentItem, "id") 
+            && get(currentItem, "id") === get(item, "id")) {
             currentIndex = index
           }
         })
@@ -4891,19 +4891,19 @@ const createExtendedDOMResolvers = function (app: App) {
         }
         changBT()
 
-        function delay_frame(delay:number){
+        const delay_frame = (delay:number) => {
           let count=0;     
           return new Promise(function (resolve, reject) {
             (function raf(){
-                count++;
-                let id =window.requestAnimationFrame(raf);
-            if( count>delay){
-                window.cancelAnimationFrame(id);
-                resolve(true);
-            }
-          }())
+              count++;
+              let id =window.requestAnimationFrame(raf);
+              if( count>delay){
+                  window.cancelAnimationFrame(id);
+                  resolve(true);
+              }
+            }())
           })
-        };
+        }
 
         const gotoIndex = async (target: number) => {
           selectIndex = target
