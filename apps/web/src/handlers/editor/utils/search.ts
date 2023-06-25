@@ -149,6 +149,7 @@ const searchPopUp = ({
 
 const search = (value: string) => {
     const Reg = new RegExp(toReg(value), 'i')
+    // console.log(Reg)
     let obj = new Object()
     // let res = new Array()
     let res = ''

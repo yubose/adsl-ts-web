@@ -17,6 +17,9 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
         case "Signature":
             insertNode(editor, "sharpblock", `#${value}`, selection)
             break
+        case "Diagnosis":
+            insertNode(editor, "sharpblock", `#${value}`, selection)
+            break
         case "FacilityInfo":
             editor.focus()
             // @ts-ignore

@@ -28,7 +28,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "textField",
-                        dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                        // dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                        dataKey: "formData.data." + opts.config.id,
                         // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         contentType,
@@ -63,7 +64,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 type: "label",
                                 text: "No Content",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
-                                dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                                dataKey: "formData.data." + formatKey(opts.config.title as string),
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",
@@ -106,7 +107,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "textView",
-                        dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                        // dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                        dataKey: "formData.data." + opts.config.id,
                         // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         contentType,
@@ -141,7 +143,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 type: "label",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
                                 text: "No Content",
-                                dataKey: "formData.data." + formatKey(opts.config.title as string, true),
+                                dataKey: "formData.data." + formatKey(opts.config.title as string),
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",
@@ -220,6 +222,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
             //     ]
             // }
             return { "..customComponents.documentTemplateSignature": null }
+        case "Diagnosis":
+            return { "..customComponents.documentTemplateDiagnoses": null }
         default:
             return {
                 type: "view",
@@ -242,7 +246,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     },
                     {
                         type: "textView",
-                        dataKey: "formData.data." + formatKey(opts.type as string, true),
+                        dataKey: "formData.data." + formatKey(opts.type as string),
                         // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: "Enter here",
                         contentType,
@@ -277,7 +281,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 type: "label",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
                                 text: "No Content",
-                                dataKey: "formData.data." + formatKey(opts.type as string, true),
+                                dataKey: "formData.data." + formatKey(opts.type as string),
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",

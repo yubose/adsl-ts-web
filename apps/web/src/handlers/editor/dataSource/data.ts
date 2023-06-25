@@ -111,7 +111,9 @@
 // ])
 const DataSource = new Map([
     ["Patient Name", {"Source":"Appointment lobby","Expansion":"Patient Name: First Name or Middle Name or Last Name","isSharp":false}],
+    ["Patient User Name", {"Source": "Appointment lobby","Expansion":"Patient User Name","isSharp":false}],
     ["Patient DOB", {"Source":"Appointment lobby ","Expansion":"Patient Date of Birth","isSharp":false}],
+    ["Patient Age", {"Source":"Appointment lobby ","Expansion":"Year(Now)-Patient Date of Birth","isSharp":false}],
     ["Patient SEX", {"Source":"Appointment lobby ","Expansion":"Patient Gender","isSharp":false}],
     ["Patient Gender", {"Source":"Appointment lobby ","Expansion":"Patient Gender","isSharp":false}],
     ["Patient Phone Number", {"Source":"Appointment lobby ","Expansion":"Patient Phone #","isSharp":false}],
@@ -152,6 +154,7 @@ const DataSource = new Map([
     ["Subscriber Information", {"Source":"Financial Responsibility","Expansion":"Patient Name, Patient Address","isSharp":true}],
     ["Occupation", {"Source":"Fin. Resp Form -> Worker Comp","Expansion":"Occupation","isSharp":true}],
     ["Provider Name", {"Source":"Provider Profile","Expansion":"Provider Name:First Name, Middle Name, Last Name, Title/Training","isSharp":false}],
+    ["Provider User Name", {"Source":"Provider Profile","Expansion":"Provider User Name","isSharp":false}],
     ["Provider Email", {"Source":"Provider Profile","Expansion":"Provider Email","isSharp":false}],
     ["Specialty", {"Source":"Provider Profile","Expansion":"Provider Specialty","isSharp":false}],
     ["Provider Gender", {"Source":"Provider Profile","Expansion":"Provider Gender","isSharp":false}],
@@ -212,11 +215,13 @@ const DataSource = new Map([
     // ["Obstetrical History", {"Source":"Appointment looby>Medical History","Expansion":"Obstetrical History","isSharp":true}],
     // ["Sexual History", {"Source":"Appointment looby>Medical History","Expansion":"Sexual History","isSharp":true}],
     ["Social History", {"Source":"Appointment looby>Medical History","Expansion":"Social History","isSharp":true}],
+    ["Current Time", {"Source":"--","Expansion":"Current Time","isSharp":false}],
     ["Signature", {"Source":"User","Expansion":"User Signature, Signature box","isSharp":true}],
     // ["Vital Sign", {"Source":"Appointment looby>Remote health","Expansion":"Appointment Looby Vital Sign","isSharp":false}],
     ["Patient info", {"Source":"Appointment looby","Expansion":"Patient Name, Date of Birth, Phone #, Email, Patient Address","isSharp":true}],
     ["Provider info", {"Source":"User ","Expansion":"Provider name, Provider title, Provider Specialities, LIC #, NPI #, DEA #\nFacility Email, Fax #, Main #, Address","isSharp":true}],
     ["Facility info", {"Source":"Medical Facility Profile","Expansion":"Medical Facility photo, Name, Address, Email, Website, Main #, Fax #","isSharp":true}],
+    ["Diagnosis", {"Source":"--","Expansion":"Diagnosis, Recommend Diagnoses","isSharp":true}],
     // ["Date", {"Source":"undefined","Expansion":"Today Date, Date selection box","isSharp":true}],
     // ["Time", {"Source":"undefined","Expansion":"Time selection box","isSharp":true}]
 ])

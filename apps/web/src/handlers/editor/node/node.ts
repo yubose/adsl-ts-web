@@ -36,19 +36,20 @@ function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDo
 function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
     // @ts-ignore
-    const { value = "" } = elem
+    const { value = "", id = "" } = elem
 
     const attachVnode = h(
         "span",
         {   
             attrs: {
-                class: "w-e-button w-e-sharpblock"
+                class: "w-e-button w-e-sharpblock",
+                dataId: id
             },
             on: {
                 "click": (event) => {
                     const selection = editor.selection
-                    if(/#[\w*]+:[^:]+:[^:]+/.test((event.target as HTMLButtonElement).innerText)) {
-                        const text = (event.target as HTMLButtonElement).innerText.split(/:/)[0].replace(/[#*]/g, '')
+                    if(/#[\w*]+\|-\|[\s\S]+\|-\|[\s\S]+/.test((event.target as HTMLButtonElement).innerText)) {
+                        const text = (event.target as HTMLButtonElement).innerText.split(/\|-\|/)[0].replace(/[#*]/g, '')
                         // console.log(text)
                         inputPopUp(editor, text as SharpType, selection, event.target as HTMLButtonElement)
                     }
