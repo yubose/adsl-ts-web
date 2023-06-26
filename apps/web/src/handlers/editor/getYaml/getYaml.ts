@@ -23,7 +23,7 @@ const getYaml = (editor: IDomEditor) => {
 
         // BaseJsonCopy.formData = Object.assign(BaseJsonCopy.formData, uuids.formData)
 
-        // const requiredSet = getTitleList(editor, true)
+        const required = getTitleList(editor)
         // let required = new Array()
 
         // requiredSet.forEach((item: string) => {
@@ -36,7 +36,7 @@ const getYaml = (editor: IDomEditor) => {
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
-            // required: uuids.requires
+            required: required
         }
 
         // return {
@@ -395,7 +395,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     }
                     break;
                 case "sharpblock": 
-                    if(/#[\w*]+\|-\|[\s\S]+\|-\|[\s\S]+/.test(obj.value)) {
+                    if(/#[\w*]+\|-\|[^(\|-\|)]+\|-\|[^(\|-\|)]+/.test(obj.value)) {
                         const text = obj.value.replace(/#/, '')
                         const splitArr = text.split(/\|-\|/g)
                         let required = false
@@ -404,13 +404,13 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             required = true
                         }
                         // BaseJsonCopy.formData[formatKey(title, true)] = ``
-                        // BaseJsonCopy.formData[getUuid()] = ``
+                        BaseJsonCopy.formData[obj.key] = ``
                         target = sharpYaml({
                             type: splitArr[0].replace("*", '') as SharpType,
                             config: {
                                 title: title,
                                 placeholder: splitArr[2],
-                                id: obj.id
+                                key: obj.key
                             },
                             isRequired: required
                         })

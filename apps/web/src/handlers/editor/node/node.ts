@@ -36,14 +36,13 @@ function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDo
 function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
     // @ts-ignore
-    const { value = "", id = "" } = elem
+    const { value = "" } = elem
 
     const attachVnode = h(
         "span",
         {   
             attrs: {
-                class: "w-e-button w-e-sharpblock",
-                dataId: id
+                class: "w-e-button w-e-sharpblock"
             },
             on: {
                 "click": (event) => {

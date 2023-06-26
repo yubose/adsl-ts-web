@@ -29,7 +29,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     {
                         type: "textField",
                         // dataKey: "formData.data." + formatKey(opts.config.title as string, true),
-                        dataKey: "formData.data." + opts.config.id,
+                        dataKey: "formData.data." + opts.config.key,
                         // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         contentType,
@@ -64,7 +64,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 type: "label",
                                 text: "No Content",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
-                                dataKey: "formData.data." + formatKey(opts.config.title as string),
+                                dataKey: "formData.data." + opts.config.key,
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",
@@ -108,7 +108,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                     {
                         type: "textView",
                         // dataKey: "formData.data." + formatKey(opts.config.title as string, true),
-                        dataKey: "formData.data." + opts.config.id,
+                        dataKey: "formData.data." + opts.config.key,
                         // value: "formData.data." + formatKey(opts.config.title as string),
                         placeholder: opts.config.placeholder,
                         contentType,
@@ -143,7 +143,7 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 type: "label",
                                 // text: "..formData.data." + formatKey(opts.config.title as string),
                                 text: "No Content",
-                                dataKey: "formData.data." + formatKey(opts.config.title as string),
+                                dataKey: "formData.data." + opts.config.key,
                                 style: {
                                     display: "..formData.atrribute.is_read",
                                     // wordWrap: "break-word",

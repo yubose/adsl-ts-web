@@ -33,7 +33,46 @@ const DynamicFieldsConf = {
     }
 }
 
+const renderAtBlockConf = {
+    type: 'atblock', // 新元素 type ，重要！！！
+    renderElem: renderAtBlock,
+}
+
+const atBlockToHtmlConf = {
+    type: 'atblock', // 新元素的 type ，重要！！！
+    elemToHtml: AtBlockToHtml,
+}
+
+const parseAtBlockHtmlConf = {
+    selector: 'span[data-w-e-type="atblock"]', // CSS 选择器，匹配特定的 HTML 标签
+    parseElemHtml: parseAtBlockHtml,
+}
+
+const renderSharpBlockConf = {
+    type: 'sharpblock', // 新元素 type ，重要！！！
+    renderElem: renderSharpBlock,
+}
+
+const sharpBlockToHtmlConf = {
+    type: 'sharpblock', // 新元素的 type ，重要！！！
+    elemToHtml: SharpBlockToHtml,
+}
+
+const parseSharpBlockHtmlConf = {
+    selector: 'span[data-w-e-type="sharpblock"]', // CSS 选择器，匹配特定的 HTML 标签
+    parseElemHtml: parseSharpBlockHtml,
+}
+
+const mod = {
+    editorPlugin: withBlock,
+    renderElems: [renderAtBlockConf, renderSharpBlockConf],
+    elemsToHtml: [atBlockToHtmlConf, sharpBlockToHtmlConf],
+    parseElemsHtml: [parseAtBlockHtmlConf, parseSharpBlockHtmlConf]
+}
+
 Boot.registerMenu(DynamicFieldsConf)
+
+Boot.registerModule(mod)
 
 const registerToolbar = () => {
 
@@ -125,42 +164,8 @@ const registerToolbar = () => {
         }
     }
 
-    const renderAtBlockConf = {
-        type: 'atblock', // 新元素 type ，重要！！！
-        renderElem: renderAtBlock,
-    }
-
-    const atBlockToHtmlConf = {
-        type: 'atblock', // 新元素的 type ，重要！！！
-        elemToHtml: AtBlockToHtml,
-    }
-
-    const parseAtBlockHtmlConf = {
-        selector: 'span[data-w-e-type="atblock"]', // CSS 选择器，匹配特定的 HTML 标签
-        parseElemHtml: parseAtBlockHtml,
-    }
-
-    const renderSharpBlockConf = {
-        type: 'sharpblock', // 新元素 type ，重要！！！
-        renderElem: renderSharpBlock,
-    }
-
-    const sharpBlockToHtmlConf = {
-        type: 'sharpblock', // 新元素的 type ，重要！！！
-        elemToHtml: SharpBlockToHtml,
-    }
-
-    const parseSharpBlockHtmlConf = {
-        selector: 'span[data-w-e-type="sharpblock"]', // CSS 选择器，匹配特定的 HTML 标签
-        parseElemHtml: parseSharpBlockHtml,
-    }
-
     const module: Partial<IModuleConf> = {
-        menus: [templateConf, InfoSelectConf],
-        editorPlugin: withBlock,
-        renderElems: [renderAtBlockConf, renderSharpBlockConf],
-        elemsToHtml: [atBlockToHtmlConf, sharpBlockToHtmlConf],
-        parseElemsHtml: [parseAtBlockHtmlConf, parseSharpBlockHtmlConf]
+        menus: [templateConf, InfoSelectConf]
     }
 
     Boot.registerModule(module)
