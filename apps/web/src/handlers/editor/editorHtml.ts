@@ -135,7 +135,7 @@ const styleText = `
     height: 50px;
     display: flex;
     align-items: center;
-    margin-left: 20px;
+    padding-left: 20px;
     text-align: start;
 }
 

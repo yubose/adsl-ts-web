@@ -7,7 +7,7 @@ import { toReg } from "./utils"
 
 const atReg = /@\[[\w '\(\)]+\]/g
 const sharpReg = /#\[[\w]+\]/g
-const sharpTypeReg = /#\[\w+:[^:]+:[^:]+\]/g
+const sharpTypeReg = /#\[\w+\|-|\[\s\S]+\|-|\[\s\S]+\]/g
 const atSplit = /[@\[\]]/g
 const sharpSplit = /[#\[\]]/g
 
@@ -130,13 +130,13 @@ export const matchBlock = (html) => {
     const sharpTextBlockReg = new RegExp(
         REG
         .replace(/--type--/g, 'sharpblock')
-        .replace(/--key--/g, `#[\\w*]+:[^":]+:[^":]+`)
-        .replace(/--isInline-- /g, ``), 'g')
+        .replace(/--key--/g, `#[\\w*]+\\|-\\|[\\s\\S]+\\|-\\|[\\s\\S]+`)
+        .replace(/--isInline--/g, `data-id="\\w+"`), 'g')
     const sharpTextKeywords = html.match(sharpTextBlockReg)
     sharpTextKeywords && sharpTextKeywords.forEach(item => {
-        const texts = item.match(/>#[\w*]+:[^:]+:[^:]+</g)
+        const texts = item.match(/>#[\w*]+\|-\|[\s\S]+\|-\|[\s\S]+</g)
         const text = texts[0].replace(/[#><]/g, '')
-        const arr = text.split(/:/g)
+        const arr = text.split(/\|-\|/g)
         html = sharpHtml({
             type: arr[0] as SharpType,
             html: html,
@@ -159,7 +159,7 @@ export const matchBlock = (html) => {
         REG
         .replace(/--type--/g, 'sharpblock')
         .replace(/--key--/g, `#[\\w]+`)
-        .replace(/--isInline-- /g, ``), 'g')
+        .replace(/--isInline--/g, `data-id="\\w+"`), 'g')
     const sharpKeywords = html.match(SharpBlockReg)
     sharpKeywords && sharpKeywords.forEach(item => {
         const text = item.match(/>#[\w]+</g)[0].replace(/[#><]/g, '')
