@@ -129,7 +129,7 @@ const searchPopUp = ({
 
                 if(isSharp === "true") {
                     // insertNode(editor, "sharpblock", `#${key}`, selection)
-                    selectTemplate(editor, formatKey(key))
+                    selectTemplate(editor, key)
                 } else {
                     insertNode(editor, "atblock", `@${key}`, selection, isChange)
                 }
