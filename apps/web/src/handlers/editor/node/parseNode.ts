@@ -15,9 +15,11 @@ function parseAtBlockHtml(domElement: Element, children: SlateDescendant[], edit
 function parseSharpBlockHtml(domElement: Element, children: SlateDescendant[], editor: IDomEditor): SlateElement {
 
     const value = domElement.getAttribute('data-value') || ''
+    const id = domElement.getAttribute('data-id') || ''
 
     const SharpBlock = {
         type: "sharpblock",
+        id,
         value,
         children: [{text: ""}]
     }

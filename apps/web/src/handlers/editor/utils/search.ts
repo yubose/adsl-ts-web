@@ -1,6 +1,8 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import DataSource from "../dataSource/data"
+import formatKey from "./format"
+import selectTemplate from "./selectTemplate"
 import { insertNode, insertText, toReg } from "./utils"
 
 const dismiss = new Set(["backdrop", "esc"])
@@ -108,6 +110,8 @@ const searchPopUp = ({
     content.addEventListener("click", (event) => {
         // @ts-ignore
         const key = event.target.parentElement.dataset["key"]
+        // @ts-ignore
+        const isSharp = event.target.parentElement.dataset["issharp"]
         if(key) {
             Swal.close()
             try {
@@ -121,7 +125,14 @@ const searchPopUp = ({
                 // insertText(editor, `@[${key}]`, selection)
                 
                 /* block */
-                insertNode(editor, "atblock", `@${key}`, selection, isChange)
+                // insertNode(editor, "atblock", `@${key}`, selection, isChange)
+
+                if(isSharp === "true") {
+                    // insertNode(editor, "sharpblock", `#${key}`, selection)
+                    selectTemplate(editor, formatKey(key))
+                } else {
+                    insertNode(editor, "atblock", `@${key}`, selection, isChange)
+                }
                 
                 // let html = editor.getHtml()
                 // html = html.replace(`-editing-@[]-editing-`, `@[${key}]`)
@@ -138,6 +149,7 @@ const searchPopUp = ({
 
 const search = (value: string) => {
     const Reg = new RegExp(toReg(value), 'i')
+    // console.log(Reg)
     let obj = new Object()
     // let res = new Array()
     let res = ''
@@ -150,7 +162,7 @@ const search = (value: string) => {
             //     </div>
             // `)
             obj[key] = `
-                <div class="w-e_search-item" data-key="${key}" data-source="${value.Source}">
+                <div class="w-e_search-item" data-key="${key}" data-source="${value.Source}" data-issharp=${value.isSharp}>
                     <div class="title title0">${key}</div>
                     <div class="title title1">${value.Expansion}</div>
                 </div>

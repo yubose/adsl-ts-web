@@ -9,29 +9,34 @@ import { SharpType } from "../utils/config";
 import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
 import getTitleList from "../utils/getTitleList";
+import { getUuid } from "../utils/utils";
+
 
 const getYaml = (editor: IDomEditor) => {
     try {
         let BaseJsonCopy = deepCopy(BaseJson)
+
         const json = editor.children
         let jsonFix = fixJson(json, BaseJsonCopy)
 
         BaseJsonCopy.components = jsonFix
 
-        const requiredSet = getTitleList(editor, true)
-        let required = new Array()
+        // BaseJsonCopy.formData = Object.assign(BaseJsonCopy.formData, uuids.formData)
 
-        requiredSet.forEach((item: string) => {
-            required.push({
-                key: formatKey(item, true),
-                title: item
-            })
-        })
+        // const requiredSet = getTitleList(editor, true)
+        // let required = new Array()
+
+        // requiredSet.forEach((item: string) => {
+        //     required.push({
+        //         // key: getUuid(),
+        //         title: item
+        //     })
+        // })
 
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
-            required: required
+            // required: uuids.requires
         }
 
         // return {
@@ -117,6 +122,7 @@ const inheritStyleList = new Set(["fontSize", "fontWeight"])
 const SkipType = new Set(["divider"])
 
 const colorReg = /rgb\((.)+\)/
+// const colorReg = /rgb\((2[0-4][0-9]|25[0-5]|1?[0-9]{0,2}), (2[0-4][0-9]|25[0-5]|1?[0-9]{0,2}), (2[0-4][0-9]|25[0-5]|1?[0-9]{0,2})\)/
 // const RefReg = /(@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\])/g
 // const Reg = /@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\]/
 // const AtSplitReg = /[@\[\]]/g
@@ -389,26 +395,35 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     }
                     break;
                 case "sharpblock": 
-                    if(/#[\w*]+:[^:]+:[^:]+/.test(obj.value)) {
+                    if(/#[\w*]+\|-\|[\s\S]+\|-\|[\s\S]+/.test(obj.value)) {
                         const text = obj.value.replace(/#/, '')
-                        const splitArr = text.split(/:/g)
+                        const splitArr = text.split(/\|-\|/g)
                         let required = false
                         let title = splitArr[1]
                         if(splitArr[0].endsWith("*")) {
                             required = true
                         }
-                        BaseJsonCopy.formData[formatKey(title, true)] = ``
+                        // BaseJsonCopy.formData[formatKey(title, true)] = ``
+                        // BaseJsonCopy.formData[getUuid()] = ``
                         target = sharpYaml({
                             type: splitArr[0].replace("*", '') as SharpType,
                             config: {
                                 title: title,
-                                placeholder: splitArr[2]
+                                placeholder: splitArr[2],
+                                id: obj.id
                             },
                             isRequired: required
                         })
-                    } else {
+                    } else if(obj.value === "#Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["signatureId"] = ''
+                        target = sharpYaml({
+                            type: text,
+                            config: {}
+                        })
+                    } else {
+                        const text = obj.value.replace(/#/, '')
+                        BaseJsonCopy.formData[formatKey(text)] = ''
                         target = sharpYaml({
                             type: text,
                             config: {}
