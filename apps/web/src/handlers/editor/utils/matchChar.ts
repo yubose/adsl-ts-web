@@ -3,6 +3,7 @@ import DataSource from "../dataSource/data"
 import infoTemplate from "../dataSource/infoTemplate"
 import { SharpType } from "./config"
 import sharpHtml from "./sharpHtml"
+import { textSharpRegStr, textSharpGetReg, textSharpSplitRegG } from "./textSharp"
 import { toReg } from "./utils"
 
 const atReg = /@\[[\w '\(\)]+\]/g
@@ -130,13 +131,14 @@ export const matchBlock = (html) => {
     const sharpTextBlockReg = new RegExp(
         REG
         .replace(/--type--/g, 'sharpblock')
-        .replace(/--key--/g, `#[\\w*]+\\|-\\|[^(\\|-\\|)]+\\|-\\|[^(\\|-\\|)]+`)
+        .replace(/--key--/g, textSharpRegStr)
         .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+"`), 'g')
     const sharpTextKeywords = html.match(sharpTextBlockReg)
+    // console.log(sharpTextKeywords)
     sharpTextKeywords && sharpTextKeywords.forEach(item => {
-        const texts = item.match(/>#[\w*]+\|-\|[^(\|-\|)]+\|-\|[^(\|-\|)]+</g)
+        const texts = item.match(textSharpGetReg)
         const text = texts[0].replace(/[#><]/g, '')
-        const arr = text.split(/\|-\|/g)
+        const arr = text.split(textSharpSplitRegG)
         html = sharpHtml({
             type: arr[0] as SharpType,
             html: html,

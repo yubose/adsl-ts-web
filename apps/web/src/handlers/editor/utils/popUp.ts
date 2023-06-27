@@ -4,6 +4,7 @@ import { Calculate, getCalc } from "./calculate"
 import { SharpType } from "./config"
 import formatKey from "./format"
 import getTitleList from "./getTitleList"
+import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
 import { insertNode, insertText } from "./utils"
 
 const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
@@ -17,9 +18,9 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
     let placeholder = 'Enter here'
     let isRequired = ''
     if(isChange) {
-        title = target.innerText.split(/\|-\|/)[1];
-        placeholder = target.innerText.split(/\|-\|/)[2];
-        isRequired = target.innerText.split(/\|-\|/)[0].includes("*") ? "checked" : "";
+        title = target.innerText.split(textSharpSplitReg)[1];
+        placeholder = target.innerText.split(textSharpSplitReg)[2];
+        isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
     }
 
     Swal.fire({
@@ -149,7 +150,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             //     `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
             // )
             // s = `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
-            s = `#${type}${str}|-|${res.value?.title}|-|${res.value?.placeholder}`
+            s = `#${type}${str}${textSharpSplitChar}${res.value?.title}${textSharpSplitChar}${res.value?.placeholder}${textSharpSplitChar}`
             // uuidMap.setUuid(s)
             !isChange && calc.add()
             // @ts-ignore
@@ -185,6 +186,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
     // const titleList = getTitleList(editor)
     // isChange && titleList.delete(formatKey(title))
     const titleInput = document.getElementById("w-editor_title") as HTMLInputElement
+    const placeholderInput = document.getElementById("w-editor_placeholder") as HTMLTextAreaElement
     titleInput.focus()
     if(titleInput.value === '') {
         // Swal.disableButtons()
@@ -201,6 +203,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             // Swal.disableButtons()
             confirmButton?.setAttribute("disabled", "true")
         }
+        titleInput.value = title.replace(/\|-|-\|/g, "")
         // if(titleList.has(formatKey(title))) {
         //     // tip.style.display = "block"
         //     titleInput.style.borderColor = "#ff0000"
@@ -219,6 +222,10 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
         //     // Swal.enableButtons()
         //     confirmButton?.removeAttribute("disabled")
         // }
+    })
+    placeholderInput.addEventListener("input", () => {
+        const placeholder = placeholderInput.value
+        placeholderInput.value = placeholder.replace(/\|-|-\|/g, "")
     })
 }
 

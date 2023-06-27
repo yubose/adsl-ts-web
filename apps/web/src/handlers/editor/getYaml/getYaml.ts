@@ -10,6 +10,7 @@ import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
 import getTitleList from "../utils/getTitleList";
 import { getUuid } from "../utils/utils";
+import { textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
 
 
 const getYaml = (editor: IDomEditor) => {
@@ -395,9 +396,9 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     }
                     break;
                 case "sharpblock": 
-                    if(/#[\w*]+\|-\|[^(\|-\|)]+\|-\|[^(\|-\|)]+/.test(obj.value)) {
+                    if(textSharpReg.test(obj.value)) {
                         const text = obj.value.replace(/#/, '')
-                        const splitArr = text.split(/\|-\|/g)
+                        const splitArr = text.split(textSharpSplitRegG)
                         let required = false
                         let title = splitArr[1]
                         if(splitArr[0].endsWith("*")) {

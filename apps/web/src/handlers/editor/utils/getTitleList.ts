@@ -1,5 +1,6 @@
 import { IDomEditor } from "@wangeditor/editor";
 import formatKey from "./format";
+import { textSharpReg, textSharpSplitReg } from "./textSharp";
 
 interface REQUIRED {
     key: string
@@ -13,9 +14,9 @@ const getTitleList = (editor: IDomEditor): Array<REQUIRED> => {
     allSharp.forEach(item => {
         // @ts-ignore
         const value = item.value
-        if(/#[\w*]+\|-\|[\s\S]+\|-\|[\s\S]+/.test(value)) {
-            const key = value.split(/\|-\|/)[0]
-            const title = value.split(/\|-\|/)[1]
+        if(textSharpReg.test(value)) {
+            const key = value.split(textSharpSplitReg)[0]
+            const title = value.split(textSharpSplitReg)[1]
             key.endsWith("*") && titleList.push({
                 // @ts-ignore
                 key: item.key,
