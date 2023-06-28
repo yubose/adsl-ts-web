@@ -21,6 +21,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             insertNode(editor, "sharpblock", `#${value}`, selection)
             break
         case "FacilityInfo":
+        case "Facility info":
             editor.focus()
             // @ts-ignore
             editor.select(selection)
@@ -30,6 +31,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.insertBreak()
             break
         case "PatientInfo":
+        case "Patient info":
             editor.focus()
             // @ts-ignore
             editor.select(editor.selection)
@@ -40,6 +42,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             
             break
         case "ProviderInfo":
+        case "Provider info":
             editor.focus()
             // @ts-ignore
             editor.select(editor.selection)

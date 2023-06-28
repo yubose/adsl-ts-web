@@ -3,6 +3,7 @@ import { h, VNode } from "snabbdom";
 import { SharpType } from "../utils/config";
 import { inputPopUp } from "../utils/popUp";
 import searchPopUp from "../utils/search";
+import { textSharpReg, textSharpSplitReg } from "../utils/textSharp";
 
 function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
@@ -36,20 +37,20 @@ function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDo
 function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
     // @ts-ignore
-    const { value = "", id = "" } = elem
+    const { value = "" } = elem
 
     const attachVnode = h(
         "span",
         {   
             attrs: {
-                class: "w-e-button w-e-sharpblock",
-                dataId: id
+                class: "w-e-button w-e-sharpblock"
             },
             on: {
                 "click": (event) => {
                     const selection = editor.selection
-                    if(/#[\w*]+\|-\|[\s\S]+\|-\|[\s\S]+/.test((event.target as HTMLButtonElement).innerText)) {
-                        const text = (event.target as HTMLButtonElement).innerText.split(/\|-\|/)[0].replace(/[#*]/g, '')
+                    if(textSharpReg.test((event.target as HTMLButtonElement).innerText)) {
+                        console.log((event.target as HTMLButtonElement).innerText.split(textSharpSplitReg))
+                        const text = (event.target as HTMLButtonElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
                         // console.log(text)
                         inputPopUp(editor, text as SharpType, selection, event.target as HTMLButtonElement)
                     }

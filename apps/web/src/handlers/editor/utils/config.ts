@@ -19,7 +19,7 @@ export interface SharpYamlOption {
     config: {
         title?: string,
         placeholder?: string
-        id?: string
+        key?: string
     },
     isRequired?:boolean
 }

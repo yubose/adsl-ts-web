@@ -26,7 +26,7 @@ const insertNode = (editor: IDomEditor, type: string, value: string, selection, 
                 let html = HTML
                     .replace(/--type--/g, type)
                     .replace(/--key--/g, value)
-                    .replace(/--isInline--/g, `data-id="${getUuid()}"`)
+                    .replace(/--isInline--/g, `data-key="${getUuid()}"`)
                 editor.dangerouslyInsertHtml(html)
                 editor.select(selection)
             } else {
@@ -39,7 +39,7 @@ const insertNode = (editor: IDomEditor, type: string, value: string, selection, 
                 const node = {
                     type: type,
                     value: value,
-                    id: getUuid(),
+                    key: getUuid(),
                     children: [
                         {
                             text: ""
