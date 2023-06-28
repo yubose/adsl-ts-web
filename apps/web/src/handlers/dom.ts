@@ -4581,6 +4581,523 @@ const createExtendedDOMResolvers = function (app: App) {
         // node.innerHTML = style + matchChar(html)
         node.innerHTML = style + matchBlock(html).replace(/__replace__/g, assetsUrl)
       }
+    },
+    '[App horizontalScroll]': {
+      cond: "horizontalScroll",
+      resolve({ node, component }) {
+        
+        node.style.display = 'flex'
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+
+        let listStyle = {
+          color: "#005795", 
+          background: "#f0f0f0",
+          textDecoration: "underline",
+          marginLeft: 10,
+          marginRight: 0,
+          buttonWidth: 40
+        }
+
+        let liStyle = component.get("listStyle")
+
+        // console.log(liStyle, document.getElementById("root")?.clientWidth)
+        if(liStyle) {
+          const fullWidth = document.getElementById("root")?.children[0].clientWidth as number
+          const floatReg = /^0.[0-9]*$/
+          const pxReg = /^[1-9][0-9]*px$/
+          if("marginLeft" in liStyle) {
+            if(floatReg.test(liStyle["marginLeft"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["marginLeft"]) * fullWidth
+            else if(pxReg.test((liStyle["marginLeft"])))
+              liStyle["marginLeft"] = liStyle["marginLeft"].replace("px", "")
+            else
+              delete liStyle["marginLeft"]
+          }
+          if("margin-left" in liStyle) {
+            if(floatReg.test(liStyle["margin-left"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["margin-left"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-left"])))
+              liStyle["marginLeft"] = liStyle["margin-left"].replace("px", "")
+            else
+              delete liStyle["margin-left"]
+          }
+          if("marginRight" in liStyle) {
+            if(floatReg.test(liStyle["marginRight"]))
+              liStyle["marginRight"] = parseFloat(liStyle["marginRight"]) * fullWidth
+            else if(pxReg.test((liStyle["marginRight"])))
+              liStyle["marginRight"] = liStyle["marginRight"].replace("px", "")
+            else
+              delete liStyle["marginRight"]
+          }
+          if("margin-right" in liStyle) {
+            if(floatReg.test(liStyle["margin-right"]))
+              liStyle["marginRight"] = parseFloat(liStyle["margin-right"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-right"])))
+              liStyle["marginRight"] = liStyle["margin-right"].replace("px", "")
+            else
+              delete liStyle["margin-right"]
+          }
+          if("buttonWidth" in liStyle) {
+            if(floatReg.test(liStyle["buttonWidth"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["buttonWidth"]) * fullWidth
+            else if(pxReg.test((liStyle["buttonWidth"])))
+              liStyle["buttonWidth"] = liStyle["buttonWidth"].replace("px", "")
+            else
+              delete liStyle["buttonWidth"]
+          }
+          if("button-width" in liStyle) {
+            if(floatReg.test(liStyle["button-width"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * fullWidth
+            else if(pxReg.test((liStyle["button-width"])))
+              liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
+            else
+              delete liStyle["button-width"]
+          }
+          listStyle = Object.assign(listStyle, liStyle)
+        }
+
+        const currentPage = app.currentPage
+
+        const MenuShowNumber = 5
+        const MenuItemHeight = 40
+
+        const MENU = document.createElement("div")
+        MENU.style.cssText = `
+          width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
+          height: inherit;
+          flex-shrink: 0;
+          border: 2px solid #3080b9;
+          border-radius: 6px;
+          cursor: pointer;
+          box-sizing: border-box;
+          background: url(${assetsUrl}menuIcon.svg) no-repeat;
+          background-size: 50% 50%;
+          background-position: center;
+        `
+        // MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.5 * listStyle.buttonWidth}" height="${0.5 * listStyle.buttonWidth}">`
+
+        const MENULIST = document.createElement("div")
+        MENULIST.style.cssText = `
+          width: ${MenuShowNumber*MenuItemHeight}px;
+          height: 200px;
+          background: #ffffff;
+          position: absolute;
+          top: 2px;
+          left: 0;
+          border-radius: 10px;
+          overflow-x: hidden;
+          overflew-y: scroll;
+          scroll-behavior: smooth;
+          box-shadow: 0px 2px 5px #cccccc
+        `
+        // MENU.appendChild(MENULIST)
+
+        const horizontalScroll = document.createElement('div')
+        // const BTWidth = 100;
+        horizontalScroll.style.cssText = `
+          width: calc(100% - ${3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
+          height: inherit;
+          display: flex;
+          overflow-x: scroll;
+          overflow-y: hidden;
+          scroll-behavior: smooth;
+          flex-shrink: 0;
+        `
+        const list = get(app.root?.[currentPage], component.get('list'))
+        const titlePath = component.get("titlePath")
+        const dataKey = component.get("data-key")
+
+        const Items = new Array<HTMLDivElement>()
+        const MenuItems = new Array<HTMLDivElement>()
+        const ALLWIDTHS = new Array<number>()
+        const SHOWWIDTHS = new Array<number>()
+        const SHOWITEM = new Map<number, HTMLDivElement>()
+
+        let currentItem = {}
+        let currentIndex = 0
+        if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+          currentItem = get(app.root, dataKey)
+        } else {
+          currentItem = get(app.root?.[currentPage], dataKey)
+        }
+
+        list.forEach((item, index) => {
+          const Item = document.createElement("div")
+          Item.innerText = `${get(item, titlePath)}`
+          Item.style.cssText = `
+            background: ${listStyle.background};
+            text-decoration: underline;
+            color: ${listStyle.color};
+            text-align: center;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 0px 30px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            margin-left: ${listStyle.marginLeft}px;
+            margin-right: ${listStyle.marginRight}px;
+            cursor: pointer;
+            box-sizing: border-box;
+          `
+          Item.setAttribute("class", "horizontal")
+          Item.setAttribute("alt", `${index}`)
+          // if(index !== 0) Item.style.marginLeft = "4px"
+          Items.push(Item)
+          horizontalScroll.appendChild(Item)
+          const MENUItem = document.createElement("div")
+          MENUItem.setAttribute("class", "li")
+          MENUItem.setAttribute("alt", `${index}`)
+          MENUItem.innerText = `${get(item, titlePath)}`
+          MENUItem.style.cssText = `
+            color: ${listStyle.color};
+            background: ${listStyle.background};
+            width: inherit;
+            height: ${MenuItemHeight}px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+          `
+          MenuItems.push(MENUItem)
+          MENULIST.appendChild(MENUItem)
+          // 校验ID, 无ID
+          if(currentItem 
+            && get(currentItem, "id") 
+            && get(currentItem, "id") === get(item, "id")) {
+            currentIndex = index
+          }
+        })
+        const style = document.createElement("style")
+        style.innerText = `
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          .li:hover {
+            background: ${listStyle.color} !important;
+            color: #ffffff !important;
+            font-weight: 700;
+          }
+          .horizontal:hover{
+            background: ${listStyle.color} !important;
+            color: #ffffff !important;
+            font-weight: 700;
+          }
+        `
+        node.appendChild(style)
+        node.appendChild(MENU)
+        node.appendChild(horizontalScroll)
+        const BT = document.createElement("div")
+        BT.style.cssText = `
+          width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
+          height: inherit;
+          display: flex;
+          justify-content: space-around;
+          flex-shrink: 0;
+        `
+        const LEFT = document.createElement("div")
+        LEFT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        `
+        LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
+        const RIGHT = document.createElement("div")
+        RIGHT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all .1;
+        `
+        RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
+        BT.appendChild(LEFT)
+        BT.appendChild(RIGHT)
+        node.appendChild(BT)
+        
+        // dom渲染监听
+        let timer
+        const getAllWidths = () => {
+          if(horizontalScroll.clientWidth) {
+            const WIDTH = horizontalScroll.clientWidth
+            const HEIGHT = horizontalScroll.clientHeight
+            Items.forEach(item => {
+              ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+            })
+            const blank = document.createElement("div")
+            blank.style.cssText = `
+              width: ${WIDTH}px;
+              height: inherit;
+              flex-shrink: 0;
+            `
+            horizontalScroll.appendChild(blank)
+            MENULIST.style.marginTop = `${HEIGHT}px`
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(getAllWidths, 0)
+          }
+        }
+        getAllWidths()
+        const refreshAllWidth = () => {
+          ALLWIDTHS.length = 0
+          Items.forEach(item => {
+            ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+          })
+        }
+
+        const sum = (arr: Array<number>) => {
+          let res = 0
+          arr.forEach(item => {
+            res += item
+          })
+          return res
+        }
+
+        const getShowWidths = (start: number) => {
+          let count = 0
+          const WIDTH = horizontalScroll.clientWidth
+          SHOWWIDTHS.length = 0
+          SHOWITEM.clear()
+          do {
+            if(ALLWIDTHS[start]) {
+              SHOWWIDTHS.push(ALLWIDTHS[start])
+              SHOWITEM.set(start, Items[start])
+              count += ALLWIDTHS[start]
+              start++
+            } else {
+              break
+            }
+          } while (count < WIDTH);
+          if(sum(SHOWWIDTHS) > WIDTH) {
+            SHOWITEM.delete(start-1)
+          }
+        }
+        let index = 0
+        let selectIndex = 0
+        getShowWidths(index)
+        let lastIndex = index + SHOWWIDTHS.length - 1
+        const calculateRight = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          // if(sum(SHOWWIDTHS) >= WIDTH) {
+          if(lastIndex < ALLWIDTHS.length) {
+            horizontalScroll.scrollLeft += ALLWIDTHS[index]
+            index++
+            lastIndex = index + SHOWWIDTHS.length - 1
+          }
+          changBT()
+        }
+        const calculateLeft = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          if(index > 0) {
+            horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
+            index--
+            lastIndex = index + SHOWWIDTHS.length -1
+          }
+          changBT()
+        }
+
+        const changBT = () => {
+          if(index === 0) {
+            LEFT.style.filter = "grayscale(100%)"
+          } else {
+            LEFT.style.filter = "none"
+          }
+          refreshAllWidth()
+          getShowWidths(index)
+          const WIDTH = horizontalScroll.clientWidth
+          // if(sum(SHOWWIDTHS) >= WIDTH) {
+          if(lastIndex < ALLWIDTHS.length) {
+            RIGHT.style.filter = "none"
+          } else {
+            RIGHT.style.filter = "grayscale(100%)"
+          }
+        }
+        changBT()
+
+        const delay_frame = (delay:number) => {
+          let count=0;     
+          return new Promise(function (resolve, reject) {
+            (function raf(){
+              count++;
+              let id =window.requestAnimationFrame(raf);
+              if( count>delay){
+                  window.cancelAnimationFrame(id);
+                  resolve(true);
+              }
+            }())
+          })
+        }
+
+        const gotoIndex = async (target: number) => {
+          selectIndex = target
+          if(target > lastIndex) {
+            const step = target-lastIndex
+            // console.log(target, lastIndex)
+            for(let i = 0; i < step; i++) {
+              calculateRight()
+              await delay_frame(20)
+            }
+          } else if(target < index) {
+            const step = index - target
+            for(let i = 0; i < step; i++) {
+              calculateLeft()
+              await delay_frame(20)
+            }
+          }
+          const targetDom = Items[target]
+          app.updateRoot(draft => {
+            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+              set(draft, dataKey, list[target])
+            } else {
+              set(draft?.[currentPage], dataKey, list[target])
+            }
+          })
+          Items.forEach(item => {
+            if(item === targetDom) {
+              item.style.background = listStyle.color
+              item.style.color = "#ffffff"
+              item.style.fontWeight = "700"
+            } else {
+              item.style.background = listStyle.background
+              item.style.color = listStyle.color
+              item.style.fontWeight = "normal"
+            }
+          })
+        }
+
+        function debounce(fn, delay = 500) {
+          // timer 是在闭包中的
+          let timer: NodeJS.Timeout | null = null;
+          
+          return function() {
+              if (timer) {
+                  clearTimeout(timer)
+              }
+              timer = setTimeout(() => {
+                  fn.apply(this, arguments)
+                  timer = null
+              }, delay)
+          }
+        }
+
+        horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
+          event.preventDefault()
+          try {
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch { }
+          // const WIDTH = horizontalScroll.clientWidth
+          refreshAllWidth()
+          getShowWidths(index)
+          if(event.deltaY > 0) {
+            calculateRight()
+          } else {
+            calculateLeft()
+          }
+        }, 200))
+
+        LEFT.addEventListener("click", debounce(() => {
+          calculateLeft()
+        }, 200))
+
+        RIGHT.addEventListener("click", debounce(() => {
+          // const WIDTH = horizontalScroll.clientWidth
+          calculateRight()
+        }, 200))
+
+        horizontalScroll.addEventListener("click", (event: MouseEvent) => {
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          try { 
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch {}
+          if(!Number.isNaN(idx)) {
+            selectIndex = idx
+            refreshAllWidth()
+            getShowWidths(index)
+            if(!SHOWITEM.has(idx)) {
+              calculateRight()
+            }
+            app.updateRoot(draft => {
+              if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+                set(draft, dataKey, list[idx])
+              } else {
+                set(draft?.[currentPage], dataKey, list[idx])
+              }
+            })
+            Items.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          }
+        })
+        
+        let isShow = false
+        MENU.addEventListener("click", (event: MouseEvent) => {
+          isShow = !isShow
+          if(isShow) {
+            MENU.appendChild(MENULIST)
+            if(selectIndex > MenuShowNumber - 1) {
+              const step = selectIndex - (MenuShowNumber - 1)
+              MENULIST.scrollTop += step * MenuItemHeight
+            }
+            const target = MenuItems[selectIndex]
+            MenuItems.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          } else {
+            MENU.removeChild(MENULIST)
+          }
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          if(!Number.isNaN(idx)) {
+            gotoIndex(idx)
+          }
+        })
+
+        // MENULIST.addEventListener("click", (event) => {
+          
+        // })
+
+        const listenLoad = async () => {
+          if(horizontalScroll.clientWidth) {
+            await delay_frame(10)
+            gotoIndex(currentIndex)
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(listenLoad, 0)
+          }
+        }
+        listenLoad()
+
+      }
     }
   }
 
