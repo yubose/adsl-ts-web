@@ -242,7 +242,7 @@ const registerToolbar = () => {
             //     ]
             // },
             // "|",
-            // "insertTable",
+            "insertTable",
             "divider",
             "|",
             "undo",

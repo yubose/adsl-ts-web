@@ -81,7 +81,7 @@ const insertBreak = (editor: IDomEditor) => {
     }
     editor.insertNode(Break)
 }
-
+let index = 0
 const getUuid = () => {
     const basePrefixC = 65
     const basePrefix = 97
@@ -93,7 +93,8 @@ const getUuid = () => {
     const prefixChar = String.fromCharCode(prefix)
     const date = Math.floor(Date.now()/1000)
     const dateChar = date.toString(32)
-    return prefixChar + dateChar
+    index++
+    return prefixChar + dateChar + `${index}`
 }
 
 export {

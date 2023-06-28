@@ -58,7 +58,10 @@ const typeConfig = new Map([
     ["header3", "view"],
     ["header4", "view"],
     ["header5", "view"],
-    ["divider", "divider"]
+    ["divider", "divider"],
+    ["table", "view"],
+    // ["table-row", "view"],
+    // ["table-cell", "view"],
     // ["paragraph", "label"]
 ])
 
@@ -136,7 +139,7 @@ const colorReg = /rgb\((.)+\)/
 
 const fixJson = (json, BaseJsonCopy) => {
     // return populate(json, BaseJsonCopy).target
-    return populateBlock(json, BaseJsonCopy)
+    return populateBlock({obj:json, BaseJsonCopy})
 }
 
 // const populate = (obj, BaseJsonCopy) => {
@@ -333,12 +336,24 @@ const fixJson = (json, BaseJsonCopy) => {
 //     return target
 // }
 
-const populateBlock = (obj, BaseJsonCopy, style = {}) => {
+const populateBlock = ({
+    obj, 
+    BaseJsonCopy, 
+    style = {}
+}: {
+    obj: any
+    BaseJsonCopy: any
+    style?: any
+}) => {
     let target
     if(obj instanceof Array) {
         target = []
         obj.forEach(item => {
-            target.push(populateBlock(item, BaseJsonCopy, style))
+            target.push(populateBlock({
+                obj: item, 
+                BaseJsonCopy, 
+                style
+            }))
         })
     } else if(typeof obj === "object" && obj !== null) {
         target = {}
@@ -454,7 +469,115 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
-                    target.children = populateBlock(obj.children, BaseJsonCopy, inherit)
+                    target.children = populateBlock({
+                        obj: obj.children, 
+                        BaseJsonCopy, 
+                        style: inherit
+                    })
+                    break
+                case "table":
+                    const width = obj.width === "auto" ? obj.width : "..formData.atrribute.noodl_font.fullWidth"
+                    target = {
+                        type: typeConfig.get(obj.type),
+                        style: {
+                            width: width,
+                            marginTop: "0.005",
+                            paddingTop: "0.005",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            display: "flex",
+                            flexFlow: "column"
+                        }
+                    }
+                    const allWidth = width === "auto" ? 0 : 100
+                    const widthList = new Array<number>()
+                    const row = obj.children[0].children
+                    row.forEach((it) => {
+                        if(allWidth === 0) {
+                            widthList.push(it?.width && it?.width !== "auto" ? parseFloat(it.width) : 30)
+                        } else {
+                            widthList.push(it?.width && it?.width !== "auto" ? parseFloat(it.width) : Math.floor(10000/row.length)/100)
+                        }
+                    })
+                    if(allWidth !== 0) {
+                        let W = 0
+                        widthList.forEach(it => {
+                            W += it
+                        })
+                        widthList.forEach((it, i) => {
+                            widthList[i] = Math.floor(100*it/W)/100
+                        })
+                    }
+                    // console.log(widthList)
+                    target.children = new Array()
+                    obj.children.forEach((item, index) => {
+                        const child = {
+                            type: "view",
+                            style: {
+                                display: "flex",
+                                width: width
+                            },
+                            children: new Array()
+                        }
+                        item.children.forEach((it, idx) => {
+                            let textAlign = it?.isHeader ? 'center' : 'start'
+                            textAlign = it?.textAlign ? it.textAlign : textAlign
+                            let background = it?.isHeader ? "#f5f2f0" : "#ffffff"
+                            const c = {
+                                type: "view",
+                                style: {
+                                    width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                    // minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                    border: "1px solid #cccccc",
+                                    background,
+                                    display: "flex",
+                                    justifyContent: textAlign,
+                                    alignItem: "center"
+                                },
+                                children: new Array()
+                            }
+                            if(it.children.length === 1) {
+                                if(it.children[0].text === "") {
+                                    const key = getUuid()
+                                    BaseJsonCopy.formData[key] = ``
+                                    c.children = c.children.concat([
+                                        {
+                                            type: "textField",
+                                            dataKey: "formData.data." + key,
+                                            style: {
+                                                display: `..formData.atrribute.is_edit`,
+                                                width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                                minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                                border: "none"
+                                            }
+                                        },
+                                        {
+                                            type: "label",
+                                            dataKey: "formData.data." + key,
+                                            // text: "--",
+                                            style: {
+                                                display: `..formData.atrribute.is_read`,
+                                                width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                                minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                            }
+                                        }
+                                    ])
+                                } else {
+                                    c.children.push({
+                                        type: "label",
+                                        text: `${it.children[0].text}`,
+                                        style: {
+                                            width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                            minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                            textAlign,
+                                            fontSize: "..formData.atrribute.noodl_font.text",
+                                        }
+                                    })
+                                }
+                            }
+                            child.children.push(c)
+                        })
+                        target.children.push(child)
+                    })
                     break
                 default: 
                     let paddingTop = '0.005'
@@ -492,7 +615,11 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     })
                     if(!SkipType.has(obj.type)) {
                         target.style.minHeight = "..formData.atrribute.noodl_font.lineHeight"
-                        target.children = populateBlock(obj.children, BaseJsonCopy, inheritStyle)
+                        target.children = populateBlock({
+                            obj: obj.children, 
+                            BaseJsonCopy, 
+                            style: inheritStyle
+                        })
                     }
                     break;
             }
