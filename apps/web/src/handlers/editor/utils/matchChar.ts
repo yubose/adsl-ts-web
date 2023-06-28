@@ -137,7 +137,9 @@ export const matchBlock = (html) => {
     // console.log(sharpTextKeywords)
     sharpTextKeywords && sharpTextKeywords.forEach(item => {
         const texts = item.match(textSharpGetReg)
-        const text = texts[0].replace(/[#><]/g, '')
+        // const text = texts[0].replace(/[#><]/g, '')
+        const text = texts[0].slice(2, texts[0].length-1)
+        console.log(text, texts[0])
         const arr = text.split(textSharpSplitRegG)
         html = sharpHtml({
             type: arr[0] as SharpType,
