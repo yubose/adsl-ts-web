@@ -9,24 +9,30 @@ import { SharpType } from "../utils/config";
 import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
 import getTitleList from "../utils/getTitleList";
+import { getUuid } from "../utils/utils";
+import { textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
+
 
 const getYaml = (editor: IDomEditor) => {
     try {
         let BaseJsonCopy = deepCopy(BaseJson)
+
         const json = editor.children
         let jsonFix = fixJson(json, BaseJsonCopy)
 
         BaseJsonCopy.components = jsonFix
 
-        const requiredSet = getTitleList(editor, true)
-        let required = new Array()
+        // BaseJsonCopy.formData = Object.assign(BaseJsonCopy.formData, uuids.formData)
 
-        requiredSet.forEach((item: string) => {
-            required.push({
-                key: formatKey(item, true),
-                title: item
-            })
-        })
+        const required = getTitleList(editor)
+        // let required = new Array()
+
+        // requiredSet.forEach((item: string) => {
+        //     required.push({
+        //         // key: getUuid(),
+        //         title: item
+        //     })
+        // })
 
         return {
             data: BaseJsonCopy.formData,
@@ -109,7 +115,7 @@ const styleConfig = new Map([
     ["italic", '{"fontStyle": "italic"}'],
     ["underline", '{"textDecoration": "underline"}'],
     // ["indent", '{"marginLeft": "__REPLACE__"}'],
-    ["textAlign", '{"display": "flex", "justifyContent": "__REPLACE__", "textAlign": "__REPLACE__"}']
+    ["textAlign", '{"display": "flex", "justifyContent": "__REPLACE__", "textAlign": {"x": "__REPLACE__"}}']
 ])
 
 const inheritStyleList = new Set(["fontSize", "fontWeight"])
@@ -117,6 +123,7 @@ const inheritStyleList = new Set(["fontSize", "fontWeight"])
 const SkipType = new Set(["divider"])
 
 const colorReg = /rgb\((.)+\)/
+// const colorReg = /rgb\((2[0-4][0-9]|25[0-5]|1?[0-9]{0,2}), (2[0-4][0-9]|25[0-5]|1?[0-9]{0,2}), (2[0-4][0-9]|25[0-5]|1?[0-9]{0,2})\)/
 // const RefReg = /(@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\])/g
 // const Reg = /@\[[\w '\(\)]+\]|#\[\w+:[^:]+:[^:]+\]|#\[\w+\]/
 // const AtSplitReg = /[@\[\]]/g
@@ -150,7 +157,7 @@ const fixJson = (json, BaseJsonCopy) => {
 //         if("type" in obj) {
 //             target.type = typeConfig.get(obj.type)
 //             target.style = {
-//                 width: "calc(100%)",
+//                 width: "..formData.atrribute.noodl_font.fullWidth",
 //                 marginTop: "15px",
 //             }
 //             if(typeStyle.has(obj.type)) {
@@ -262,7 +269,7 @@ const fixJson = (json, BaseJsonCopy) => {
 //         //             style: {
 //         //                 display: `=..formData._isProvider`,
 //         //                 minHeight: "80px",
-//         //                 width: "calc(100%)"
+//         //                 width: "..formData.atrribute.noodl_font.fullWidth"
 //         //             }
 //         //         },
 //         //         {
@@ -343,41 +350,28 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     if(KEY === "DateOrDateOfService") {
                         target = {
                             type: "view",
-                            style: {
-                                flexGrow:0,
-                                flexShrink:0
-                            },
                             children: [
                                 {
                                     type: "label",
+                                    text: "--",
                                     dataKey: "formData.data." + KEY,
                                     style: {
-                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                        wordWrap: "break-word"
-                                        // display: "..formData.atrribute.is_read",
-                                        // height: "40px",
-                                        // lineHeight: "40px"
-                                    } 
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight"
+                                    }
                                 }
                             ]
                         }
                     } else {
                         target = {
                             type: "view",
-                            style: {
-                                flexGrow:0,
-                                flexShrink:0
-                            },
                             children: [
                                 {
                                     type: "textField",
                                     dataKey: "formData.data." + KEY,
-                                    value: "formData.data." + KEY,
                                     placeholder: "Enter here",
                                     style: {
                                         display: `..formData.atrribute.is_edit`,
                                         width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                        // height: "40px",
                                         boxSizing: "border-box",
                                         textIndent: "0.8em",
                                         color: "#333333",
@@ -385,73 +379,99 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                                         border: "1px solid #DEDEDE",
                                         borderWidth: "thin",
                                         borderRadius: "4px",
-                                        // lineHeight: "40px"
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight"
                                     }
                                 },
                                 {
                                     type: "label",
-                                    dataKey: "formData.data." + KEY,
                                     text: "--",
+                                    dataKey: "formData.data." + KEY,
                                     style: {
                                         display: "..formData.atrribute.is_read",
-                                        width: "..formData.atrribute.noodl_font.atBlockWidth",
-                                        wordWrap: "break-word"
-                                        // height: "40px",
-                                        // lineHeight: "40px"
-                                    } 
+                                        lineHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                    }
                                 }
                             ]
                         }
                     }
-                    
                     break;
                 case "sharpblock": 
-                    if(/#[\w*]+:[^:]+:[^:]+/.test(obj.value)) {
+                    if(textSharpReg.test(obj.value)) {
                         const text = obj.value.replace(/#/, '')
-                        const splitArr = text.split(/:/g)
+                        const splitArr = text.split(textSharpSplitRegG)
                         let required = false
                         let title = splitArr[1]
                         if(splitArr[0].endsWith("*")) {
                             required = true
-                            // BaseJson.required.push({
-                            //     key: formatKey(title, true),
-                            //     title: title
-                            // })
                         }
-                        BaseJsonCopy.formData[formatKey(title, true)] = ``
+                        // BaseJsonCopy.formData[formatKey(title, true)] = ``
+                        BaseJsonCopy.formData[obj.key] = ``
                         target = sharpYaml({
                             type: splitArr[0].replace("*", '') as SharpType,
                             config: {
                                 title: title,
-                                placeholder: splitArr[2]
+                                placeholder: splitArr[2],
+                                key: obj.key
                             },
                             isRequired: required
                         })
+                    } else if(obj.value === "#Signature") {
+                        const text = obj.value.replace(/#/, '')
+                        BaseJsonCopy.formData["signatureId"] = ''
+                        target = sharpYaml({
+                            type: text,
+                            config: {}
+                        })
                     } else {
                         const text = obj.value.replace(/#/, '')
-                        // BaseJsonCopy.formData[formatKey(text)] = ''
-                        // BaseJsonCopy.fromData["signatureTime"] = ''
-                        BaseJsonCopy.formData["signatureId"] = ''
+                        BaseJsonCopy.formData[formatKey(text)] = ''
                         target = sharpYaml({
                             type: text,
                             config: {}
                         })
                     }
                     break;
-                default:
+                case "paragraph":
+                    target = {
+                        type: typeConfig.get(obj.type),
+                        style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            marginTop: "0.005",
+                            paddingTop: "0.005",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            wordBreak: "break-all",
+                            minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                            display: "flex",
+                            // alignItems: "..formData.atrribute.alignItems",
+                            alignItems: "center",
+                            flexWrap: "wrap"
+                        }
+                    }
+                    let inherit = {}
+                    Object.keys(obj).forEach(key => {
+                        if(styleConfig.has(key)) {
+                            target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                            inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                        }
+                    })
+                    target.children = populateBlock(obj.children, BaseJsonCopy, inherit)
+                    break
+                default: 
                     let paddingTop = '0.005'
                     if(SkipType.has(obj.type)) paddingTop = "0"
                     target = {
                         type: typeConfig.get(obj.type),
                         style: {
-                            width: "calc(100%)",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             marginTop: "0.005",
                             paddingTop: paddingTop,
                             // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "..formData.atrribute.alignItems",
-                            fontSize: "..formData.atrribute.text"
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            flexWrap: "wrap",
+                            wordWrap: "break-word",
+                            breakWord: "break-word"
                         }
                     }
                     let inheritStyle = {}
@@ -467,6 +487,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     Object.keys(obj).forEach(key => {
                         if(styleConfig.has(key)) {
                             target.style = Object.assign(target.style, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
+                            inheritStyle = Object.assign(inheritStyle, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
                     if(!SkipType.has(obj.type)) {
@@ -481,13 +502,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                 type: "label",
                 text: obj.text.replace(/ /g, "&nbsp;"),
                 style: {
-                    // height: "40px",
-                    // lineHeight: "40px",
-                    flexGrow:0,
-                    flexShrink:0,
-                    // whiteSpace: "pre",
-                    // marginTop: "0.005",
-                    // fontSize: "..formData.atrribute.noodl_font.text"
+                    // width: "..formData.atrribute.noodl_font.fullWidth",
+                    fontSize: "..formData.atrribute.noodl_font.text",
                 }
             }
             Object.keys(obj).forEach(key => {

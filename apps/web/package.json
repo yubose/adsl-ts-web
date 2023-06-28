@@ -1,7 +1,7 @@
 {
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.4.30",
+    "@aitmed/cadl": "^1.4.46",
     "@aitmed/ecos-lvl2-sdk": "^1.4.246",
     "@atslotus/keypress": "^1.0.6",
     "@emotion/css": "^11.9.0",
@@ -9,6 +9,7 @@
     "@fullcalendar/list": "^5.7.2",
     "@fullcalendar/resource-timeline": "^5.7.2",
     "@fullcalendar/timegrid": "^5.7.2",
+    "@types/xlsx": "^0.0.36",
     "@wangeditor/editor": "^5.1.23",
     "axios": "^0.21.1",
     "browserify-zlib": "^0.2.0",
@@ -28,9 +29,9 @@
     "logsnap": "^0.0.21",
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
-    "noodl-types": "^1.0.264",
-    "noodl-ui": "^0.1.1133",
-    "noodl-utils": "^0.0.121",
+    "noodl-types": "^1.0.266",
+    "noodl-ui": "^0.1.1138",
+    "noodl-utils": "^0.0.134",
     "noodl-yaml": "^0.0.12",
     "papaparse": "^5.4.1",
     "qrcode": "^1.4.4",
@@ -39,7 +40,8 @@
     "sweetalert2": "^11.7.12",
     "tippy.js": "^6.3.1",
     "util": "^0.12.3",
-    "vercel-toast": "^1.6.1"
+    "vercel-toast": "^1.6.1",
+    "xlsx": "^0.18.5"
   },
   "description": "",
   "devDependencies": {
@@ -157,5 +159,5 @@
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts --watch-files ../../aitmed-noodl-lib/noodl-ui/dist/**/*",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
-  "version": "1.0.57"
+  "version": "1.0.59"
 }

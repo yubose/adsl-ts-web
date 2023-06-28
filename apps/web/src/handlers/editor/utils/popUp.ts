@@ -4,11 +4,12 @@ import { Calculate, getCalc } from "./calculate"
 import { SharpType } from "./config"
 import formatKey from "./format"
 import getTitleList from "./getTitleList"
+import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
 import { insertNode, insertText } from "./utils"
 
 const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
 
-    const TITLE = type === "textField" ? `Single line input box` : `Multiline input box`
+    const TITLE = type === "TextField" ? `Single line input box` : `Multiline input box`
 
     const calc = getCalc() as Calculate
 
@@ -17,9 +18,9 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
     let placeholder = 'Enter here'
     let isRequired = ''
     if(isChange) {
-        title = target.innerText.split(/:/)[1];
-        placeholder = target.innerText.split(/:/)[2];
-        isRequired = target.innerText.split(/:/)[0].includes("*") ? "checked" : "";
+        title = target.innerText.split(textSharpSplitReg)[1];
+        placeholder = target.innerText.split(textSharpSplitReg)[2];
+        isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
     }
 
     Swal.fire({
@@ -149,7 +150,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             //     `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
             // )
             // s = `#[${type}:${res.value?.title}${str}:${res.value?.placeholder}]`
-            s = `#${type}${str}:${res.value?.title}:${res.value?.placeholder}`
+            s = `#${type}${str}${textSharpSplitChar}${res.value?.title}${textSharpSplitChar}${res.value?.placeholder}${textSharpSplitChar}`
+            // uuidMap.setUuid(s)
             !isChange && calc.add()
             // @ts-ignore
         } else if(res.isDismissed && res.dismiss === "cancel") {
@@ -178,37 +180,52 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
         insertNode(editor, "sharpblock", s, selection, isChange)
     })
 
-    // const duplicateStr = `There are duplicate keywords`
-    // const titleStr = `Enter a title, please`
 
-    const titleList = getTitleList(editor)
-    isChange && titleList.delete(formatKey(title))
-    // const tip = document.getElementById("w-editor_tip") as HTMLDivElement
+    const confirmButton = Swal.getConfirmButton()
+
+    // const titleList = getTitleList(editor)
+    // isChange && titleList.delete(formatKey(title))
     const titleInput = document.getElementById("w-editor_title") as HTMLInputElement
+    const placeholderInput = document.getElementById("w-editor_placeholder") as HTMLTextAreaElement
     titleInput.focus()
     if(titleInput.value === '') {
-        // tip.style.display = "block"
-        // titleInput.style.borderColor = "#ff0000"
-        // tip.innerText = titleStr
-        Swal.disableButtons()
+        // Swal.disableButtons()
+        confirmButton?.setAttribute("disabled", "true")
     }
     titleInput.addEventListener("input", () => {
         const title = titleInput.value
-        if(titleList.has(formatKey(title))) {
-            // tip.style.display = "block"
-            titleInput.style.borderColor = "#ff0000"
-            // tip.innerText = duplicateStr
-            Swal.disableButtons()
-        } else if(title === '') {
-            // tip.style.display = "block"
-            titleInput.style.borderColor = "#ff0000"
-            // tip.innerText = titleStr
-            Swal.disableButtons()
-        } else {
-            // tip.style.display = "none"
+        if(title !== '') {
             titleInput.style.borderColor = "rgb(222,222,222)"
-            Swal.enableButtons()
+            // Swal.enableButtons()
+            confirmButton?.removeAttribute("disabled")
+        } else {
+            titleInput.style.borderColor = "#ff0000"
+            // Swal.disableButtons()
+            confirmButton?.setAttribute("disabled", "true")
         }
+        titleInput.value = title.replace(/\|-|-\|/g, "")
+        // if(titleList.has(formatKey(title))) {
+        //     // tip.style.display = "block"
+        //     titleInput.style.borderColor = "#ff0000"
+        //     // tip.innerText = duplicateStr
+        //     // Swal.disableButtons()
+        //     confirmButton?.setAttribute("disabled", "true")
+        // } else if(title === '') {
+        //     // tip.style.display = "block"
+        //     titleInput.style.borderColor = "#ff0000"
+        //     // tip.innerText = titleStr
+        //     // Swal.disableButtons()
+        //     confirmButton?.setAttribute("disabled", "true")
+        // } else {
+        //     // tip.style.display = "none"
+        //     titleInput.style.borderColor = "rgb(222,222,222)"
+        //     // Swal.enableButtons()
+        //     confirmButton?.removeAttribute("disabled")
+        // }
+    })
+    placeholderInput.addEventListener("input", () => {
+        const placeholder = placeholderInput.value
+        placeholderInput.value = placeholder.replace(/\|-|-\|/g, "")
     })
 }
 

@@ -57,7 +57,6 @@ import {
 import type { Format as PdfPageFormat } from "../modules/ExportPdf";
 import * as c from '../constants'
 import axios from 'axios'
-
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
@@ -563,7 +562,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
         c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
       )
-
+      
       if (!app.getState().spinner.active) app.enableSpinner()
 
       let destinationParam = ''
@@ -612,7 +611,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'dataIn' in action && _pick(action, 'dataIn')
         }
       }
-
+      if (_pick(action, 'blank') && _pick(action, 'goto')) {
+        app.disableSpinner()
+        options?.ref?.abort() as any
+        let a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = _pick(action, 'goto')
+        a.target = '_blank'
+        a.click()
+        a = null as any
+        return
+      }
       // @ts-expect-error
       destProps = app.parse.destination(
         is.pageComponentUrl(destinationParam)
@@ -626,7 +635,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             })
           : destinationParam,
       )
-
+      
       /** PARSE FOR DESTINATION PROPS */
 
       if ('destination' in destProps) {
@@ -887,14 +896,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           await app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
           },{focus})
-          // axios({
-          //   url: "http://127.0.0.1:9999",
-          //   method: "POST",
-          //   headers:{
-          //     "Content-Type": "text/plain"
-          //   },
-          //   data:  app.root
-          // })
+          if(window.build.nodeEnv == "development"){
+            axios({
+              url: "http://127.0.0.1:10000",
+              method: "POST",
+              headers:{
+                "Content-Type": "text/plain"
+              },
+              data:  app.root
+            }).catch(e=>console.log(e))
+          }
+          
 
           // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
           //   context: ctx,

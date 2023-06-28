@@ -27,6 +27,7 @@ import {
   NUIActionChain,
   NuiComponent,
   Resolve,
+  eventId,
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
@@ -40,15 +41,15 @@ import { cloneDeep } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
 import { editorHtml, styleText }from './editor/editorHtml'
-import { createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
+import { Boot, createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
 import editorConfig from "./editor/editor"
-import toolbarConfig from "./editor/toolbar"
+// import toolbarConfig from "./editor/toolbar"
 import { matchBlock, matchChar } from './editor/utils/matchChar'
 import getYaml from './editor/getYaml/getYaml'
 import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
-import { id } from 'date-fns/locale'
+import registerToolbar from './editor/toolbar'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -98,6 +99,7 @@ const createExtendedDOMResolvers = function (app: App) {
       pageName !== page.page && (pageName = page.page)
 
       let value = (event.target as any)?.value || ''
+      if(component?.has('richtext')) value = (event.target as any)?.textContent || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
@@ -155,7 +157,6 @@ const createExtendedDOMResolvers = function (app: App) {
             } else {
               set(draft?.[pageName], dataKey, value)
             }
-
             component.edit('data-value', value)
             node.dataset.value = value
 
@@ -1845,7 +1846,7 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: ({ node }) => isTextFieldLike(node),
+      cond: ({ node,component }) => isTextFieldLike(node) || component.has('richtext'),
       before({ node, component }) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
@@ -1985,6 +1986,19 @@ const createExtendedDOMResolvers = function (app: App) {
               //   }),
               // )
             }
+            if(component.has('richtext')){
+              const executeFunc = getOnChange({
+                component,
+                dataKey,
+                evtName: 'onBlur',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              const listener = addListener(node, 'blur', executeFunc)
+              component.addEventListeners(listener)
+            }
+            
           }
         }
         if (component.blueprint?.onBlur) {
@@ -2009,13 +2023,6 @@ const createExtendedDOMResolvers = function (app: App) {
           //     page,
           //   }),
           // )
-        }
-        if (showFocus) {
-          node?.setAttribute('showSoftInput', 'true')
-          const timer = setTimeout(() => {
-            node?.focus()
-            clearTimeout(timer)
-          }, 100)
         }
       },
     },
@@ -4353,6 +4360,8 @@ const createExtendedDOMResolvers = function (app: App) {
         node.style.alignItems = "center"
         node.innerHTML = editorHtml;
 
+        // uuidMap.clear()
+
         // node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-82}px`)
 
         const assetsUrl = app.nui.getAssetsUrl() || ""
@@ -4421,7 +4430,7 @@ const createExtendedDOMResolvers = function (app: App) {
               // console.log(editor.selection)
           }
         })
-        
+  
         let isExpend = true
 
         img.addEventListener("click", ()=> {
@@ -4445,7 +4454,7 @@ const createExtendedDOMResolvers = function (app: App) {
           if(newSHA !== oldSHA) {
             // const oldTemplateInfo = get(app.root, component.get('data-key'))
             // const html = matchChar(str)
-            const html = matchBlock(str)
+            const html = matchBlock(str).replace(/__replace__/g, assetsUrl)
             app.updateRoot(draft => {
               set(draft, component.get("data-key"), {
                 html: str,
@@ -4469,7 +4478,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const toolbar = createToolbar({
           editor,
           selector: '#toolbar-container',
-          config: toolbarConfig,
+          config: registerToolbar(),
           mode: 'default', // or 'simple'
         })
         
@@ -4479,6 +4488,7 @@ const createExtendedDOMResolvers = function (app: App) {
           if(toolbarDom.clientHeight) {
             const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
             (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
+            (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
             (document.getElementById("preView") as HTMLDivElement).style.height = height;
             node.removeEventListener("load", calculateHeight)
             const templateInfo = get(app.root, component.get('data-key'))
@@ -4505,6 +4515,15 @@ const createExtendedDOMResolvers = function (app: App) {
 
         // node.addEventListener("load", calculateHeight)
 
+        const adaptHeight = () => {
+          const toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          const editorDom = document.getElementById("editor-container") as HTMLDivElement
+          // console.log(height);
+          console.log(`${editorDom.clientHeight}px`);
+          (document.getElementById("preView") as HTMLDivElement ).style.height = `${editorDom.clientHeight}px`;
+          (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
+        }
+
         editor.on("fullScreen", () => {
           let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
           let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
@@ -4513,6 +4532,7 @@ const createExtendedDOMResolvers = function (app: App) {
           (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
           (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
           img.style.display = "none";
+          adaptHeight()
         })
 
         editor.on("unFullScreen", () => {
@@ -4523,6 +4543,7 @@ const createExtendedDOMResolvers = function (app: App) {
           (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
           (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
           img.style.display = "block";
+          adaptHeight()
         })
 
         i18nChangeLanguage("en")
@@ -4535,12 +4556,21 @@ const createExtendedDOMResolvers = function (app: App) {
         const resource = i18nGetResources("en")
         resource.fontSize["default"] = "Font Size"
 
+        app.mainPage.once(eventId.page.on.ON_DOM_CLEANUP, () => {
+          // console.log("TEST")
+          node.remove()
+          kp.clean()
+          editor.destroy()
+          toolbar.destroy()
+        })
+
       }
     },
     '[App templateView]': {
       cond: "templateView",
       resolve({ node, component }) {
         const html = get(app.root, component.get('data-key'))
+        const assetsUrl = app.nui.getAssetsUrl() || ""
         const style = `
           <style>
             p {
@@ -4549,7 +4579,7 @@ const createExtendedDOMResolvers = function (app: App) {
           </style>
         `
         // node.innerHTML = style + matchChar(html)
-        node.innerHTML = style + matchBlock(html)
+        node.innerHTML = style + matchBlock(html).replace(/__replace__/g, assetsUrl)
       }
     },
     '[App horizontalScroll]': {

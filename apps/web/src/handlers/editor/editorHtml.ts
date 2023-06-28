@@ -135,7 +135,7 @@ const styleText = `
     height: 50px;
     display: flex;
     align-items: center;
-    margin-left: 20px;
+    padding-left: 20px;
     text-align: start;
 }
 
@@ -171,13 +171,13 @@ const styleText = `
 }
 
 .w-e-button {
-    border: 2px solid #2988e6;
+    border: thin solid #2988e6;
     border-radius: 4px;
     background: #2988e6;
     color: white;
     font-weight: 700;
-    padding: 4px;
-    margin: 0 1px;
+    padding: 0px 4px;
+    margin: 0 2px;
     cursor: pointer;
 }
 
@@ -248,6 +248,7 @@ const editorHtml = `
 
 #preView p{
     margin: 15px 0;
+    line-height: 24px;
 }
 
 </style>
