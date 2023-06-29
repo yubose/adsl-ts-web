@@ -4666,7 +4666,6 @@ const createExtendedDOMResolvers = function (app: App) {
           width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
           height: inherit;
           flex-shrink: 0;
-          border: 2px solid #3080b9;
           border-radius: 6px;
           cursor: pointer;
           box-sizing: border-box;
@@ -4678,8 +4677,8 @@ const createExtendedDOMResolvers = function (app: App) {
 
         const MENULIST = document.createElement("div")
         MENULIST.style.cssText = `
-          width: ${MenuShowNumber*MenuItemHeight}px;
-          height: 200px;
+          width: 300px;
+          height: ${MenuShowNumber*MenuItemHeight}px;
           background: #ffffff;
           position: absolute;
           top: 2px;
@@ -4750,14 +4749,14 @@ const createExtendedDOMResolvers = function (app: App) {
           MENUItem.setAttribute("alt", `${index}`)
           MENUItem.innerText = `${get(item, titlePath)}`
           MENUItem.style.cssText = `
-            color: ${listStyle.color};
-            background: ${listStyle.background};
+            background: #ffffff;
             width: inherit;
             height: ${MenuItemHeight}px;
             display: flex;
-            justify-content: center;
+            justify-content: left;
             align-items: center;
-            text-align: center;
+            text-align: left;
+            text-indent: 1em;
           `
           MenuItems.push(MENUItem)
           MENULIST.appendChild(MENUItem)
@@ -4774,8 +4773,7 @@ const createExtendedDOMResolvers = function (app: App) {
             display: none;
           }
           .li:hover {
-            background: ${listStyle.color} !important;
-            color: #ffffff !important;
+            background: ${listStyle.background} !important;
             font-weight: 700;
           }
           .horizontal:hover{
@@ -4823,17 +4821,23 @@ const createExtendedDOMResolvers = function (app: App) {
         const getAllWidths = () => {
           if(horizontalScroll.clientWidth) {
             const WIDTH = horizontalScroll.clientWidth
+            const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
+            ? node.style.maxWidth.replace("px", "")
+            : node.style.maxWidth) - 3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight))
             const HEIGHT = horizontalScroll.clientHeight
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
             })
-            const blank = document.createElement("div")
-            blank.style.cssText = `
-              width: ${WIDTH}px;
-              height: inherit;
-              flex-shrink: 0;
-            `
-            horizontalScroll.appendChild(blank)
+            console.log("TEST", WIDTH, MAXWIDTH)
+            if(WIDTH >= MAXWIDTH) {
+              const blank = document.createElement("div")
+              blank.style.cssText = `
+                width: ${WIDTH}px;
+                height: inherit;
+                flex-shrink: 0;
+              `
+              horizontalScroll.appendChild(blank)
+            }
             MENULIST.style.marginTop = `${HEIGHT}px`
             if(!timer) {
               clearTimeout(timer)
@@ -4885,6 +4889,7 @@ const createExtendedDOMResolvers = function (app: App) {
           refreshAllWidth()
           getShowWidths(index)
           // if(sum(SHOWWIDTHS) >= WIDTH) {
+          console.log(lastIndex, ALLWIDTHS.length)
           if(lastIndex < ALLWIDTHS.length) {
             horizontalScroll.scrollLeft += ALLWIDTHS[index]
             index++
@@ -4938,9 +4943,12 @@ const createExtendedDOMResolvers = function (app: App) {
         const gotoIndex = async (target: number) => {
           selectIndex = target
           if(target > lastIndex) {
-            const step = target-lastIndex
-            // console.log(target, lastIndex)
-            for(let i = 0; i < step; i++) {
+            // const step = target - lastIndex 
+            // for(let i = 0; i < step; i++) {
+            //   calculateRight()
+            //   await delay_frame(20)
+            // }
+            while(!SHOWITEM.has(target)) {
               calculateRight()
               await delay_frame(20)
             }
@@ -4976,14 +4984,15 @@ const createExtendedDOMResolvers = function (app: App) {
           // timer 是在闭包中的
           let timer: NodeJS.Timeout | null = null;
           
-          return function() {
-              if (timer) {
-                  clearTimeout(timer)
-              }
-              timer = setTimeout(() => {
-                  fn.apply(this, arguments)
-                  timer = null
-              }, delay)
+          return function(...args) {
+            const context = this 
+            if (timer) {
+                clearTimeout(timer)
+            }
+            timer = setTimeout(() => {
+                fn.apply(context, args)
+                timer = null
+            }, delay)
           }
         }
 
@@ -5003,14 +5012,19 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }, 200))
 
-        LEFT.addEventListener("click", debounce(() => {
-          calculateLeft()
-        }, 200))
+        LEFT.addEventListener("click", (e) => {
+          e.stopPropagation()
+          debounce(() => {
+            calculateLeft()
+          }, 200)()
+        })
 
-        RIGHT.addEventListener("click", debounce(() => {
-          // const WIDTH = horizontalScroll.clientWidth
-          calculateRight()
-        }, 200))
+        RIGHT.addEventListener("click", (e) => {
+          e.stopPropagation()
+          debounce(() => {
+            calculateRight()
+          }, 200)()
+        })
 
         horizontalScroll.addEventListener("click", (event: MouseEvent) => {
           const target = event.target as HTMLDivElement
@@ -5045,11 +5059,14 @@ const createExtendedDOMResolvers = function (app: App) {
                 item.style.fontWeight = "normal"
               }
             })
+          } else {
+            event.stopPropagation()
           }
         })
         
         let isShow = false
         MENU.addEventListener("click", (event: MouseEvent) => {
+          event.stopPropagation()
           isShow = !isShow
           if(isShow) {
             MENU.appendChild(MENULIST)
@@ -5060,12 +5077,12 @@ const createExtendedDOMResolvers = function (app: App) {
             const target = MenuItems[selectIndex]
             MenuItems.forEach(item => {
               if(item === target) {
-                item.style.background = listStyle.color
-                item.style.color = "#ffffff"
+                item.style.background = listStyle.background
+                // item.style.color = "#ffffff"
                 item.style.fontWeight = "700"
               } else {
-                item.style.background = listStyle.background
-                item.style.color = listStyle.color
+                item.style.background = "#ffffff"
+                // item.style.color = listStyle.color
                 item.style.fontWeight = "normal"
               }
             })
@@ -5080,13 +5097,20 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         })
 
+        document.body.addEventListener("click", (event) => {
+          if(event.target !== MENU && isShow) {
+            isShow = !isShow
+            MENU.removeChild(MENULIST)
+          }
+        }, {capture: true})
+
         // MENULIST.addEventListener("click", (event) => {
           
         // })
 
         const listenLoad = async () => {
           if(horizontalScroll.clientWidth) {
-            await delay_frame(10)
+            await delay_frame(20)
             gotoIndex(currentIndex)
             if(!timer) {
               clearTimeout(timer)
