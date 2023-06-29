@@ -1,4 +1,4 @@
-import { IEditorConfig } from "@wangeditor/editor"
+import { IEditorConfig, IDomEditor } from "@wangeditor/editor"
 
 const editorConfig: Partial<IEditorConfig> = {
     placeholder: 'Type here...',
@@ -19,6 +19,21 @@ const editorConfig: Partial<IEditorConfig> = {
                 // "bgColor",
                 // "clearStyle"
             ]
+        }
+    },
+    customPaste: (editor: IDomEditor, event: ClipboardEvent): boolean => {
+        const text = event.clipboardData?.getData("text/plain")
+        if(text !== "") {
+            const arr = text?.split(/[\n\r]/g)
+            arr?.forEach(item => {
+                if(item !== '') {
+                    editor.insertText(item)
+                    editor.insertBreak()
+                }
+            })
+            return false
+        } else {
+            return true
         }
     }
 }
