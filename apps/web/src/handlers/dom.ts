@@ -4814,7 +4814,7 @@ const createExtendedDOMResolvers = function (app: App) {
         RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
         BT.appendChild(LEFT)
         BT.appendChild(RIGHT)
-        node.appendChild(BT)
+        // node.appendChild(BT)
         
         // dom渲染监听
         let timer
@@ -4828,7 +4828,6 @@ const createExtendedDOMResolvers = function (app: App) {
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
             })
-            console.log("TEST", WIDTH, MAXWIDTH)
             if(WIDTH >= MAXWIDTH) {
               const blank = document.createElement("div")
               blank.style.cssText = `
@@ -4837,6 +4836,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 flex-shrink: 0;
               `
               horizontalScroll.appendChild(blank)
+              node.appendChild(BT)
+            } else {
+              horizontalScroll.style.width = `${WIDTH + 2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px`
             }
             MENULIST.style.marginTop = `${HEIGHT}px`
             if(!timer) {
@@ -4888,8 +4890,6 @@ const createExtendedDOMResolvers = function (app: App) {
         const calculateRight = () => {
           refreshAllWidth()
           getShowWidths(index)
-          // if(sum(SHOWWIDTHS) >= WIDTH) {
-          console.log(lastIndex, ALLWIDTHS.length)
           if(lastIndex < ALLWIDTHS.length) {
             horizontalScroll.scrollLeft += ALLWIDTHS[index]
             index++
@@ -4942,12 +4942,14 @@ const createExtendedDOMResolvers = function (app: App) {
 
         const gotoIndex = async (target: number) => {
           selectIndex = target
-          if(target > lastIndex) {
-            // const step = target - lastIndex 
-            // for(let i = 0; i < step; i++) {
-            //   calculateRight()
-            //   await delay_frame(20)
-            // }
+          app.updateRoot(draft => {
+            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+              set(draft, dataKey, list[target])
+            } else {
+              set(draft?.[currentPage], dataKey, list[target])
+            }
+          })
+          if(target >= lastIndex) {
             while(!SHOWITEM.has(target)) {
               calculateRight()
               await delay_frame(20)
@@ -4960,13 +4962,6 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           const targetDom = Items[target]
-          app.updateRoot(draft => {
-            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
-              set(draft, dataKey, list[target])
-            } else {
-              set(draft?.[currentPage], dataKey, list[target])
-            }
-          })
           Items.forEach(item => {
             if(item === targetDom) {
               item.style.background = listStyle.color
@@ -5066,7 +5061,8 @@ const createExtendedDOMResolvers = function (app: App) {
         
         let isShow = false
         MENU.addEventListener("click", (event: MouseEvent) => {
-          event.stopPropagation()
+          if(event.target === MENU) 
+            event.stopPropagation()
           isShow = !isShow
           if(isShow) {
             MENU.appendChild(MENULIST)
@@ -5098,7 +5094,7 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         document.body.addEventListener("click", (event) => {
-          if(event.target !== MENU && isShow) {
+          if(event.target !== MENU && !(new Set(MenuItems).has(event.target as HTMLDivElement)) && isShow) {
             isShow = !isShow
             MENU.removeChild(MENULIST)
           }
