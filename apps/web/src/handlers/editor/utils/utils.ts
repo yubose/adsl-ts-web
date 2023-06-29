@@ -1,4 +1,5 @@
 import { IDomEditor, SlateElement, SlateLocation, SlatePoint, SlateRange } from "@wangeditor/editor"
+import { editorChoiceMap, DATA } from "./editorChoiceMap"
 import formatKey from "./format"
 
 const toReg = (str: string): string => {
@@ -21,24 +22,30 @@ const insertNode = ({
     type,
     value,
     selection,
-    isChange = false
+    isChange = false,
+    choiceArray
 }: {
     editor: IDomEditor, 
     type: string, 
     value: string, 
     selection, 
-    isChange?: boolean
+    isChange?: boolean,
+    choiceArray?: Array<DATA>
 }) => {
 
     const ischangeNode = (isInline: boolean) => {
         let isInsertBreak = true
         if(!isInline) {
+            const ID = getUuid()
+            if(choiceArray) {
+                editorChoiceMap.set(ID, choiceArray)
+            }
             if(isChange) {
                 editor.deleteBackward("word")
                 let html = HTML
                     .replace(/--type--/g, type)
                     .replace(/--key--/g, value)
-                    .replace(/--isInline--/g, `data-key="${getUuid()}"`)
+                    .replace(/--isInline--/g, `data-key="${ID}"`)
                 editor.dangerouslyInsertHtml(html)
                 editor.select(selection)
             } else {
@@ -51,7 +58,7 @@ const insertNode = ({
                 const node = {
                     type: type,
                     value: value,
-                    key: getUuid(),
+                    key: ID,
                     children: [
                         {
                             text: ""

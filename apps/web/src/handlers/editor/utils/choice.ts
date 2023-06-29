@@ -1,6 +1,8 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
-import { getUuid } from "./utils"
+import { DATA } from "./editorChoiceMap"
+import { textSharpSplitChar } from "./textSharp"
+import { getUuid, insertNode } from "./utils"
 
 const downSvg = `url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIyMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBkYXRhLW5hbWU9Ikljb24gaW9uaWMtaW9zLWFycm93LWRvd24iIGQ9Ik05LjYxNSAxMS40MThsNC44NDItNC43MjZhLjkyOC45MjggMCAwIDEgMS4yOTMgMCAuODg0Ljg4NCAwIDAgMSAwIDEuMjY0bC01LjQ4NyA1LjM1NGEuOTMuOTMgMCAwIDEtMS4yNjIuMDI2TDMuNDc2IDcuOTZhLjg4Mi44ODIgMCAwIDEgMC0xLjI2NC45MjguOTI4IDAgMCAxIDEuMjkzIDB6IiBmaWxsPSIjNGI0YjRiIi8+PHBhdGggZGF0YS1uYW1lPSIyMjk2OSIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjk5OSIgZD0iTTAgMGgyMHYyMEgweiIvPjwvc3ZnPg==)`
 const upSvg = `url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIyMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBkYXRhLW5hbWU9Ikljb24gaW9uaWMtaW9zLWFycm93LWRvd24iIGQ9Ik05LjYxNSA4LjU4M2w0Ljg0MiA0LjcyNmEuOTI4LjkyOCAwIDAgMCAxLjI5MyAwIC44ODQuODg0IDAgMCAwIDAtMS4yNjRsLTUuNDg3LTUuMzU0YS45My45MyAwIDAgMC0xLjI2Mi0uMDI2TDMuNDc2IDEyLjA0YS44ODIuODgyIDAgMCAwIDAgMS4yNjQuOTI4LjkyOCAwIDAgMCAxLjI5MyAweiIgZmlsbD0iIzRiNGI0YiIvPjxwYXRoIGRhdGEtbmFtZT0iMjI5NjkiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii45OTkiIGQ9Ik0wIDBoMjB2MjBIMHoiLz48L3N2Zz4=)`
@@ -87,7 +89,7 @@ const choice = ({
                             background-repeat: no-repeat;
                             background-position: right;
                         "
-                    >Single Choice</div>
+                    >Radio</div>
                     <div 
                         id="w-e_choiceTypes"
                         style="
@@ -106,8 +108,8 @@ const choice = ({
                             box-shadow: 0px 2px 5px #ccc;
                         "
                     >
-                        <div class="w-e_search-item">Single Choice</div>
-                        <div class="w-e_search-item">Multiple Choice</div>
+                        <div class="w-e_search-item">Radio</div>
+                        <div class="w-e_search-item">Checkbox</div>
                         <div class="w-e_search-item">Drop Down Box</div>
                     </div>
                 </div>
@@ -199,9 +201,13 @@ const choice = ({
             }
         }
     }).then(res => {
+        let s = ``
         if(res.isConfirmed){
-            console.log(res)
+            const str = res.value?.required ? '*' : ''
+            const value = res.value
+            s = `#${value?.choiceType}${str}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
         }
+        insertNode({editor, type: "sharpblock", value: s, selection, choiceArray: choiceDataArray})
     })
 
     const choiceType = document.getElementById("w-e_choiceType") as HTMLDivElement
@@ -211,10 +217,7 @@ const choice = ({
     const confirmButton = Swal.getConfirmButton() as HTMLButtonElement
 
     let choiceTitleList = new Array<HTMLDivElement>()
-    interface DATA {
-        title: string,
-        check: string
-    }
+    
     let choiceDataArray = new Array<DATA>()
 
     const LiItem = `
@@ -304,8 +307,6 @@ const choice = ({
         update()
     }
 
-    console.log(choiceTitleList)
-
     let isShow = true
     choiceType.addEventListener("click", (event) => {
         if(isShow) {
@@ -327,7 +328,7 @@ const choice = ({
             isShow = true
             getDataArray()
             switch(choiceType.innerText) {
-                case "Single Choice":
+                case "Radio":
                 case "Drop Down Box":
                     let isUpdate = new Array<number>()
                     choiceDataArray.forEach((item: DATA, idx: number) => {
@@ -342,7 +343,7 @@ const choice = ({
                         }
                     })
                     break
-                case "Multiple Choice":
+                case "Checkbox":
                 default:
                     break
             }
@@ -386,7 +387,7 @@ const choice = ({
         } else if(target.id.startsWith("w-editor_check")) {
             getDataArray()
             switch(choiceType.innerText) {
-                case "Single Choice":
+                case "Radio":
                 case "Drop Down Box":
                     let isUpdate = new Array<number>()
                     const indexDom = target.parentNode?.parentNode as HTMLDivElement
@@ -401,7 +402,7 @@ const choice = ({
                         inputs[1].checked = false
                     })
                     break
-                case "Multiple Choice":
+                case "Checkbox":
                 default:
                     break
             }
