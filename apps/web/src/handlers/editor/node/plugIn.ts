@@ -4,7 +4,7 @@ import DataSource from "../dataSource/data"
 import getTitleList from "../utils/getTitleList";
 
 function withBlock<T extends IDomEditor>(editor: T) {
-    const { isInline, isVoid, insertNode } = editor
+    const { isInline, isVoid, insertNode, insertText } = editor
     const newEditor = editor
 
     newEditor.isInline = elem => {
@@ -22,7 +22,7 @@ function withBlock<T extends IDomEditor>(editor: T) {
         // if(type === "infoblock") return true
         return isVoid(elem) 
     } 
-
+    
     // newEditor.insertNode = async elem => {
     //     const type = DomEditor.getNodeType(elem)
     //     const titleTipPopup = async (title) => {

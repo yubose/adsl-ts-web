@@ -21,14 +21,14 @@ const sharpHtml = (opts: SharpOption) => {
                             box-sizing: border-box;
                             width: 100%;
                             text-indent: 0.8em;
-                            min-height: 80px;
+                            min-height: 48px;
                             border-color: rgb(222,222,222);
                             color: rgb(51,51,51);
                             outline: none;
                             border-style: solid;
                             border-width: thin;
                             border-radius: 4px;
-                            line-height: 40px;
+                            line-height: 24px;
                         "
                         placeholder="${opts.config.placeholder}"
                         readonly
@@ -52,7 +52,7 @@ const sharpHtml = (opts: SharpOption) => {
                             box-sizing: border-box;
                             width: 100%;
                             text-indent: 0.8em;
-                            height: 40px;
+                            height: 24px;
                             border-color: rgb(222,222,222);
                             color: rgb(51,51,51);
                             outline: none;

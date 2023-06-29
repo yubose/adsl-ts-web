@@ -471,7 +471,7 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             fontSize: "..formData.atrribute.noodl_font.text",
                             flexWrap: "wrap",
                             wordWrap: "break-word",
-                            breakWord: "break-word"
+                            wordBreak: "break-word"
                         }
                     }
                     let inheritStyle = {}
