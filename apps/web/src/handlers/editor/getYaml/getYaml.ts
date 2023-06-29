@@ -531,7 +531,8 @@ const populateBlock = ({
                                     background,
                                     display: "flex",
                                     justifyContent: textAlign,
-                                    alignItem: "center"
+                                    alignItem: "center",
+                                    textAlign
                                 },
                                 children: new Array()
                             }
@@ -547,7 +548,8 @@ const populateBlock = ({
                                                 display: `..formData.atrribute.is_edit`,
                                                 width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                                                border: "none"
+                                                border: "none",
+                                                textAlign
                                             }
                                         },
                                         {
@@ -558,6 +560,7 @@ const populateBlock = ({
                                                 display: `..formData.atrribute.is_read`,
                                                 width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                                textAlign
                                             }
                                         }
                                     ])

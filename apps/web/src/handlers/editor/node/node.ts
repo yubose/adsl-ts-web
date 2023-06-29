@@ -48,11 +48,11 @@ function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: 
             on: {
                 "click": (event) => {
                     const selection = editor.selection
-                    if(textSharpReg.test((event.target as HTMLButtonElement).innerText)) {
-                        console.log((event.target as HTMLButtonElement).innerText.split(textSharpSplitReg))
-                        const text = (event.target as HTMLButtonElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
+                    if(textSharpReg.test((event.target as HTMLElement).innerText)) {
+                        console.log((event.target as HTMLElement).innerText.split(textSharpSplitReg))
+                        const text = (event.target as HTMLElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
                         // console.log(text)
-                        inputPopUp(editor, text as SharpType, selection, event.target as HTMLButtonElement)
+                        inputPopUp(editor, text as SharpType, selection, event.target as HTMLElement)
                     }
                 }
             }

@@ -16,7 +16,19 @@ const insertText = (editor: IDomEditor, value: string, selection) => {
 let HTML = `<span data-w-e-type="--type--" data-w-e-is-void --isInline-- data-value="--key--">--key--</span>`
 const isInlineList = new Set(["divider", "sharpblock"])
 
-const insertNode = (editor: IDomEditor, type: string, value: string, selection, isChange: boolean = false) => {
+const insertNode = ({
+    editor,
+    type,
+    value,
+    selection,
+    isChange = false
+}: {
+    editor: IDomEditor, 
+    type: string, 
+    value: string, 
+    selection, 
+    isChange?: boolean
+}) => {
 
     const ischangeNode = (isInline: boolean) => {
         let isInsertBreak = true

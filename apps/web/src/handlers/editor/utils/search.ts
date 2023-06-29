@@ -1,9 +1,8 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import DataSource from "../dataSource/data"
-import formatKey from "./format"
 import selectTemplate from "./selectTemplate"
-import { insertNode, insertText, toReg } from "./utils"
+import { insertNode, toReg } from "./utils"
 
 const dismiss = new Set(["backdrop", "esc"])
 
@@ -131,7 +130,7 @@ const searchPopUp = ({
                     // insertNode(editor, "sharpblock", `#${key}`, selection)
                     selectTemplate(editor, key)
                 } else {
-                    insertNode(editor, "atblock", `@${key}`, selection, isChange)
+                    insertNode({editor, type:"atblock", value:`@${key}`, selection, isChange})
                 }
                 
                 // let html = editor.getHtml()

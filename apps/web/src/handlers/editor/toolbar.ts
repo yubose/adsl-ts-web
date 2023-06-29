@@ -8,8 +8,6 @@ import withBlock from "./node/plugIn";
 import { renderAtBlock, renderSharpBlock } from "./node/node";
 import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
 import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
-import { FacilityInfo, PatientInfo, ProviderInfo } from "./utils/info";
-import { insertNode } from "./utils/utils";
 import selectTemplate from "./utils/selectTemplate";
 
 
@@ -86,7 +84,8 @@ const registerToolbar = () => {
             {value: "TextField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
             {value: "TextView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
             {value: "Diagnosis", text: `Diagnosis`, styleForRenderMenuList: getImageObject('diagnosis')},
-            {value: "Signature", text: `Signature`, styleForRenderMenuList: getImageObject('signature')}
+            {value: "Signature", text: `Signature`, styleForRenderMenuList: getImageObject('signature')},
+            {value: "Choice", text: "Choice", styleForRenderMenuList: getImageObject('choice')}
         ],
         classFunctions: {
             exec: (editor: IDomEditor, value: string | boolean) => {

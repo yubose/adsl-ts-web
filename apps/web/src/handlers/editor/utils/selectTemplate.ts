@@ -1,4 +1,5 @@
 import { IDomEditor, SlateTransforms } from "@wangeditor/editor"
+import choice from "./choice"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
 import { insertNode } from "./utils"
@@ -15,10 +16,16 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             inputPopUp(editor, value, selection)
             break
         case "Signature":
-            insertNode(editor, "sharpblock", `#${value}`, selection)
+            insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
             break
         case "Diagnosis":
-            insertNode(editor, "sharpblock", `#${value}`, selection)
+            insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
+            break
+        case "Choice":
+            choice({
+                editor,
+                selection
+            })
             break
         case "FacilityInfo":
         case "Facility info":
@@ -53,7 +60,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             
             break
         default:
-            insertNode(editor, "sharpblock", `#${value}`, selection)
+            insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
             break
     }
 }

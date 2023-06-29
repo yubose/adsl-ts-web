@@ -186,6 +186,38 @@ const styleText = `
     color: #2988e6;
 }
 
+.w-e_scroll-box {
+    scrollbar-width: none; /* firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.w-e_scroll-box::-webkit-scrollbar {
+    display: none;     /* Chrome Safari */
+}
+
+.w-e_swal_validatMsg {
+    color: #e24445;
+    font-weight: 600;
+    position: fixed;
+    width: 400px;
+    top: 80px;
+    margin-left: 100px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.w-e_swal_validatMsg::before {
+    width: 1em;
+    min-width: 1em;
+    height: 1em;
+    background-color: #ffffff;
+    border: 2px solid #e24445;
+    color: #e24445;
+    line-height: 1em;
+}
+
 `
 
 const editorHtml = `
@@ -205,7 +237,7 @@ const editorHtml = `
 }
 #editor—wrapper {
     border: 1px solid #ccc;
-    z-index: 1; /* 按需定义 */
+    z-index: 2; /* 按需定义 */
     width: ${editorRatio}%;
     height: 100%;
 }
@@ -249,6 +281,26 @@ const editorHtml = `
 #preView p{
     margin: 15px 0;
     line-height: 24px;
+}
+
+#preView table {
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+
+#preView th {
+    width: 24px;
+    height: 24px;
+    padding: 3px 5px;
+    border: 1px solid #ccc;
+    background: #f5f2f0;
+}
+
+#preView td {
+    width: 24px;
+    height: 24px;
+    padding: 3px 5px;
+    border: 1px solid #ccc;
 }
 
 </style>

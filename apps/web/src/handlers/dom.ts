@@ -4576,6 +4576,26 @@ const createExtendedDOMResolvers = function (app: App) {
             p {
               margin: 15px 0;
             }
+            
+            table {
+              border-collapse: collapse;
+              margin: 15px 0;
+            }
+
+            th {
+              width: 24px;
+              height: 24px;
+              padding: 3px 5px;
+              border: 1px solid #ccc;
+              background: #f5f2f0;
+            }
+
+            td {
+              width: 24px;
+              height: 24px;
+              padding: 3px 5px;
+              border: 1px solid #ccc;
+            }
           </style>
         `
         // node.innerHTML = style + matchChar(html)
