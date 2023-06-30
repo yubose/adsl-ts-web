@@ -10,7 +10,7 @@ import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
 import getTitleList from "../utils/getTitleList";
 import { getUuid } from "../utils/utils";
-import { textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
+import { choiceSharpReg, textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
 
 
 const getYaml = (editor: IDomEditor) => {
@@ -430,6 +430,8 @@ const populateBlock = ({
                             },
                             isRequired: required
                         })
+                    } else if(choiceSharpReg.test(obj.value)) {
+                        // switch
                     } else if(obj.value === "#Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["signatureId"] = ''
@@ -541,9 +543,9 @@ const populateBlock = ({
                             children: new Array()
                         }
                         item.children.forEach((it, idx) => {
-                            let textAlign = it?.isHeader ? 'center' : 'start'
-                            textAlign = it?.textAlign ? it.textAlign : textAlign
-                            let background = it?.isHeader ? "#f5f2f0" : "#ffffff"
+                            let textAlign = it?.isHeader ? {x: 'center'} : {x: 'start'}
+                            textAlign = it?.textAlign ? {x: it.textAlign} : textAlign
+                            let backgroundColor = it?.isHeader ? "#f5f2f0" : "#ffffff"
                             let fontWeight = it?.isHeader ? "600" : "normal"
                             const c = {
                                 type: "view",
@@ -551,10 +553,10 @@ const populateBlock = ({
                                     width: widthArray[idx],
                                     // minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     border: "1px solid #cccccc",
-                                    background,
+                                    backgroundColor,
                                     display: "flex",
                                     justifyContent: textAlign,
-                                    alignItem: "center",
+                                    alignItems: "center",
                                     textAlign,
                                     flexShrink: flexShrinks[idx],
                                     fontWeight

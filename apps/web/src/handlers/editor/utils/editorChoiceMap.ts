@@ -3,9 +3,6 @@ interface DATA {
     check: string
 }
 
-// const editorChoiceMap = new Map<string, Array<DATA>>()
-
 export { 
-    DATA,
-    // editorChoiceMap
+    DATA
 }

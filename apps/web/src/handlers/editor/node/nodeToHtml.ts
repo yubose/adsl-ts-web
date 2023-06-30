@@ -21,8 +21,20 @@ function SharpBlockToHtml(elem: SlateElement, childrenHtml: string): string {
     return html
 }
 
+function ChoiceBlockToHtml(elem: SlateElement, childrenHtml: string): string {
+
+    // @ts-ignore
+    const { value = "", key = "", choiceStr = "" } = elem
+
+    // 生成 HTML 代码
+    const html = `<span data-w-e-type="sharpblock" data-w-e-is-void data-key="${key}" data-array="${choiceStr}" data-value="${value}">${value}</span>`
+
+    return html
+}
+
 
 export { 
     AtBlockToHtml,
-    SharpBlockToHtml
+    SharpBlockToHtml,
+    ChoiceBlockToHtml
 }

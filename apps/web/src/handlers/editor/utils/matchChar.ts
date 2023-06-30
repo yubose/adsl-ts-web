@@ -3,7 +3,7 @@ import DataSource from "../dataSource/data"
 import infoTemplate from "../dataSource/infoTemplate"
 import { SharpType } from "./config"
 import sharpHtml from "./sharpHtml"
-import { textSharpRegStr, textSharpGetReg, textSharpSplitRegG } from "./textSharp"
+import { textSharpRegStr, textSharpGetReg, textSharpSplitRegG, choiceSharpRegStr, choiceSharpGetReg, choiceArrayStr } from "./textSharp"
 import { toReg } from "./utils"
 
 // const atReg = /@\[[\w '\(\)]+\]/g
@@ -155,6 +155,28 @@ export const matchBlock = (html) => {
         //         font-weight: 600;
         //     "><span>${arr[1]} </span><span style="color: red"> *</span>
         //     </div>`)
+    })
+
+    const sharpChoiceBlockReg = new RegExp(
+        REG
+        .replace(/--type--/g, 'sharpblock')
+        .replace(/--key--/g, choiceSharpRegStr)
+        .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+" data-array="${choiceArrayStr}"`), 'g')
+    const sharpChoiceKeywords = html.match(sharpChoiceBlockReg)
+    console.log(sharpChoiceKeywords)
+    sharpChoiceKeywords && sharpChoiceKeywords.forEach(item => {
+        const texts = item.match(choiceSharpGetReg)
+        const text = texts[0].replace(/[#><]/g, '')
+        const arr = text.split(textSharpSplitRegG)
+        html = sharpHtml({
+            type: arr[0] as SharpType,
+            html: html,
+            split: item,
+            config: {
+                title: arr[1] as string,
+                placeholder: arr[2] as string
+            }
+        })
     })
 
     const SharpBlockReg = new RegExp(

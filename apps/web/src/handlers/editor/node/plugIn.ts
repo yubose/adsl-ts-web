@@ -11,6 +11,7 @@ function withBlock<T extends IDomEditor>(editor: T) {
         const type = DomEditor.getNodeType(elem)
         if(type === "atblock") return true
         if(type === "sharpblock") return false
+        if(type === "choiceblock") return false
         // if(type === "infoblock") return true
         return isInline(elem)
     }
@@ -19,6 +20,7 @@ function withBlock<T extends IDomEditor>(editor: T) {
         const type = DomEditor.getNodeType(elem)
         if(type === "atblock") return true
         if(type === "sharpblock") return true
+        if(type === "choiceblock") return true
         // if(type === "infoblock") return true
         return isVoid(elem) 
     } 

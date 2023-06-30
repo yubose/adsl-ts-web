@@ -1,8 +1,8 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import { DATA } from "./editorChoiceMap"
-import { textSharpSplitChar } from "./textSharp"
-import { getUuid, insertNode } from "./utils"
+import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
+import { getUuid, insertNode, reverseEscape } from "./utils"
 
 const downSvg = `url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIyMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBkYXRhLW5hbWU9Ikljb24gaW9uaWMtaW9zLWFycm93LWRvd24iIGQ9Ik05LjYxNSAxMS40MThsNC44NDItNC43MjZhLjkyOC45MjggMCAwIDEgMS4yOTMgMCAuODg0Ljg4NCAwIDAgMSAwIDEuMjY0bC01LjQ4NyA1LjM1NGEuOTMuOTMgMCAwIDEtMS4yNjIuMDI2TDMuNDc2IDcuOTZhLjg4Mi44ODIgMCAwIDEgMC0xLjI2NC45MjguOTI4IDAgMCAxIDEuMjkzIDB6IiBmaWxsPSIjNGI0YjRiIi8+PHBhdGggZGF0YS1uYW1lPSIyMjk2OSIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjk5OSIgZD0iTTAgMGgyMHYyMEgweiIvPjwvc3ZnPg==)`
 const upSvg = `url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIyMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBkYXRhLW5hbWU9Ikljb24gaW9uaWMtaW9zLWFycm93LWRvd24iIGQ9Ik05LjYxNSA4LjU4M2w0Ljg0MiA0LjcyNmEuOTI4LjkyOCAwIDAgMCAxLjI5MyAwIC44ODQuODg0IDAgMCAwIDAtMS4yNjRsLTUuNDg3LTUuMzU0YS45My45MyAwIDAgMC0xLjI2Mi0uMDI2TDMuNDc2IDEyLjA0YS44ODIuODgyIDAgMCAwIDAgMS4yNjQuOTI4LjkyOCAwIDAgMCAxLjI5MyAweiIgZmlsbD0iIzRiNGI0YiIvPjxwYXRoIGRhdGEtbmFtZT0iMjI5NjkiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii45OTkiIGQ9Ik0wIDBoMjB2MjBIMHoiLz48L3N2Zz4=)`
@@ -22,11 +22,25 @@ const choice = ({
     const isChange = target instanceof HTMLElement
     let title = ''
     let isRequired = ''
+    let type = 'Radio'
+    let choiceDataArray = new Array<DATA>()
     if(isChange) {
-        title = "";
-        isRequired = "";
+        title = target.innerText.split(textSharpSplitReg)[1];
+        isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
+        type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/, "")
+        const dataArray = target.getAttribute("data-array")
+        const arr = (dataArray ? dataArray : "").split(textSharpSplitReg)
+        arr.shift()
+        arr.pop()
+        // console.log(getHTMLDataArray(target.outerHTML), arr)
+        for(let i = 0; i < arr.length; i+=2) {
+            choiceDataArray.push({
+                title: arr[i],
+                check: arr[i+1]
+            })
+        }
     }
-
+    
     Swal.fire({
         html: `
             <div style="
@@ -89,7 +103,7 @@ const choice = ({
                             background-repeat: no-repeat;
                             background-position: right;
                         "
-                    >Radio</div>
+                    >${type}</div>
                     <div 
                         id="w-e_choiceTypes"
                         style="
@@ -130,8 +144,8 @@ const choice = ({
                             cursor: pointer;
                         "
                         type="checkbox"  
-                        id="w-editor_require",
-                        ${isRequired},
+                        id="w-editor_require"
+                        ${isRequired}
                     />
                     <div style="
                         text-align: start;
@@ -207,7 +221,7 @@ const choice = ({
             const value = res.value
             s = `#${value?.choiceType}${str}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
         }
-        insertNode({editor, type: "sharpblock", value: s, selection, choiceArray: choiceDataArray})
+        insertNode({editor, type: "choiceblock", value: s, selection, choiceArray: choiceDataArray, isChange})
     })
 
     const choiceType = document.getElementById("w-e_choiceType") as HTMLDivElement
@@ -215,10 +229,8 @@ const choice = ({
     const choiceTitles = document.getElementById("w-e_choiceTitles") as HTMLDivElement
     const titleInput = document.getElementById("w-editor_title") as HTMLInputElement
     const confirmButton = Swal.getConfirmButton() as HTMLButtonElement
-
+    titleInput.focus()
     let choiceTitleList = new Array<HTMLDivElement>()
-    
-    let choiceDataArray = new Array<DATA>()
 
     const LiItem = `
         <input 
@@ -302,10 +314,18 @@ const choice = ({
         })
     }
 
-    for(let i = 0; i < 3; i++) {
-        choiceTitleList.push(createLI())
-        update()
+    if(choiceDataArray.length === 0) {
+        for(let i = 0; i < 3; i++) {
+            choiceTitleList.push(createLI())
+            update()
+        }
+    } else {
+        choiceDataArray.forEach(item => {
+            choiceTitleList.push(createLI(item))
+            update()
+        })
     }
+    
 
     let isShow = true
     choiceType.addEventListener("click", (event) => {
@@ -414,7 +434,7 @@ const choice = ({
     })
 
     if(titleInput.value === "") {
-        titleInput.style.borderColor = "#ff0000"
+        // titleInput.style.borderColor = "#ff0000"
         confirmButton?.setAttribute("disabled", "true")
     }
     titleInput.addEventListener("input", () => {

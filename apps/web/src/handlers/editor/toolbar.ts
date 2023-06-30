@@ -5,9 +5,9 @@ import { inputPopUp } from "./utils/popUp";
 import searchPopUp from "./utils/search";
 import getImageObject from "./utils/svg";
 import withBlock from "./node/plugIn";
-import { renderAtBlock, renderSharpBlock } from "./node/node";
-import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
-import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
+import { renderAtBlock, renderChoiceBlock, renderSharpBlock } from "./node/node";
+import { AtBlockToHtml, ChoiceBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
+import { parseAtBlockHtml, parseChoiceBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import selectTemplate from "./utils/selectTemplate";
 
 
@@ -61,11 +61,26 @@ const parseSharpBlockHtmlConf = {
     parseElemHtml: parseSharpBlockHtml,
 }
 
+const renderChoiceBlockConf = {
+    type: 'choiceblock', // 新元素 type ，重要！！！
+    renderElem: renderChoiceBlock,
+}
+
+const choiceBlockToHtmlConf = {
+    type: 'choiceblock', // 新元素的 type ，重要！！！
+    elemToHtml: ChoiceBlockToHtml,
+}
+
+const parseChoiceBlockHtmlConf = {
+    selector: 'span[data-w-e-type="choiceblock"]', // CSS 选择器，匹配特定的 HTML 标签
+    parseElemHtml: parseChoiceBlockHtml,
+}
+
 const mod = {
     editorPlugin: withBlock,
-    renderElems: [renderAtBlockConf, renderSharpBlockConf],
-    elemsToHtml: [atBlockToHtmlConf, sharpBlockToHtmlConf],
-    parseElemsHtml: [parseAtBlockHtmlConf, parseSharpBlockHtmlConf]
+    renderElems: [renderAtBlockConf, renderSharpBlockConf, renderChoiceBlockConf],
+    elemsToHtml: [atBlockToHtmlConf, sharpBlockToHtmlConf, choiceBlockToHtmlConf],
+    parseElemsHtml: [parseAtBlockHtmlConf, parseSharpBlockHtmlConf, parseChoiceBlockHtmlConf]
 }
 
 Boot.registerMenu(DynamicFieldsConf)
@@ -83,9 +98,9 @@ const registerToolbar = () => {
             {value: "Insert", text: "Insert", styleForRenderMenuList: { display: "none" }},
             {value: "TextField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
             {value: "TextView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
+            {value: "Choice", text: "Choice", styleForRenderMenuList: getImageObject('choice')},
             {value: "Diagnosis", text: `Diagnosis`, styleForRenderMenuList: getImageObject('diagnosis')},
             {value: "Signature", text: `Signature`, styleForRenderMenuList: getImageObject('signature')},
-            {value: "Choice", text: "Choice", styleForRenderMenuList: getImageObject('choice')}
         ],
         classFunctions: {
             exec: (editor: IDomEditor, value: string | boolean) => {

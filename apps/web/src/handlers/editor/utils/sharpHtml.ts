@@ -1,4 +1,11 @@
 import { SharpOption, SharpType } from "./config"
+import { textSharpSplitReg } from "./textSharp"
+import { getHTMLDataArray } from "./utils"
+
+const circleSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48ZyBkYXRhLW5hbWU9IjcwOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjdiN2I3Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iOCIgc3Ryb2tlPSJub25lIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjcuNSIvPjwvZz48L3N2Zz4=`
+const circleDefault = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NiAzIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48ZyBkYXRhLW5hbWU9IjcwOCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDA1Nzk1IiBzdHJva2Utd2lkdGg9IjIiPjxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSI4IiBzdHJva2U9Im5vbmUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNyIgZmlsbD0ibm9uZSIvPjwvZz48Y2lyY2xlIGRhdGEtbmFtZT0iNzEwIiBjeD0iNCIgY3k9IjQiIHI9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQgNCkiIGZpbGw9IiMwMDU3OTUiLz48L3N2Zz4=`
+const checkSvg = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NCA1NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiI+PGcgZGF0YS1uYW1lPSIxODE1MyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGVkZWRlIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBzdHJva2U9Im5vbmUiLz48cmVjdCB4PSIuNSIgeT0iLjUiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgcng9IjEuNSIvPjwvZz48L3N2Zz4=`
+const checkDefault = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NCA1MyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgZGF0YS1uYW1lPSIxODE1MyIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzAwNTc5NSIvPjxnIGRhdGEtbmFtZT0iMTAzNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMyI+PHBhdGggZGF0YS1uYW1lPSIxNDI3IiBkPSJNNC41IDhsMiAyIi8+PHBhdGggZGF0YS1uYW1lPSIxNDI4IiBkPSJNMTEuNSA1bC01IDUiLz48L2c+PC9zdmc+`
 
 const sharpHtml = (opts: SharpOption) => {
     let Asterisk = ``
@@ -230,6 +237,122 @@ const sharpHtml = (opts: SharpOption) => {
                 </div>
                 `
             )
+        case "Radio":
+            let radioStr = ``
+            console.log(getHTMLDataArray(opts.split), getHTMLDataArray(opts.split).split(textSharpSplitReg))
+            const radioArray = getHTMLDataArray(opts.split).split(textSharpSplitReg)
+            radioArray.shift()
+            radioArray.pop()
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
+            if(radioArray.length > 0){
+                radioStr += `<div style="margin: 15px 0;">`
+                radioStr +=  `
+                    <div style="
+                        margin-top: 15px;
+                        color:#333333;
+                        font-weight: 600;
+                    ">${opts.config.title}${Asterisk}</div>
+                `
+                for(let i = 0; i < radioArray.length; i+=2) {
+                    const title = radioArray[i]
+                    const check = radioArray[i+1]
+                    if(title !== ""){
+                        let img = check === "" ? circleSvg : circleDefault
+                        radioStr += `
+                            <div style="
+                                display: flex;
+                                margin-top: 2px;
+                            ">
+                                <img src="${img}" />
+                                <div style="margin-left: 10px;">${title}</div>
+                            </div>
+                        `
+                    }
+                }
+                radioStr += `</div>`
+            } else {
+                radioStr = opts.split
+            }
+            return opts.html.replace(opts.split, radioStr)
+        case "Checkbox":
+            let checkboxStr = ``
+            const checkboxArray = getHTMLDataArray(opts.split).split(textSharpSplitReg)
+            checkboxArray.shift()
+            checkboxArray.pop()
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
+            if(checkboxArray.length >= 0){
+                checkboxStr += `<div style="margin: 15px 0;">`
+                checkboxStr +=  `
+                    <div style="
+                        margin-top: 15px;
+                        color:#333333;
+                        font-weight: 600;
+                    ">${opts.config.title}${Asterisk}</div>
+                `
+                for(let i = 0; i < checkboxArray.length; i+=2) {
+                    const title = checkboxArray[i]
+                    const check = checkboxArray[i+1]
+                    if(title !== ""){
+                        let img = check === "" ? checkSvg : checkDefault
+                        checkboxStr += `
+                            <div style="
+                                display: flex;
+                                margin-top: 2px;
+                            ">
+                                <img src="${img}" />
+                                <div style="margin-left: 10px;">${title}</div>
+                            </div>
+                        `
+                    }
+                }
+                checkboxStr += `</div>`
+            } else {
+                checkboxStr = opts.split
+            }
+            return opts.html.replace(opts.split, checkboxStr)
+        case "Drop Down Box": 
+            let dropDownStr = ''
+            let dropDownArray = getHTMLDataArray(opts.split).split(textSharpSplitReg)
+            dropDownArray.shift()
+            dropDownArray.pop()
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
+            if(dropDownArray.length > 0) {
+                dropDownStr += `<div style="margin: 15px 0;">`
+                dropDownStr +=  `
+                    <div style="
+                        margin-top: 15px;
+                        color:#333333;
+                        font-weight: 600;
+                    ">${opts.config.title}${Asterisk}</div>
+                `
+                dropDownStr += `<select style="
+                    width: 160px;
+                    height: 24px;
+                    outline: none;
+                    border: 1px solid rgb(222,222,222);
+                    border-radius: 4px;
+                    color: color: rgb(51,51,51);
+                    margin-top: 2px;
+                ">`
+                for(let i = 0; i < dropDownArray.length; i += 2) {
+                    const title = dropDownArray[i]
+                    const check = dropDownArray[i+1]
+                    if(title !== "") {
+                        let selected = check === "" ? "" : "selected"
+                        dropDownStr += `
+                            <option value="${title}" ${selected}>${title}</option>
+                        `
+                    }
+                }
+                dropDownStr += `</select>`
+                dropDownStr += `</div>`
+            } else {
+                dropDownStr = opts.split
+            }
+            return opts.html.replace(opts.split, dropDownStr)
         default:
             // console.log(opts)
             // return opts.html

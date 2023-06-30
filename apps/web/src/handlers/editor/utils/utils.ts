@@ -1,6 +1,7 @@
 import { IDomEditor, SlateElement, SlateLocation, SlatePoint, SlateRange } from "@wangeditor/editor"
-import {  DATA } from "./editorChoiceMap"
+import { DATA } from "./editorChoiceMap"
 import formatKey from "./format"
+import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
 
 const toReg = (str: string): string => {
     return str.replace(/[.\\[\]{}()|^$?*+]/g, "\\$&")
@@ -16,6 +17,7 @@ const insertText = (editor: IDomEditor, value: string, selection) => {
 
 let HTML = `<span data-w-e-type="--type--" data-w-e-is-void --isInline-- data-value="--key--">--key--</span>`
 const isInlineList = new Set(["divider", "sharpblock"])
+const inlineBlock = new Set(["atblock"])
 
 const insertNode = ({
     editor,
@@ -35,17 +37,24 @@ const insertNode = ({
 
     const ischangeNode = (isInline: boolean) => {
         let isInsertBreak = true
+        let choiceStr = ""
+        let dataArrayStr = ` data-array="--REPLACE--"`
         if(!isInline) {
             const ID = getUuid()
             if(choiceArray) {
-                // editorChoiceMap.set(ID, choiceArray)
+                choiceStr += textSharpSplitChar
+                choiceArray.forEach(item => {
+                    choiceStr += `${item.title.replace(/[<>"]/g, function(c){return Escape.get(c) as string})}${textSharpSplitChar}${item.check}${textSharpSplitChar}`
+                })
             }
+            dataArrayStr = dataArrayStr.replace(/--REPLACE--/, choiceStr)
+            if(type !== "choiceblock") dataArrayStr = ''
             if(isChange) {
                 editor.deleteBackward("word")
                 let html = HTML
                     .replace(/--type--/g, type)
                     .replace(/--key--/g, value)
-                    .replace(/--isInline--/g, `data-key="${ID}"`)
+                    .replace(/--isInline--/g, `data-key="${ID}"${dataArrayStr}`)
                 editor.dangerouslyInsertHtml(html)
                 editor.select(selection)
             } else {
@@ -59,6 +68,7 @@ const insertNode = ({
                     type: type,
                     value: value,
                     key: ID,
+                    choiceStr,
                     children: [
                         {
                             text: ""
@@ -81,13 +91,13 @@ const insertNode = ({
     editor.focus()
     editor.select(selection)
     if(value !== ''){
-        
-        if(type === "sharpblock"){
-            ischangeNode(false)
-        }
-        if(type === "atblock"){
-            ischangeNode(true)
-        }
+        ischangeNode(inlineBlock.has(type))
+        // if(type === "sharpblock" || type === "choiceblock"){
+        //     ischangeNode(false)
+        // }
+        // if(type === "atblock"){
+        //     ischangeNode(true)
+        // }
     }
 }
 
@@ -116,9 +126,33 @@ const getUuid = () => {
     return prefixChar + dateChar + `${index}`
 }
 
+const getHTMLDataArray = (str: string) => {
+    let dom = document.createElement("div")
+    dom.innerHTML = str
+    const target = dom.childNodes[0] as HTMLElement
+    const dataArray = target.getAttribute("data-array")
+    return dataArray ? dataArray : ""
+}
+
+const Escape = new Map([
+    ['<', '&lt;'],
+    ['>', '&gt;'],
+    ['&', '&amp;'],
+    ['"', '&quot;']
+])
+
+const reverseEscape = new Map([
+    ['&lt;', '<'],
+    ['&gt;', '>'],
+    ['&amp;', '&'],
+    ['&quot;', '"']
+])
+
 export {
     toReg,
     insertText,
     insertNode,
-    getUuid
+    getUuid,
+    getHTMLDataArray,
+    reverseEscape
 }
