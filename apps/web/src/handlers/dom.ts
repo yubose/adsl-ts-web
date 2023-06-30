@@ -50,7 +50,7 @@ import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar from './editor/toolbar'
-import { editorChoiceMap } from './editor/utils/editorChoiceMap'
+// import { editorChoiceMap } from './editor/utils/editorChoiceMap'
 
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -4552,7 +4552,7 @@ const createExtendedDOMResolvers = function (app: App) {
         app.updateRoot(draft => {
           set(draft, "editor", editor);
           set(draft, 'toolbar', toolbar);
-          set(draft, "editorChoiceMap", editorChoiceMap)
+          // set(draft, "editorChoiceMap", editorChoiceMap)
         })
 
         const resource = i18nGetResources("en")
@@ -4567,7 +4567,7 @@ const createExtendedDOMResolvers = function (app: App) {
           app.updateRoot(draft => {
             set(draft, "editor", null);
             set(draft, 'toolbar', null);
-            editorChoiceMap.clear()
+            // editorChoiceMap.clear()
           })
         })
 
@@ -4590,7 +4590,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
 
             th {
-              width: 24px;
+              min-width: 24px;
               height: 24px;
               padding: 3px 5px;
               border: 1px solid #ccc;
@@ -4598,7 +4598,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
 
             td {
-              width: 24px;
+              min-width: 24px;
               height: 24px;
               padding: 3px 5px;
               border: 1px solid #ccc;

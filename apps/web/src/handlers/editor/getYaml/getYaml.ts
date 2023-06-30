@@ -485,11 +485,13 @@ const populateBlock = ({
                             paddingTop: "0.005",
                             fontSize: "..formData.atrribute.noodl_font.text",
                             display: "flex",
-                            flexFlow: "column"
+                            flexDirection: "column"
                         }
                     }
                     const allWidth = width === "auto" ? 0 : 100
                     const widthList = new Array<number>()
+                    const widthArray = new Array<string>()
+                    const flexShrinks = new Array<number>()
                     const row = obj.children[0].children
                     row.forEach((it) => {
                         if(allWidth === 0) {
@@ -498,13 +500,33 @@ const populateBlock = ({
                             widthList.push(it?.width && it?.width !== "auto" ? parseFloat(it.width) : Math.floor(10000/row.length)/100)
                         }
                     })
-                    if(allWidth !== 0) {
+                    if(allWidth === 0) {
                         let W = 0
                         widthList.forEach(it => {
                             W += it
                         })
                         widthList.forEach((it, i) => {
-                            widthList[i] = Math.floor(100*it/W)/100
+                            if(it === 30) {
+                                widthArray[i] = `..formData.atrribute.noodl_font.tableMinWidth`
+                                flexShrinks[i] = 0
+                            } else {
+                                widthArray[i] = `calc(${100*Math.floor(100*it/W)/100}%)`
+                                flexShrinks[i] = 1
+                            }
+                        })
+                    } 
+                    else {
+                        let W = 0
+                        widthList.forEach(it => {
+                            W += it
+                        })
+                        widthList.forEach((it, i) => {
+                            widthArray[i] = `calc(${100*Math.floor(100*it/W)/100}%)`
+                            if(it === Math.floor(10000/row.length)/100) {
+                                flexShrinks[i] = 0
+                            } else {
+                                flexShrinks[i] = 1
+                            }
                         })
                     }
                     // console.log(widthList)
@@ -522,17 +544,20 @@ const populateBlock = ({
                             let textAlign = it?.isHeader ? 'center' : 'start'
                             textAlign = it?.textAlign ? it.textAlign : textAlign
                             let background = it?.isHeader ? "#f5f2f0" : "#ffffff"
+                            let fontWeight = it?.isHeader ? "600" : "normal"
                             const c = {
                                 type: "view",
                                 style: {
-                                    width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                    width: widthArray[idx],
                                     // minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     border: "1px solid #cccccc",
                                     background,
                                     display: "flex",
                                     justifyContent: textAlign,
                                     alignItem: "center",
-                                    textAlign
+                                    textAlign,
+                                    flexShrink: flexShrinks[idx],
+                                    fontWeight
                                 },
                                 children: new Array()
                             }
@@ -546,10 +571,11 @@ const populateBlock = ({
                                             dataKey: "formData.data." + key,
                                             style: {
                                                 display: `..formData.atrribute.is_edit`,
-                                                width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                                width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                                 border: "none",
-                                                textAlign
+                                                textAlign,
+                                                fontWeight
                                             }
                                         },
                                         {
@@ -558,9 +584,11 @@ const populateBlock = ({
                                             // text: "--",
                                             style: {
                                                 display: `..formData.atrribute.is_read`,
-                                                width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                                width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                                                textAlign
+                                                textAlign,
+                                                wordBreak: "break-word",
+                                                fontWeight
                                             }
                                         }
                                     ])
@@ -569,10 +597,12 @@ const populateBlock = ({
                                         type: "label",
                                         text: `${it.children[0].text}`,
                                         style: {
-                                            width: widthList[idx] < 1 ? `calc(${100*widthList[idx]}%)` : `${widthList[idx]}px`,
+                                            width: `calc(100%)`,
                                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                             textAlign,
                                             fontSize: "..formData.atrribute.noodl_font.text",
+                                            wordBreak: "break-word",
+                                            fontWeight
                                         }
                                     })
                                 }

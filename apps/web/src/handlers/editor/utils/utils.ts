@@ -1,5 +1,5 @@
 import { IDomEditor, SlateElement, SlateLocation, SlatePoint, SlateRange } from "@wangeditor/editor"
-import { editorChoiceMap, DATA } from "./editorChoiceMap"
+import {  DATA } from "./editorChoiceMap"
 import formatKey from "./format"
 
 const toReg = (str: string): string => {
@@ -38,7 +38,7 @@ const insertNode = ({
         if(!isInline) {
             const ID = getUuid()
             if(choiceArray) {
-                editorChoiceMap.set(ID, choiceArray)
+                // editorChoiceMap.set(ID, choiceArray)
             }
             if(isChange) {
                 editor.deleteBackward("word")

@@ -289,7 +289,7 @@ const editorHtml = `
 }
 
 #preView th {
-    width: 24px;
+    min-width: 24px;
     height: 24px;
     padding: 3px 5px;
     border: 1px solid #ccc;
@@ -297,7 +297,7 @@ const editorHtml = `
 }
 
 #preView td {
-    width: 24px;
+    min-width: 24px;
     height: 24px;
     padding: 3px 5px;
     border: 1px solid #ccc;
