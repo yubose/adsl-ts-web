@@ -285,7 +285,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             {
                                                 type: "image",
                                                 style: {
-                                                    width: "0.008",
+                                                    width: "..formData.atrribute.noodl_font.choice.radio.width",
                                                     marginTop: "0.002"
                                                 },
                                                 path: {
@@ -304,8 +304,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                             }
                                                                         }
                                                                     },
-                                                                    "yes.png",
-                                                                    "no.png"
+                                                                    "..formData.atrribute.noodl_font.choice.radio.on",
+                                                                    "..formData.atrribute.noodl_font.choice.radio.off"
                                                                 ]
                                                             }
                                                         ]
@@ -346,7 +346,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject",
                                                 style: {
-                                                    marginLeft: "0.004",
+                                                    marginLeft: "..formData.atrribute.noodl_font.choice.radio.marginLeft",
                                                     width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
@@ -401,8 +401,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                             }
                                                                         }
                                                                     },
-                                                                    "yes.png",
-                                                                    "no.png"
+                                                                    "..formData.atrribute.noodl_font.choice.radio.on",
+                                                                    "..formData.atrribute.noodl_font.choice.radio.off"
                                                                 ]
                                                             }
                                                         ]
@@ -413,7 +413,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject",
                                                 style: {
-                                                    marginLeft: "0.004",
+                                                    marginLeft: "..formData.atrribute.noodl_font.choice.radio.marginLeft",
                                                     width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
@@ -500,7 +500,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             {
                                                 type: "image",
                                                 style: {
-                                                    width: "0.008",
+                                                    width: "..formData.atrribute.noodl_font.choice.checkbox.width",
                                                     marginTop: "0.002"
                                                 },
                                                 path: {
@@ -512,8 +512,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                             {
                                                                 if: [
                                                                     "$var.isCheck",
-                                                                    "checkOn.svg",
-                                                                    "checkOff.svg"
+                                                                    "..formData.atrribute.noodl_font.choice.checkbox.on",
+                                                                    "..formData.atrribute.noodl_font.choice.checkbox.off"
                                                                 ]
                                                             }
                                                         ]
@@ -547,7 +547,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject.value",
                                                 style: {
-                                                    marginLeft: "0.004",
+                                                    marginLeft: "..formData.atrribute.noodl_font.choice.checkbox.marginLeft",
                                                     width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
@@ -595,8 +595,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                             {
                                                                 if: [
                                                                     "$var.isCheck",
-                                                                    "checkOn.svg",
-                                                                    "checkOff.svg"
+                                                                    "..formData.atrribute.noodl_font.choice.checkbox.on",
+                                                                    "..formData.atrribute.noodl_font.choice.checkbox.off"
                                                                 ]
                                                             }
                                                         ]
@@ -607,7 +607,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject.value",
                                                 style: {
-                                                    marginLeft: "0.004",
+                                                    marginLeft: "..formData.atrribute.noodl_font.choice.checkbox.marginLeft",
                                                     width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
@@ -623,7 +623,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
             }
         case "Drop Dwon Box":
             BaseJsonCopy.formData[opts.config.key as string]["dataList"] = []
-            BaseJsonCopy.formData[opts.config.key as string]["value"] = ""
+            BaseJsonCopy.formData[opts.config.key as string]["value"] = "Select"
+            BaseJsonCopy.formData[opts.config.key as string]["listIsShow"] = "none"
             const DropDwonListArr = (opts.config.list as string).split(textSharpSplitReg)
             DropDwonListArr.shift()
             DropDwonListArr.pop()
@@ -632,6 +633,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                     BaseJsonCopy.formData[opts.config.key as string]["dataList"].push(DropDwonListArr[i])
                     if(DropDwonListArr[i+1] === "checked") {
                         BaseJsonCopy.formData[opts.config.key as string]["value"] = DropDwonListArr[i]
+                        BaseJsonCopy.formData[opts.config.key as string]["backgroundColor"] = "0x1e90ff"
+                        BaseJsonCopy.formData[opts.config.key as string]["color"] = "0xffffff"
+                    } else {
+                        BaseJsonCopy.formData[opts.config.key as string]["backgroundColor"] = "0xffffff"
+                        BaseJsonCopy.formData[opts.config.key as string]["color"] = "0x333333"
                     }
                 }
             }
@@ -639,6 +645,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
             DropDwonAssignmentCancel["..formData.data." + opts.config.key + ".value@"] = ""
             const DropDwonAssignment = {}
             DropDwonAssignment["..formData.data." + opts.config.key + ".value@"] = "$var"
+            const DropDwonAssignmentListCancel = {}
+            DropDwonAssignmentListCancel["..formData.data." + opts.config.key + ".listIsShow@"] = "none"
+            const DropDwonAssignmentList = {}
+            DropDwonAssignmentList["..formData.data." + opts.config.key + ".listIsShow@"] = "block"
             return {
                 type: "view",
                 style: {
@@ -659,8 +669,149 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                     {
                         type: "view",
                         style: {
-                            
-                        }
+                            display: "..formData.atrribute.noodl_font.is_edit",
+                        },
+                        children: [
+                            {
+                                type: "view",
+                                style: {
+                                    display: "flex",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                    height: "..formData.atrribute.noodl_font.lineHeight",
+                                    border: "1px solid",
+                                    borderColor: "0xccc",
+                                    borderRadius: "4px",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "0 18px"
+                                },
+                                children: [
+                                    {
+                                        type: "label",
+                                        viewTag: opts.config.key + "valueTag",
+                                        dataKey: "formData.data." + opts.config.key + ".value"
+                                    },
+                                    {
+                                        type: "image",
+                                        path: "..formData.atrribute.noodl_font.choice.dropDown.down",
+                                        style: {
+                                            width: "..formData.atrribute.noodl_font.choice.dropDown.width"
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        onClick: [
+                            {
+                                actionType: "evalObject",
+                                object: [
+                                    {
+                                        if: [
+                                            {
+                                                "=.builtIn.string.equal": {
+                                                    dataIn: {
+                                                        string1: "..formData.data." + opts.config.key + ".listIsShow",
+                                                        string2: "block"
+                                                    }
+                                                },
+                                                DropDwonAssignmentListCancel,
+                                                DropDwonAssignmentList
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                actionType: "builtIn",
+                                funcName: "redraw",
+                                viewTag: opts.config.key + "listTag",
+                            }
+                        ]
+                    },
+                    {
+                        type: "list",
+                        viewTag: opts.config.key + "listTag",
+                        containerType: "listObject",
+                        listObject: "formData.data." + opts.config.key + ".dataList",
+                        iteratorVar: "itemObject",
+                        style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            border: "1px solid",
+                            borderColor: "0xccc",
+                            borderRadius: "4px",
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        },
+                        children: [
+                            {
+                                type: "listItem",
+                                itemObject: "",
+                                style: {
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                    height: "..formData.atrribute.noodl_font.lineHeight",
+                                },
+                                children: [
+                                    {
+                                        type: "label",
+                                        dataKey: "itemObject.value",
+                                        style: {
+                                            backgroundColor: "itemObject.backgroundColor",
+                                            color: "itemObject.color",
+                                            fontWeight: "600",
+                                            width: "..formData.atrribute.noodl_font.fullWidth",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            height: "..formData.atrribute.noodl_font.lineHeight",
+                                            padding: "0px 18px"
+                                        },
+                                        onClick: [
+                                            {
+                                                emit: {
+                                                    dataKey: {
+                                                        var: "itemObject"
+                                                    },
+                                                    actions: [
+                                                        DropDwonAssignment,
+                                                        DropDwonAssignmentListCancel,
+                                                        {
+                                                            "=.builtIn.object.setProperty": {
+                                                                dataIn: {
+                                                                    obj: "=..formData.data." + opts.config.key + ".dataList",
+                                                                    label: "value",
+                                                                    text: "$var.value",
+                                                                    arr: [
+                                                                        "backgroundColor",
+                                                                        "color"
+                                                                    ],
+                                                                    valueArr: [
+                                                                        "0x1e90ff",
+                                                                        "0xffffff"
+                                                                    ],
+                                                                    errorArr: [
+                                                                        "0xffffff",
+                                                                        "0x333333"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                actionType: "builtIn",
+                                                funcName: "redraw",
+                                                viewTag: opts.config.key + "listTag",
+                                            },
+                                            {
+                                                actionType: "builtIn",
+                                                funcName: "redraw",
+                                                viewTag: opts.config.key + "listTag",
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
