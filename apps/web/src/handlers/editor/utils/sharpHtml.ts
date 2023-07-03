@@ -239,7 +239,7 @@ const sharpHtml = (opts: SharpOption) => {
             )
         case "Radio":
             let radioStr = ``
-            console.log(getHTMLDataArray(opts.split), getHTMLDataArray(opts.split).split(textSharpSplitReg))
+            // console.log(getHTMLDataArray(opts.split), getHTMLDataArray(opts.split).split(textSharpSplitReg))
             const radioArray = getHTMLDataArray(opts.split).split(textSharpSplitReg)
             radioArray.shift()
             radioArray.pop()
@@ -329,7 +329,7 @@ const sharpHtml = (opts: SharpOption) => {
                     ">${opts.config.title}${Asterisk}</div>
                 `
                 dropDownStr += `<select style="
-                    width: 160px;
+                    width: 100%;
                     height: 24px;
                     outline: none;
                     border: 1px solid rgb(222,222,222);
@@ -337,16 +337,21 @@ const sharpHtml = (opts: SharpOption) => {
                     color: color: rgb(51,51,51);
                     margin-top: 2px;
                 ">`
+                let hasSeleted = false
+                let optionStr = ``
                 for(let i = 0; i < dropDownArray.length; i += 2) {
                     const title = dropDownArray[i]
                     const check = dropDownArray[i+1]
                     if(title !== "") {
                         let selected = check === "" ? "" : "selected"
-                        dropDownStr += `
+                        if(selected) hasSeleted = true
+                        optionStr += `
                             <option value="${title}" ${selected}>${title}</option>
                         `
                     }
                 }
+                if(!hasSeleted) optionStr = `<option style="display: none" "selected">Select here</option>` + optionStr
+                dropDownStr += optionStr
                 dropDownStr += `</select>`
                 dropDownStr += `</div>`
             } else {

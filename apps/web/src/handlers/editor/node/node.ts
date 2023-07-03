@@ -38,37 +38,7 @@ function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDo
 function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
     // @ts-ignore
-    const { value = "" } = elem
-
-    const attachVnode = h(
-        "span",
-        {   
-            attrs: {
-                class: "w-e-button w-e-sharpblock"
-            },
-            on: {
-                "click": (event) => {
-                    const selection = editor.selection
-                    if(textSharpReg.test((event.target as HTMLElement).innerText)) {
-                        // console.log((event.target as HTMLElement).innerText.split(textSharpSplitReg))
-                        const text = (event.target as HTMLElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
-                        // console.log(text)
-                        inputPopUp(editor, text as SharpType, selection, event.target as HTMLElement)
-                    }
-                }
-            }
-        },
-        // @ts-ignore
-        [value]
-    )
-
-    return attachVnode
-}
-
-function renderChoiceBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
-
-    // @ts-ignore
-    const { value = "", choiceStr } = elem
+    const { value = "", choiceStr = "" } = elem
 
     const attachVnode = h(
         "span",
@@ -80,7 +50,12 @@ function renderChoiceBlock(elem: SlateElement, children: VNode[] | null, editor:
             on: {
                 "click": (event) => {
                     const selection = editor.selection
-                    if(choiceSharpReg.test((event.target as HTMLElement).innerText)) {
+                    if(textSharpReg.test((event.target as HTMLElement).innerText)) {
+                        // console.log((event.target as HTMLElement).innerText.split(textSharpSplitReg))
+                        const text = (event.target as HTMLElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
+                        // console.log(text)
+                        inputPopUp(editor, text as SharpType, selection, event.target as HTMLElement)
+                    } else if(choiceSharpReg.test((event.target as HTMLElement).innerText)) {
                         choice({
                             editor,
                             selection,
@@ -99,6 +74,5 @@ function renderChoiceBlock(elem: SlateElement, children: VNode[] | null, editor:
 
 export {
    renderAtBlock,
-   renderSharpBlock,
-   renderChoiceBlock
+   renderSharpBlock
 } 

@@ -1,7 +1,9 @@
 import { SharpYamlOption } from "../utils/config"
 import formatKey from "../utils/format"
+import { textSharpSplitReg } from "../utils/textSharp"
+import { getUuid } from "../utils/utils"
 
-const sharpYaml = (opts: SharpYamlOption) => {
+const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
     let str = opts.isRequired ? `<span style="color:red"> *</span>` : ''
     let contentType = opts.isRequired ? 'strictLength' : null
     let viewTag = opts.isRequired ? `${formatKey(opts.config.title as string)}Tag` : null
@@ -224,6 +226,444 @@ const sharpYaml = (opts: SharpYamlOption) => {
             return { "..customComponents.documentTemplateSignature": null }
         case "Diagnosis":
             return { "..customComponents.documentTemplateDiagnoses": null }
+        case "Radio":
+            BaseJsonCopy.formData[opts.config.key as string]["dataList"] = []
+            BaseJsonCopy.formData[opts.config.key as string]["value"] = ""
+            const RadioListArr = (opts.config.list as string).split(textSharpSplitReg)
+            RadioListArr.shift()
+            RadioListArr.pop()
+            for(let i = 0; i < RadioListArr.length; i+=2) {
+                if(RadioListArr[i] !== "") {
+                    BaseJsonCopy.formData[opts.config.key as string]["dataList"].push(RadioListArr[i])
+                    if(RadioListArr[i+1] === "checked") {
+                        BaseJsonCopy.formData[opts.config.key as string]["value"] = RadioListArr[i]
+                    }
+                }
+            }
+            const RadioAssignmentCancel = {}
+            RadioAssignmentCancel["..formData.data." + opts.config.key + ".value@"] = ""
+            const RadioAssignment = {}
+            RadioAssignment["..formData.data." + opts.config.key + ".value@"] = "$var"
+            return {
+                type: "view",
+                style: {
+                    width: "..formData.atrribute.noodl_font.fullWidth",
+                    margin: "auto",
+                },
+                children: [
+                    {
+                        type: "label",
+                        text: opts.config.title,
+                        style: {
+                            color: "0x333333",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            fontWeight: "600",
+                            wordBreak: "keep-all"
+                        }
+                    },
+                    {
+                        type: "list",
+                        viewTag: opts.config.key + "Tag",
+                        contentType: "listObject",
+                        listObject: "..formData.data." + opts.config.key + ".dataList",
+                        iteratorVar: "itemObject",
+                        style: {
+                            display: "..formData.atrribute.is_edit"
+                        },
+                        children: [
+                            {
+                                type: "listItem",
+                                itemObject: "",
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {
+                                            display: "flex",
+                                            alignItems: "center"
+                                        },
+                                        children: [
+                                            {
+                                                type: "image",
+                                                style: {
+                                                    width: "0.008",
+                                                    marginTop: "0.002"
+                                                },
+                                                path: {
+                                                    emit: {
+                                                        dataKey: {
+                                                            var: "itemObject"
+                                                        },
+                                                        actions: [
+                                                            {
+                                                                if: [
+                                                                    {
+                                                                        "=.builtIn.string.equal": {
+                                                                            dataIn: {
+                                                                                string1: "..formData.data." + opts.config.key + ".value", 
+                                                                                string2: "$var"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "yes.png",
+                                                                    "no.png"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                onClick: [
+                                                    {
+                                                        emit: {
+                                                            dataKey: {
+                                                                var: "itemObject"
+                                                            },
+                                                            actions: [
+                                                                {
+                                                                    if: [
+                                                                        {
+                                                                            "=.builtIn.string.equal": {
+                                                                                dataIn: {
+                                                                                    string1: "..formData.data." + opts.config.key + ".value", 
+                                                                                    string2: "$var"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        RadioAssignmentCancel,
+                                                                        RadioAssignment,
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        actionType: "builtIn",
+                                                        funcName: "redraw",
+                                                        viewTag:  opts.config.key + "Tag" 
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                type: "label",
+                                                dataKey: "itemObject",
+                                                style: {
+                                                    marginLeft: "0.004",
+                                                    width: "0.036",
+                                                    fontSize:  "..formData.atrribute.noodl_font.text",
+                                                    color: "0x333333",
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: "list",
+                        viewTag: opts.config.key + "Tag",
+                        contentType: "listObject",
+                        listObject: "..formData.data." + opts.config.key + ".dataList",
+                        iteratorVar: "itemObject",
+                        style: {
+                            display: "..formData.atrribute.is_read"
+                        },
+                        children: [
+                            {
+                                type: "listItem",
+                                itemObject: "",
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {
+                                            display: "flex",
+                                            alignItems: "center"
+                                        },
+                                        children: [
+                                            {
+                                                type: "image",
+                                                style: {
+                                                    width: "0.008",
+                                                    marginTop: "0.002"
+                                                },
+                                                path: {
+                                                    emit: {
+                                                        dataKey: {
+                                                            var: "itemObject"
+                                                        },
+                                                        actions: [
+                                                            {
+                                                                if: [
+                                                                    {
+                                                                        "=.builtIn.string.equal": {
+                                                                            dataIn: {
+                                                                                string1: "..formData.data." + opts.config.key + ".value", 
+                                                                                string2: "$var"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "yes.png",
+                                                                    "no.png"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                type: "label",
+                                                dataKey: "itemObject",
+                                                style: {
+                                                    marginLeft: "0.004",
+                                                    width: "0.036",
+                                                    fontSize:  "..formData.atrribute.noodl_font.text",
+                                                    color: "0x333333",
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                ]
+            }
+        case "Checkbox":
+            BaseJsonCopy.formData[opts.config.key as string]["dataList"] = []
+            const CheckListArr = (opts.config.list as string).split(textSharpSplitReg)
+            CheckListArr.shift()
+            CheckListArr.pop()
+            for(let i = 0; i < CheckListArr.length; i+=2) {
+                if(CheckListArr[i] !== "") {
+                    const isCheck = CheckListArr[i+1] === "checked"
+                    BaseJsonCopy.formData[opts.config.key as string]["dataList"].push({
+                        value: CheckListArr[i],
+                        isCheck,
+                    })
+                }
+            }
+            const CheckboxAssignmentCancel = {
+                "=.builtIn.object.set": {
+                    dataIn: {
+                        object: "$var",
+                        key: "isCheck",
+                        value: false
+                    }
+                }
+            }
+            const CheckboxAssignment = {
+                "=.builtIn.object.set": {
+                    dataIn: {
+                        object: "$var",
+                        key: "isCheck",
+                        value: true
+                    }
+                }
+            }
+            return {
+                type: "view",
+                style: {
+                    width: "..formData.atrribute.noodl_font.fullWidth",
+                    margin: "auto",
+                },
+                children: [
+                    {
+                        type: "label",
+                        text: opts.config.title,
+                        style: {
+                            color: "0x333333",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            fontWeight: "600",
+                            wordBreak: "keep-all"
+                        }
+                    },
+                    {
+                        type: "list",
+                        viewTag: opts.config.key + "Tag",
+                        contentType: "listObject",
+                        listObject: "..formData.data." + opts.config.key + ".dataList",
+                        iteratorVar: "itemObject",
+                        style: {
+                            display: "..formData.atrribute.is_edit"
+                        },
+                        children: [
+                            {
+                                type: "listItem",
+                                itemObject: "",
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {
+                                            display: "flex",
+                                            alignItems: "center"
+                                        },
+                                        children: [
+                                            {
+                                                type: "image",
+                                                style: {
+                                                    width: "0.008",
+                                                    marginTop: "0.002"
+                                                },
+                                                path: {
+                                                    emit: {
+                                                        dataKey: {
+                                                            var: "itemObject"
+                                                        },
+                                                        actions: [
+                                                            {
+                                                                if: [
+                                                                    "$var.isCheck",
+                                                                    "checkOn.svg",
+                                                                    "checkOff.svg"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                onClick: [
+                                                    {
+                                                        emit: {
+                                                            dataKey: {
+                                                                var: "itemObject"
+                                                            },
+                                                            actions: [
+                                                                {
+                                                                    if: [
+                                                                        "$var.isCheck",
+                                                                        CheckboxAssignmentCancel,
+                                                                        CheckboxAssignment,
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        actionType: "builtIn",
+                                                        funcName: "redraw",
+                                                        viewTag:  opts.config.key + "Tag" 
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                type: "label",
+                                                dataKey: "itemObject.value",
+                                                style: {
+                                                    marginLeft: "0.004",
+                                                    width: "0.036",
+                                                    fontSize:  "..formData.atrribute.noodl_font.text",
+                                                    color: "0x333333",
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: "list",
+                        viewTag: opts.config.key + "Tag",
+                        contentType: "listObject",
+                        listObject: "..formData.data." + opts.config.key + ".dataList",
+                        iteratorVar: "itemObject",
+                        style: {
+                            display: "..formData.atrribute.is_read"
+                        },
+                        children: [
+                            {
+                                type: "listItem",
+                                itemObject: "",
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {
+                                            display: "flex",
+                                            alignItems: "center"
+                                        },
+                                        children: [
+                                            {
+                                                type: "image",
+                                                style: {
+                                                    width: "0.008",
+                                                    marginTop: "0.002"
+                                                },
+                                                path: {
+                                                    emit: {
+                                                        dataKey: {
+                                                            var: "itemObject"
+                                                        },
+                                                        actions: [
+                                                            {
+                                                                if: [
+                                                                    "$var.isCheck",
+                                                                    "checkOn.svg",
+                                                                    "checkOff.svg"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                type: "label",
+                                                dataKey: "itemObject.value",
+                                                style: {
+                                                    marginLeft: "0.004",
+                                                    width: "0.036",
+                                                    fontSize:  "..formData.atrribute.noodl_font.text",
+                                                    color: "0x333333",
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                ]
+            }
+        case "Drop Dwon Box":
+            BaseJsonCopy.formData[opts.config.key as string]["dataList"] = []
+            BaseJsonCopy.formData[opts.config.key as string]["value"] = ""
+            const DropDwonListArr = (opts.config.list as string).split(textSharpSplitReg)
+            DropDwonListArr.shift()
+            DropDwonListArr.pop()
+            for(let i = 0; i < DropDwonListArr.length; i+=2){
+                if(DropDwonListArr[i] !== "") {
+                    BaseJsonCopy.formData[opts.config.key as string]["dataList"].push(DropDwonListArr[i])
+                    if(DropDwonListArr[i+1] === "checked") {
+                        BaseJsonCopy.formData[opts.config.key as string]["value"] = DropDwonListArr[i]
+                    }
+                }
+            }
+            const DropDwonAssignmentCancel = {}
+            DropDwonAssignmentCancel["..formData.data." + opts.config.key + ".value@"] = ""
+            const DropDwonAssignment = {}
+            DropDwonAssignment["..formData.data." + opts.config.key + ".value@"] = "$var"
+            return {
+                type: "view",
+                style: {
+                    width: "..formData.atrribute.noodl_font.fullWidth",
+                    margin: "auto",
+                },
+                children: [
+                    {
+                        type: "label",
+                        text: opts.config.title,
+                        style: {
+                            color: "0x333333",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            fontWeight: "600",
+                            wordBreak: "keep-all"
+                        }
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            
+                        }
+                    }
+                ]
+            }
         default:
             return {
                 type: "view",

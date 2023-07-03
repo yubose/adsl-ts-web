@@ -27,7 +27,7 @@ const choice = ({
     if(isChange) {
         title = target.innerText.split(textSharpSplitReg)[1];
         isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
-        type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/, "")
+        type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, "")
         const dataArray = target.getAttribute("data-array")
         const arr = (dataArray ? dataArray : "").split(textSharpSplitReg)
         arr.shift()
@@ -221,7 +221,7 @@ const choice = ({
             const value = res.value
             s = `#${value?.choiceType}${str}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
         }
-        insertNode({editor, type: "choiceblock", value: s, selection, choiceArray: choiceDataArray, isChange})
+        insertNode({editor, type: "sharpblock", value: s, selection, choiceArray: choiceDataArray, isChange})
     })
 
     const choiceType = document.getElementById("w-e_choiceType") as HTMLDivElement

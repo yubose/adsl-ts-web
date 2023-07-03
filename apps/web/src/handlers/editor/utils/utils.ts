@@ -48,7 +48,7 @@ const insertNode = ({
                 })
             }
             dataArrayStr = dataArrayStr.replace(/--REPLACE--/, choiceStr)
-            if(type !== "choiceblock") dataArrayStr = ''
+            // if(type !== "choiceblock") dataArrayStr = ''
             if(isChange) {
                 editor.deleteBackward("word")
                 let html = HTML

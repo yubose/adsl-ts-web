@@ -2,7 +2,10 @@ export type SharpType =
     "TextView"|
     "TextField"|
     "Signature"|
-    "Diagnosis"
+    "Diagnosis" |
+    "Radio" |
+    "Checkbox" |
+    "Drop Dwon Box"
 
 export interface SharpOption {
     html: string
@@ -19,7 +22,8 @@ export interface SharpYamlOption {
     config: {
         title?: string,
         placeholder?: string
-        key?: string
+        key?: string,
+        list?: string
     },
     isRequired?:boolean
 }

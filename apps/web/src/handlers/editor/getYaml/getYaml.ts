@@ -431,7 +431,24 @@ const populateBlock = ({
                             isRequired: required
                         })
                     } else if(choiceSharpReg.test(obj.value)) {
-                        // switch
+                        const text = obj.value.replace(/#/, '')
+                        const list = obj.choiceStr
+                        const splitArr = text.split(textSharpSplitRegG)
+                        let required = false
+                        let title = splitArr[1]
+                        if(splitArr[0].endsWith("*")) {
+                            required = true
+                        }
+                        BaseJsonCopy.formData[obj.key] = {}
+                        target = sharpYaml({
+                            type: splitArr[0].replace("*", '') as SharpType,
+                            config: {
+                                title: title,
+                                key: obj.key,
+                                list
+                            },
+                            isRequired: required
+                        }, BaseJsonCopy)
                     } else if(obj.value === "#Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["signatureId"] = ''

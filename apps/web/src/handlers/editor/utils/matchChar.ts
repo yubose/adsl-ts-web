@@ -163,7 +163,7 @@ export const matchBlock = (html) => {
         .replace(/--key--/g, choiceSharpRegStr)
         .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+" data-array="${choiceArrayStr}"`), 'g')
     const sharpChoiceKeywords = html.match(sharpChoiceBlockReg)
-    console.log(sharpChoiceKeywords)
+    // console.log(sharpChoiceBlockReg, sharpChoiceKeywords)
     sharpChoiceKeywords && sharpChoiceKeywords.forEach(item => {
         const texts = item.match(choiceSharpGetReg)
         const text = texts[0].replace(/[#><]/g, '')
