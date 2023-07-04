@@ -50,7 +50,7 @@ import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar from './editor/toolbar'
-
+import Recorder from 'mic-recorder-to-mp3'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -3325,25 +3325,23 @@ const createExtendedDOMResolvers = function (app: App) {
           let C = `{
             appearance: none;
         }`
-          let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
-            .web.cadlVersion.stable
-          let cadlConfigUrl = JSON.parse(
-            localStorage.getItem('config') as string,
-          ).cadlBaseUrl as string
-          let url = cadlConfigUrl.startsWith('http')
-            ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion
-            : '/admin/admin'
+          // let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
+          //   .web.cadlVersion.stable
+          // let cadlConfigUrl = JSON.parse(
+          //   localStorage.getItem('config') as string,
+          // ).cadlBaseUrl as string
+          const assetsUrl = app.nui.getAssetsUrl() || ''
           let chechedC = `{
           content: "";
           display: inline-block;
           vertical-align: middle;
           width: 13px;
           height: 13px;
-          background-image: url(${url}/assets/selectGray.svg);
+          background-image: url(${assetsUrl}selectGray.svg);
           background-size: 100%;
         }`
           let chechedCheck = `{
-          background-image: url(${url}/assets/selectGrayBlue.svg);
+          background-image: url(${assetsUrl}selectGrayBlue.svg);
         }`
           switch (styleCheckBox) {
             case 'A': {
@@ -3387,7 +3385,7 @@ const createExtendedDOMResolvers = function (app: App) {
               break
             }
           }
-          const arrData: number[] = []
+          // const arrData: number[] = []
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
@@ -3406,9 +3404,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataValue['path'],
             )
             if (
-              dataValue['selectedData'].includes(
-                get(dataValue['allData'][i], dataValue['path']),
-              )
+              dataValue['selectedData'] ==  get(dataValue['allData'][i], dataValue['path'])
             ) {
               childInput.checked = true
               app.updateRoot((draft) => {
@@ -5098,7 +5094,72 @@ const createExtendedDOMResolvers = function (app: App) {
         listenLoad()
 
       }
-    }
+    },
+    '[App] Audio': {
+      cond: 'textField' || 'textView',
+      resolve({ node, component }) {
+        if (component.contentType === 'audio') {
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          let pageName = app.currentPage;
+          const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || '';
+          const img = document.createElement("img");
+          img.src = `${assetsUrl}audio_start.svg`
+          img.style.cssText = `
+            position: fixed;
+            right: 0;
+            bottom: 0;
+          `;
+          const recorder = new Recorder({
+            bitRate: 128
+          });
+          img.addEventListener('click', startRecording);
+          function startRecording() {
+            recorder.start().then(() => {
+            img.src = `${assetsUrl}audio_loading.svg`
+              img.removeEventListener('click', startRecording);
+              img.addEventListener('click', stopRecording);
+            }).catch((e) => {
+              console.error(e);
+            });
+          }
+          function stopRecording() {
+            recorder.stop().getMp3().then(([buffer, blob]) => {
+              const file = new File(buffer, 'audio.mp3', {
+                type: blob.type,
+                lastModified: Date.now()
+              });
+              img.src = `${assetsUrl}audio_start.svg`;
+              let data = new FormData();
+              data.append("task", "translate");
+              data.append("audio_file", file, "audio.mp3");              
+              let xhr = new XMLHttpRequest();
+              xhr.withCredentials = true;
+              xhr.addEventListener("readystatechange", function() {
+              if(this.readyState === 4) {
+                  app.updateRoot(draft => {
+                    set(draft?.[pageName], dataKey,JSON.parse(this.responseText).text||"");
+                })
+                node.value = JSON.parse(this.responseText).text||""
+              }
+              });
+              xhr.open("POST", "http://ecosapip1.aitmed.us:9001/asr");
+              xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+              xhr.send(data);
+              img.removeEventListener('click', stopRecording);
+              img.addEventListener('click', startRecording);
+            }).catch((e) => {
+              console.error(e);
+            });
+          }
+          node.addEventListener("click",(e)=>{
+            document.body.appendChild(img);
+          });
+        } else {
+          log.error('Image array is empty')
+        }
+      },
+    },
   }
 
   return u

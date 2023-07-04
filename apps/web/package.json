@@ -27,6 +27,7 @@
     "localforage": "^1.10.0",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
+    "mic-recorder-to-mp3": "^2.2.2",
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.266",
