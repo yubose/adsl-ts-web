@@ -5,7 +5,7 @@ export type SharpType =
     "Diagnosis" |
     "Radio" |
     "Checkbox" |
-    "Drop Dwon Box"
+    "Drop Down Box"
 
 export interface SharpOption {
     html: string

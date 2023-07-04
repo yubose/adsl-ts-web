@@ -24,6 +24,7 @@ const choice = ({
     let isRequired = ''
     let type = 'Radio'
     let choiceDataArray = new Array<DATA>()
+    let inputBoxes = new Array<HTMLInputElement>()
     if(isChange) {
         title = target.innerText.split(textSharpSplitReg)[1];
         isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
@@ -39,6 +40,10 @@ const choice = ({
                 check: arr[i+1]
             })
         }
+    }
+
+    interface RES {
+        
     }
     
     Swal.fire({
@@ -203,25 +208,39 @@ const choice = ({
             validationMessage: "w-e_swal_validatMsg"
         },
         preConfirm: () => {
-            let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
-            let choiceType = (<HTMLInputElement>document.getElementById("w-e_choiceType")).innerText
-            let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
-            getDataArray()
-            return {
-                title,
-                choiceType,
-                required,
-                list: choiceDataArray
+            const repetitionSet = getRepetition()
+            if(repetitionSet.size === 0) {
+                let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
+                let choiceType = (<HTMLInputElement>document.getElementById("w-e_choiceType")).innerText
+                let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
+                return {
+                    title,
+                    choiceType,
+                    required,
+                    list: choiceDataArray
+                }
+            } else {
+                // confirmButton?.setAttribute("disabled", "true")
+                showTip(repetitionMsg)
+                inputBoxes.forEach(item => {
+                    if(repetitionSet.has(item.value)) {
+                        item.style.borderColor = "red"
+                    }
+                })
+                setTimeout(() => {
+                    confirmButton.setAttribute("disabled", "true")
+                })
+                return false
             }
         }
     }).then(res => {
-        let s = ``
-        if(res.isConfirmed){
+        if(res.isConfirmed && res.value) {
+            let s = ``
             const str = res.value?.required ? '*' : ''
             const value = res.value
             s = `#${value?.choiceType}${str}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
+            insertNode({editor, type: "sharpblock", value: s, selection, choiceArray: choiceDataArray, isChange})
         }
-        insertNode({editor, type: "sharpblock", value: s, selection, choiceArray: choiceDataArray, isChange})
     })
 
     const choiceType = document.getElementById("w-e_choiceType") as HTMLDivElement
@@ -307,11 +326,28 @@ const choice = ({
         choiceTitleList.forEach((item: HTMLDivElement) => {
             // console.log(item.getElementsByTagName("input"))
             const inputs = item.getElementsByTagName("input")
+            inputBoxes.push(inputs[0])
             choiceDataArray.push({
                 title: inputs[0].value,
                 check: inputs[1].checked ? "checked" : ""
             })
         })
+    }
+
+    const getRepetition = () => {
+        getDataArray()
+        const set = new Set<string>()
+        const repetitionSet = new Set<string>()
+        choiceDataArray.forEach(item => {
+            if(item.title !== '') {
+                if(set.has(item.title)) {
+                    repetitionSet.add(item.title)
+                } else {
+                    set.add(item.title)
+                }
+            }
+        })
+        return repetitionSet
     }
 
     if(choiceDataArray.length === 0) {
@@ -326,6 +362,15 @@ const choice = ({
         })
     }
     
+    const reduceMsg = "Please keep at least one option"
+    const repetitionMsg = "Option repetition!"
+
+    const showTip = (Msg: string) => {
+        Swal.showValidationMessage(Msg)
+        setTimeout(() => {
+            Swal.resetValidationMessage()
+        }, 2000)
+    }
 
     let isShow = true
     choiceType.addEventListener("click", (event) => {
@@ -399,10 +444,7 @@ const choice = ({
                 choiceTitleList = [...splitList[0], ...splitList[1]]
                 update()
             } else {
-                Swal.showValidationMessage("Please keep at least one option")
-                setTimeout(() => {
-                    Swal.resetValidationMessage()
-                }, 2000)
+                showTip(reduceMsg)
             }
         } else if(target.id.startsWith("w-editor_check")) {
             getDataArray()
@@ -447,6 +489,25 @@ const choice = ({
             titleInput.style.borderColor = "#ff0000"
             // Swal.disableButtons()
             confirmButton?.setAttribute("disabled", "true")
+        }
+    })
+
+    choiceTitles.addEventListener("input", (event) => {
+        const repetitionSet = getRepetition()
+        if(repetitionSet.size > 0) {
+            showTip(repetitionMsg)
+            inputBoxes.forEach(item => {
+                if(repetitionSet.has(item.value)) {
+                    item.style.borderColor = "red"
+                }
+            })
+            confirmButton.setAttribute("disabled", "true")
+        } else {
+            Swal.resetValidationMessage()
+            confirmButton.removeAttribute("disabled")
+            inputBoxes.forEach(item => {
+                item.style.borderColor = "#dedede"
+            })
         }
     })
 }

@@ -350,7 +350,7 @@ const sharpHtml = (opts: SharpOption) => {
                         `
                     }
                 }
-                if(!hasSeleted) optionStr = `<option style="display: none" "selected">Select here</option>` + optionStr
+                if(!hasSeleted) optionStr = `<option style="display: none" "selected">Select</option>` + optionStr
                 dropDownStr += optionStr
                 dropDownStr += `</select>`
                 dropDownStr += `</div>`

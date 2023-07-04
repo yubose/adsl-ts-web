@@ -1,6 +1,6 @@
 import { IDomEditor } from "@wangeditor/editor";
 import formatKey from "./format";
-import { textSharpReg, textSharpSplitReg } from "./textSharp";
+import { choiceSharpReg, textSharpReg, textSharpSplitReg } from "./textSharp";
 
 interface REQUIRED {
     key: string
@@ -22,6 +22,22 @@ const getTitleList = (editor: IDomEditor): Array<REQUIRED> => {
                 key: item.key,
                 title
             })
+        } else if(choiceSharpReg.test(value)) {
+            const key = value.split(textSharpSplitReg)[0]
+            const title = value.split(textSharpSplitReg)[1]
+            if(!key.includes("Checkbox")) {
+                key.endsWith("*") && titleList.push({
+                    // @ts-ignore
+                    key: `${item.key}.value`,
+                    title
+                })
+            } else {
+                key.endsWith("*") && titleList.push({
+                    // @ts-ignore
+                    key: `${item.key}.valueList`,
+                    title
+                })
+            }
         }
     })
     // allAt.forEach(item => {
