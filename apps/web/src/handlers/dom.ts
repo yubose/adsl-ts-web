@@ -5143,7 +5143,8 @@ const createExtendedDOMResolvers = function (app: App) {
                 node.value = JSON.parse(this.responseText).text||""
               }
               });
-              xhr.open("POST", "http://ecosapip1.aitmed.us:9001/asr");
+              console.log(JSON.parse(localStorage.getItem("config") as string)?.["whisperUrl"])
+              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
               xhr.send(data);
               img.removeEventListener('click', stopRecording);
