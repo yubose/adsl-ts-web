@@ -5143,7 +5143,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 node.value = JSON.parse(this.responseText).text||""
               }
               });
-              console.log(JSON.parse(localStorage.getItem("config") as string)?.["whisperUrl"])
               xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
               xhr.send(data);
