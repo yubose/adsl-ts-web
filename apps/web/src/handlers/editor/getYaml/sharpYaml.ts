@@ -300,7 +300,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                     {
                                                                         "=.builtIn.string.equal": {
                                                                             dataIn: {
-                                                                                string1: "..formData.data." + opts.config.key + ".value", 
+                                                                                string1: "=..formData.data." + opts.config.key + ".value", 
                                                                                 string2: "$var"
                                                                             }
                                                                         }
@@ -324,7 +324,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                         {
                                                                             "=.builtIn.string.equal": {
                                                                                 dataIn: {
-                                                                                    string1: "..formData.data." + opts.config.key + ".value", 
+                                                                                    string1: "=..formData.data." + opts.config.key + ".value", 
                                                                                     string2: "$var"
                                                                                 }
                                                                             }
@@ -397,7 +397,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                     {
                                                                         "=.builtIn.string.equal": {
                                                                             dataIn: {
-                                                                                string1: "..formData.data." + opts.config.key + ".value", 
+                                                                                string1: "=..formData.data." + opts.config.key + ".value", 
                                                                                 string2: "$var"
                                                                             }
                                                                         }
@@ -738,7 +738,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                             {
                                                                 "=.builtIn.string.equal": {
                                                                     dataIn: {
-                                                                        string1: "..formData.data." + opts.config.key + ".listIsShow",
+                                                                        string1: "=..formData.data." + opts.config.key + ".listIsShow",
                                                                         string2: "block"
                                                                     }
                                                                 }
@@ -766,7 +766,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 {
                                                     "=.builtIn.string.equal": {
                                                         dataIn: {
-                                                            string1: "..formData.data." + opts.config.key + ".listIsShow",
+                                                            string1: "=..formData.data." + opts.config.key + ".listIsShow",
                                                             string2: "block"
                                                         }
                                                     }
@@ -807,6 +807,9 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             {
                                 type: "listItem", 
                                 itemObject: "",
+                                hover: {
+                                    backgroundColor: "0x1e90ff"
+                                },
                                 style: {
                                     // width: "..formData.atrribute.noodl_font.fullWidth",
                                     height: "..formData.atrribute.noodl_font.lineHeight",
