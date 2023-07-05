@@ -719,6 +719,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         style: {
                             width: "..formData.atrribute.noodl_font.fullWidth",
                             display: "..formData.atrribute.is_edit",
+                            minHeight: "..formData.atrribute.noodl_font.lineHeight",
                             marginTop: "0.01"
                         },
                         children: [
@@ -728,7 +729,6 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                 style: {
                                     display: "flex",
                                     width: "..formData.atrribute.noodl_font.fullWidth",
-                                    minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     border: "1px solid #cccccc",
                                     borderRadius: "4px",
                                     justifyContent: "space-between",
@@ -740,7 +740,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                     {
                                         type: "label",
                                         dataKey: "formData.data." + opts.config.key + ".value",
-                                        text: "Select"
+                                        text: "Select",
+                                        style: {
+                                            flex: 1
+                                        }
                                     },
                                     {
                                         type: "image",
@@ -827,7 +830,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                 type: "listItem", 
                                 itemObject: "",
                                 style: {
-                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                    width: "calc(100%)",
                                     minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     wordBreak: "break-word",
                                     boxSizing: "border-box"
@@ -844,7 +847,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             backgroundColor: "itemObject.backgroundColor",
                                             color: "itemObject.color",
                                             fontWeight: "600",
-                                            width: "..formData.atrribute.noodl_font.fullWidth",
+                                            width: "calc(100%)",
                                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                             textAlign: {
                                                 y: "center"
