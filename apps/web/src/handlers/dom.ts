@@ -5098,7 +5098,8 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: 'textField' || 'textView',
       resolve({ node, component }) {
-        if (component.contentType === 'audio') {
+        console.log(component)
+        if (component.blueprint.audio === true) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage;
           const dataKey =
@@ -5108,6 +5109,7 @@ const createExtendedDOMResolvers = function (app: App) {
           img.style.cssText = `
             position: fixed;
             right: 0;
+            cursor: pointer;
             top: 40%;
           `;
           const recorder = new Recorder({
