@@ -1,11 +1,13 @@
 import { SharpOption, SharpType } from "./config"
 import { textSharpSplitReg } from "./textSharp"
-import { getHTMLDataArray } from "./utils"
+import { getHTMLDataArray, getUuid } from "./utils"
 
 const circleSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48ZyBkYXRhLW5hbWU9IjcwOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjdiN2I3Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iOCIgc3Ryb2tlPSJub25lIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjcuNSIvPjwvZz48L3N2Zz4=`
 const circleDefault = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NiAzIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48ZyBkYXRhLW5hbWU9IjcwOCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDA1Nzk1IiBzdHJva2Utd2lkdGg9IjIiPjxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSI4IiBzdHJva2U9Im5vbmUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNyIgZmlsbD0ibm9uZSIvPjwvZz48Y2lyY2xlIGRhdGEtbmFtZT0iNzEwIiBjeD0iNCIgY3k9IjQiIHI9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQgNCkiIGZpbGw9IiMwMDU3OTUiLz48L3N2Zz4=`
 const checkSvg = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NCA1NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiI+PGcgZGF0YS1uYW1lPSIxODE1MyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGVkZWRlIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiBzdHJva2U9Im5vbmUiLz48cmVjdCB4PSIuNSIgeT0iLjUiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgcng9IjEuNSIvPjwvZz48L3N2Zz4=`
 const checkDefault = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NCA1MyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgZGF0YS1uYW1lPSIxODE1MyIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzAwNTc5NSIvPjxnIGRhdGEtbmFtZT0iMTAzNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMyI+PHBhdGggZGF0YS1uYW1lPSIxNDI3IiBkPSJNNC41IDhsMiAyIi8+PHBhdGggZGF0YS1uYW1lPSIxNDI4IiBkPSJNMTEuNSA1bC01IDUiLz48L2c+PC9zdmc+`
+const upSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNC43OTQiIGhlaWdodD0iMTAuNzk0IiB2aWV3Qm94PSIwIDAgMjQuNzk0IDEwLjc5NCI+PGcgZGF0YS1uYW1lPSI4NjkzIiBmaWxsPSJub25lIiBzdHJva2U9IiNiY2JjYmMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIyIj48cGF0aCBkYXRhLW5hbWU9IjEzNjEiIGQ9Ik0xLjM5NyA5LjM5N2wxMS04Ii8+PHBhdGggZGF0YS1uYW1lPSIxMzYyIiBkPSJNMjMuMzk3IDkuMzk3bC0xMS04Ii8+PC9nPjwvc3ZnPg==`
+const downSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNC43OTQiIGhlaWdodD0iMTAuNzk0IiB2aWV3Qm94PSIwIDAgMjQuNzk0IDEwLjc5NCI+PGcgZGF0YS1uYW1lPSI4NjkzIiBmaWxsPSJub25lIiBzdHJva2U9IiNiY2JjYmMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIyIj48cGF0aCBkYXRhLW5hbWU9IjEzNjEiIGQ9Ik0xLjM5NyAxLjM5N2wxMSA4Ii8+PHBhdGggZGF0YS1uYW1lPSIxMzYyIiBkPSJNMjMuMzk3IDEuMzk3bC0xMSA4Ii8+PC9nPjwvc3ZnPg==`
 
 const sharpHtml = (opts: SharpOption) => {
     let Asterisk = ``
@@ -320,7 +322,8 @@ const sharpHtml = (opts: SharpOption) => {
             if(opts.type?.endsWith("*")) 
                 Asterisk = `<span style="color: red"> *</span>`
             if(dropDownArray.length > 0) {
-                dropDownStr += `<div style="margin: 15px 0;">`
+                const dropDownID = getUuid()
+                dropDownStr += `<div style="margin: 15px 0;position: relative;">`
                 dropDownStr +=  `
                     <div style="
                         margin-top: 15px;
@@ -328,31 +331,93 @@ const sharpHtml = (opts: SharpOption) => {
                         font-weight: 600;
                     ">${opts.config.title}${Asterisk}</div>
                 `
-                dropDownStr += `<select style="
+                dropDownStr += `
+                <div style="
                     width: 100%;
-                    height: 24px;
+                    min-height: 24px;
                     outline: none;
                     border: 1px solid rgb(222,222,222);
                     border-radius: 4px;
-                    color: color: rgb(51,51,51);
+                    color: rgb(51,51,51);
                     margin-top: 2px;
-                ">`
-                let hasSeleted = false
-                let optionStr = ``
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0 10px;
+                    box-sizing: border-box;
+                    cursor: pointer;
+                    word-break: break-word;
+                " onclick="
+                    ((event) => {
+                        const img = document.getElementById('w-e_select_img${dropDownID}')
+                        const select = document.getElementById('w-e_select${dropDownID}')
+                        if(select.style.display === 'none') {
+                            select.style.display = 'block'
+                            img.src = '${upSvg}'
+                            const selectChild = select.children
+                            const value = document.getElementById('w-e_select_value${dropDownID}')
+                            for(let i = 0; i < selectChild.length; i++){
+                                const item = selectChild.item(i)
+                                if(value.getAttribute('data-key') === item.getAttribute('data-key')) {
+                                    item.style.background = '#1e90ff'
+                                    item.style.color = '#ffffff'
+                                } else {
+                                    item.style.background = '#ffffff'
+                                    item.style.color = '#333333'
+                                }
+                            }
+                        } else {
+                            select.style.display = 'none'
+                            img.src = '${downSvg}'
+                        }
+                    })(event)
+                ">
+                    <div id="w-e_select_value${dropDownID}">__REPLACE__</div>
+                    <img id="w-e_select_img${dropDownID}" width="16px" src="${downSvg}">
+                </div>`
+                // let hasSeleted = false
+                let selectStr = 'Select'
+                let optionStr = `
+                <div id="w-e_select${dropDownID}" style="
+                    width: 100%;
+                    min-height: 24px;
+                    outline: none;
+                    border: 1px solid rgb(222,222,222);
+                    border-radius: 4px;
+                    color: rgb(51,51,51);
+                    margin-top: 2px;
+                    display: none;
+                    box-sizing: border-box;
+                    cursor: pointer;
+                    overflow: hidden;
+                    position: absolute;
+                " onclick="
+                    ((event) => {
+                        const value = document.getElementById('w-e_select_value${dropDownID}')
+                        const img = document.getElementById('w-e_select_img${dropDownID}')
+                        const select = document.getElementById('w-e_select${dropDownID}')
+                        value.setAttribute('data-key', event.target.getAttribute('data-key'))
+                        value.innerText = event.target.innerText
+                        select.style.display = 'none'
+                        img.src = '${downSvg}'
+                    })(event)
+                ">
+                `
                 for(let i = 0; i < dropDownArray.length; i += 2) {
                     const title = dropDownArray[i]
                     const check = dropDownArray[i+1]
                     if(title !== "") {
                         let selected = check === "" ? "" : "selected"
-                        if(selected) hasSeleted = true
+                        // if(selected) hasSeleted = true
+                        if(selected) selectStr = title
                         optionStr += `
-                            <option value="${title}" ${selected}>${title}</option>
+                            <div class="w-e_select_option" value="${title}" style="word-break: break-word;" data-key="${getUuid()}">${title}</div>
                         `
                     }
                 }
-                if(!hasSeleted) optionStr = `<option style="display: none" "selected">Select</option>` + optionStr
+                optionStr += `</div>`
+                dropDownStr = dropDownStr.replace("__REPLACE__", selectStr)
+                // if(!hasSeleted) optionStr = `<option style="display: none" "selected">Select</option>` + optionStr
                 dropDownStr += optionStr
-                dropDownStr += `</select>`
                 dropDownStr += `</div>`
             } else {
                 dropDownStr = opts.split

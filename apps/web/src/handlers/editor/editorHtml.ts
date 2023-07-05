@@ -181,6 +181,17 @@ const styleText = `
     cursor: pointer;
 }
 
+.w-e-atblock {
+    white-space: nowrap;
+}
+
+.w-e-sharpblock {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .w-e-button:hover {
     background: #ffffff;
     color: #2988e6;
@@ -301,6 +312,18 @@ const editorHtml = `
     height: 24px;
     padding: 3px 5px;
     border: 1px solid #ccc;
+}
+
+#preView .w-e_select_option {
+    z-index: 10;
+    width: 100%;
+    min-height: 24px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+#preView .w-e_select_option:hover {
+    background: #1e90ff !important;
+    color: #ffffff !important;
 }
 
 </style>

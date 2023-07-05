@@ -1,7 +1,6 @@
 import { SharpYamlOption } from "../utils/config"
 import formatKey from "../utils/format"
 import { textSharpSplitReg } from "../utils/textSharp"
-import { getUuid } from "../utils/utils"
 
 const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
     let str = opts.isRequired ? `<span style="color:red"> *</span>` : ''
@@ -257,9 +256,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         text: opts.config.title+str,
                         style: {
                             color: "0x333333",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             fontSize: "..formData.atrribute.noodl_font.text",
                             fontWeight: "600",
-                            wordBreak: "keep-all"
+                            wordBreak: "break-word"
                         }
                     },
                     {
@@ -269,7 +269,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         listObject: "..formData.data." + opts.config.key + ".dataList",
                         iteratorVar: "itemObject",
                         style: {
-                            display: "..formData.atrribute.is_edit"
+                            display: "..formData.atrribute.is_edit",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                         },
                         children: [
                             {
@@ -280,7 +281,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         type: "view",
                                         style: {
                                             display: "flex",
-                                            alignItems: "center"
+                                            alignItems: "center",
+                                            width: "..formData.atrribute.noodl_font.fullWidth",
                                         },
                                         children: [
                                             {
@@ -347,10 +349,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject",
                                                 style: {
+                                                    width: "..formData.atrribute.noodl_font.fullWidth",
                                                     marginLeft: "..formData.atrribute.noodl_font.choice.radio.marginLeft",
-                                                    width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
+                                                    wordBreak: "break-word"
                                                 }
                                             }
                                         ]
@@ -366,6 +369,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         listObject: "..formData.data." + opts.config.key + ".dataList",
                         iteratorVar: "itemObject",
                         style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             display: "..formData.atrribute.is_read"
                         },
                         children: [
@@ -377,7 +381,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         type: "view",
                                         style: {
                                             display: "flex",
-                                            alignItems: "center"
+                                            alignItems: "center",
+                                            width: "..formData.atrribute.noodl_font.fullWidth",
                                         },
                                         children: [
                                             {
@@ -414,10 +419,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject",
                                                 style: {
+                                                    width: "..formData.atrribute.noodl_font.fullWidth",
                                                     marginLeft: "..formData.atrribute.noodl_font.choice.radio.marginLeft",
-                                                    width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
+                                                    wordBreak: "break-word"
                                                 }
                                             }
                                         ]
@@ -479,9 +485,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         text: opts.config.title+str,
                         style: {
                             color: "0x333333",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             fontSize: "..formData.atrribute.noodl_font.text",
                             fontWeight: "600",
-                            wordBreak: "keep-all"
+                            wordBreak: "break-word"
                         }
                     },
                     {
@@ -491,6 +498,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         listObject: "..formData.data." + opts.config.key + ".dataList",
                         iteratorVar: "itemObject",
                         style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             display: "..formData.atrribute.is_edit"
                         },
                         children: [
@@ -502,7 +510,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         type: "view",
                                         style: {
                                             display: "flex",
-                                            alignItems: "center"
+                                            alignItems: "center",
+                                            width: "..formData.atrribute.noodl_font.fullWidth",
                                         },
                                         children: [
                                             {
@@ -579,10 +588,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject.value",
                                                 style: {
+                                                    width: "..formData.atrribute.noodl_font.fullWidth",
                                                     marginLeft: "..formData.atrribute.noodl_font.choice.checkbox.marginLeft",
-                                                    width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
+                                                    wordBreak: "break-word"
                                                 }
                                             }
                                         ]
@@ -598,6 +608,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         listObject: "..formData.data." + opts.config.key + ".dataList",
                         iteratorVar: "itemObject",
                         style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             display: "..formData.atrribute.is_read"
                         },
                         children: [
@@ -639,10 +650,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "label",
                                                 dataKey: "itemObject.value",
                                                 style: {
+                                                    width: "..formData.atrribute.noodl_font.fullWidth",
                                                     marginLeft: "..formData.atrribute.noodl_font.choice.checkbox.marginLeft",
-                                                    width: "0.036",
                                                     fontSize:  "..formData.atrribute.noodl_font.text",
                                                     color: "0x333333",
+                                                    wordBreak: "break-word"
                                                 }
                                             }
                                         ]
@@ -696,35 +708,37 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         text: opts.config.title+str,
                         style: {
                             color: "0x333333",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             fontSize: "..formData.atrribute.noodl_font.text",
                             fontWeight: "600",
-                            wordBreak: "keep-all"
+                            wordBreak: "break-word"
                         }
                     },
                     {
                         type: "view",
                         style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
                             display: "..formData.atrribute.is_edit",
                             marginTop: "0.01"
                         },
                         children: [
                             {
                                 type: "view",
+                                viewTag: opts.config.key + "valueTag",
                                 style: {
                                     display: "flex",
-                                    // width: "..formData.atrribute.noodl_font.fullWidth",
-                                    height: "..formData.atrribute.noodl_font.lineHeight",
-                                    border: "1px solid",
-                                    borderColor: "0xccc",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                    minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                    border: "1px solid #cccccc",
                                     borderRadius: "4px",
                                     justifyContent: "space-between",
                                     alignItems: "center",
-                                    padding: "0 18px"
+                                    padding: "0 18px",
+                                    boxSizing: "border-box"
                                 },
                                 children: [
                                     {
                                         type: "label",
-                                        viewTag: opts.config.key + "valueTag",
                                         dataKey: "formData.data." + opts.config.key + ".value",
                                         text: "Select"
                                     },
@@ -781,6 +795,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             {
                                 actionType: "builtIn",
                                 funcName: "redraw",
+                                viewTag: opts.config.key + "valueTag",
+                            },
+                            {
+                                actionType: "builtIn",
+                                funcName: "redraw",
                                 viewTag: opts.config.key + "listTag",
                             }
                         ]
@@ -793,8 +812,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         iteratorVar: "itemObject",
                         style: {
                             width: "..formData.atrribute.noodl_font.fullWidth",
-                            border: "1px solid",
-                            borderColor: "0xccc",
+                            border: "1px solid #cccccc",
                             borderRadius: "4px",
                             marginTop: "0.002",
                             display: "..formData.data." + opts.config.key + ".listIsShow",
@@ -802,31 +820,38 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             position: "absolute",
                             background: "0xffffff",
                             zIndex: "100",
+                            boxSizing: "border-box"
                         },
                         children: [
                             {
                                 type: "listItem", 
                                 itemObject: "",
-                                hover: {
-                                    backgroundColor: "0x1e90ff"
-                                },
                                 style: {
-                                    // width: "..formData.atrribute.noodl_font.fullWidth",
-                                    height: "..formData.atrribute.noodl_font.lineHeight",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                    minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                    wordBreak: "break-word",
+                                    boxSizing: "border-box"
                                 },
                                 children: [
                                     {
                                         type: "label",
+                                        hover: {
+                                            backgroundColor: "0x1e90ff",
+                                            color: "0xffffff"
+                                        },
                                         dataKey: "itemObject.value",
                                         style: {
                                             backgroundColor: "itemObject.backgroundColor",
                                             color: "itemObject.color",
                                             fontWeight: "600",
-                                            // width: "..formData.atrribute.noodl_font.fullWidth",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            height: "..formData.atrribute.noodl_font.lineHeight",
-                                            padding: "0px 18px"
+                                            width: "..formData.atrribute.noodl_font.fullWidth",
+                                            minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                            textAlign: {
+                                                y: "center"
+                                            },
+                                            padding: "0px 18px",
+                                            wordBreak: "break-word",
+                                            boxSizing: "border-box"
                                         },
                                         onClick: [
                                             {
@@ -899,9 +924,11 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                     fontSize: "..formData.atrribute.noodl_font.h4",
                                     color: "0x666666",
                                     wordWrap: "break-word",
-                                    marginLeft: "0.0046",
+                                    wordBreak: "break-word",
                                     paddingTop: "0.0046",
                                     paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box"
                                 } 
                             }
                         ]
