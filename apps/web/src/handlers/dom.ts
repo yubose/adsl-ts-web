@@ -5108,22 +5108,75 @@ const createExtendedDOMResolvers = function (app: App) {
           img.style.cssText = `
             position: fixed;
             right: 0;
-            bottom: 0;
+            top: 40%;
           `;
           const recorder = new Recorder({
             bitRate: 128
           });
-          img.addEventListener('click', startRecording);
+          let offsetX = 0;
+          let offsetY = 0;
+          let proccess_fun = true;
+          let isDragging = false;
+          const device_is_web = (()=>{
+            try {
+              document.createEvent("TouchEvent"); return false;
+            } catch(e) {
+              return true; 
+            }
+          })();
+          img.addEventListener(device_is_web?'mousedown':"touchstart",onMouseDown );
+          function onMouseDown(e){
+            device_is_web&&e.preventDefault();
+              offsetX = (e.clientX||e.touches[0].clientX) - img.offsetLeft;
+              offsetY = (e.clientY||e.touches[0].clientY) - img.offsetTop;
+              document.addEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
+              document.addEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          }
+          function onMouseMove(e) {
+            isDragging = true;
+            const newLeft =(e.clientX||e.touches[0].clientX) - offsetX;
+            const newTop =  (e.clientY||e.touches[0].clientY) - offsetY;
+            const offW = document.documentElement.clientWidth - img.offsetWidth;
+            const offH = document.documentElement.clientHeight - img.offsetHeight;
+            if(newLeft<0){
+              img.style.left  = "0"
+            }else if(offW<=newLeft){
+              img.style.left  = offW+"px"
+            }else{
+              img.style.left  = newLeft+"px"
+            }
+            if(newTop<0){
+              img.style.top  = "0"
+            }else if(offH<=newTop){
+              img.style.top  = offH+"px"
+            }else{
+              img.style.top  = newTop+"px"
+            }
+          }
+          function onMouseUp(e) {
+            img.removeEventListener('click', stopRecording);
+            img.removeEventListener('click', startRecording);
+            if(!isDragging){
+              img.addEventListener('click',proccess_fun?startRecording:stopRecording);
+            }
+            isDragging = false;
+            document.removeEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
+            document.removeEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          }
           function startRecording() {
             recorder.start().then(() => {
             img.src = `${assetsUrl}audio_loading.svg`
               img.removeEventListener('click', startRecording);
+              proccess_fun = false;
               img.addEventListener('click', stopRecording);
+
             }).catch((e) => {
               console.error(e);
             });
           }
           function stopRecording() {
+            img.removeEventListener('click', stopRecording);
+            proccess_fun = true;
             recorder.stop().getMp3().then(([buffer, blob]) => {
               const file = new File(buffer, 'audio.mp3', {
                 type: blob.type,
@@ -5136,11 +5189,17 @@ const createExtendedDOMResolvers = function (app: App) {
               let xhr = new XMLHttpRequest();
               xhr.withCredentials = true;
               xhr.addEventListener("readystatechange", function() {
+              let val;
               if(this.readyState === 4) {
                   app.updateRoot(draft => {
-                    set(draft?.[pageName], dataKey,JSON.parse(this.responseText).text||"");
+                    try{
+                      val = JSON.parse(this.responseText).text;
+                    }catch{
+                      val = ""
+                    }
+                    set(draft?.[pageName], dataKey,val);
                 })
-                node.value = JSON.parse(this.responseText).text||""
+                node.value = val;
               }
               });
               xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
@@ -5151,9 +5210,10 @@ const createExtendedDOMResolvers = function (app: App) {
             }).catch((e) => {
               console.error(e);
             });
+
           }
           node.addEventListener("click",(e)=>{
-            document.body.appendChild(img);
+            node.parentNode.appendChild(img);
           });
         } else {
           log.error('Image array is empty')
