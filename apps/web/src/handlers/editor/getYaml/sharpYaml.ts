@@ -77,6 +77,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                     whiteSpace: "pre-wrap",
                                     paddingTop: "0.0046",
                                     paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box"
                                 } 
                             }
                         ]
@@ -154,6 +156,8 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                     whiteSpace: "pre-wrap",
                                     paddingTop: "0.0046",
                                     paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box"
                                 } 
                             }
                         ]
@@ -279,19 +283,18 @@ const sharpYaml = (opts: SharpYamlOption) => {
                                 dataKey: "formData.data." + formatKey(opts.type as string),
                                 style: {
                                     display: "..formData.atrribute.is_read",
-                                    // wordWrap: "break-word",
-                                    // marginTop: "0.01",
-                                    // minHeight: "80px",
                                     width: "..formData.atrribute.noodl_font.fullWidth",
                                     height: "auto",
-                                    // lineHeight: "40px",
                                     verticalAlign: "middle",
                                     fontSize: "..formData.atrribute.noodl_font.h4",
                                     color: "0x666666",
+                                    wordBreak: "break-word",
                                     wordWrap: "break-word",
-                                    marginLeft: "0.0046",
+                                    whiteSpace: "pre-wrap",
                                     paddingTop: "0.0046",
                                     paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box"
                                 } 
                             }
                         ]
