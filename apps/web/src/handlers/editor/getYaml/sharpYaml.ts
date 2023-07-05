@@ -720,7 +720,12 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             width: "..formData.atrribute.noodl_font.fullWidth",
                             display: "..formData.atrribute.is_edit",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                            marginTop: "0.01"
+                            marginTop: "0.01",
+                            border: "1px solid #cccccc",
+                            borderRadius: "4px",
+                            textAlign: {
+                                y: "center"
+                            }
                         },
                         children: [
                             {
@@ -728,9 +733,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                 viewTag: opts.config.key + "valueTag",
                                 style: {
                                     display: "flex",
+                                    minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     width: "..formData.atrribute.noodl_font.fullWidth",
-                                    border: "1px solid #cccccc",
-                                    borderRadius: "4px",
                                     justifyContent: "space-between",
                                     alignItems: "center",
                                     padding: "0 18px",
