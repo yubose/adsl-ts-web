@@ -4823,7 +4823,7 @@ const createExtendedDOMResolvers = function (app: App) {
             const WIDTH = horizontalScroll.clientWidth
             const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
             ? node.style.maxWidth.replace("px", "")
-            : node.style.maxWidth) - 3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight))
+            : node.style.maxWidth) - 3 * listStyle.buttonWidth)
             const HEIGHT = horizontalScroll.clientHeight
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
@@ -4838,7 +4838,8 @@ const createExtendedDOMResolvers = function (app: App) {
               horizontalScroll.appendChild(blank)
               node.appendChild(BT)
             } else {
-              horizontalScroll.style.width = `${WIDTH + 2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px`
+              // horizontalScroll.style.width = `${WIDTH + 3 * listStyle.buttonWidth}px`
+              horizontalScroll.style.width = "100%"
             }
             MENULIST.style.marginTop = `${HEIGHT}px`
             if(!timer) {
