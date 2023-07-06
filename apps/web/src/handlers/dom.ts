@@ -5096,15 +5096,15 @@ const createExtendedDOMResolvers = function (app: App) {
       }
     },
     '[App] Audio': {
-      cond: 'textField' || 'textView',
+      cond: ({component:c})=> ["textField","textView"].includes(c.type),
       resolve({ node, component }) {
-        console.log(component)
         if (component.blueprint.audio === true) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage;
           const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || '';
           const img = document.createElement("img");
+          img.id = "target_img"
           img.src = `${assetsUrl}audio_start.svg`
           img.style.cssText = `
             position: fixed;
@@ -5212,11 +5212,28 @@ const createExtendedDOMResolvers = function (app: App) {
             }).catch((e) => {
               console.error(e);
             });
-
           }
-          node.addEventListener("click",(e)=>{
-            node.parentNode.appendChild(img);
-          });
+          const appendEle = (e)=>{
+            node.parentNode?.appendChild(img);
+          }
+          node.addEventListener("click",appendEle);
+          document.addEventListener("click",(e)=>{
+            if(node.parentNode?.contains(img)&&!["target_img",node.id].includes(e.target?.id as string)){
+              img.removeEventListener("click",appendEle);
+              recorder.stop();
+              img.src = `${assetsUrl}audio_start.svg`
+              proccess_fun = true;
+              img.removeEventListener('click', stopRecording);
+              img.addEventListener('click', startRecording);
+              node.parentNode?.removeChild(img);
+              img.remove()
+              
+            }else{
+              if(node.parentNode?.contains(img)&&!device_is_web){
+                node.focus();
+              }
+            }
+          })
         } else {
           log.error('Image array is empty')
         }
