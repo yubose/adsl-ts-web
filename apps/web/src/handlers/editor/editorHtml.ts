@@ -213,7 +213,7 @@ const styleText = `
     font-weight: 600;
     position: fixed;
     width: 400px;
-    top: 80px;
+    top: 8%;
     margin-left: 100px;
     background: #ffffff;
     cursor: pointer;

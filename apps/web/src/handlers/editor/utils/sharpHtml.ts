@@ -371,11 +371,12 @@ const sharpHtml = (opts: SharpOption) => {
                         }
                     })(event)
                 ">
-                    <div id="w-e_select_value${dropDownID}">__REPLACE__</div>
+                    <div id="w-e_select_value${dropDownID}"__DATAKEY__>__REPLACE__</div>
                     <img id="w-e_select_img${dropDownID}" width="16px" src="${downSvg}">
                 </div>`
                 // let hasSeleted = false
                 let selectStr = 'Select'
+                let dataKeyStr = ''
                 let optionStr = `
                 <div id="w-e_select${dropDownID}" style="
                     width: 100%;
@@ -390,6 +391,7 @@ const sharpHtml = (opts: SharpOption) => {
                     cursor: pointer;
                     overflow: hidden;
                     position: absolute;
+                    z-index: 10;
                 " onclick="
                     ((event) => {
                         const value = document.getElementById('w-e_select_value${dropDownID}')
@@ -407,15 +409,19 @@ const sharpHtml = (opts: SharpOption) => {
                     const check = dropDownArray[i+1]
                     if(title !== "") {
                         let selected = check === "" ? "" : "selected"
+                        const dataKey = getUuid()
                         // if(selected) hasSeleted = true
-                        if(selected) selectStr = title
+                        if(selected){ 
+                            selectStr = title
+                            dataKeyStr = ` data-key="${dataKey}"`
+                        }
                         optionStr += `
-                            <div class="w-e_select_option" value="${title}" style="word-break: break-word;" data-key="${getUuid()}">${title}</div>
+                            <div class="w-e_select_option" value="${title}" style="word-break: break-word;" data-key="${dataKey}">${title}</div>
                         `
                     }
                 }
                 optionStr += `</div>`
-                dropDownStr = dropDownStr.replace("__REPLACE__", selectStr)
+                dropDownStr = dropDownStr.replace("__DATAKEY__", dataKeyStr).replace("__REPLACE__", selectStr)
                 // if(!hasSeleted) optionStr = `<option style="display: none" "selected">Select</option>` + optionStr
                 dropDownStr += optionStr
                 dropDownStr += `</div>`
