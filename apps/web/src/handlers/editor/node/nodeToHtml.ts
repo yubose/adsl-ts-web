@@ -13,14 +13,15 @@ function AtBlockToHtml(elem: SlateElement, childrenHtml: string): string {
 function SharpBlockToHtml(elem: SlateElement, childrenHtml: string): string {
 
     // @ts-ignore
-    const { value = "", key = "" } = elem
+    const { value = "", key = "", choiceStr = "" } = elem
+
+    const cStr = choiceStr === "" ? "" :  ` data-array="${choiceStr}"`
 
     // 生成 HTML 代码
-    const html = `<span data-w-e-type="sharpblock" data-w-e-is-void data-key="${key}" data-value="${value}">${value}</span>`
+    const html = `<span data-w-e-type="sharpblock" data-w-e-is-void data-key="${key}"${cStr} data-value="${value}">${value}</span>`
 
     return html
 }
-
 
 export { 
     AtBlockToHtml,

@@ -16,11 +16,13 @@ function parseSharpBlockHtml(domElement: Element, children: SlateDescendant[], e
 
     const value = domElement.getAttribute('data-value') || ''
     const key = domElement.getAttribute('data-key') || ''
+    const choiceStr = domElement.getAttribute("data-array") || ''
 
     const SharpBlock = {
         type: "sharpblock",
         value,
         key,
+        choiceStr,
         children: [{text: ""}]
     }
 

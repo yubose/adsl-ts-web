@@ -1,9 +1,10 @@
 import { IDomEditor, SlateElement } from "@wangeditor/editor";
 import { h, VNode } from "snabbdom";
+import choice from "../utils/choice";
 import { SharpType } from "../utils/config";
 import { inputPopUp } from "../utils/popUp";
 import searchPopUp from "../utils/search";
-import { textSharpReg, textSharpSplitReg } from "../utils/textSharp";
+import { choiceSharpReg, textSharpReg, textSharpSplitReg } from "../utils/textSharp";
 
 function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
@@ -37,22 +38,61 @@ function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDo
 function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
     // @ts-ignore
-    const { value = "" } = elem
+    const { value = "", choiceStr = "" } = elem
+
+    const tips = document.createElement("div")
+    tips.style.cssText = `
+        width: 100%;
+        min-height: 24px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: 4px;
+        border: 1px solid #cccccc;
+        position: absolute;
+        left: 0px;
+        margin-top: 5px;
+        background: #ffffff;
+        z-index: 10;
+    `
+    tips.innerText = value
 
     const attachVnode = h(
         "span",
         {   
             attrs: {
-                class: "w-e-button w-e-sharpblock"
+                class: "w-e-button w-e-sharpblock",
+                "data-array": choiceStr
             },
             on: {
                 "click": (event) => {
-                    const selection = editor.selection
-                    if(textSharpReg.test((event.target as HTMLButtonElement).innerText)) {
-                        console.log((event.target as HTMLButtonElement).innerText.split(textSharpSplitReg))
-                        const text = (event.target as HTMLButtonElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
+                    const selection = editor.selection;
+                    (event.target as HTMLElement).innerText = value
+                    if(textSharpReg.test((event.target as HTMLElement).innerText)) {
+                        // console.log((event.target as HTMLElement).innerText.split(textSharpSplitReg))
+                        const text = (event.target as HTMLElement).innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, '')
                         // console.log(text)
-                        inputPopUp(editor, text as SharpType, selection, event.target as HTMLButtonElement)
+                        inputPopUp(editor, text as SharpType, selection, event.target as HTMLElement)
+                    } else if(choiceSharpReg.test((event.target as HTMLElement).innerText)) {
+                        choice({
+                            editor,
+                            selection,
+                            target: event.target as HTMLElement
+                        })
+                    }
+                },
+                "mouseenter": (event) => {
+                    const target = event.target as HTMLSpanElement
+                    const clientWidth = target.clientWidth;
+                    const scrollWidth = target.scrollWidth;
+                    if(clientWidth < scrollWidth)
+                        target.appendChild(tips)
+                },
+                "mouseout": (event) => {
+                    const target =event.target as HTMLSpanElement
+                    try {
+                        target.removeChild(tips)
+                    } catch (error) {
+                        
                     }
                 }
             }

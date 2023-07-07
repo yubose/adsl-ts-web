@@ -44,7 +44,7 @@ import { editorHtml, styleText }from './editor/editorHtml'
 import { Boot, createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
 import editorConfig from "./editor/editor"
 // import toolbarConfig from "./editor/toolbar"
-import { matchBlock, matchChar } from './editor/utils/matchChar'
+import { matchBlock } from './editor/utils/matchChar'
 import getYaml from './editor/getYaml/getYaml'
 import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
@@ -4558,6 +4558,10 @@ const createExtendedDOMResolvers = function (app: App) {
           kp.clean()
           editor.destroy()
           toolbar.destroy()
+          app.updateRoot(draft => {
+            set(draft, "editor", null);
+            set(draft, 'toolbar', null);
+          })
         })
 
       }
@@ -4571,6 +4575,38 @@ const createExtendedDOMResolvers = function (app: App) {
           <style>
             p {
               margin: 15px 0;
+            }
+            
+            table {
+              border-collapse: collapse;
+              margin: 15px 0;
+            }
+
+            th {
+              min-width: 24px;
+              height: 24px;
+              padding: 3px 5px;
+              border: 1px solid #ccc;
+              background: #f5f2f0;
+            }
+
+            td {
+              min-width: 24px;
+              height: 24px;
+              padding: 3px 5px;
+              border: 1px solid #ccc;
+            }
+
+            .w-e_select_option {
+              z-index: 10;
+              width: 100%;
+              min-height: 24px;
+              padding: 0 10px;
+              box-sizing: border-box;
+            }
+            .w-e_select_option:hover {
+              background: #1e90ff !important;
+              color: #ffffff !important;
             }
           </style>
         `

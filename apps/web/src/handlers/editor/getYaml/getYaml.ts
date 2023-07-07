@@ -10,7 +10,7 @@ import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
 import getTitleList from "../utils/getTitleList";
 import { getUuid } from "../utils/utils";
-import { textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
+import { choiceSharpReg, textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
 
 
 const getYaml = (editor: IDomEditor) => {
@@ -58,7 +58,10 @@ const typeConfig = new Map([
     ["header3", "view"],
     ["header4", "view"],
     ["header5", "view"],
-    ["divider", "divider"]
+    ["divider", "divider"],
+    ["table", "view"],
+    // ["table-row", "view"],
+    // ["table-cell", "view"],
     // ["paragraph", "label"]
 ])
 
@@ -136,7 +139,7 @@ const colorReg = /rgb\((.)+\)/
 
 const fixJson = (json, BaseJsonCopy) => {
     // return populate(json, BaseJsonCopy).target
-    return populateBlock(json, BaseJsonCopy)
+    return populateBlock({obj:json, BaseJsonCopy})
 }
 
 // const populate = (obj, BaseJsonCopy) => {
@@ -333,12 +336,24 @@ const fixJson = (json, BaseJsonCopy) => {
 //     return target
 // }
 
-const populateBlock = (obj, BaseJsonCopy, style = {}) => {
+const populateBlock = ({
+    obj, 
+    BaseJsonCopy, 
+    style = {}
+}: {
+    obj: any
+    BaseJsonCopy: any
+    style?: any
+}) => {
     let target
     if(obj instanceof Array) {
         target = []
         obj.forEach(item => {
-            target.push(populateBlock(item, BaseJsonCopy, style))
+            target.push(populateBlock({
+                obj: item, 
+                BaseJsonCopy, 
+                style
+            }))
         })
     } else if(typeof obj === "object" && obj !== null) {
         target = {}
@@ -418,6 +433,25 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             },
                             isRequired: required
                         })
+                    } else if(choiceSharpReg.test(obj.value)) {
+                        const text = obj.value.replace(/#/, '')
+                        const list = obj.choiceStr
+                        const splitArr = text.split(textSharpSplitRegG)
+                        let required = false
+                        let title = splitArr[1]
+                        if(splitArr[0].endsWith("*")) {
+                            required = true
+                        }
+                        BaseJsonCopy.formData[obj.key] = {}
+                        target = sharpYaml({
+                            type: splitArr[0].replace("*", '') as SharpType,
+                            config: {
+                                title: title,
+                                key: obj.key,
+                                list
+                            },
+                            isRequired: required
+                        }, BaseJsonCopy)
                     } else if(obj.value === "#Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["signatureId"] = ''
@@ -459,7 +493,159 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
-                    target.children = populateBlock(obj.children, BaseJsonCopy, inherit)
+                    target.children = populateBlock({
+                        obj: obj.children, 
+                        BaseJsonCopy, 
+                        style: inherit
+                    })
+                    break
+                case "table":
+                    const width = obj.width === "auto" ? obj.width : "..formData.atrribute.noodl_font.fullWidth"
+                    target = {
+                        type: typeConfig.get(obj.type),
+                        style: {
+                            width: width,
+                            marginTop: "0.005",
+                            paddingTop: "0.005",
+                            fontSize: "..formData.atrribute.noodl_font.text",
+                            display: "flex",
+                            flexDirection: "column"
+                        }
+                    }
+                    const allWidth = width === "auto" ? 0 : 100
+                    const widthList = new Array<number>()
+                    const widthArray = new Array<string>()
+                    const flexShrinks = new Array<number>()
+                    const row = obj.children[0].children
+                    row.forEach((it) => {
+                        if(allWidth === 0) {
+                            widthList.push(it?.width && it?.width !== "auto" ? parseFloat(it.width) : 30)
+                        } else {
+                            widthList.push(it?.width && it?.width !== "auto" ? parseFloat(it.width) : Math.floor(10000/row.length)/100)
+                        }
+                    })
+                    if(allWidth === 0) {
+                        let W = 0
+                        widthList.forEach(it => {
+                            W += it
+                        })
+                        widthList.forEach((it, i) => {
+                            if(it === 30) {
+                                widthArray[i] = `..formData.atrribute.noodl_font.tableMinWidth`
+                                flexShrinks[i] = 0
+                            } else {
+                                widthArray[i] = `calc(${100*Math.floor(100*it/W)/100}%)`
+                                flexShrinks[i] = 1
+                            }
+                        })
+                    } 
+                    else {
+                        let W = 0
+                        widthList.forEach(it => {
+                            W += it
+                        })
+                        widthList.forEach((it, i) => {
+                            widthArray[i] = `calc(${100*Math.floor(100*it/W)/100}%)`
+                            if(it === Math.floor(10000/row.length)/100) {
+                                flexShrinks[i] = 0
+                            } else {
+                                flexShrinks[i] = 1
+                            }
+                        })
+                    }
+                    // console.log(widthList)
+                    target.children = new Array()
+                    obj.children.forEach((item, index) => {
+                        const child = {
+                            type: "view",
+                            style: {
+                                display: "flex",
+                                width: width
+                            },
+                            children: new Array()
+                        }
+                        item.children.forEach((it, idx) => {
+                            let textAlign = it?.isHeader ? {x: 'center'} : {x: 'start'}
+                            let justifyContent = it?.isHeader ? 'center' : 'start'
+                            textAlign = it?.textAlign ? {x: it.textAlign} : textAlign
+                            justifyContent = it?.textAlign ? it.textAlign : justifyContent
+                            let backgroundColor = it?.isHeader ? "#f5f2f0" : "#ffffff"
+                            let fontWeight = it?.isHeader ? "600" : "normal"
+                            const c = {
+                                type: "view",
+                                style: {
+                                    width: widthArray[idx],
+                                    minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
+                                    // minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                    border: "1px solid #cccccc",
+                                    backgroundColor,
+                                    display: "flex",
+                                    justifyContent,
+                                    alignItems: "center",
+                                    textAlign,
+                                    flexShrink: flexShrinks[idx],
+                                    fontWeight
+                                },
+                                children: new Array()
+                            }
+                            if(it.children.length === 1) {
+                                if(it.children[0].text === "") {
+                                    const key = getUuid()
+                                    BaseJsonCopy.formData[key] = ``
+                                    c.children = c.children.concat([
+                                        {
+                                            type: "textField",
+                                            dataKey: "formData.data." + key,
+                                            style: {
+                                                display: `..formData.atrribute.is_edit`,
+                                                minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
+                                                width: `calc(100%)`,
+                                                minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                                fontSize: "..formData.atrribute.noodl_font.text",
+                                                border: "none",
+                                                textAlign,
+                                                fontWeight,
+                                                backgroundColor,
+                                            }
+                                        },
+                                        {
+                                            type: "label",
+                                            dataKey: "formData.data." + key,
+                                            // text: "--",
+                                            style: {
+                                                display: `..formData.atrribute.is_read`,
+                                                minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
+                                                width: `calc(100%)`,
+                                                minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                                textAlign,
+                                                fontSize: "..formData.atrribute.noodl_font.text",
+                                                wordBreak: "break-word",
+                                                fontWeight,
+                                                backgroundColor,
+                                            }
+                                        }
+                                    ])
+                                } else {
+                                    c.children.push({
+                                        type: "label",
+                                        text: `${it.children[0].text}`,
+                                        style: {
+                                            width: `calc(100%)`,
+                                            minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
+                                            minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                            textAlign,
+                                            fontSize: "..formData.atrribute.noodl_font.text",
+                                            wordBreak: "break-word",
+                                            fontWeight,
+                                            backgroundColor,
+                                        }
+                                    })
+                                }
+                            }
+                            child.children.push(c)
+                        })
+                        target.children.push(child)
+                    })
                     break
                 default: 
                     let paddingTop = '0.005'
@@ -498,7 +684,11 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                     })
                     if(!SkipType.has(obj.type)) {
                         target.style.minHeight = "..formData.atrribute.noodl_font.lineHeight"
-                        target.children = populateBlock(obj.children, BaseJsonCopy, inheritStyle)
+                        target.children = populateBlock({
+                            obj: obj.children, 
+                            BaseJsonCopy, 
+                            style: inheritStyle
+                        })
                     }
                     break;
             }

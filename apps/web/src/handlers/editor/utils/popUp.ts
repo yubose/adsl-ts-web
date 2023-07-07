@@ -2,12 +2,10 @@ import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import { Calculate, getCalc } from "./calculate"
 import { SharpType } from "./config"
-import formatKey from "./format"
-import getTitleList from "./getTitleList"
 import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
-import { insertNode, insertText } from "./utils"
+import { insertNode } from "./utils"
 
-const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLButtonElement|undefined = undefined) => {
+const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTMLElement|undefined = undefined) => {
 
     const TITLE = type === "TextField" ? `Single line input box` : `Multiline input box`
 
@@ -177,7 +175,7 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
         // insertText(editor, s, selection)
 
         /* block */
-        insertNode(editor, "sharpblock", s, selection, isChange)
+        insertNode({editor, type: "sharpblock", value: s, selection, isChange})
     })
 
 

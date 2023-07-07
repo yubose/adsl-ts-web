@@ -3,14 +3,14 @@ import DataSource from "../dataSource/data"
 import infoTemplate from "../dataSource/infoTemplate"
 import { SharpType } from "./config"
 import sharpHtml from "./sharpHtml"
-import { textSharpRegStr, textSharpGetReg, textSharpSplitRegG } from "./textSharp"
+import { textSharpRegStr, textSharpGetReg, textSharpSplitRegG, choiceSharpRegStr, choiceSharpGetReg, choiceArrayStr } from "./textSharp"
 import { toReg } from "./utils"
 
-const atReg = /@\[[\w '\(\)]+\]/g
-const sharpReg = /#\[[\w]+\]/g
-const sharpTypeReg = /#\[\w+\|-|\[\s\S]+\|-|\[\s\S]+\]/g
-const atSplit = /[@\[\]]/g
-const sharpSplit = /[#\[\]]/g
+// const atReg = /@\[[\w '\(\)]+\]/g
+// const sharpReg = /#\[[\w]+\]/g
+// const sharpTypeReg = /#\[\w+\|-|\[\s\S]+\|-|\[\s\S]+\]/g
+// const atSplit = /[@\[\]]/g
+// const sharpSplit = /[#\[\]]/g
 
 // const removeReg = /[^\w ]/g
 
@@ -32,72 +32,72 @@ const sharpSplit = /[#\[\]]/g
 // `
 
 
-export const matchChar = (html) => {
-    const atKeywords = html.match(atReg)
-    // console.log(atKeywords)
-    atKeywords && atKeywords.forEach(item => {
-        let regstr = item.replace(atSplit, '')
-        if(DataSource.has(regstr)) 
-            html = html.replace(
-                new RegExp(`@\\[${toReg(regstr)}\\]`, 'g'), 
-                `<span style="color:#2988e6;font-weight: bold;border: 2px solid #ccc;border-radius: 4px;padding: 4px;">${item.replace()}</span>`
-            )
-    })
+// export const matchChar = (html) => {
+//     const atKeywords = html.match(atReg)
+//     // console.log(atKeywords)
+//     atKeywords && atKeywords.forEach(item => {
+//         let regstr = item.replace(atSplit, '')
+//         if(DataSource.has(regstr)) 
+//             html = html.replace(
+//                 new RegExp(`@\\[${toReg(regstr)}\\]`, 'g'), 
+//                 `<span style="color:#2988e6;font-weight: bold;border: 2px solid #ccc;border-radius: 4px;padding: 4px;">${item.replace()}</span>`
+//             )
+//     })
 
-    const sharpTypeKeywords = html.match(sharpTypeReg)
-    sharpTypeKeywords && sharpTypeKeywords.forEach(item => {
-        let regstr = item.replace(sharpSplit, '')
-        let regarr = regstr.split(/:/g)
-        html = sharpHtml({
-            type: regarr[0] as SharpType,
-            html: html,
-            split: item,
-            config: {
-                title: regarr[1] as string,
-                placeholder: regarr[2] as string
-            }
-        })
-        if(/@\([\*]\)/.test(regarr[1])) {
-            html = html.replace(regarr[1], `
-            <div style="
-                color:#333333;
-                font-size: 1.039vw;
-                font-weight: 600;
-            "><span>${regarr[1].replace(/@\([\*]\)/, '')} </span><span style="color: red"> *</span>
-            </div>`)
-        }
-    })
+//     const sharpTypeKeywords = html.match(sharpTypeReg)
+//     sharpTypeKeywords && sharpTypeKeywords.forEach(item => {
+//         let regstr = item.replace(sharpSplit, '')
+//         let regarr = regstr.split(/:/g)
+//         html = sharpHtml({
+//             type: regarr[0] as SharpType,
+//             html: html,
+//             split: item,
+//             config: {
+//                 title: regarr[1] as string,
+//                 placeholder: regarr[2] as string
+//             }
+//         })
+//         if(/@\([\*]\)/.test(regarr[1])) {
+//             html = html.replace(regarr[1], `
+//             <div style="
+//                 color:#333333;
+//                 font-size: 1.039vw;
+//                 font-weight: 600;
+//             "><span>${regarr[1].replace(/@\([\*]\)/, '')} </span><span style="color: red"> *</span>
+//             </div>`)
+//         }
+//     })
 
-    const asserts = window.app.nui.getAssetsUrl()
+//     const asserts = window.app.nui.getAssetsUrl()
 
-    const sharpKeywords = html.match(sharpReg)
-    sharpKeywords && sharpKeywords.forEach(item => {
-        let regstr = item.replace(sharpSplit, '')
-        if(infoTemplate.has(regstr)) {
-            html = html.replace(item, infoTemplate.get(regstr)?.replace("@[ASSERTS]", asserts))
-        }
-    })
+//     const sharpKeywords = html.match(sharpReg)
+//     sharpKeywords && sharpKeywords.forEach(item => {
+//         let regstr = item.replace(sharpSplit, '')
+//         if(infoTemplate.has(regstr)) {
+//             html = html.replace(item, infoTemplate.get(regstr)?.replace("@[ASSERTS]", asserts))
+//         }
+//     })
 
-    // const atTemplateKeywords = html.match(atTemplateReg)
-    // atTemplateKeywords && atTemplateKeywords.forEach(item => {
-    //     let regstr = item.replace(atSplit, '')
-    //     let title = regstr.split(":")[0]
-    //     let key = regstr.split(":")[1]
-    //     if(atMap.has(key)) html = html.replace(
-    //         item,
-    //         `<div style="display: grid; grid-template-columns: 1fr 1fr;">
-    //             <div>${title}</div>
-    //             <input value="${atMap.get(key)}" />
-    //         </div>`
-    //     )
-    // })
+//     // const atTemplateKeywords = html.match(atTemplateReg)
+//     // atTemplateKeywords && atTemplateKeywords.forEach(item => {
+//     //     let regstr = item.replace(atSplit, '')
+//     //     let title = regstr.split(":")[0]
+//     //     let key = regstr.split(":")[1]
+//     //     if(atMap.has(key)) html = html.replace(
+//     //         item,
+//     //         `<div style="display: grid; grid-template-columns: 1fr 1fr;">
+//     //             <div>${title}</div>
+//     //             <input value="${atMap.get(key)}" />
+//     //         </div>`
+//     //     )
+//     // })
 
-    // if(title === '') title = "Template Name"
+//     // if(title === '') title = "Template Name"
 
-    html = html.replace(/<p><\/p>/g, '')
+//     html = html.replace(/<p><\/p>/g, '')
 
-    return html
-}
+//     return html
+// }
 
 // const atBlockReg = /<span data-w-e-type="atblock" data-w-e-is-void data-w-e-is-inline data-value="[\w '\(\)]+">@[\w '\(\)]+<\/span>/g
 // const sharpBlockReg = /<button is-sharp>#[\w*]+:[^:]+:[^:]+<\/button>/g
@@ -157,6 +157,28 @@ export const matchBlock = (html) => {
         //         font-weight: 600;
         //     "><span>${arr[1]} </span><span style="color: red"> *</span>
         //     </div>`)
+    })
+
+    const sharpChoiceBlockReg = new RegExp(
+        REG
+        .replace(/--type--/g, 'sharpblock')
+        .replace(/--key--/g, choiceSharpRegStr)
+        .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+" data-array="${choiceArrayStr}"`), 'g')
+    const sharpChoiceKeywords = html.match(sharpChoiceBlockReg)
+    // console.log(sharpChoiceBlockReg, sharpChoiceKeywords)
+    sharpChoiceKeywords && sharpChoiceKeywords.forEach(item => {
+        const texts = item.match(choiceSharpGetReg)
+        const text = texts[0].replace(/[#><]/g, '')
+        const arr = text.split(textSharpSplitRegG)
+        html = sharpHtml({
+            type: arr[0] as SharpType,
+            html: html,
+            split: item,
+            config: {
+                title: arr[1] as string,
+                placeholder: arr[2] as string
+            }
+        })
     })
 
     const SharpBlockReg = new RegExp(
