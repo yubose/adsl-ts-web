@@ -809,17 +809,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           )
         }
       }
+      // xuchen: We have identified the issue of slow speed and are currently commenting on this l
+      // const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+      //   c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
+      // )
 
-      const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      )
-
-      await app.ecosLogger.createMemoryUsageMetricDocument({
-        metricName:
-          c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-        start: startMemUsageMark,
-        end: endMemUsageMark,
-      })
+      // await app.ecosLogger.createMemoryUsageMetricDocument({
+      //   metricName:
+      //     c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
+      //   start: startMemUsageMark,
+      //   end: endMemUsageMark,
+      // })
     }),
   )
 

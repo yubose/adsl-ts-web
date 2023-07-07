@@ -404,6 +404,9 @@ const populateBlock = ({
                                     style: {
                                         display: "..formData.atrribute.is_read",
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                        wordWrap: "break-word",
+                                        wordBreak: "break-word",
+                                        whiteSpace: "pre-wrap"
                                     }
                                 }
                             ]
@@ -473,7 +476,9 @@ const populateBlock = ({
                             marginTop: "0.005",
                             paddingTop: "0.005",
                             fontSize: "..formData.atrribute.noodl_font.text",
-                            wordBreak: "break-all",
+                            wordWrap: "break-word",
+                            wordBreak: "break-word",
+                            whiteSpace: "pre-wrap",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             // alignItems: "..formData.atrribute.alignItems",
@@ -657,7 +662,8 @@ const populateBlock = ({
                             fontSize: "..formData.atrribute.noodl_font.text",
                             flexWrap: "wrap",
                             wordWrap: "break-word",
-                            breakWord: "break-word"
+                            wordBreak: "break-word",
+                            whiteSpace: "pre-wrap",
                         }
                     }
                     let inheritStyle = {}
@@ -690,10 +696,13 @@ const populateBlock = ({
             if(obj.text === '') return {}
             target = {
                 type: "label",
-                text: obj.text.replace(/ /g, "&nbsp;"),
+                text: obj.text,
                 style: {
                     // width: "..formData.atrribute.noodl_font.fullWidth",
                     fontSize: "..formData.atrribute.noodl_font.text",
+                    wordWrap: "break-word",
+                    wordBreak: "break-word",
+                    whiteSpace: "pre-wrap",
                 }
             }
             Object.keys(obj).forEach(key => {

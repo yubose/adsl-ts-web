@@ -10,11 +10,9 @@
  */
 
 import { CADL as NOODL } from '@aitmed/cadl'
-import type { ApiCacheManager } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 import type { Env } from 'noodl-types'
-import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',

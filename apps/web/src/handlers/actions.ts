@@ -595,24 +595,24 @@ const createActions = function createActions(app: App) {
       const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
         c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
       )
-
-      try {
-        await Promise.all([
-          app.ecosLogger.createSlownessMetricDocument({
-            metricName: c.perf.slowness.goto,
-            start: startSlownessMark,
-            end: endSlownessMark,
-          }),
-          app.ecosLogger.createMemoryUsageMetricDocument({
-            metricName: c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
-            start: startMemUsageMark,
-            end: endMemUsageMark,
-          }),
-        ])
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        console.error(err)
-      }
+      // xuchen: We have identified the issue of slow speed and are currently commenting on this log
+      // try {
+      //   await Promise.all([
+      //     app.ecosLogger.createSlownessMetricDocument({
+      //       metricName: c.perf.slowness.goto,
+      //       start: startSlownessMark,
+      //       end: endSlownessMark,
+      //     }),
+      //     app.ecosLogger.createMemoryUsageMetricDocument({
+      //       metricName: c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
+      //       start: startMemUsageMark,
+      //       end: endMemUsageMark,
+      //     }),
+      //   ])
+      // } catch (error) {
+      //   const err = error instanceof Error ? error : new Error(String(error))
+      //   console.error(err)
+      // }
     }),
   )
 

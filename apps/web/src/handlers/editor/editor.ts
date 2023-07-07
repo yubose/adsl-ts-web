@@ -1,4 +1,4 @@
-import { IEditorConfig } from "@wangeditor/editor"
+import { IEditorConfig, IDomEditor } from "@wangeditor/editor"
 
 type InsertFnType = (url: string, alt: string, href: string) => void
 
@@ -38,6 +38,21 @@ const editorConfig: Partial<IEditorConfig> = {
     MENU_CONF: {
         table: {
             width: '100%'
+        }
+    },
+    customPaste: (editor: IDomEditor, event: ClipboardEvent): boolean => {
+        const text = event.clipboardData?.getData("text/plain")
+        if(text !== "") {
+            const arr = text?.split(/[\n\r]/g)
+            arr?.forEach(item => {
+                if(item !== '') {
+                    editor.insertText(item)
+                    editor.insertBreak()
+                }
+            })
+            return false
+        } else {
+            return true
         }
     }
 }

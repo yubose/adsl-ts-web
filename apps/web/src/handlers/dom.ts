@@ -50,7 +50,7 @@ import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar from './editor/toolbar'
-
+import Recorder from 'mic-recorder-to-mp3'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -3325,25 +3325,23 @@ const createExtendedDOMResolvers = function (app: App) {
           let C = `{
             appearance: none;
         }`
-          let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
-            .web.cadlVersion.stable
-          let cadlConfigUrl = JSON.parse(
-            localStorage.getItem('config') as string,
-          ).cadlBaseUrl as string
-          let url = cadlConfigUrl.startsWith('http')
-            ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion
-            : '/admin/admin'
+          // let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
+          //   .web.cadlVersion.stable
+          // let cadlConfigUrl = JSON.parse(
+          //   localStorage.getItem('config') as string,
+          // ).cadlBaseUrl as string
+          const assetsUrl = app.nui.getAssetsUrl() || ''
           let chechedC = `{
           content: "";
           display: inline-block;
           vertical-align: middle;
           width: 13px;
           height: 13px;
-          background-image: url(${url}/assets/selectGray.svg);
+          background-image: url(${assetsUrl}selectGray.svg);
           background-size: 100%;
         }`
           let chechedCheck = `{
-          background-image: url(${url}/assets/selectGrayBlue.svg);
+          background-image: url(${assetsUrl}selectGrayBlue.svg);
         }`
           switch (styleCheckBox) {
             case 'A': {
@@ -3387,7 +3385,7 @@ const createExtendedDOMResolvers = function (app: App) {
               break
             }
           }
-          const arrData: number[] = []
+          // const arrData: number[] = []
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
@@ -3406,9 +3404,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataValue['path'],
             )
             if (
-              dataValue['selectedData'].includes(
-                get(dataValue['allData'][i], dataValue['path']),
-              )
+              dataValue['selectedData'] ==  get(dataValue['allData'][i], dataValue['path'])
             ) {
               childInput.checked = true
               app.updateRoot((draft) => {
@@ -4617,7 +4613,690 @@ const createExtendedDOMResolvers = function (app: App) {
         // node.innerHTML = style + matchChar(html)
         node.innerHTML = style + matchBlock(html).replace(/__replace__/g, assetsUrl)
       }
-    }
+    },
+    '[App horizontalScroll]': {
+      cond: "horizontalScroll",
+      resolve({ node, component }) {
+        
+        node.style.display = 'flex'
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+
+        let listStyle = {
+          color: "#005795", 
+          background: "#f0f0f0",
+          textDecoration: "underline",
+          marginLeft: 10,
+          marginRight: 0,
+          buttonWidth: 40
+        }
+
+        let liStyle = component.get("listStyle")
+
+        // console.log(liStyle, document.getElementById("root")?.clientWidth)
+        if(liStyle) {
+          const fullWidth = document.getElementById("root")?.children[0].clientWidth as number
+          const floatReg = /^0.[0-9]*$/
+          const pxReg = /^[1-9][0-9]*px$/
+          if("marginLeft" in liStyle) {
+            if(floatReg.test(liStyle["marginLeft"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["marginLeft"]) * fullWidth
+            else if(pxReg.test((liStyle["marginLeft"])))
+              liStyle["marginLeft"] = liStyle["marginLeft"].replace("px", "")
+            else
+              delete liStyle["marginLeft"]
+          }
+          if("margin-left" in liStyle) {
+            if(floatReg.test(liStyle["margin-left"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["margin-left"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-left"])))
+              liStyle["marginLeft"] = liStyle["margin-left"].replace("px", "")
+            else
+              delete liStyle["margin-left"]
+          }
+          if("marginRight" in liStyle) {
+            if(floatReg.test(liStyle["marginRight"]))
+              liStyle["marginRight"] = parseFloat(liStyle["marginRight"]) * fullWidth
+            else if(pxReg.test((liStyle["marginRight"])))
+              liStyle["marginRight"] = liStyle["marginRight"].replace("px", "")
+            else
+              delete liStyle["marginRight"]
+          }
+          if("margin-right" in liStyle) {
+            if(floatReg.test(liStyle["margin-right"]))
+              liStyle["marginRight"] = parseFloat(liStyle["margin-right"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-right"])))
+              liStyle["marginRight"] = liStyle["margin-right"].replace("px", "")
+            else
+              delete liStyle["margin-right"]
+          }
+          if("buttonWidth" in liStyle) {
+            if(floatReg.test(liStyle["buttonWidth"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["buttonWidth"]) * fullWidth
+            else if(pxReg.test((liStyle["buttonWidth"])))
+              liStyle["buttonWidth"] = liStyle["buttonWidth"].replace("px", "")
+            else
+              delete liStyle["buttonWidth"]
+          }
+          if("button-width" in liStyle) {
+            if(floatReg.test(liStyle["button-width"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * fullWidth
+            else if(pxReg.test((liStyle["button-width"])))
+              liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
+            else
+              delete liStyle["button-width"]
+          }
+          listStyle = Object.assign(listStyle, liStyle)
+        }
+
+        const currentPage = app.currentPage
+
+        const MenuShowNumber = 5
+        const MenuItemHeight = 40
+
+        const MENU = document.createElement("div")
+        MENU.style.cssText = `
+          width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
+          height: inherit;
+          flex-shrink: 0;
+          border-radius: 6px;
+          cursor: pointer;
+          box-sizing: border-box;
+          background: url(${assetsUrl}menuIcon.svg) no-repeat;
+          background-size: 50% 50%;
+          background-position: center;
+        `
+        // MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.5 * listStyle.buttonWidth}" height="${0.5 * listStyle.buttonWidth}">`
+
+        const MENULIST = document.createElement("div")
+        MENULIST.style.cssText = `
+          width: 300px;
+          height: ${MenuShowNumber*MenuItemHeight}px;
+          background: #ffffff;
+          position: absolute;
+          top: 2px;
+          left: 0;
+          border-radius: 10px;
+          overflow-x: hidden;
+          overflew-y: scroll;
+          scroll-behavior: smooth;
+          box-shadow: 0px 2px 5px #cccccc
+        `
+        // MENU.appendChild(MENULIST)
+
+        const horizontalScroll = document.createElement('div')
+        // const BTWidth = 100;
+        horizontalScroll.style.cssText = `
+          width: calc(100% - ${3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
+          height: inherit;
+          display: flex;
+          overflow-x: scroll;
+          overflow-y: hidden;
+          scroll-behavior: smooth;
+          flex-shrink: 0;
+        `
+        const list = get(app.root?.[currentPage], component.get('list'))
+        const titlePath = component.get("titlePath")
+        const dataKey = component.get("data-key")
+
+        const Items = new Array<HTMLDivElement>()
+        const MenuItems = new Array<HTMLDivElement>()
+        const ALLWIDTHS = new Array<number>()
+        const SHOWWIDTHS = new Array<number>()
+        const SHOWITEM = new Map<number, HTMLDivElement>()
+
+        let currentItem = {}
+        let currentIndex = 0
+        if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+          currentItem = get(app.root, dataKey)
+        } else {
+          currentItem = get(app.root?.[currentPage], dataKey)
+        }
+
+        list.forEach((item, index) => {
+          const Item = document.createElement("div")
+          Item.innerText = `${get(item, titlePath)}`
+          Item.style.cssText = `
+            background: ${listStyle.background};
+            text-decoration: underline;
+            color: ${listStyle.color};
+            text-align: center;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 0px 30px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            margin-left: ${listStyle.marginLeft}px;
+            margin-right: ${listStyle.marginRight}px;
+            cursor: pointer;
+            box-sizing: border-box;
+          `
+          Item.setAttribute("class", "horizontal")
+          Item.setAttribute("alt", `${index}`)
+          // if(index !== 0) Item.style.marginLeft = "4px"
+          Items.push(Item)
+          horizontalScroll.appendChild(Item)
+          const MENUItem = document.createElement("div")
+          MENUItem.setAttribute("class", "li")
+          MENUItem.setAttribute("alt", `${index}`)
+          MENUItem.innerText = `${get(item, titlePath)}`
+          MENUItem.style.cssText = `
+            background: #ffffff;
+            width: inherit;
+            height: ${MenuItemHeight}px;
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            text-align: left;
+            text-indent: 1em;
+          `
+          MenuItems.push(MENUItem)
+          MENULIST.appendChild(MENUItem)
+          // 校验ID, 无ID
+          if(currentItem 
+            && get(currentItem, "id") 
+            && get(currentItem, "id") === get(item, "id")) {
+            currentIndex = index
+          }
+        })
+        const style = document.createElement("style")
+        style.innerText = `
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          .li:hover {
+            background: ${listStyle.background} !important;
+            font-weight: 700;
+          }
+          .horizontal:hover{
+            background: ${listStyle.color} !important;
+            color: #ffffff !important;
+            font-weight: 700;
+          }
+        `
+        node.appendChild(style)
+        node.appendChild(MENU)
+        node.appendChild(horizontalScroll)
+        const BT = document.createElement("div")
+        BT.style.cssText = `
+          width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
+          height: inherit;
+          display: flex;
+          justify-content: space-around;
+          flex-shrink: 0;
+        `
+        const LEFT = document.createElement("div")
+        LEFT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        `
+        LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
+        const RIGHT = document.createElement("div")
+        RIGHT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all .1;
+        `
+        RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
+        BT.appendChild(LEFT)
+        BT.appendChild(RIGHT)
+        // node.appendChild(BT)
+        
+        // dom渲染监听
+        let timer
+        const getAllWidths = () => {
+          if(horizontalScroll.clientWidth) {
+            const WIDTH = horizontalScroll.clientWidth
+            const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
+            ? node.style.maxWidth.replace("px", "")
+            : node.style.maxWidth) - 3 * listStyle.buttonWidth)
+            const HEIGHT = horizontalScroll.clientHeight
+            Items.forEach(item => {
+              ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+            })
+            if(WIDTH >= MAXWIDTH) {
+              const blank = document.createElement("div")
+              blank.style.cssText = `
+                width: ${WIDTH}px;
+                height: inherit;
+                flex-shrink: 0;
+              `
+              horizontalScroll.appendChild(blank)
+              node.appendChild(BT)
+            } else {
+              // horizontalScroll.style.width = `${WIDTH + 3 * listStyle.buttonWidth}px`
+              horizontalScroll.style.width = "100%"
+            }
+            MENULIST.style.marginTop = `${HEIGHT}px`
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(getAllWidths, 0)
+          }
+        }
+        getAllWidths()
+        const refreshAllWidth = () => {
+          ALLWIDTHS.length = 0
+          Items.forEach(item => {
+            ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+          })
+        }
+
+        const sum = (arr: Array<number>) => {
+          let res = 0
+          arr.forEach(item => {
+            res += item
+          })
+          return res
+        }
+
+        const getShowWidths = (start: number) => {
+          let count = 0
+          const WIDTH = horizontalScroll.clientWidth
+          SHOWWIDTHS.length = 0
+          SHOWITEM.clear()
+          do {
+            if(ALLWIDTHS[start]) {
+              SHOWWIDTHS.push(ALLWIDTHS[start])
+              SHOWITEM.set(start, Items[start])
+              count += ALLWIDTHS[start]
+              start++
+            } else {
+              break
+            }
+          } while (count < WIDTH);
+          if(sum(SHOWWIDTHS) > WIDTH) {
+            SHOWITEM.delete(start-1)
+          }
+        }
+        let index = 0
+        let selectIndex = 0
+        getShowWidths(index)
+        let lastIndex = index + SHOWWIDTHS.length - 1
+        const calculateRight = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          if(lastIndex < ALLWIDTHS.length) {
+            horizontalScroll.scrollLeft += ALLWIDTHS[index]
+            index++
+            lastIndex = index + SHOWWIDTHS.length - 1
+          }
+          changBT()
+        }
+        const calculateLeft = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          if(index > 0) {
+            horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
+            index--
+            lastIndex = index + SHOWWIDTHS.length -1
+          }
+          changBT()
+        }
+
+        const changBT = () => {
+          if(index === 0) {
+            LEFT.style.filter = "grayscale(100%)"
+          } else {
+            LEFT.style.filter = "none"
+          }
+          refreshAllWidth()
+          getShowWidths(index)
+          const WIDTH = horizontalScroll.clientWidth
+          // if(sum(SHOWWIDTHS) >= WIDTH) {
+          if(lastIndex < ALLWIDTHS.length) {
+            RIGHT.style.filter = "none"
+          } else {
+            RIGHT.style.filter = "grayscale(100%)"
+          }
+        }
+        changBT()
+
+        const delay_frame = (delay:number) => {
+          let count=0;     
+          return new Promise(function (resolve, reject) {
+            (function raf(){
+              count++;
+              let id =window.requestAnimationFrame(raf);
+              if( count>delay){
+                  window.cancelAnimationFrame(id);
+                  resolve(true);
+              }
+            }())
+          })
+        }
+
+        const gotoIndex = async (target: number) => {
+          selectIndex = target
+          app.updateRoot(draft => {
+            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+              set(draft, dataKey, list[target])
+            } else {
+              set(draft?.[currentPage], dataKey, list[target])
+            }
+          })
+          if(target >= lastIndex) {
+            while(!SHOWITEM.has(target)) {
+              calculateRight()
+              await delay_frame(20)
+            }
+          } else if(target < index) {
+            const step = index - target
+            for(let i = 0; i < step; i++) {
+              calculateLeft()
+              await delay_frame(20)
+            }
+          }
+          const targetDom = Items[target]
+          Items.forEach(item => {
+            if(item === targetDom) {
+              item.style.background = listStyle.color
+              item.style.color = "#ffffff"
+              item.style.fontWeight = "700"
+            } else {
+              item.style.background = listStyle.background
+              item.style.color = listStyle.color
+              item.style.fontWeight = "normal"
+            }
+          })
+        }
+
+        function debounce(fn, delay = 500) {
+          // timer 是在闭包中的
+          let timer: NodeJS.Timeout | null = null;
+          
+          return function(...args) {
+            const context = this 
+            if (timer) {
+                clearTimeout(timer)
+            }
+            timer = setTimeout(() => {
+                fn.apply(context, args)
+                timer = null
+            }, delay)
+          }
+        }
+
+        horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
+          event.preventDefault()
+          try {
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch { }
+          // const WIDTH = horizontalScroll.clientWidth
+          refreshAllWidth()
+          getShowWidths(index)
+          if(event.deltaY > 0) {
+            calculateRight()
+          } else {
+            calculateLeft()
+          }
+        }, 200))
+
+        LEFT.addEventListener("click", (e) => {
+          e.stopPropagation()
+          debounce(() => {
+            calculateLeft()
+          }, 200)()
+        })
+
+        RIGHT.addEventListener("click", (e) => {
+          e.stopPropagation()
+          debounce(() => {
+            calculateRight()
+          }, 200)()
+        })
+
+        horizontalScroll.addEventListener("click", (event: MouseEvent) => {
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          try { 
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch {}
+          if(!Number.isNaN(idx)) {
+            selectIndex = idx
+            refreshAllWidth()
+            getShowWidths(index)
+            if(!SHOWITEM.has(idx)) {
+              calculateRight()
+            }
+            app.updateRoot(draft => {
+              if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+                set(draft, dataKey, list[idx])
+              } else {
+                set(draft?.[currentPage], dataKey, list[idx])
+              }
+            })
+            Items.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          } else {
+            event.stopPropagation()
+          }
+        })
+        
+        let isShow = false
+        MENU.addEventListener("click", (event: MouseEvent) => {
+          if(event.target === MENU) 
+            event.stopPropagation()
+          isShow = !isShow
+          if(isShow) {
+            MENU.appendChild(MENULIST)
+            if(selectIndex > MenuShowNumber - 1) {
+              const step = selectIndex - (MenuShowNumber - 1)
+              MENULIST.scrollTop += step * MenuItemHeight
+            }
+            const target = MenuItems[selectIndex]
+            MenuItems.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.background
+                // item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = "#ffffff"
+                // item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          } else {
+            MENU.removeChild(MENULIST)
+          }
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          if(!Number.isNaN(idx)) {
+            gotoIndex(idx)
+          }
+        })
+
+        document.body.addEventListener("click", (event) => {
+          if(event.target !== MENU && !(new Set(MenuItems).has(event.target as HTMLDivElement)) && isShow) {
+            isShow = !isShow
+            MENU.removeChild(MENULIST)
+          }
+        }, {capture: true})
+
+        // MENULIST.addEventListener("click", (event) => {
+          
+        // })
+
+        const listenLoad = async () => {
+          if(horizontalScroll.clientWidth) {
+            await delay_frame(20)
+            gotoIndex(currentIndex)
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(listenLoad, 0)
+          }
+        }
+        listenLoad()
+
+      }
+    },
+    '[App] Audio': {
+      cond: ({component:c})=> ["textField","textView"].includes(c.type),
+      resolve({ node, component }) {
+        if (!(component.blueprint.audio === false)) {
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          let pageName = app.currentPage;
+          const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || '';
+          const img = document.createElement("img");
+          img.id = "target_img"
+          img.src = `${assetsUrl}audio_start.svg`
+          img.style.cssText = `
+            position: fixed;
+            right: 0;
+            cursor: pointer;
+            top: 40%;
+          `;
+          const recorder = new Recorder({
+            bitRate: 128
+          });
+          let offsetX = 0;
+          let offsetY = 0;
+          let proccess_fun = true;
+          let isDragging = false;
+          const device_is_web = (()=>{
+            try {
+              document.createEvent("TouchEvent"); return false;
+            } catch(e) {
+              return true; 
+            }
+          })();
+          img.addEventListener(device_is_web?'mousedown':"touchstart",onMouseDown );
+          function onMouseDown(e){
+            device_is_web&&e.preventDefault();
+              offsetX = (e.clientX||e.touches[0].clientX) - img.offsetLeft;
+              offsetY = (e.clientY||e.touches[0].clientY) - img.offsetTop;
+              document.addEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
+              document.addEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          }
+          function onMouseMove(e) {
+            isDragging = true;
+            const newLeft =(e.clientX||e.touches[0].clientX) - offsetX;
+            const newTop =  (e.clientY||e.touches[0].clientY) - offsetY;
+            const offW = document.documentElement.clientWidth - img.offsetWidth;
+            const offH = document.documentElement.clientHeight - img.offsetHeight;
+            if(newLeft<0){
+              img.style.left  = "0"
+            }else if(offW<=newLeft){
+              img.style.left  = offW+"px"
+            }else{
+              img.style.left  = newLeft+"px"
+            }
+            if(newTop<0){
+              img.style.top  = "0"
+            }else if(offH<=newTop){
+              img.style.top  = offH+"px"
+            }else{
+              img.style.top  = newTop+"px"
+            }
+          }
+          function onMouseUp(e) {
+            img.removeEventListener('click', stopRecording);
+            img.removeEventListener('click', startRecording);
+            if(!isDragging){
+              img.addEventListener('click',proccess_fun?startRecording:stopRecording);
+            }
+            isDragging = false;
+            document.removeEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
+            document.removeEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          }
+          function startRecording() {
+            recorder.start().then(() => {
+            img.src = `${assetsUrl}audio_loading.svg`
+              img.removeEventListener('click', startRecording);
+              proccess_fun = false;
+              img.addEventListener('click', stopRecording);
+
+            }).catch((e) => {
+              console.error(e);
+            });
+          }
+          function stopRecording() {
+            img.removeEventListener('click', stopRecording);
+            proccess_fun = true;
+            recorder.stop().getMp3().then(([buffer, blob]) => {
+              const file = new File(buffer, 'audio.mp3', {
+                type: blob.type,
+                lastModified: Date.now()
+              });
+              img.src = `${assetsUrl}audio_start.svg`;
+              let data = new FormData();
+              data.append("task", "translate");
+              data.append("audio_file", file, "audio.mp3");              
+              let xhr = new XMLHttpRequest();
+              xhr.withCredentials = true;
+              xhr.addEventListener("readystatechange", function() {
+              let val;
+              if(this.readyState === 4) {
+                  app.updateRoot(draft => {
+                    try{
+                      val = JSON.parse(this.responseText).text;
+                    }catch{
+                      val = ""
+                    }
+                    set(draft?.[pageName], dataKey,val);
+                })
+                const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+                node.value = (end_w)? ` ${node.value}${val}`: node.value?`${node.value}.${val}`:`${node.value}${val}`;
+              } 
+              });
+              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
+              xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+              xhr.send(data);
+              img.removeEventListener('click', stopRecording);
+              img.addEventListener('click', startRecording);
+            }).catch((e) => {
+              console.error(e);
+            });
+          }
+          const appendEle = (e)=>{
+            node.parentNode?.appendChild(img);
+          }
+          node.addEventListener("click",appendEle);
+          document.addEventListener(device_is_web?'mousedown':"touchstart",(e)=>{
+            if(node.parentNode?.contains(img)&&!["target_img",node.id].includes(e.target?.id as string)){
+              img.removeEventListener("click",appendEle);
+              recorder.stop();
+              img.src = `${assetsUrl}audio_start.svg`
+              proccess_fun = true;
+              img.removeEventListener('click', stopRecording);
+              img.addEventListener('click', startRecording);
+              node.parentNode?.removeChild(img);
+              img.remove()
+              
+            }else{
+              if(node.parentNode?.contains(img)&&!device_is_web){
+                node.focus();
+              }
+            }
+          })
+        } else {
+          log.error('Image array is empty')
+        }
+      },
+    },
   }
 
   return u
