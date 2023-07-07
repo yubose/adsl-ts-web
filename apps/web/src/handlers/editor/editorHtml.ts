@@ -86,7 +86,7 @@ const styleText = `
 }
 
 .w-e_search-container {
-    overflow: visible;
+    overflow: visible !important;
 }
 
 #w-e_search-box {
