@@ -23,9 +23,8 @@ function withBlock<T extends IDomEditor>(editor: T) {
     } 
 
     newEditor.apply = operation => {
-        // console.log(operation)
         // @ts-ignore
-        if(operation.node && operation.node.type === 'table') {
+        if(operation.type === "insert_node" && operation.node && operation.node.type === 'table') {
             // @ts-ignore
             operation.node.width = "100%"
         }

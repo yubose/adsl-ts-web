@@ -596,9 +596,11 @@ const populateBlock = ({
                                                 minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                                 width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                                fontSize: "..formData.atrribute.noodl_font.text",
                                                 border: "none",
                                                 textAlign,
-                                                fontWeight
+                                                fontWeight,
+                                                backgroundColor,
                                             }
                                         },
                                         {
@@ -611,8 +613,10 @@ const populateBlock = ({
                                                 width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                                 textAlign,
+                                                fontSize: "..formData.atrribute.noodl_font.text",
                                                 wordBreak: "break-word",
                                                 fontWeight,
+                                                backgroundColor,
                                             }
                                         }
                                     ])
@@ -628,11 +632,12 @@ const populateBlock = ({
                                             fontSize: "..formData.atrribute.noodl_font.text",
                                             wordBreak: "break-word",
                                             fontWeight,
+                                            backgroundColor,
                                         }
                                     })
                                 }
                             }
-                            // child.children.push(c)
+                            child.children.push(c)
                         })
                         target.children.push(child)
                     })
