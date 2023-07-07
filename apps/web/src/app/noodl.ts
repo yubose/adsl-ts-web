@@ -13,7 +13,6 @@ import { CADL as NOODL } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 import type { Env } from 'noodl-types'
-import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',
@@ -30,6 +29,7 @@ export const lvl3Options = {
     //   ? safeDeployUrl
     //   : `http://127.0.0.1:${port}/${lvl3Options.app}.yml`
     // return `./analysis.yml`
+    // return `../admin/ChinaConfig/admin.yml`
   },
 }
 
@@ -71,10 +71,12 @@ export function getInstance(
   opts?: Partial<ConstructorParameters<typeof NOODL>[0]>,
 ) {
   return new NOODL({
+    apiCacheConfig: window.__NOODL_API_CACHE__,
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: lvl3Options.url,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
+
     // get SearchClient() {
     //   if (window.__NOODL_SDK_SEARCH_CLIENT__) {
     //     return window.__NOODL_SDK_SEARCH_CLIENT__

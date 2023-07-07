@@ -1,10 +1,9 @@
 {
-  "_id": "aitmed-noodl-web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "bin": {
     "nui": "./bin/cli.js"
   },
-  "version": "1.0.28",
+  "version": "1.0.32",
   "description": "",
   "keywords": [],
   "license": "ISC",
@@ -24,14 +23,14 @@
     "deploy:stable": "bash s3Deploy.sh output/apps/web",
     "deploy:test": "bash s3Deploy.sh output/apps/web devtest.aitmed.com",
     "deploy:static": "node scripts/static --deploy",
-    "fresh": "rm -rf node_modules package-lock.json apps/static/.cache apps/static/node_modules apps/static/package-lock.json apps/static/public apps/web/node_modules apps/web/package-lock.json apps/web/build && npm i -f",
+    "fresh": "rm -rf node_modules output package-lock.json apps/static/.cache apps/static/node_modules apps/static/package-lock.json apps/static/public apps/web/node_modules apps/web/package-lock.json apps/web/build && npm i -f",
     "postinstall": "node scripts/postinstall",
     "prebuild": "rm -rf apps/web/dist apps/web/build",
     "serve:web": "node scripts/web --serve",
     "serve:static": "node scripts/static --serve",
     "start": "node scripts/web --start --test",
-    "start:stable": "npm run start -- --stable",
-    "start:test": "npm run start",
+    "start:stable": "node scripts/web --start --stable",
+    "start:test": "node scripts/web --start --test",
     "start:static": "node scripts/static --start",
     "sync": "node scripts/op sync",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
@@ -39,8 +38,8 @@
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.784",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.206",
+    "@aitmed/cadl": "^1.4.47-3",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.246",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
@@ -72,7 +71,7 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
     "winston": "^3.8.1",
-    "yaml": "^2.1.0"
+    "yaml": "^2.3.1"
   },
   "eslintConfig": {
     "root": true,
@@ -186,7 +185,8 @@
   },
   "dependencies": {
     "html5-qrcode": "^2.2.1",
-    "noodl-types": "^1.0.253",
-    "noodl-ui": "^0.1.1088"
+    "noodl-types": "^1.0.266",
+    "noodl-ui": "^0.1.1138",
+    "sweetalert2": "^11.7.6"
   }
 }

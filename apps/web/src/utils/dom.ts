@@ -11,6 +11,7 @@ import type {
   Format as PdfPageFormat,
   Orientation as PDFPageOrientation,
 } from '../modules/ExportPdf'
+import log from '../log'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -198,17 +199,17 @@ export function exportToPDF(
           ? await createDocByObject(data)
           : null
       } catch (error) {
-        console.error(error instanceof Error ? error : new Error(String(error)))
+        log.error(error instanceof Error ? error : new Error(String(error)))
 
         if (u.isObj(data) && 'tagName' in data) {
-          console.log(
+          log.log(
             `[exportToPDF] Creating a PDF document failed. Retrying one more time...`,
           )
 
           try {
             doc = ((await ExportPdf.create(data, formatProp)) as jsPDF) || null
           } catch (error) {
-            console.log(
+            log.log(
               `[exportToPDF] Creating a PDF document failed both times`,
               error instanceof Error ? error : new Error(String(error)),
             )
@@ -242,6 +243,10 @@ export function getDataUrl(elem: HTMLImageElement) {
 
 export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
+}
+
+export function getUserAgent() {
+  return typeof window !== 'undefined' ? window.navigator?.userAgent || '' : ''
 }
 
 export function getVcodeElem(dataKey = 'formData.code') {
@@ -296,13 +301,14 @@ export function openFileSelector(
     input.onclick = function onFileInputClick(event) {
       document.body.onfocus = () => {
         document.body.onfocus = null
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           document.body.removeChild(input)
           resolve({
             event,
             files: input.files?.length ? input.files : null,
             status: input.files?.length ? 'selected' : 'canceled',
           } as FileSelectorCanceledResult)
+          clearTimeout(timer)
         }, 350)
       }
     }

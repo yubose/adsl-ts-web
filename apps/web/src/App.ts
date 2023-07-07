@@ -1,4 +1,4 @@
-import log from 'loglevel'
+import log from './log'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
 import { Account } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
@@ -23,7 +23,7 @@ import {
   Viewport as VP,
 } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
-import { AuthStatus, CachedPageObject } from './app/types'
+import { CachedPageObject } from './app/types'
 import { actionFactory } from './factories/actionFactory'
 import AppNotification from './app/Notifications'
 import createActions from './handlers/actions'
@@ -31,6 +31,7 @@ import createBuiltIns from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
+import createEcosLogger from './modules/ecos/logger'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createNoodlConfigValidator from './modules/NoodlConfigValidator'
@@ -44,9 +45,10 @@ import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
-import { isUnitTestEnv } from './utils/common'
+import { isUnitTestEnv, sortByPriority } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
+import axios from 'axios'
 
 class App {
   #state: t.AppState = {
@@ -74,8 +76,10 @@ class App {
       page: '',
     },
   }
+
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
+  #ecosLogger: ReturnType<typeof createEcosLogger>
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -200,6 +204,10 @@ class App {
     return this.#electron
   }
 
+  get ecosLogger() {
+    return this.#ecosLogger as ReturnType<typeof createEcosLogger>
+  }
+
   get instances() {
     return this.#instances
   }
@@ -308,6 +316,43 @@ class App {
     return this.register
   }
 
+  async injectScript(url: string) {
+    return new Promise((resolve, reject) => {
+      if (url.endsWith('js')) {
+        const script = document.createElement('script')
+        const tempGlobal =
+          '__tempModuleLoadingVariable' +
+          Math.random().toString(32).substring(2)
+        script.type = 'module'
+        script.async = true
+        script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
+        script.onload = () => {
+          resolve(window[tempGlobal])
+          delete window[tempGlobal]
+          script.remove()
+        }
+        script.onerror = () => {
+          reject(new Error('Failed to load module script with URL ' + url))
+          delete window[tempGlobal]
+          script.remove()
+        }
+        document.documentElement.appendChild(script)
+      } else if (url.endsWith('css')) {
+        let link = document.createElement('link')
+        link.href = url
+        link.rel = 'stylesheet'
+        document.documentElement.appendChild(link)
+        link.onload = () => {
+          resolve('loaded module script with URL ' + url)
+        }
+        link.onerror = () => {
+          reject(new Error('Failed to load module script with URL ' + url))
+          link.remove()
+        }
+      }
+    })
+  }
+
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
@@ -370,6 +415,8 @@ class App {
         }
         localStorage.setItem('tempParams', JSON.stringify(params))
         // await lf.setItem('tempParams', params)
+      } else {
+        localStorage.setItem('tempParams', JSON.stringify({}))
       }
 
       if (isNDOMPage(page)) {
@@ -384,11 +431,11 @@ class App {
       }
       if (nu.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
+
         return !play
           ? void (window.location.href = pageUrl as string)
-          : window.open(pageUrl, '_blank')
+          : window.open(pageUrl, '_self')
       }
-
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {
         // If this is a goto, we must delete the page we are redirecting to if it previously was used in the root object
         if (isGoto) {
@@ -411,7 +458,7 @@ class App {
                 ) {
                   if (pageToDestroy in this.noodl.root) {
                     delete this.noodl.root[pageToDestroy]
-                    console.log(
+                    log.log(
                       `%cRemoved "${pageToDestroy}" from the page stack`,
                       `color:#00b406;`,
                     )
@@ -441,8 +488,20 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
+    if(window.build.nodeEnv == "development"){
+      axios({
+        url: "http://127.0.0.1:10000",
+        method: "POST",
+        headers:{
+          "Content-Type": "text/plain"
+        },
+        data:  this.#noodl?.root
+      }).catch(e=>console.log(e))
+    }
+    
+
     let e = Date.now()
-    console.log('%c[timerLog]页面整体渲染','color: green;',`${e-s}`)
+    log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
   }
 
   async initialize({
@@ -474,9 +533,7 @@ class App {
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
         } catch (error) {
-          console.error(
-            error instanceof Error ? error : new Error(String(error)),
-          )
+          log.error(error instanceof Error ? error : new Error(String(error)))
         }
       }
 
@@ -488,11 +545,12 @@ class App {
         if (!this.noodl.getState().queue?.length) {
           if (this.getState().spinner.active) this.disableSpinner()
         }
+        this.disableSpinner()
       })
       if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
 
-      console.time('a')
+      // console.time('a')
 
       log.debug(`Initialized @aitmed/cadl sdk instance`)
 
@@ -525,6 +583,8 @@ class App {
       const middlewares = getMiddlewares()
       const transactions = createTransactions(this)
 
+      this.#ecosLogger = createEcosLogger(this)
+
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })
       this.ndom.use({ plugin: plugins })
@@ -535,10 +595,8 @@ class App {
       this.root.getConsumerOptions = this.nui.getConsumerOptions
       this.root.extendedBuiltIn = builtIns
       this.root.localForage = lf
-      u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
-      u.entries(middlewares).forEach(([id, fn]) =>
-        this.actionFactory.createMiddleware(id, fn),
-      )
+      doms.forEach((obj) => this.ndom.use({ resolver: obj }))
+      sortByPriority(middlewares).forEach(this.actionFactory.createMiddleware)
 
       this.meeting.onConnected = meetingfns.onConnected
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
@@ -570,7 +628,7 @@ class App {
         this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
         await this.navigate(this.mainPage, parsedUrl?.currentPage)
       } else {
-        startPage = this.noodl.cadlEndpoint?.startPage || ''
+        startPage = this.noodl.cadlEndpoint?.startPage ?? ''
       }
 
       // Override the start page if they were on a previous page
@@ -582,7 +640,11 @@ class App {
           startPage = cachedPage.name
         }
       }
-
+      const injectScripts = this.noodl.config?.preloadlib
+      if (u.isArr(injectScripts) && injectScripts.length > 0) {
+        // eslint-disable-next-line
+        Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
+      }
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
@@ -629,12 +691,12 @@ class App {
       }
 
       // subscribeToRefs(({ key, isLocal, parent, path, ref, result }) => {
-      //   console.log(`[App] Ref`, { key, isLocal, path, ref, result })
+      //   log.log(`[App] Ref`, { key, isLocal, path, ref, result })
       // })
 
       this.#state.initialized = true
     } catch (error) {
-      console.error(error)
+      log.error(error)
       throw error
     } finally {
       if (!this.noodl?.getState?.()?.queue?.length) {
@@ -696,7 +758,7 @@ class App {
           ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
-            // console.log(localStorage.getItem("keepingLockState"))
+            // log.log(localStorage.getItem("keepingLockState"))
             log.debug('', { init, page: pageRequesting })
             //   if(localStorage.getItem("lockPreUrl")){
             //     history.go(-(history.length-countJumpPage-1))
@@ -861,7 +923,7 @@ class App {
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
             let e2 = Date.now()
-            console.log('%c[timerLog]afterinit','color: green;',`${e2-s2}`)
+            log.log('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -876,7 +938,7 @@ class App {
 
       log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
       let e = Date.now()
-      console.log('%c[timerLog]获取页面和init','color: green;',`${e-s}`)
+      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
 
       if (isAbortedFromSDK) {
         log.info(
@@ -895,7 +957,7 @@ class App {
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       return this.root[pageRequesting]
     } catch (error) {
-      console.error(error)
+      log.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     } finally {
       this.disableSpinner()
@@ -994,7 +1056,7 @@ class App {
     const onNavigateStart = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.debug(`Removing room listeners...`)
-        this.meeting.room?.removeAllListeners?.()
+        // this.meeting.room?.removeAllListeners?.()
       }
     }
 
@@ -1029,6 +1091,9 @@ class App {
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
       }
+      page.previous &&
+        page.previous !== page.page &&
+        this.nui.cache.component.clear(page.previous)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
@@ -1052,6 +1117,79 @@ class App {
         } else if (pageObjectViewPort === 'bottom') {
           setDocumentScrollTop('bottom')
         }
+      }
+
+      let isAborted = false
+      const pageObject = this.root[page.page]
+      const Mounted = this.root[page.page]?.onMounted
+      if (Mounted && pageObject) {
+        const onMounted = async (current, index, mounted) => {
+          log.debug('', { current, index, mounted, page: page.page })
+
+          const validateReference = (ref: string) => {
+            const datapath = nu.trimReference(ref as ReferenceString)
+            const location = ref.startsWith(`=.builtIn`)
+              ? 'root'
+              : is.localKey(datapath)
+              ? 'local'
+              : 'root'
+            if (
+              !has(
+                location === 'local' ? this.root[page.page] : this.root,
+                datapath.split('.'),
+              )
+            ) {
+              log.error(
+                `The reference "${ref}" is missing from the ${
+                  location === 'local'
+                    ? `local root for page "${page.page}"`
+                    : 'root'
+                }`,
+                {
+                  previous: mounted[index - 1],
+                  current: { value: current, index },
+                  next: mounted[index + 1],
+                  datapath,
+                  location,
+                  page: page.page,
+                  snapshot: cloneDeep(
+                    location === 'root' ? this.root : this.root[page.page],
+                  ),
+                },
+              )
+            }
+          }
+
+          const validateObject = (obj: Record<string, any>) => {
+            for (const [key, value] of u.entries(obj)) {
+              is.reference(key) && validateReference(key)
+              is.reference(value) && validateReference(value)
+              if (u.isObj(value)) validateObject(value)
+            }
+          }
+
+          u.isObj(current) && validateObject(current)
+
+          if (!isAborted) {
+            let currentIndex = this.loadingPages[page.page]?.findIndex?.(
+              (o) => o.id === page.id,
+            )
+
+            if (currentIndex > -1) {
+              if (currentIndex > 0) {
+                isAborted = true
+                this.loadingPages[page.page].splice(currentIndex, 1)
+              } else {
+                this.loadingPages[page.page].shift()
+              }
+            }
+          }
+        }
+        this.noodl?.runMounted({
+          pageObject,
+          onInit: onMounted,
+          pageName: page.page,
+        })
       }
     }
 
@@ -1083,45 +1221,45 @@ class App {
         this: NDOMPage,
         { actions, args, data, queue, timeout, trigger },
       ) {
-        for (const el of document.getElementsByClassName('noodl-onclick')) {
-          if (!el.classList.contains('noodl-onclick-disabled')) {
-            el.classList.add('noodl-onclick-disabled')
-          }
-        }
+        // for (const el of document.getElementsByClassName('noodl-onclick')) {
+        //   if (!el.classList.contains('noodl-onclick-disabled')) {
+        //     el.classList.add('noodl-onclick-disabled')
+        //   }
+        // }
       }
 
       function onExecuteEnd(this: NDOMPage, { actions, data, trigger }) {
-        for (const el of document.getElementsByClassName('noodl-onclick')) {
-          if (el.classList.contains('noodl-onclick-disabled')) {
-            el.classList.remove('noodl-onclick-disabled')
-          }
-        }
+        // for (const el of document.getElementsByClassName('noodl-onclick')) {
+        //   if (el.classList.contains('noodl-onclick-disabled')) {
+        //     el.classList.remove('noodl-onclick-disabled')
+        //   }
+        // }
       }
 
       return this.ndom.render(page, {
         on: {
           actionChain: {
             // onBeforeInject() {
-            //   console.log(`[onBeforeInject]`, this)
+            //   log.log(`[onBeforeInject]`, this)
             // },
             // onAfterInject() {
-            //   console.log(`[onAfterInject]`, this)
+            //   log.log(`[onAfterInject]`, this)
             // },
             // onAbortEnd() {
-            //   console.log(`[onAbortEnd]`, this)
+            //   log.log(`[onAbortEnd]`, this)
             // },
             // onAbortStart() {
-            //   console.log(`[onAbortStart]`, this)
+            //   log.log(`[onAbortStart]`, this)
             // },
             // onAbortError() {
-            //   console.log(`[onAbortError]`, this)
+            //   log.log(`[onAbortError]`, this)
             // },
             onExecuteStart: onExecuteStart.bind(page),
             // onBeforeActionExecute() {
-            //   console.log(`[onBeforeActionExecute]`, this)
+            //   log.log(`[onBeforeActionExecute]`, this)
             // },
             // onExecuteError: () => {
-            //   console.log(`[onExecuteError]`, this)
+            //   log.log(`[onExecuteError]`, this)
             // this.disableSpinner()
             // },
             onExecuteEnd: onExecuteEnd.bind(page),
@@ -1180,7 +1318,7 @@ class App {
         },
       })
     } catch (error) {
-      console.error(error)
+      log.error(error)
       if (error instanceof Error) toast(`[${error.name}] ${error.message}`)
       else if (error) toast(`[Error] ${String(error)}`)
     }
@@ -1208,7 +1346,7 @@ class App {
           this.mainPage.requesting = currentPage
           return this.navigate(this.mainPage)
         } catch (error) {
-          console.error(error)
+          log.error(error)
         }
       }
       return softAppReset()

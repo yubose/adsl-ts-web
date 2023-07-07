@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import { Identify, ReferenceString } from 'noodl-types'
 import { trimReference } from 'noodl-utils'
 import get from 'lodash/get'
@@ -78,7 +78,7 @@ const trackProperty = function trackProperty({
           //   new Date(payload.value.mtime),
           //   'MMM Do, yyyy hh:mm:ss',
           // )
-          // console.log(`%cTimestamp/date`, `color:#00b406;`, {
+          // log.log(`%cTimestamp/date`, `color:#00b406;`, {
           //   payload,
           //   stampToDay: app.noodl.root.builtIn.date.stampToDate(
           //     payload.value.atime,
@@ -186,7 +186,7 @@ const trackProperty = function trackProperty({
           // )
         }
       }
-      console.log(
+      log.log(
         `%c${category ? `[${category}]` : ''}${label}`,
         `color:${colorProp};`,
         combinedArgs,

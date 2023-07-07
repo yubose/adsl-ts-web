@@ -5,22 +5,23 @@ import type { BuiltIns } from 'noodl-core'
 import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
+import log from '../log'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
     async fetch(dataIn: string) {
       try {
         const response = await axios.get(dataIn)
-        console.log(`=.builtIn.fetch response data`, response.data)
+        log.log(`=.builtIn.fetch response data`, response.data)
         return response.data
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
-        console.error(err)
+        log.error(err)
         return err
       }
     },
     toString(str: string) {
-      console.log({ args: arguments })
+      log.log({ args: arguments })
 
       return String(str).toLowerCase()
     },
@@ -86,6 +87,15 @@ export function getSdkHelpers(app: App) {
     get extendMeeting() {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
     },
+    get delayTask() {
+      return app.builtIns.get('delayTask')?.find(Boolean)?.fn
+    },
+    get countDown() {
+      return app.builtIns.get('countDown')?.find(Boolean)?.fn
+    },
+    get getViewTagValue() {
+      return app.builtIns.get('getViewTagValue')?.find(Boolean)?.fn
+    },
     async diagnostics(
       dataIn:
         | string
@@ -128,7 +138,7 @@ export function getSdkHelpers(app: App) {
           const err = error instanceof Error ? error : new Error(String(error))
           const is404 = axios.isAxiosError(err) && err.response?.status === 404
           if (is404) {
-            console.error(
+            log.error(
               `The endpoint using config "${configKey}" at ${configUrl} returned a 404. Falling back to look locally now`,
               err,
             )
@@ -136,7 +146,7 @@ export function getSdkHelpers(app: App) {
               await axios.get(`/analysis/${configKey}/${configKey}.yml`)
             ).data
           } else {
-            console.error(err)
+            log.error(err)
           }
         }
 
@@ -218,7 +228,7 @@ export function getSdkHelpers(app: App) {
                   docRoot.set(page, doc)
                 }
               } catch (error) {
-                console.error(
+                log.error(
                   error instanceof Error ? error : new Error(String(error)),
                 )
               }
@@ -249,7 +259,7 @@ export function getSdkHelpers(app: App) {
                   docRoot.set(page, doc)
                 }
               } catch (error) {
-                console.error(
+                log.error(
                   error instanceof Error ? error : new Error(String(error)),
                 )
               }
@@ -303,7 +313,7 @@ export function getSdkHelpers(app: App) {
           })
           .map((diagnostic) => diagnostic.toJSON())
 
-        console.log(diagnostics)
+        log.log(diagnostics)
 
         return diagnostics
       } catch (error) {

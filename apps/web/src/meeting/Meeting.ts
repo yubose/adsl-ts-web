@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import { EventEmitter } from 'events'
 import unary from 'lodash/unary'
-import log from 'loglevel'
+import log from '../log'
 import { findFirstByViewTag, findByUX } from 'noodl-ui'
 import { isMobile, isUnitTestEnv } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
@@ -46,7 +46,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       } else {
         errMsg = err.message
       }
-      console.error(err)
+      log.error(err)
       toast(errMsg, { type: 'error' })
     }
     if (o.selfStream?.hasElement?.()) {
@@ -65,7 +65,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         o.selfStream.reloadTracks()
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
-        console.error(err)
+        log.error(err)
         toast(err.message, { type: 'error' })
       }
     } else {
@@ -147,7 +147,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         o.calledOnConnected = true
         return _room
       } catch (error) {
-        console.error(error)
+        log.error(error)
         toast(
           (error instanceof Error ? error : new Error(String(error))).message,
           { type: 'error' },
@@ -224,7 +224,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // Just set the participant as the mainStream  since it's open
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
-            app.register.extendVideoFunction('twilioOnPeopleJoin')
             await app.meeting.onAddRemoteParticipant?.(
               participant as t.RemoteParticipant,
               o.mainStream,

@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import App from '../App'
+import log from '../log'
 
 export interface WssObserver {
   configPages: string[]
@@ -56,7 +57,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
     const getArgs = (args: any[]) => (args.length > 1 ? args : args[0])
 
     function value(this: typeof app.noodl, ...args: any[]) {
-      // console.log(label, color, getArgs(args))
+      // log.log(label, color, getArgs(args))
 
       const msg = {
         type,
@@ -71,11 +72,11 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
         // worker.postMessage(msg)
         ws?.send(JSON.stringify(msg, null, 2))
       } catch (error) {
-        console.error(error instanceof Error ? error : new Error(String(error)))
+        log.error(error instanceof Error ? error : new Error(String(error)))
       }
 
       // Send to noodl plugin
-      // console.log(getArgs(msg.args))
+      // log.log(getArgs(msg.args))
       // ws.send(JSON.stringify(msg, null, 2))
       return ref(...args)
     }
@@ -101,7 +102,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
       })
 
       ws?.addEventListener('message', (event) => {
-        console.log(`Received new message`, event)
+        log.log(`Received new message`, event)
       })
 
       ws?.addEventListener('error', (event) => {

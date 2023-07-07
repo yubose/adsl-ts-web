@@ -1,4 +1,5 @@
 import { Viewport as VP } from 'noodl-ui'
+import log from '../log'
 
 /**
  * This is a handler for the viewWidthHeightRatio object in the config
@@ -42,7 +43,7 @@ const handleViewWidthHeightRatio = (function () {
   return {
     use(callback: ConsumerFn) {
       if (fns.has(callback)) {
-        console.log(
+        log.log(
           `%cThis callback has already been registered. If you intend to ` +
             `pass a duplicate, create a new function and pass that in`,
           `color:#ec0000;font-weight:bold;`,

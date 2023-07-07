@@ -1,4 +1,4 @@
-import log from 'loglevel'
+import log from '../log'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
@@ -32,7 +32,7 @@ class MeetingStream {
     if (node) this.#node = node
     this.type = type
     if (!type) {
-      console.log({ this: this, node })
+      log.log({ this: this, node })
     }
   }
 
@@ -72,7 +72,7 @@ class MeetingStream {
 
   #log = (name: string, s?: string, o?: Record<string, any>) => {
     s ? {} : (s = name)
-    console.log(s, this.snapshot(o))
+    log.log(s, this.snapshot(o))
   }
 
   getElement() {
@@ -103,7 +103,7 @@ class MeetingStream {
         this.#node.parentElement?.removeChild(this.#node)
         this.#node.remove()
       } catch (error) {
-        console.error(error)
+        log.error(error)
       }
       this.#log('removeElement', `Removed element on a "${this.type} Stream"`)
     }
@@ -261,7 +261,7 @@ class MeetingStream {
         try {
           this.#attachTrack(await fn())
         } catch (err) {
-          console.error(`[${kind}]: ${err.message}`)
+          log.error(`[${kind}]: ${err.message}`)
           toast(err.message, { type: 'error' })
         } finally {
           this.#log(`Created ${kind} track`)
@@ -290,6 +290,7 @@ class MeetingStream {
               videoElem.style.width = '100%'
               videoElem.style.height = '100%'
               videoElem.style.objectFit = 'cover'
+              videoElem.style.position = 'absolute'
               this.#node.appendChild(videoElem)
               this.#log(`Started the video element`)
             }
@@ -335,7 +336,7 @@ class MeetingStream {
       this.#node = null
       this.unpublish()
     } catch (error) {
-      console.error(error)
+      log.error(error)
     }
     this.#participant && (this.#participant = null)
     this.previous = {}
@@ -374,34 +375,35 @@ class MeetingStream {
     let backdrop = this.#node?.querySelector?.(
       `#${backdropId}`,
     ) as HTMLDivElement
+    const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
+    videoNode.style.display = type === 'close'?'none':'block'
+    // if (!backdrop) {
+    //   backdrop = document.createElement('div')
+    //   backdrop.id = backdropId
+    //   backdrop.style.width = '100%'
+    //   backdrop.style.height = '100%'
+    //   backdrop.style.position = 'absolute'
+    //   backdrop.style.top = '0px'
+    //   backdrop.style.right = '0px'
+    //   backdrop.style.bottom = '0px'
+    //   backdrop.style.left = '0px'
+    //   backdrop.style.background = '#000'
+    //   const img = document.createElement('img')
+    //   img.style.width = '50%'
+    //   img.style.height = 'auto'
+    //   img.style.position = 'absolute'
+    //   img.style.top = '25%'
+    //   img.style.left = '25%'
+    //   let srcPath = resolveAssetUrl(
+    //     'default.svg',
+    //     window.app.nui.getAssetsUrl(),
+    //   )
+    //   img.setAttribute('src', srcPath)
+    //   backdrop.appendChild(img)
+    //   this.#node?.appendChild?.(backdrop)
+    // }
 
-    if (!backdrop) {
-      backdrop = document.createElement('div')
-      backdrop.id = backdropId
-      backdrop.style.width = this.#node?.style?.width || '100%'
-      backdrop.style.height = this.#node?.style?.height || '100%'
-      backdrop.style.position = 'absolute'
-      backdrop.style.top = '0px'
-      backdrop.style.right = '0px'
-      backdrop.style.bottom = '0px'
-      backdrop.style.left = '0px'
-      backdrop.style.background = '#000'
-      const img = document.createElement('img')
-      img.style.width = '50%'
-      img.style.height = 'auto'
-      img.style.position = 'absolute'
-      img.style.top = '25%'
-      img.style.left = '25%'
-      let srcPath = resolveAssetUrl(
-        'default.svg',
-        window.app.nui.getAssetsUrl(),
-      )
-      img.setAttribute('src', srcPath)
-      backdrop.appendChild(img)
-      this.#node?.appendChild?.(backdrop)
-    }
-
-    backdrop.style.visibility = type === 'close' ? 'visible' : 'hidden'
+    // backdrop.style.visibility = type === 'close' ? 'visible' : 'hidden'
   }
 
   /**
@@ -432,9 +434,25 @@ class MeetingStream {
         attachee.style.width = '100%'
         attachee.style.height = '100%'
         attachee.style.objectFit = 'cover'
+        attachee.style.position = 'absolute'
+        attachee.style.top = '0'
         if (this.hasVideoElement()) {
           this.removeVideoElement()
           this.#log(`attachTrack (video)`, `Removed previous video element`)
+        }
+      }
+
+
+      if((window as any).app.root.VideoChat){
+        const {cameraOn,micOn} = (window as any).app.root.VideoChat
+        if(track.kind === 'audio'){
+          micOn ? track?.['enable']?.() : track?.['disable']?.()
+        }else if(track.kind === 'video'){
+          cameraOn ? track?.['enable']?.() : track?.['disable']?.()
+          if(attachee){
+            cameraOn? attachee.style.display = 'block':attachee.style.display = 'none'
+          }
+          
         }
       }
       if (attachee) {

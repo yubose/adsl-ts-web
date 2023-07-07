@@ -1,3 +1,4 @@
+import type { GetApiCacheManager } from '@aitmed/cadl'
 import type { NUI as nui, NuiComponent, NDOM } from 'noodl-ui'
 import type HTML2Canvas from 'html2canvas'
 import type * as jsPDF from 'jspdf'
@@ -25,6 +26,19 @@ declare global {
   }
 
   interface Window {
+    /**
+     * This can be defined from the wrapping environment app to inject their own api cache manager. Useful when integrating local cache for desktop apps.
+     *
+     * The noodl-app desktop app wraps this web app and injects their own api cache manager. Their api cache stores data on the file system.
+     *
+     * See `src/noodl.ts` for referencing this entry point.
+     */
+    __NOODL_API_CACHE__?:
+      | {
+          limit?: number
+          manager?: GetApiCacheManager
+        }
+      | undefined
     /** @deprecated */
     __NOODL_SDK_SEARCH_CLIENT__: any
     /** @deprecated */
@@ -51,7 +65,7 @@ declare global {
       searchClient: InstanceType<
         new (options?: BetterSQLite3Options) => {
           search(params: {
-            api: 'ce' | 'cd' | 'cv' | 're' | 'rd' | 'rv' | 'dx'
+            api: 'cd' | 'ce' | 'cv' | 'dx' | 'rd' | 're' | 'rv'
             type: number // ex: 271361
             xfname?: string // ex: 'E.bvid|E.evid'
             id?: string // ex: '.Global.currentUser.vertex.id'
@@ -86,5 +100,13 @@ declare global {
     ndom: NDOM
     streams: any
     cp: Function
+  }
+
+  export interface Performance {
+    memory: {
+      totalJSHeapSize: number
+      jsHeapSizeLimit: number
+      usedJSHeapSize: number
+    }
   }
 }

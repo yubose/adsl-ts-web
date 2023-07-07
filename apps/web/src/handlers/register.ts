@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import {
   createAction,
   EmitAction,
@@ -35,7 +35,7 @@ class createRegisters {
           // @ts-expect-error
           onNewEcosDocRegisterComponent?.onEvent?.(data.did)
         } else {
-          console.log({ message })
+          log.log({ message })
           // debugger
         }
       }
@@ -68,7 +68,7 @@ class createRegisters {
           copyToClipboard(token as string)
           return token
         } catch (error) {
-          console.error(error)
+          log.error(error)
           return error
         }
       },
@@ -171,7 +171,7 @@ class createRegisters {
           }
         }
       } catch (error) {
-        console.error(error)
+        log.error(error)
       }
     }
 
@@ -208,7 +208,7 @@ class createRegisters {
             )
             return token
           } catch (error) {
-            console.error(error)
+            log.error(error)
           }
         }
 
@@ -258,7 +258,7 @@ class createRegisters {
             )
             return did
           } catch (error) {
-            console.error(error)
+            log.error(error)
           }
         }
       },
@@ -291,6 +291,17 @@ class createRegisters {
         componentObject.eventId = 'twilioOnPeopleJoin'
         await handleRegister(componentObject)
       },
+      async codeTask(componentObject:GlobalRegisterComponent){
+        componentObject.eventId = 'codeTasks'
+        await handleRegister(componentObject)
+      },
+      async twilioOnPeopleShowRoom(componentObject:GlobalRegisterComponent,options?: Record<string, any>){
+        componentObject.eventId = 'twilioOnPeopleShowRoom'
+        console.log('twilioOnPeopleShowRoom')
+        await handleRegister(componentObject)
+      },
+
+
     }
   }
   registerHandlers = {
@@ -368,6 +379,7 @@ class createRegisters {
       const componentObject = this.app.ndom.global.register.get(onEvent)
       if (componentObject) {
         const onEvent = componentObject.props.onEvent as any
+        console.log(onEvent)
         ;(this.registrees as any)[onEvent](componentObject)
       }
     }

@@ -24,3 +24,23 @@ export enum ActionEvent {
   GetLocationAddress = 'GetLocationAddress',
   UpdateGlobal = 'UpdateGlobal',
 }
+
+export const actionMiddlewareLogKey = {
+  GOTO_EXECUTION_TIME: 'goto-execution-time',
+  GOTO_EXECUTION_MEMORY_USAGE: 'goto-memory-usage',
+  BUILTIN_GOTO_EXECUTION_TIME: 'builtin-goto-execution-time',
+  BUILTIN_GOTO_EXECUTION_MEMORY_USAGE: 'builtin-goto-memory-usage',
+} as const
+
+export const perf = {
+  memoryUsage: {
+    onChange: `on-change-memory-usage`,
+  },
+  slowness: {
+    goto: 'goto-execution-time',
+  },
+} as const
+
+export const mediaType = {
+  json: 'application/json',
+} as const

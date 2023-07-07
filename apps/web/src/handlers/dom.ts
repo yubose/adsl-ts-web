@@ -1,8 +1,8 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import tippy, { followCursor, MultipleTargets } from 'tippy.js'
+import tippy, { MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -27,20 +27,43 @@ import {
   NUIActionChain,
   NuiComponent,
   Resolve,
+  eventId,
 } from 'noodl-ui'
 import App from '../App'
-import is from '../utils/is'
 import { hide } from '../utils/dom'
 // import Swiper from 'swiper';
 // import '../../node_modules/swiper/swiper-bundle.css';
 import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
-import "../../node_modules/flatpickr/dist/themes/material_blue.css"
-// import moment from "moment"
+import '../../node_modules/flatpickr/dist/themes/material_blue.css'
+import * as c from '../constants'
+import { cloneDeep } from 'lodash'
+import moment from 'moment'
+import { createHash } from 'crypto'
+import { editorHtml, styleText }from './editor/editorHtml'
+import { Boot, createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
+import editorConfig from "./editor/editor"
+// import toolbarConfig from "./editor/toolbar"
+import { matchBlock, matchChar } from './editor/utils/matchChar'
+import getYaml from './editor/getYaml/getYaml'
+import keypress from "@atslotus/keypress"
+import searchPopUp from './editor/utils/search'
+import { CalculateInit } from './editor/utils/calculate'
+import registerToolbar from './editor/toolbar'
 
+// import moment from "moment"
+// import * as echarts from "echarts";
 type ToolbarInput = any
 // import { isArray } from 'lodash'
-
+function addListener(node: NDOMElement, event: string, callback: any) {
+  node.addEventListener(event, callback)
+  return {
+    event,
+    callback: () => {
+      node.removeEventListener(event, callback)
+    },
+  }
+}
 const createExtendedDOMResolvers = function (app: App) {
   /**
    * Creates an onChange function which should be used as a handler on the
@@ -57,19 +80,33 @@ const createExtendedDOMResolvers = function (app: App) {
     node: NDOMElement
     evtName: string
     iteratorVar: string
-    page: NDOMPage | ComponentPage
+    page: ComponentPage | NDOMPage
+    initialCapital?: boolean
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '', page } = args
+    let {
+      component,
+      dataKey,
+      node,
+      evtName,
+      iteratorVar = '',
+      page,
+      initialCapital,
+    } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
     let pageName = page.page
 
     async function onChange(event: Event) {
       pageName !== page.page && (pageName = page.page)
 
-      const value = (event.target as any)?.value || ''
+      let value = (event.target as any)?.value || ''
+      if(component?.has('richtext')) value = (event.target as any)?.textContent || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
+        if (initialCapital) {
+          value = value.slice(0, 1).toUpperCase() + value.slice(1)
+          ;(node as HTMLInputElement).value = value
+        }
         if (dataObject) {
           set(
             dataObject,
@@ -103,9 +140,26 @@ const createExtendedDOMResolvers = function (app: App) {
               warningMsg += `If this is intended then ignore this message.`
               // log.orange(warningMsg, { component, dataKey, pageName, value })
             }
-            set(draft?.[pageName], dataKey, value)
+
+            if (initialCapital) {
+              value = value.slice(0, 1).toUpperCase() + value.slice(1)
+              ;(node as HTMLInputElement).value = value
+            }
+
+            if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('Global.', '')
+              set(draft?.['Global'], newDataKey, value)
+            } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('BaseBLEData.', '')
+              set(draft?.['BaseBLEData'], newDataKey, value)
+            } else {
+              set(draft?.[pageName], dataKey, value)
+            }
             component.edit('data-value', value)
             node.dataset.value = value
+
             /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
             if (/settings/i.test(pageName)) {
               if (node.dataset?.name === 'code') {
@@ -129,8 +183,18 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        // console.log("test actionChain",actionChain)
+        // const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
+        //   c.perf.memoryUsage.onChange,
+        // )
         await actionChain?.execute?.(event)
+        // const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
+        //   c.perf.memoryUsage.onChange,
+        // )
+        // await app.ecosLogger.createMemoryUsageMetricDocument({
+        //   metricName: c.perf.memoryUsage.onChange,
+        //   start: startMark,
+        //   end: endMark,
+        // })
       }
     }
 
@@ -192,15 +256,1055 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node) {
           node.style.width = component.style.width as string
           node.style.height = component.style.height as string
-          if (dataValue.chartType) {
-            let chartType = dataValue.chartType.toString()
+          if (dataValue.chartType || component.get('chartType')) {
+            let chartType =
+              component.get('chartType') || dataValue.chartType.toString()
             switch (chartType) {
-              // case 'graph': {
-              //   let myChart = echarts.init(node)
-              //   let option = dataValue
-              //   option && myChart.setOption(option)
-              //   break
-              // }
+              case 'graph': {
+                try {
+                  function getSmartDate(
+                    s = Intl.DateTimeFormat('en-US', {
+                      weekday: 'short',
+                    }).format(new Date()),
+                    list = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                  ): string[] {
+                    const index = list.indexOf(s)
+                    list.unshift(...list.splice(index + 1))
+                    return list
+                  }
+                  const dataType = {
+                    '371201': ['Blood Pressure', 'mmHg', '', 300],
+                    '373761': ['Heart Rate', 'bpm', 'heartRateData', 500],
+                    '376321': [
+                      'Respiratory Rate',
+                      'breaths/min',
+                      'respiratoryRateData',
+                      300,
+                    ],
+                    '378881': [
+                      'Pulse Oximetry',
+                      'O₂%',
+                      'pulseOximetryData',
+                      300,
+                    ],
+                    '381441': ['Temperature', '℉/℃', 'temperatureData', 300],
+                    '384001': [
+                      'Blood Glucose Levels',
+                      'mg/dl',
+                      'bloodGlucoseLevelsData',
+                      300,
+                    ],
+                    '386561': [
+                      'Height',
+                      'ft.,in.',
+                      ['heightFt', 'heightIn'],
+                      3,
+                    ],
+                    '389121': ['Weight', 'lbs', 'weightData', 300],
+                    '391681': ['BMI', 'kg/㎡', 'bmiData', 300],
+                  }
+                  let setting = null
+                  let _dateTempObj: { [key in string]: {} } = {}
+                  if (dataValue.dateType === 'week') {
+                    let settingWeek = {
+                      title: {
+                        show: true,
+                        text: '',
+                        x: 'center', //'5' | '5%'，title 组件离容器左侧的距离
+                        // right: 'auto',//'title 组件离容器右侧的距离
+                        top: '8%', //title 组件离容器上侧的距离
+                        // bottom: 'auto',//title 组件离容器下侧的距离
+                        textStyle: {
+                          color: ' #000', //字体颜色
+                          fontStyle: 'bold', //字体风格
+                          fontWeight: 'normal', //字体粗细
+                          fontFamily: 'sans-serif', //文字字体
+                          fontSize: 18, //字体大小
+                        },
+                      },
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'cross',
+                          axis: 'auto',
+                          snap: true,
+                          showContent: true,
+                        },
+                        textStyle: {
+                          color: '#000', // 文字的颜色
+                          fontStyle: 'normal', // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal', // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                        },
+                      },
+                      grid: {
+                        show: true,
+                        top: '20%',
+                        left: '0',
+                        // right: '15%',
+                        // bottom: '3%',
+                        containLabel: true,
+                      },
+                      legend: {
+                        orient: 'horizontal',
+                        x: 'left',
+                        y: 'top',
+                        data: [],
+                      },
+                      xAxis: {
+                        type: 'category',
+                        name: 'Time',
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        axisLabel: {
+                          rotate: 45,
+                          interval: 0,
+                        },
+                        boundaryGap: false,
+                        data: null,
+                        splitLine: {
+                          //网格线
+                          lineStyle: {
+                            type: 'dashed', //设置网格线类型 dotted：虚线   solid:实线
+                          },
+                          show: true, //隐藏或显示
+                        },
+                      },
+                      yAxis: {
+                        name: '',
+                        type: 'value',
+                        min: 0,
+                        max: 500,
+                        splitNumber: 10,
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        axisLabel: {
+                          color: 'rgb(51, 102, 204)',
+                        },
+                      },
+                      series: [],
+                    }
+                    settingWeek.xAxis.data = getSmartDate() as any
+                    if (dataValue.dataType == '371201') {
+                      settingWeek.title.text = 'Blood Pressure'
+                      settingWeek.yAxis.name = 'mmHg'
+                      settingWeek.yAxis.max = dataType[dataValue.dataType][3]
+
+                      settingWeek.yAxis.axisLabel.color = function (v) {
+                        if (v == 80 || v == 120) {
+                          return '#48aaff'
+                        } else {
+                          return 'rgb(51, 102, 204)'
+                        }
+                      } as any
+                      //@ts-expect-error
+                      settingWeek.legend.data.push('Systolic', 'Diastolic')
+                      //@ts-expect-error
+                      settingWeek.series.push(
+                        {
+                          name: 'Systolic',
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 80,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          name: 'Diastolic',
+                          type: dataValue.type,
+                          symbol: 'circle',
+                          symbolSize: 8,
+                          // "smooth": 0.5,
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 120,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                          data: [],
+                        },
+                      )
+                      ;(settingWeek.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element]['Systolic'] = []
+                        _dateTempObj[element]['Diastolic'] = []
+                      })
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = Intl.DateTimeFormat('en-US', {
+                          weekday: 'short',
+                        }).format(_stamp * 1000)
+                        _dateTempObj[signal]['Systolic']?.push(
+                          get(item, 'name.data.heightBloodPressure'),
+                        )
+                        _dateTempObj[signal]['Diastolic']?.push(
+                          get(item, 'name.data.lowBloodPressure'),
+                        )
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (item['Systolic'].length > 0) {
+                          // @ts-expect-error
+                          settingWeek.series[0]['data'].push(
+                            (
+                              item['Systolic']?.reduce((e, f) => +e + +f) /
+                              item['Systolic'].length
+                            ).toFixed(),
+                          )
+                          // @ts-expect-error
+                          settingWeek.series[1]['data'].push(
+                            (
+                              item['Diastolic']?.reduce((e, f) => +e + +f) /
+                              item['Diastolic'].length
+                            ).toFixed(),
+                          )
+                        } else {
+                          ;(settingWeek.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                          ;(settingWeek.series[1]['data'] as any[]).push(
+                            undefined,
+                          )
+                        }
+                      })
+
+                      setting = settingWeek as any
+                    } else {
+                      settingWeek.title.text = dataType[dataValue.dataType][0]
+                      settingWeek.yAxis.name = dataType[dataValue.dataType][1]
+                      settingWeek.yAxis.max = dataType[dataValue.dataType][3]
+                      if (dataValue.dataType == '373761') {
+                        settingWeek.yAxis.axisLabel.color = function (v) {
+                          if (v == 100) {
+                            return '#48aaff'
+                          } else {
+                            return 'rgb(51, 102, 204)'
+                          }
+                        } as any
+                      }
+                      //@ts-expect-error
+                      settingWeek.series.push({
+                        name: dataType[dataValue.dataType][0],
+                        type: dataValue.type,
+                        symbolSize: 8,
+                        data: [],
+                        connectNulls: true,
+                        itemStyle: {
+                          normal: {
+                            label: {
+                              show: true,
+                            },
+                            lineStyle: {
+                              width: 2,
+                              type: 'solid',
+                            },
+                          },
+                        },
+                        markLine: {
+                          //设置标记线
+                          symbol: ['none', 'none'], // 去掉箭头
+                          label: {
+                            show: false,
+                          },
+                          data: [
+                            {
+                              // type: 'average',
+                              name: '阈值',
+                              // show: false,
+                              yAxis: 100,
+                              //设置标记点的样式
+                              lineStyle: {
+                                normal: { type: 'solid', color: '#48aaff' },
+                              },
+                            },
+                          ],
+                        },
+                      })
+                      ;(settingWeek.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element][
+                          `${dataType[dataValue.dataType][0]}`
+                        ] = []
+                      })
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = Intl.DateTimeFormat('en-US', {
+                          weekday: 'short',
+                        }).format(_stamp * 1000)
+                        if (dataValue.dataType == '386561') {
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2][0]}`,
+                            ) +
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
+                          )
+                        } else {
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2]}`,
+                            ),
+                          )
+                        }
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (
+                          item[`${dataType[dataValue.dataType][0]}`].length > 0
+                        ) {
+                          let cum =
+                            item[`${dataType[dataValue.dataType][0]}`].reduce(
+                              (e, f) => +e + +f,
+                            ) /
+                            item[`${dataType[dataValue.dataType][0]}`].length
+                          if (dataValue.dataType == '381441') {
+                            // @ts-expect-error
+                            settingWeek.series[0]['data'].push(cum.toFixed(1))
+                          } else {
+                            // @ts-expect-error
+                            settingWeek.series[0]['data'].push(cum.toFixed())
+                          }
+                        } else {
+                          ;(settingWeek.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                        }
+                      })
+
+                      setting = settingWeek as any
+                    }
+                    console.log(settingWeek.series)
+                    //@ts-expect-error
+
+                    setting.yAxis.max =
+                      Math.max(
+                        ...settingWeek.series[0]['data'].filter((x) => x),
+                      ) + 50
+
+                    // settingWeek.xAxis.data = Object.keys(_dateTempObj) as any;
+                  } else if (dataValue.dateType === 'day') {
+                    let settingDay = {
+                      title: {
+                        show: true,
+                        text: 'Blood Pressure',
+                        x: 'center', //'5' | '5%'，title 组件离容器左侧的距离
+                        // right: 'auto',//'title 组件离容器右侧的距离
+                        top: '8%', //title 组件离容器上侧的距离
+                        // bottom: 'auto',//title 组件离容器下侧的距离
+                        textStyle: {
+                          color: ' #000', //字体颜色
+                          fontStyle: 'bold', //字体风格
+                          fontWeight: 'normal', //字体粗细
+                          fontFamily: 'sans-serif', //文字字体
+                          fontSize: 18, //字体大小
+                        },
+                      },
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'cross',
+                          axis: 'auto',
+                          snap: true,
+                          showContent: true,
+                        },
+                        textStyle: {
+                          color: '#000', // 文字的颜色
+                          fontStyle: 'normal', // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal', // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                        },
+                      },
+                      grid: {
+                        show: true,
+                        top: '20%',
+                        left: '0',
+                        // right: '15%',
+                        // bottom: '3%',
+                        containLabel: true,
+                        // width: "820px",
+                        // height: "280px"
+                      },
+                      legend: {
+                        orient: 'horizontal',
+                        x: 'left',
+                        y: 'top',
+                        data: [],
+                      },
+                      xAxis: {
+                        type: 'category',
+                        // type: "time",
+                        show: true,
+                        // min: 0,
+                        // max: 24,
+                        name: 'Time',
+                        axisLine: {
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        // splitNumber: 2,
+                        axisLabel: {
+                          formatter: null,
+                          // "rotate": 45,
+                          // "interval": 0
+                        },
+                        boundaryGap: false,
+                        data: [],
+                        splitLine: {
+                          //网格线
+                          lineStyle: {
+                            type: 'dashed',
+                          },
+                          show: true,
+                        },
+                      },
+                      yAxis: {
+                        name: '',
+                        type: 'value',
+                        min: 0,
+                        max: 300,
+                        splitNumber: 10,
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                      },
+                      series: [],
+                    }
+
+                    if (dataValue.dataType == '371201') {
+                      settingDay.yAxis.name = 'mmHg'
+                      settingDay.title.text = 'Blood Pressure'
+                      settingDay.yAxis.max = dataType[dataValue.dataType][3]
+                      //@ts-expect-error
+                      settingDay.legend.data.push('Systolic', 'Diastolic')
+                      //@ts-expect-error
+                      settingDay.series.push(
+                        {
+                          name: 'Systolic',
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                        },
+                        {
+                          name: 'Diastolic',
+                          type: dataValue.type,
+                          symbol: 'circle',
+                          symbolSize: 8,
+                          // "smooth": 0.5,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          data: [],
+                        },
+                      )
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = moment(_stamp * 1000).format('HH:mm')
+                        if (!_dateTempObj[signal]) {
+                          _dateTempObj[signal] = {}
+                          _dateTempObj[signal]['Systolic'] = []
+                          _dateTempObj[signal]['Diastolic'] = []
+                        }
+                        _dateTempObj[signal]['Systolic']?.push(
+                          get(item, 'name.data.heightBloodPressure'),
+                        )
+                        _dateTempObj[signal]['Diastolic']?.push(
+                          get(item, 'name.data.lowBloodPressure'),
+                        )
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        // @ts-expect-error
+                        settingDay.series[0]['data'].push(...item['Systolic'])
+                        // @ts-expect-error
+                        settingDay.series[1]['data'].push(...item['Diastolic'])
+                      })
+                    } else {
+                      try {
+                        //@ts-expect-error
+                        settingDay.title.text = dataType[dataValue.dataType][0]
+                        settingDay.yAxis.name = dataType[dataValue.dataType][1]
+                        settingDay.yAxis.max = dataType[dataValue.dataType][3]
+                        //@ts-expect-error
+                        settingDay.series.push({
+                          name: dataType[dataValue.dataType][0],
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                        })
+                        dataValue.dataSource.forEach((item) => {
+                          let _stamp = get(item, 'deat')
+                          let signal = moment(_stamp * 1000).format('HH:mm')
+                          if (!_dateTempObj[signal]) {
+                            _dateTempObj[signal] = {}
+                            _dateTempObj[signal][
+                              `${dataType[dataValue.dataType][0]}`
+                            ] = []
+                          }
+                          if (dataValue.dataType == '386561') {
+                            _dateTempObj[signal][
+                              `${dataType[dataValue.dataType][0]}`
+                            ]?.push(
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][0]
+                                }`,
+                              ) +
+                                '.' +
+                                get(
+                                  item,
+                                  `name.data.${
+                                    dataType[dataValue.dataType][2][1]
+                                  }`,
+                                ),
+                            )
+                          } else {
+                            _dateTempObj[signal][
+                              `${dataType[dataValue.dataType][0]}`
+                            ]?.push(
+                              get(
+                                item,
+                                `name.data.${dataType[dataValue.dataType][2]}`,
+                              ),
+                            )
+                          }
+                        })
+                        Object.values(_dateTempObj).forEach((item) => {
+                          if (
+                            item[`${dataType[dataValue.dataType][0]}`].length >
+                            0
+                          ) {
+                            // @ts-expect-error
+                            settingDay.series[0]['data'].push(
+                              ...item[`${dataType[dataValue.dataType][0]}`],
+                            )
+                          }
+                        })
+                      } catch (error) {
+                        log.error(error)
+                      }
+                    }
+                    let _date: Date
+                    if (dataValue.dataSource.length == 0) {
+                      _date = new Date()
+                    } else {
+                      _date = new Date(dataValue.dataSource[0]['deat'] * 1000)
+                    }
+                    settingDay.xAxis.data = Object.keys(_dateTempObj).map(
+                      (item: any) => {
+                        const date = moment({
+                          year: _date.getFullYear(),
+                          month: _date.getMonth(),
+                          day: _date.getDate(),
+                          hour: item.split(':')[0],
+                          minute: item.split(':')[1],
+                        })
+                        let showD = date.format('MM-DD')
+                        let showH = date.format('HH:mm')
+                        return showD + '\n' + showH
+                      },
+                    ) as any
+                    console.log(settingDay.series[0])
+                    //@ts-expect-error
+                    settingDay.yAxis.max =
+                      Math.max(...settingDay.series[0]['data']) + 50
+
+                    setting = settingDay as any
+                  } else if (dataValue.dateType === 'month') {
+                    
+                    let settingMonth = {
+                      title: {
+                        show: true,
+                        text: '',
+                        x: 'center', //'5' | '5%'，title 组件离容器左侧的距离
+                        // right: 'auto',//'title 组件离容器右侧的距离
+                        top: '8%', //title 组件离容器上侧的距离
+                        // bottom: 'auto',//title 组件离容器下侧的距离
+                        textStyle: {
+                          color: ' #000', //字体颜色
+                          fontStyle: 'bold', //字体风格
+                          fontWeight: 'normal', //字体粗细
+                          fontFamily: 'sans-serif', //文字字体
+                          fontSize: 18, //字体大小
+                        },
+                      },
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                          type: 'cross',
+                          axis: 'auto',
+                          snap: true,
+                          showContent: true,
+                        },
+                        textStyle: {
+                          color: '#000', // 文字的颜色
+                          fontStyle: 'normal', // 文字字体的风格（'normal'，无样式；'italic'，斜体；'oblique'，倾斜字体）
+                          fontWeight: 'normal', // 文字字体的粗细（'normal'，无样式；'bold'，加粗；'bolder'，加粗的基础上再加粗；'lighter'，变细；数字定义粗细也可以，取值范围100至700）
+                          // fontSize: '20',    // 文字字体大小
+                          // lineHeight: '50',    // 行高
+                        },
+                      },
+                      grid: {
+                        show: true,
+                        top: '20%',
+                        left: '0',
+                        // right: '15%',
+                        // bottom: '3%',
+                        containLabel: true,
+                      },
+                      legend: {
+                        orient: 'horizontal',
+                        x: 'left',
+                        y: 'top',
+                        data: [],
+                      },
+                      xAxis: {
+                        type: 'category',
+                        name: 'Time',
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        axisLabel: {
+                          rotate: 45,
+                          interval: 0,  
+                        },
+                        // boundaryGap: false,
+                        data: null,
+                        splitLine: {
+                          //网格线
+                          lineStyle: {
+                            type: 'dashed', //设置网格线类型 dotted：虚线   solid:实线
+                          },
+                          show: true, //隐藏或显示
+                        },
+                      },
+                      dataZoom: [
+                        {
+                          type: 'inside',
+                          startValue: 0,
+                          endValue: 6,
+                          smooth: true,
+                          // handleSize: '100%', // 设置滑动条的宽度，使其覆盖整个区域
+                          realtime: true, // 实时更新图表显示
+                          xAxisIndex: [0],
+                          // minSpan: 5, // 设置最小缩放程度为1个数据点
+                          moveOnMouseMove: true,
+                          moveOnMouseWheel: false,
+                          zoomOnMouseWheel: true
+                        },
+                      ],
+                      yAxis: {
+                        name: '',
+                        type: 'value',
+                        min: 0,
+                        max: 500,
+                        splitNumber: 10,
+                        axisLine: {
+                          show: true,
+                          symbol: ['none', 'arrow'],
+                          lineStyle: {
+                            color: '#3366CC',
+                          },
+                        },
+                        axisLabel: {
+                          color: 'rgb(51, 102, 204)',
+                        },
+                      },
+                      // height: "80%",
+                      series: [],
+                    }
+                    const getDateX = ()=>{
+                      const arr:string[] = [];
+                      // for (let index = 0; index < 6; index++) {
+                      //   arr.unshift(moment().subtract(index ===5 ?30: index*7,"days").format("MM-DD"))
+                      // }
+                      for (let index = 0; index < 31; index++) {
+                        arr.unshift(moment().subtract(index,"days").format("MM-DD"))
+                      }
+                      return arr
+                    }
+                    // settingMonth.xAxis.data =  getSmartDate() as any
+                    settingMonth.xAxis.data =   getDateX() as any
+                    if (dataValue.dataType == '371201') {
+                      settingMonth.title.text = 'Blood Pressure'
+                      settingMonth.yAxis.name = 'mmHg'
+                      settingMonth.yAxis.max = dataType[dataValue.dataType][3]
+
+                      settingMonth.yAxis.axisLabel.color = function (v) {
+                        if (v == 80 || v == 120) {
+                          return '#48aaff'
+                        } else {
+                          return 'rgb(51, 102, 204)'
+                        }
+                      } as any
+                      //@ts-expect-error
+                      settingMonth.legend.data.push('Systolic', 'Diastolic')
+                      //@ts-expect-error
+                      settingMonth.series.push(
+                        {
+                          name: 'Systolic',
+                          type: dataValue.type,
+                          symbolSize: 8,
+                          data: [],
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                                position: 'top',
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 80,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          name: 'Diastolic',
+                          type: dataValue.type,
+                          symbol: 'circle',
+                          symbolSize: 8,
+                          // "smooth": 0.5,
+                          connectNulls: true,
+                          itemStyle: {
+                            normal: {
+                              label: {
+                                show: true,
+                                position: 'top',
+                              },
+                              lineStyle: {
+                                width: 2,
+                                type: 'solid',
+                              },
+                            },
+                          },
+                          markLine: {
+                            //设置标记线
+                            symbol: ['none', 'none'], // 去掉箭头
+                            label: {
+                              show: false,
+                            },
+                            data: [
+                              {
+                                // type: 'average',
+                                name: '阈值',
+                                yAxis: 120,
+                                //设置标记点的样式
+                                lineStyle: {
+                                  normal: { type: 'solid', color: '#48aaff' },
+                                },
+                              },
+                            ],
+                          },
+                          data: [],
+                        }
+                      )
+                      ;(settingMonth.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element]['Systolic'] = []
+                        _dateTempObj[element]['Diastolic'] = []
+                      })
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = moment(_stamp * 1000).format("MM-DD");
+                        _dateTempObj[signal]['Systolic']?.push(
+                          get(item, 'name.data.heightBloodPressure'),
+                        )
+                        _dateTempObj[signal]['Diastolic']?.push(
+                          get(item, 'name.data.lowBloodPressure'),
+                        )
+                      })
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (item['Systolic'].length > 0) {
+                          // @ts-expect-error
+                          settingMonth.series[0]['data'].push(
+                            (
+                              item['Systolic']?.reduce((e, f) => +e + +f) /
+                              item['Systolic'].length
+                            ).toFixed(),
+                          )
+                          // @ts-expect-error
+                          settingMonth.series[1]['data'].push(
+                            (
+                              item['Diastolic']?.reduce((e, f) => +e + +f) /
+                              item['Diastolic'].length
+                            ).toFixed(),
+                          )
+                        } else {
+                          ;(settingMonth.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                          ;(settingMonth.series[1]['data'] as any[]).push(
+                            undefined,
+                          )
+                        }
+                      })
+
+                      setting = settingMonth as any
+                    } else {
+                      settingMonth.title.text = dataType[dataValue.dataType][0]
+                      settingMonth.yAxis.name = dataType[dataValue.dataType][1]
+                      settingMonth.yAxis.max = dataType[dataValue.dataType][3]
+                      if (dataValue.dataType == '373761') {
+                        settingMonth.yAxis.axisLabel.color = function (v) {
+                          if (v == 100) {
+                            return '#48aaff'
+                          } else {
+                            return 'rgb(51, 102, 204)'
+                          }
+                        } as any
+                      }
+                      //@ts-expect-error
+                      settingMonth.series.push({
+                        name: dataType[dataValue.dataType][0],
+                        type: dataValue.type,
+                        symbolSize: 8,
+                        data: [],
+                        connectNulls: true,
+                        itemStyle: {
+                          normal: {
+                            label: {
+                              show: true,
+                              position: 'center',
+                            },
+                            lineStyle: {
+                              width: 2,
+                              type: 'solid',
+                            },
+                          },
+                        },
+                        markLine: {
+                          //设置标记线
+                          symbol: ['none', 'none'], // 去掉箭头
+                          label: {
+                            show: false,
+                          },
+                          data: [
+                            {
+                              // type: 'average',
+                              name: '阈值',
+                              // show: false,
+                              yAxis: 100,
+                              //设置标记点的样式
+                              lineStyle: {
+                                normal: { type: 'solid', color: '#48aaff' },
+                              },
+                            },
+                          ],
+                        },
+                      })
+                      ;
+                      (settingMonth.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element][
+                          `${dataType[dataValue.dataType][0]}`
+                        ] = []
+                      })
+
+                      dataValue.dataSource.forEach((item) => {
+                        let _stamp = get(item, 'deat')
+                        let signal = moment(_stamp * 1000).format("MM-DD");
+                        if (dataValue.dataType == '386561') {
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2][0]}`,
+                            ) +
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
+                          )
+                        } else {
+                          _dateTempObj[signal][
+                            `${dataType[dataValue.dataType][0]}`
+                          ]?.push(
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2]}`,
+                            ),
+                          )
+                        }
+                      })
+
+                      Object.values(_dateTempObj).forEach((item) => {
+                        if (
+                          item[`${dataType[dataValue.dataType][0]}`].length > 0
+                        ) {
+                          let cum =
+                            item[`${dataType[dataValue.dataType][0]}`].reduce(
+                              (e, f) => +e + +f,
+                            ) /
+                            item[`${dataType[dataValue.dataType][0]}`].length
+                          if (dataValue.dataType == '381441') {
+                            // @ts-expect-error
+                            settingMonth.series[0]['data'].push(cum.toFixed(1))
+                          } else {
+                            // @ts-expect-error
+                            settingMonth.series[0]['data'].push(cum.toFixed())
+                          }
+                        } else {
+                          ;(settingMonth.series[0]['data'] as any[]).push(
+                            undefined,
+                          )
+                        }
+                      })
+                      setting = settingMonth as any
+                    }
+                    //@ts-expect-error
+                    setting.yAxis.max =
+                      Math.max(
+                        ...settingMonth.series[0]['data'].filter((x) => x),
+                      ) + 50
+
+                  }
+                  //@ts-expect-error
+                  // setting.height =  "80%";
+                  setting!.grid!.left =  "3%";
+                  setting!.grid!.bottom =  "2%";
+                  let myChart = echarts.init(node)
+                  dataValue && myChart.setOption(setting)
+                } catch (error) {
+                  log.error(error)
+                }
+                break
+              }
               case 'table': {
                 let option = dataValue
                 let tableData: any = {
@@ -313,22 +1417,30 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
                 gridPages?.addEventListener('click', stopProp)
                 gridSearch?.addEventListener('click', stopProp)
+                component.addEventListeners({
+                  event: 'click',
+                  callback: () => {
+                    gridPages?.removeEventListener('click', stopProp)
+                    gridSearch?.removeEventListener('click', stopProp)
+                  },
+                })
                 break
               }
               case 'calendarTable':
                 {
                   // const script = document.createElement('script')
                   // script.onload = () => {
-                  //   console.log('APPENDED js to body')
+                  //   log.log('APPENDED js to body')
 
                   let headerBar: ToolbarInput = {
                     left: 'prev next',
                     center: 'title',
                     right: 'timeGridDay,timeGridWeek',
                   }
-                  let defaultData = dataValue.chartData;
-                  defaultData = defaultData.filter((element)=>{
-                    if(!(+element.etime - +element.stime === 86400))return element;
+                  let defaultData = dataValue.chartData
+                  defaultData = defaultData.filter((element) => {
+                    if (!(+element.etime - +element.stime === 86400))
+                      return element
                   })
                   if (u.isArr(defaultData)) {
                     defaultData.forEach((element) => {
@@ -359,6 +1471,17 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                       element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
+                      if ((element.tage & 0xf000) >> 12 === 3) {
+                        element.coverageType = 'Personal Injury'
+                      } else if ((element.tage & 0xf000) >> 12 === 1) {
+                        element.coverageType = 'Medical Insurance'
+                      } else if ((element.tage & 0xf000) >> 12 === 2) {
+                        element.coverageType = 'Workers Comp'
+                      } else if ((element.tage & 0xf000) >> 12 === 4) {
+                        element.coverageType = 'Self Pay'
+                      } else if ((element.tage & 0xf000) >> 12 === 0) {
+                        element.coverageType = 'No Selected'
+                      }
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
@@ -367,13 +1490,21 @@ const createExtendedDOMResolvers = function (app: App) {
                   } else {
                     defaultData = []
                   }
+                  let initialView = 'timeGridDay'
+                  if (dataValue.dataWeek == 'week') {
+                    if (dataValue.dataDay === 'day') {
+                      initialView = 'timeGridDay'
+                    } else {
+                      initialView = 'timeGridWeek'
+                    }
+                  }
                   let calendar = new Calendar(node, {
                     plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
                     height: '77.9vh',
                     allDaySlot: false, // 是否显示表头的全天事件栏
-                    initialView: 'timeGridDay',
+                    initialView: initialView,
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
@@ -418,7 +1549,8 @@ const createExtendedDOMResolvers = function (app: App) {
                           info.event._def.extendedProps.visitType +
                           '</div>\
                                         <div style="padding-top:3px">Reason ：' +
-                          info.event._def.extendedProps.name +
+                          (info.event._def.extendedProps.name ??
+                            info.event._def.extendedProps.Reason) +
                           '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
@@ -428,19 +1560,21 @@ const createExtendedDOMResolvers = function (app: App) {
                               new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
-                          '</div>\
-                          <div>Duration：' +
+                          '<div  style="padding-top:3px">Duration：' +
                           info.event._def.extendedProps.timeLength +
                           ' minutes' +
-                          '</div>\
-　　　　　　        　</div>',
+                          '</div>' +
+                          '<div  style="padding-top:3px">Coverage Type: ' +
+                          info.event._def.extendedProps.coverageType +
+                          '</div>',
                         allowHTML: true,
                         //theme: 'translucent',
-                        //interactive: true,
-                        //placement: 'right-end',
-                        followCursor: true,
-                        plugins: [followCursor],
-                        duration: [0, 0],
+                        interactive: true,
+                        placement: 'top',
+                        // followCursor: true,
+                        appendTo: () => node,
+                        // plugins: [followCursor],
+                        // duration: [0, 0],
                       })
                     },
                     //eventColor: 'red',
@@ -456,46 +1590,36 @@ const createExtendedDOMResolvers = function (app: App) {
                     inst: calendar,
                     page: pageName,
                   }
+                  if (dataValue.start && dataValue.end) {
+                    if (dataValue.currentDate) {
+                      if (dataValue.dataWeek == 'week') {
+                        calendar.gotoDate(dataValue.start * 1000)
+                      } else {
+                        calendar.gotoDate(dataValue.currentDate * 1000)
+                      }
+                    } else if (dataValue.end - dataValue.start > 86400) {
+                      calendar.gotoDate(new Date().getTime())
+                    } else {
+                      calendar.gotoDate(dataValue.start * 1000)
+                    }
+                  }
                   calendar.render()
-                  // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
+                  component.addEventListeners({
+                    event: 'calendar',
+                    callback: () => {
+                      const timer = setTimeout(() => {
+                        calendar.destroy()
+                        clearTimeout(timer)
+                      }, 10000)
+                    },
+                  })
                   window.setTimeout(() => {
                     ;(
                       document.querySelectorAll(
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
-                    ).scrollIntoView({ behavior: 'smooth' })
-                    // let docEventPrevClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-prev-button',
-                    //   )[0] as HTMLButtonElement
-                    // let docEventNextClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-next-button',
-                    //   )[0] as HTMLButtonElement
-                    // let docEventTimeGridDayClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-timeGridDay-button',
-                    //   )[0] as HTMLButtonElement
-                    // let docEventTimeGridWeekClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-timeGridWeek-button',
-                    //   )[0] as HTMLButtonElement
-
-                    // // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
-                    // docEventPrevClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'prev'
-                    // })
-                    // docEventNextClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'next'
-                    // })
-                    // docEventTimeGridDayClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'timeGridDay'
-                    // })
-                    // docEventTimeGridWeekClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'timeGridWeek'
-                    // })
-                  }, 0)
-                  let docEventPrevClick: HTMLButtonElement =
+                    )?.scrollIntoView({ behavior: 'smooth' })
+                    let docEventPrevClick: HTMLButtonElement =
                       document.querySelectorAll(
                         '.fc-prev-button',
                       )[0] as HTMLButtonElement
@@ -503,16 +1627,188 @@ const createExtendedDOMResolvers = function (app: App) {
                       document.querySelectorAll(
                         '.fc-next-button',
                       )[0] as HTMLButtonElement
-                    let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
-                    timeTable?.addEventListener('click',(e)=>{
-                        dataValue.data = ''
-                    },true)
-                    docEventPrevClick.addEventListener('click', (e) => {
+                    let docEventDayClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridDay-button',
+                      )[0] as HTMLButtonElement
+                    let docEventWeekClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridWeek-button',
+                      )[0] as HTMLButtonElement
+                    let timeTable = document.querySelector(
+                      '[data-name=timeTable]',
+                    ) as HTMLElement
+                    let titleTime =
+                      document.getElementsByClassName('fc-toolbar-title')[0]
+                    let months = [
+                      'January',
+                      'February',
+                      'March',
+                      'April',
+                      'May',
+                      'June',
+                      'July',
+                      'August',
+                      'September',
+                      'October',
+                      'November',
+                      'December',
+                    ]
+                    let abbMonths = [
+                      'Jan',
+                      'Feb',
+                      'Mar',
+                      'Apr',
+                      'May',
+                      'Jun',
+                      'Jul',
+                      'Aug',
+                      'Sep',
+                      'Oct',
+                      'Nov',
+                      'Dec',
+                    ]
+                    const timeClick = (e) => {
+                      dataValue.data = ''
+                    }
+                    timeTable?.addEventListener('click', timeClick, true)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        timeTable.removeEventListener('click', timeClick)
+                      },
+                    })
+                    function getEventTime() {
+                      let getMonth = titleTime.textContent?.split(
+                        ' ',
+                      )[0] as string
+                      let getDay = titleTime.textContent
+                        ?.split(' ')[1]
+                        ?.split(',')[0] as string
+                      let getYear = titleTime.textContent?.split(
+                        ',',
+                      )[1] as string
+                      let getTimeNow = new Date(
+                        +getYear,
+                        +months.indexOf(getMonth),
+                        +getDay,
+                      ).getTime()
+                      if (dataValue.currentDate !== dataValue.start) {
+                        dataValue.start = dataValue.currentDate
+                        dataValue.end = dataValue.currentDate + 86400
+                      } else {
+                        dataValue.start = getTimeNow / 1000
+                        dataValue.end = getTimeNow / 1000 + 86400
+                      }
+                    }
+                    function getEventTimeWeek() {
+                      let getMonth = titleTime.textContent?.split(
+                        ' ',
+                      )[0] as string
+                      let getDay = titleTime.textContent
+                        ?.split('-')[0]
+                        ?.split(' ')[1] as string
+                      let getYear = titleTime.textContent?.split(
+                        ',',
+                      )[1] as string
+                      let getTimeNow = new Date(
+                        +getYear,
+                        +abbMonths.indexOf(getMonth),
+                        +getDay,
+                      ).getTime()
+                      dataValue.start = getTimeNow / 1000
+                      dataValue.end = getTimeNow / 1000 + 604800
+                      if (!dataValue.currentDate) {
+                        dataValue.currentDate =
+                          new Date(new Date().toLocaleDateString()).getTime() /
+                          1000
+                      }
+                    }
+                    const prevClick = (e) => {
+                      if (
+                        !dataValue.dataWeek &&
+                        dataValue.dataWeek !== 'week'
+                      ) {
+                        getEventTime()
+                      } else {
+                        getEventTimeWeek()
+                      }
+                      if (
+                        !(dataValue.dataDay || dataValue.dataWeek) ||
+                        (dataValue.dataDay == 'day' && dataValue.dataWeek == '')
+                      ) {
+                        dataValue.currentDate = dataValue.start
+                      }
                       dataValue.data = 'prev'
-                    })
-                    docEventNextClick.addEventListener('click', (e) => {
+                    }
+                    const nextClick = (e) => {
+                      if (
+                        !dataValue.dataWeek &&
+                        dataValue.dataWeek !== 'week'
+                      ) {
+                        getEventTime()
+                      } else {
+                        getEventTimeWeek()
+                      }
+                      if (
+                        !(dataValue.dataDay || dataValue.dataWeek) ||
+                        (dataValue.dataDay == 'day' && dataValue.dataWeek == '')
+                      ) {
+                        dataValue.currentDate = dataValue.start
+                      }
                       dataValue.data = 'next'
+                    }
+                    docEventPrevClick.addEventListener('click', prevClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventPrevClick.removeEventListener(
+                          'click',
+                          prevClick,
+                        )
+                      },
                     })
+                    docEventNextClick.addEventListener('click', nextClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventNextClick.removeEventListener(
+                          'click',
+                          nextClick,
+                        )
+                      },
+                    })
+                    const dayClick = (e) => {
+                      getEventTime()
+                      dataValue.data = 'day'
+                      dataValue.dataDay = 'day'
+                      dataValue.dataWeek = ''
+                      titleTime.textContent = ''
+                    }
+                    const weekClick = (e) => {
+                      getEventTimeWeek()
+                      dataValue.data = 'week'
+                      dataValue.dataWeek = 'week'
+                      dataValue.dataDay = ''
+                    }
+                    docEventDayClick.addEventListener('click', dayClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventDayClick.removeEventListener('click', dayClick)
+                      },
+                    })
+                    docEventWeekClick.addEventListener('click', weekClick)
+                    component.addEventListeners({
+                      event: 'click',
+                      callback: () => {
+                        docEventWeekClick.removeEventListener(
+                          'click',
+                          weekClick,
+                        )
+                      },
+                    })
+                  }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {
@@ -532,7 +1828,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 // link.href =
                 //   'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css'
                 // link.onload = () => {
-                //   console.log('APPENDED css to head')
+                //   log.log('APPENDED css to head')
                 // }
                 // document.head.appendChild(link)
 
@@ -540,7 +1836,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           } else {
             // default echart
-            console.log(`not define`)
+            log.log(`not define`)
 
             // let myChart = echarts.init(node)
             // let option = dataValue
@@ -550,7 +1846,7 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: ({ node }) => isTextFieldLike(node),
+      cond: ({ node,component }) => isTextFieldLike(node) || component.has('richtext'),
       before({ node, component }) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
@@ -565,8 +1861,9 @@ const createExtendedDOMResolvers = function (app: App) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
-        const maxLen = component.get('maxLength') || '';
-        const showFocus = component.get('showSoftInput') || '';
+        const maxLen = component.get('maxLength') || ''
+        const showFocus = component.get('showSoftInput') || ''
+        const initialCapital = component.get('initialCapital') || ''
         if (maxLen) {
           node?.setAttribute('maxlength', maxLen)
         }
@@ -575,89 +1872,157 @@ const createExtendedDOMResolvers = function (app: App) {
             component?.type == 'textField' &&
             component?.contentType == 'password'
           ) {
-            node.addEventListener(
-              'input',
-              getOnChange({
-                component,
-                dataKey,
-                evtName: 'onInput',
-                node: node as NDOMElement,
-                iteratorVar,
-                page,
-              }),
-            )
+            const executeFunc = getOnChange({
+              component,
+              dataKey,
+              evtName: 'onInput',
+              node: node as NDOMElement,
+              iteratorVar,
+              page,
+            })
+            // node.addEventListener(
+            //   'input',
+            //   executeFunc,
+            // )
+            const listener = addListener(node, 'input', executeFunc)
+            component.addEventListeners(listener)
           } else {
-            node.addEventListener(
-              'change',
-              getOnChange({
-                component,
-                dataKey,
-                evtName: 'onChange',
-                node: node as NDOMElement,
-                iteratorVar,
-                page,
-              }),
-            )
+            const executeFunc = getOnChange({
+              component,
+              dataKey,
+              evtName: 'onChange',
+              node: node as NDOMElement,
+              iteratorVar,
+              page,
+            })
+            // node.addEventListener(
+            //   'change',
+            //   getOnChange({
+            //     component,
+            //     dataKey,
+            //     evtName: 'onChange',
+            //     node: node as NDOMElement,
+            //     iteratorVar,
+            //     page,
+
+            //   }),
+            // )
+            const listener = addListener(node, 'change', executeFunc)
+            component.addEventListeners(listener)
 
             if (component?.type == 'textField') {
-              node.addEventListener(
-                'input',
-                component.blueprint.debounce
-                  ? antiShake(
-                      getOnChange({
-                        component,
-                        dataKey,
-                        evtName: 'onInput',
-                        node: node as NDOMElement,
-                        iteratorVar,
-                        page,
-                      }),
-                      component.blueprint.debounce,
-                    )
-                  : getOnChange({
+              const executeFunc = component.blueprint.debounce
+                ? antiShake(
+                    getOnChange({
                       component,
                       dataKey,
                       evtName: 'onInput',
                       node: node as NDOMElement,
                       iteratorVar,
                       page,
+                      initialCapital,
                     }),
-              )
+                    component.blueprint.debounce,
+                  )
+                : getOnChange({
+                    component,
+                    dataKey,
+                    evtName: 'onInput',
+                    node: node as NDOMElement,
+                    iteratorVar,
+                    page,
+                    initialCapital,
+                  })
+              const listener = addListener(node, 'input', executeFunc)
+              component.addEventListeners(listener)
+              // node.addEventListener(
+              //   'input',
+              //   component.blueprint.debounce
+              //     ? antiShake(
+              //         getOnChange({
+              //           component,
+              //           dataKey,
+              //           evtName: 'onInput',
+              //           node: node as NDOMElement,
+              //           iteratorVar,
+              //           page,
+              //           initialCapital
+              //         }),
+              //         component.blueprint.debounce,
+              //       )
+              //     : getOnChange({
+              //         component,
+              //         dataKey,
+              //         evtName: 'onInput',
+              //         node: node as NDOMElement,
+              //         iteratorVar,
+              //         page,
+              //         initialCapital
+              //       }),
+              // )
             }
             if (component?.type == 'textView') {
-              node.addEventListener(
-                'input',
+              const executeFunc = getOnChange({
+                component,
+                dataKey,
+                evtName: 'onInput',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              const listener = addListener(node, 'input', executeFunc)
+              component.addEventListeners(listener)
+              // node.addEventListener(
+              //   'input',
 
-                getOnChange({
-                  component,
-                  dataKey,
-                  evtName: 'onInput',
-                  node: node as NDOMElement,
-                  iteratorVar,
-                  page,
-                }),
-              )
+              //   getOnChange({
+              //     component,
+              //     dataKey,
+              //     evtName: 'onInput',
+              //     node: node as NDOMElement,
+              //     iteratorVar,
+              //     page,
+              //     initialCapital
+              //   }),
+              // )
             }
+            if(component.has('richtext')){
+              const executeFunc = getOnChange({
+                component,
+                dataKey,
+                evtName: 'onBlur',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              const listener = addListener(node, 'blur', executeFunc)
+              component.addEventListeners(listener)
+            }
+            
           }
         }
         if (component.blueprint?.onBlur) {
-          node.addEventListener(
-            'blur',
-            getOnChange({
-              node: node as NDOMElement,
-              component,
-              dataKey,
-              evtName: 'onBlur',
-              iteratorVar,
-              page,
-            }),
-          )
-        }
-        if(showFocus){
-          node?.setAttribute("showSoftInput","true")
-          setTimeout(()=>{
-            node?.focus();
-          },100)
+          const executeFunc = getOnChange({
+            component,
+            dataKey,
+            evtName: 'onBlur',
+            node: node as NDOMElement,
+            iteratorVar,
+            page,
+          })
+          const listener = addListener(node, 'blur', executeFunc)
+          component.addEventListeners(listener)
+          // node.addEventListener(
+          //   'blur',
+          //   getOnChange({
+          //     node: node as NDOMElement,
+          //     component,
+          //     dataKey,
+          //     evtName: 'onBlur',
+          //     iteratorVar,
+          //     page,
+          //   }),
+          // )
         }
       },
     },
@@ -912,7 +2277,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
 
                 li.onclick = function () {
-                  console.log(li.innerHTML)
+                  log.log(li.innerHTML)
                   node.innerHTML = li.innerHTML
                   node.setAttribute('data-value', li.innerHTML)
                   ul.innerHTML = ''
@@ -929,7 +2294,7 @@ const createExtendedDOMResolvers = function (app: App) {
             node.addEventListener('input', function (e) {
               ul.innerHTML = ''
               ul.style.display = 'block'
-              // console.log(node.value)
+              // log.log(node.value)
               let count = 0
               json1.forEach((element) => {
                 let name = element.name.toLowerCase()
@@ -957,7 +2322,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   })
 
                   li.onclick = function () {
-                    console.log(li.innerHTML)
+                    log.log(li.innerHTML)
                     node.innerHTML = li.innerHTML
                     node.setAttribute('data-value', li.innerHTML)
                     ul.innerHTML = ''
@@ -1037,10 +2402,10 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               let featuresData: any[] = []
               dataValue.data.forEach((element: any) => {
-                var str = ''
-                var showName = ''
-                var specialityArr = element.information.speciality
-                var Name = element.information.name
+                let str = ''
+                let showName = ''
+                let specialityArr = element.information.speciality
+                let Name = element.information.name
                 str = specialityArr
                 if (Name == 'undefined undefined') {
                   showName = 'No Name'
@@ -1330,7 +2695,7 @@ const createExtendedDOMResolvers = function (app: App) {
         //     postMessage?.execute?.(msg)
         //   })
         // } catch (error) {
-        //   console.error(error)
+        //   log.error(error)
         // }
         // iframeEl.addEventListener('load', function (evt) {
         //   log.func('load')
@@ -1341,7 +2706,7 @@ const createExtendedDOMResolvers = function (app: App) {
         //     { componentPage, thisValue: this, window: this.contentWindow },
         //   )
         // const obs = new MutationObserver((mutations) => {
-        //   console.log(`[ComponentPage] Mutations`, mutations)
+        //   log.log(`[ComponentPage] Mutations`, mutations)
         // })
         // obs.observe(this, {
         //   attributes: true,
@@ -1370,7 +2735,7 @@ const createExtendedDOMResolvers = function (app: App) {
         // Password inputs
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-            setTimeout(() => {
+            const timer = setTimeout(() => {
               const assetsUrl = app.nui.getAssetsUrl() || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiableEye.svg'
               const eyeClosed = assetsUrl + 'makePasswordInvisibleEye.svg'
@@ -1452,6 +2817,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   ? 'Click here to hide your password'
                   : 'Click here to reveal your password'
               }
+              clearTimeout(timer)
             })
           }
         } else {
@@ -1467,6 +2833,174 @@ const createExtendedDOMResolvers = function (app: App) {
           )
         }
       },
+    },
+    '[App] strictLength textField': {
+      cond: 'textField',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictLength') {
+          let strictLength = {
+            max: Number.MAX_VALUE,
+            min: 1
+          }
+          if(component.props.strictLength) {
+            if(component.props.strictLength.max >= 0) {
+              strictLength.max = component.props.strictLength.max
+            }
+            if(component.props.strictLength.min >= 0) {
+              strictLength.min = component.props.strictLength.min
+            }
+          }
+          const parentNode = node.parentElement as HTMLElement;
+          let oldValue = ''
+          let borderColor = (node as HTMLInputElement).style.borderColor
+
+          let tips = document.createElement("div")
+          tips.innerText = `${strictLength.min} characters minimum`
+          tips.style.cssText = `
+            position: absolute;
+            top: ${node.offsetTop + node.offsetHeight}px;
+            left: ${node.offsetLeft}px;
+            font-size: 12px;
+            color: #ff0000;
+            display: none;
+          `
+          const strict = () => {
+            const value = (node as HTMLInputElement).value
+            if(value.length < strictLength.min) {
+              (node as HTMLInputElement).style.borderColor = "#ff0000";
+              tips.style.display = "block"
+              oldValue = value;
+            } else if(value.length > strictLength.max) {
+              (node as HTMLInputElement).value = oldValue;
+            } else {
+              (node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = "none"
+              oldValue = value
+            }
+          }
+          let isFocus = false
+          parentNode.appendChild(tips)
+          node.addEventListener('focus', () => {
+            isFocus = true
+          })
+          node.addEventListener('blur', () => {
+            if(isFocus) {
+              strict()
+              isFocus = false
+            }
+          })
+          node.addEventListener('input', strict)
+
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+                strict()
+              }
+            });
+          })
+
+          observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['style']
+          })
+
+        } else {
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+                ? contentType
+                : 'text',
+          )
+        }
+      }
+    },
+    '[App] strictLength textView': {
+      cond: 'textView',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictLength') {
+          let strictLength = {
+            max: Number.MAX_VALUE,
+            min: 1
+          }
+          if(component.props.strictLength) {
+            if(component.props.strictLength.max >= 0) {
+              strictLength.max = component.props.strictLength.max
+            }
+            if(component.props.strictLength.min >= 0) {
+              strictLength.min = component.props.strictLength.min
+            }
+          }
+          const parentNode = node.parentElement as HTMLElement;
+          let oldValue = ''
+          let borderColor = (node as HTMLInputElement).style.borderColor
+
+          let tips = document.createElement("div")
+          tips.innerText = `${strictLength.min} characters minimum`
+          tips.style.cssText = `
+            position: absolute;
+            top: ${node.offsetTop + node.offsetHeight}px;
+            left: ${node.offsetLeft}px;
+            font-size: 12px;
+            color: #ff0000;
+            display: none;
+          `
+          const strict = () => {
+            const value = (node as HTMLInputElement).value
+            if(value.length < strictLength.min) {
+              (node as HTMLInputElement).style.borderColor = "#ff0000";
+              tips.style.display = "block"
+              oldValue = value;
+            } else if(value.length > strictLength.max) {
+              (node as HTMLInputElement).value = oldValue;
+            } else {
+              (node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = "none"
+              oldValue = value
+            }
+          }
+          let isFocus = false
+          parentNode.appendChild(tips)
+          node.addEventListener('focus', () => {
+            isFocus = true
+          })
+          node.addEventListener('blur', () => {
+            if(isFocus) {
+              strict()
+              isFocus = false
+            }
+          })
+          node.addEventListener('input', strict)
+
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+                strict()
+              }
+            });
+          })
+
+          observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['style']
+          })
+
+        } else {
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+                ? contentType
+                : 'text',
+          )
+        }
+      }
     },
     '[App] VideoChat Timer': {
       cond: ({ component: c }) =>
@@ -1517,7 +3051,7 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node && component.get('data-value').length) {
           type optionSetting = {
             borderRadius?: number
-            direction?: 'vertical' | 'horizontal'
+            direction?: 'horizontal' | 'vertical'
             spaceBetween?: number
             autoplay?:
               | boolean
@@ -1527,11 +3061,11 @@ const createExtendedDOMResolvers = function (app: App) {
                   disableOnInteraction?: boolean
                 }
             slidesPerView?: number
-            effect?: 'slide' | 'fade' | 'cube' | 'coverflow' | 'flip'
+            effect?: 'coverflow' | 'cube' | 'fade' | 'flip' | 'slide'
             pagination?:
               | boolean
               | {
-                  type?: 'bullets' | 'fraction' | 'progressbar' | 'custom'
+                  type?: 'bullets' | 'custom' | 'fraction' | 'progressbar'
                   clickable?: boolean
                 }
             navigation?: boolean
@@ -1543,11 +3077,10 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 
           const dataValue = component.get('data-value') as (
-            | { [key in string]: any }
             | string
+            | { [key in string]: any }
           )[]
           const videoData = component.get('video-option')
-          // console.log(videoData,"kkkk")
           const option: optionSetting = component.get('data-option') as {
             [key in string]: any
           }
@@ -1681,7 +3214,7 @@ const createExtendedDOMResolvers = function (app: App) {
             on: {
               slideChangeTransitionStart: function () {
                 if (v) {
-                  // @ts-ignore
+                  // @ts-expect-error
                   if (this.activeIndex !== 0) {
                     v.pause()
                   }
@@ -1696,7 +3229,7 @@ const createExtendedDOMResolvers = function (app: App) {
           })
           if (v) {
             // v.addEventListener("click",()=>{
-            //   console.log("vvvv",v);
+            //   log.log("vvvv",v);
 
             //   v.play();
 
@@ -1725,25 +3258,30 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           }
         } else {
-          console.error('Image array is empty')
+          log.error('Image array is empty')
         }
       },
     },
     '[App] Checkbox': {
       cond: 'checkbox',
       resolve({ node, component }) {
-        if (node && Object.keys(component.get('data-value'))) {
+        if (node) {
           let pageName = app.currentPage
           const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || ''
           const dataValue = (component.get('data-option') as {})['reason'] as {}
           const dataOptions = component.get('data-option') as {}
-          let fragment: null | DocumentFragment =
+          let fragment: DocumentFragment | null =
             document.createDocumentFragment()
-          let childrenConta = document.createElement('div')
+          // let childrenConta = document.createElement('div')
+          node.textContent = ''
+          if (get(app.root.Global, dataOptions['checkName']).length) {
+            dataValue['selectedData'] = cloneDeep(
+              get(app.root.Global, dataOptions['checkName']),
+            )
+          }
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
-              appearance: none;
               position: relative;
               background: wheat;
               border-radius: 50%;
@@ -1769,30 +3307,111 @@ const createExtendedDOMResolvers = function (app: App) {
             border-radius: 50%;
         }`
           let chechedB = `{
-          content: "";
-          background-color: #fff;
-          position: absolute;
-          top: -2px;
-          left: -1px;
-          width: 100%;
-          height: 100%;
-          border: 2px solid #800080;
-          border-radius: 50%;
-          color: #7d7d7d;
-          // font-size: 20px;
-          font-weight: bold;
-          text-align: center;
-          line-height: 5vw;
+            content: "";
+            background-color: #fff;
+            position: absolute;
+            top: -2px;
+            left: -1px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #800080;
+            border-radius: 50%;
+            color: #7d7d7d;
+            // font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 5vw;
         }`
+          let C = `{
+            appearance: none;
+        }`
+          let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
+            .web.cadlVersion.stable
+          let cadlConfigUrl = JSON.parse(
+            localStorage.getItem('config') as string,
+          ).cadlBaseUrl as string
+          let url = cadlConfigUrl.startsWith('http')
+            ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion
+            : '/admin/admin'
+          let chechedC = `{
+          content: "";
+          display: inline-block;
+          vertical-align: middle;
+          width: 13px;
+          height: 13px;
+          background-image: url(${url}/assets/selectGray.svg);
+          background-size: 100%;
+        }`
+          let chechedCheck = `{
+          background-image: url(${url}/assets/selectGrayBlue.svg);
+        }`
+          switch (styleCheckBox) {
+            case 'A': {
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${A}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedA}`,
+                0,
+              )
+              break
+            }
+            case 'B': {
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${B}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedB}`,
+                0,
+              )
+              break
+            }
+            case 'C': {
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${C}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]::before${chechedC}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedCheck}`,
+                0,
+              )
+              break
+            }
+            default: {
+              break
+            }
+          }
+          const arrData: number[] = []
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
             let contanierDiv = document.createElement('div')
-            childInput.type = 'checkbox'
-            childInput.value = i + 1 + ''
-            spanDom.textContent = dataValue['allData'][i]
-            if (dataValue['selectedData'].includes(i + 1)) {
+
+            if (dataOptions['module'] === 'radio') {
+              childInput.type = 'radio'
+              childInput.name = 'radio'
+            } else {
+              childInput.type = 'checkbox'
+            }
+            childInput.value = i + ''
+
+            spanDom.textContent = get(
+              dataValue['allData'][i],
+              dataValue['path'],
+            )
+            if (
+              dataValue['selectedData'] == get(dataValue['allData'][i], dataValue['path'])
+            ) {
               childInput.checked = true
+              app.updateRoot((draft) => {
+                set(draft?.[pageName], dataKey, [i])
+              })
             }
             childInput.setAttribute('class', dataOptions['classStyle'])
             for (
@@ -1835,71 +3454,77 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             contanierDiv.appendChild(childInput)
             contanierDiv.appendChild(spanDom)
+
             fragment.appendChild(contanierDiv)
           }
-          childrenConta.append(fragment)
+          node.append(fragment)
           fragment = null
-          let arrReturnNew: any = []
-          childrenConta.addEventListener('click', (e) => {
+          node.addEventListener('click', (e) => {
             let dataInput = +(e.target as HTMLInputElement).value
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
-              let selected = dataValue['selectedData'] as number[]
-              !selected.includes(dataInput)
-                ? selected?.push(dataInput)
-                : selected?.splice(selected.indexOf(dataInput), 1)
+              let selected = dataValue['selectedData'] as any
+              if (dataOptions['module'] === 'radio') {
+                selected = []
+                selected[0] = dataInput
+              } else {
+                !selected.includes(dataInput)
+                  ? selected?.push(dataInput)
+                  : selected?.splice(selected.indexOf(dataInput), 1)
+              }
+              // let text =
               // selected.forEach((val)=>{
               //   arrReturnNew.push(dataValue["allData"][val-1]);
               // })
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, selected)
               })
-              app.root.Global.checkboxArr = selected
+              if (dataOptions['data']) {
+                const keys = Object.keys(dataOptions['data'])
+                const values = Object.values(dataOptions['data'])
+
+                for (let i = 0; i < keys.length; i++) {
+                  app.updateRoot((draft) => {
+                    if (values[i] === '$') {
+                      set(
+                        draft?.[pageName],
+                        keys[i],
+                        dataValue['allData'][dataInput],
+                      )
+                    } else {
+                      set(
+                        draft?.[pageName],
+                        keys[i],
+                        get(dataValue['allData'][dataInput], `${values[i]}`),
+                      )
+                    }
+                  })
+                }
+              }
+              // app.root.Global.checkboxArr = selected
+              set(
+                app.root.Global,
+                dataOptions['checkName'],
+                dataValue['allData'][selected].name.data.category,
+              )
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
-          switch (styleCheckBox) {
-            case 'A': {
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]${A}`,
-                0,
-              )
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]:checked::before${chechedA}`,
-                0,
-              )
-              break
-            }
-            case 'B': {
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]${B}`,
-                0,
-              )
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]:checked::before${chechedB}`,
-                0,
-              )
-              break
-            }
-            default: {
-              break
-            }
-          }
-          node.appendChild(childrenConta)
+          // node.appendChild(childrenConta)
         }
       },
     },
     '[App] Calendar': {
       cond: 'calendar',
       resolve({ node, component }) {
-        const inputTarget = document.createElement("input");
-        inputTarget.style.width = node.style.width;
-        inputTarget.style.height = node.style.height;
+        const inputTarget = document.createElement('input')
+        inputTarget.style.width = node.style.width
+        inputTarget.style.height = node.style.height
         // inputTarget.setAttribute("class","latpickr form-control input")
-        flatpickr(inputTarget,{
+        flatpickr(inputTarget, {
           // altInput: true,
           // enableTime: true,
           appendTo: node,
-          dateFormat: "Y-m-d",
+          dateFormat: 'Y-m-d',
           // altFormat: "DD-MM-YYYY",
           allowInput: true,
           // inline: true,
@@ -1911,17 +3536,1587 @@ const createExtendedDOMResolvers = function (app: App) {
           //   return moment(date).format(format);
           // }
           // onChange: function(selectedDates, dateStr, instance){
-          //   console.log(selectedDates, dateStr, instance)
+          //   log.log(selectedDates, dateStr, instance)
 
           //   instance.calendarContainer.style.visibility = "visible"
           // }
-        });
-      node.append(inputTarget);
+        })
+        node.append(inputTarget)
 
         // if (node && Object.keys(component.get('data-value'))) {
         // }
       },
     },
+    '[App] chatList': {
+      cond: 'chatList',
+      resolve({ node, component }) {
+        interface PdfCss {
+          pdfContentWidth: number
+          pdfContentHeight: number
+          pdfIconWidth: number
+          pdfIconHeight: number
+        }
+        interface BoxCss {
+          width: string
+          height: string
+        }
+        class liveChat {
+          protected chatBox: HTMLElement
+          private dataSource: Array<any>
+          private pdfCss: PdfCss
+          private boxCss: BoxCss
+          constructor(dataSource: Array<any>) {
+            this.dataSource = dataSource
+            this.chatBox = document.createElement('div')
+            this.pdfCss = {
+              pdfContentWidth: 200,
+              pdfContentHeight: 60,
+              pdfIconWidth: 40,
+              pdfIconHeight: 40,
+            }
+            this.boxCss = {
+              width: node.style.width,
+              height: node.style.height,
+            }
+            this.setBox()
+            for (let i = 0; i < this.dataSource.length; i++) {
+              this.chatBox.appendChild(this.judgeType(this.dataSource[i]))
+            }
+          }
+
+          private setBox() {
+            this.chatBox.style.cssText = `
+              position: absolute;
+              width: ${this.boxCss.width};
+              height: ${this.boxCss.height};
+              overflow: auto;
+              background-color: #f2f2f2;
+            `
+          }
+
+          public dom() {
+            return this.chatBox
+          }
+
+          private createTextNode(Msg: any): HTMLElement {
+            let domNode = this.createChatNode()
+            let domNodeContent: HTMLElement
+            let chatBackground: string
+            ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+            )
+            const urlRegex =
+              /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
+            // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
+            let data = Msg.name.data
+            if (typeof data == 'string') {
+              data = JSON.parse(data)
+            }
+            let messageInfo = data.text.replace(urlRegex, (url) => {
+              return `<a href = "${url}">${url}</a>`
+            })
+            let textContent = document.createElement('div')
+            // textContent.innerHTML = Msg.message.info
+            textContent.innerHTML = messageInfo
+            textContent.style.cssText = `
+                margin-top: 10px;
+                border-radius: 10px;
+                padding: 5px 7.5px 5px 7.5px;
+                background-color: ${chatBackground};
+                word-wrap: break-word;
+            `
+            domNodeContent.appendChild(textContent)
+            return domNode
+          }
+
+          private createPdfNode(Msg: any): HTMLElement {
+            let domNode = this.createChatNode()
+            let domNodeContent: HTMLElement
+            ;[domNode, domNodeContent] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+            )
+            let pdfInfo = this.judgePdfIsOwner(
+              domNodeContent,
+              this.IsOwner(Msg.bsig),
+            )
+            pdfInfo.innerHTML = `
+                <div>${Msg.name.data.text}</div>
+                <div style='font-size: 12pxcolor: grey;'>${Msg.name.data.text}</div>
+            `
+            return domNode
+          }
+
+          private judgeType(Msg: any): HTMLElement {
+            let domNode: HTMLElement
+            switch (Msg.name.title) {
+              case 'textMessage':
+                domNode = this.createTextNode(Msg)
+                return domNode
+              case 'pdfMessage':
+                domNode = this.createPdfNode(Msg)
+                return domNode
+              default:
+                return new HTMLElement()
+            }
+          }
+
+          private createChatNode(): HTMLElement {
+            let domNode = document.createElement('div')
+            domNode.style.cssText = `
+              width: 100%;
+              height: auto;
+              margin: 10px 0px 10px 0px;
+              display: flex;
+            `
+            return domNode
+          }
+
+          private createChatNodeContent(): HTMLElement {
+            let domNodeContent = document.createElement('div')
+            domNodeContent.style.cssText = `
+                max-width: 60%;
+                width: auto;
+                height: auto;
+            `
+            return domNodeContent
+          }
+
+          private createChatNodeAvatar(): HTMLElement {
+            let domNodeAvatar = document.createElement('img')
+            domNodeAvatar.src = './assert/avatar.png'
+            domNodeAvatar.style.cssText = `
+                width: 50px;
+                height: 50px;
+                border-radius: 5px;
+                margin: auto 10px auto 10px;
+            `
+            return domNodeAvatar
+          }
+
+          private IsOwner(ovid: string): boolean {
+            let judgeOvid = localStorage.getItem('user_vid')
+            return ovid === judgeOvid
+          }
+
+          private judgeIsOwner(
+            domNode: HTMLElement,
+            isOwner: boolean,
+          ): [HTMLElement, HTMLElement, string] {
+            let domNodeContent = this.createChatNodeContent()
+            let domNodeAvatar = this.createChatNodeAvatar()
+            let chatBackground = '#FFFFFF'
+            if (isOwner) {
+              domNode.style.justifyContent = 'end'
+              domNode.appendChild(domNodeContent)
+              domNode.appendChild(domNodeAvatar)
+              chatBackground = '#A9EA7A'
+            } else {
+              domNode.style.justifyContent = 'start'
+              domNode.appendChild(domNodeAvatar)
+              domNode.appendChild(domNodeContent)
+              chatBackground = '#FFFFFF'
+            }
+            return [domNode, domNodeContent, chatBackground]
+          }
+
+          private judgePdfIsOwner(
+            domNodeContent: HTMLElement,
+            isOwner: boolean,
+          ): HTMLElement {
+            let pdfContent = document.createElement('div')
+            pdfContent.style.cssText = `
+                width: ${this.pdfCss.pdfContentWidth}px;
+                height: ${this.pdfCss.pdfContentHeight}px;
+                border-radius: 10px;
+                display: flex;
+                background-color: #FFFFFF;
+            `
+            let pdfIcon = document.createElement('img')
+            pdfIcon.src = './assert/pdf.png'
+            pdfIcon.style.cssText = `
+              width: ${this.pdfCss.pdfIconWidth}px;
+              height: ${this.pdfCss.pdfIconHeight}px;
+              margin: ${
+                (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px ${
+              (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+            }px 10px;
+            `
+            let pdfInfo = document.createElement('div')
+            pdfInfo.style.cssText = `
+                width: ${
+                  this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
+                }px;
+                height: auto;
+                margin: 5px 10px 5px 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            `
+            domNodeContent.appendChild(pdfContent)
+            if (isOwner) {
+              pdfContent.appendChild(pdfIcon)
+              pdfContent.appendChild(pdfInfo)
+            } else {
+              pdfContent.appendChild(pdfInfo)
+              pdfContent.appendChild(pdfIcon)
+            }
+            return pdfInfo
+          }
+        }
+        // const scrollH = component
+        const scrollH = component.get('data-value') || '' || 'dataKey'
+        const liveChatObject = new liveChat(component.get('listObject'))
+        let liveChatBox = liveChatObject.dom()
+        node.innerHTML = liveChatBox.innerHTML
+        // node.appendChild(liveChatBox)
+        setTimeout(() => {
+          node.scrollTop =
+            scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
+        }, 0)
+      },
+    },
+    '[App] navBar': {
+      cond: 'navBar',
+      resolve({ node, component }) {
+        // console.error(component.get('dataKey'))
+        let currentPage = app.currentPage
+        const menuBarInfo = get(app.root, component.get('data-key'))
+        let width = Number(node.style.width.replace('px', ''))
+        let height = Number(node.style.height.replace('px', ''))
+
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+        let style = component.get('style')
+        const sprites = `${assetsUrl}sprites.png`
+        const up = `${assetsUrl}arrowUp.svg`
+        const down = `${assetsUrl}arrowDown.svg`
+
+        const img = new Image()
+        img.src = sprites
+
+        let originIconWidth, originIconHeight
+
+        const draw = () => {
+          originIconWidth = img.width
+          originIconHeight = img.height
+          const originWidth = 278.25
+          let ratio = Math.floor(100 * (width / originWidth)) / 100
+
+          let ulCss = {
+            width: width + 'px',
+            height: height + 'px',
+            left: '0px',
+            top: '0px',
+            margin: '0px',
+            position: 'absolute',
+            outline: 'none',
+            display: 'block',
+            'list-style': 'none',
+          }
+
+          let liCss = {
+            left: '0px',
+            'margin-top': '0px',
+            width: width + 'px',
+            position: 'relative',
+            outline: 'none',
+            height: 'auto',
+            'list-style': 'none',
+            'border-style': 'none',
+            'border-radius': '0px',
+          }
+
+          let divCss = {
+            // "background-color": "#005795",
+            //@ts-expect-error
+            height:
+              Math.ceil((5 / Number(style?.height)) * height) / 100 + 'px',
+            position: 'relative',
+            outline: 'none',
+            'margin-top': '0px',
+          }
+
+          let imgCss = {
+            // @ts-expect-error
+            width: Math.ceil((0.7 / Number(style?.width)) * width) / 100 + 'px',
+            // @ts-expect-error
+            top: Math.ceil((2 / Number(style?.height)) * height) / 100 + 'px',
+            // @ts-expect-error
+            left: Math.ceil((14.5 / Number(style?.width)) * width) / 100 + 'px',
+            display: 'block',
+            cursor: 'pointer',
+            position: 'absolute',
+            outline: 'none',
+            'object-fit': 'contain',
+            'margin-top': '0px',
+          }
+
+          let title1Css = {
+            // @ts-expect-error
+            width: Math.ceil((10 / Number(style?.width)) * width) / 100 + 'px',
+            top: '0',
+            // @ts-expect-error
+            left: Math.ceil((4 / Number(style?.width)) * width) / 100 + 'px',
+            // @ts-expect-error
+            height:
+              Math.ceil((5 / Number(style?.height)) * height) / 100 + 'px',
+            // @ts-expect-error
+            // "line-height": Math.ceil((5/Number(style?.height))*height)/100 + 'px',
+            'box-sizing': 'border-box',
+            color: '#ffffff',
+            'font-size': '13.5px',
+            cursor: 'pointer',
+            position: 'absolute',
+            outline: 'none',
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'flex-start',
+            'margin-top': '0px',
+          }
+
+          let optsList: Map<string, LIOpts> = new Map()
+          let childMap: Map<string, string> = new Map()
+          let extendMap: Map<string, string> = new Map()
+          // let extendSet = new Set()
+
+          const hash = createHash('sha256')
+            .update(JSON.stringify(get(app.root, component.get('list'))))
+            .digest('hex')
+
+          // @ts-expect-error
+          if (!!window.navBar && window.navBar.hash === hash) {
+            // @ts-expect-error
+            optsList = window.navBar.list
+            // @ts-expect-error
+            childMap = window.navBar.linkMap
+            // @ts-expect-error
+            extendMap = window.navBar.extendMap
+          } else {
+            console.warn('REFRESH')
+            // const list = component.get('test')
+            const list = get(app.root, component.get('list'))
+            const len = list.length
+            // @ts-expect-error
+            window.navBar = {
+              selectedPage: currentPage,
+              extendSet: new Set(),
+              hash: hash,
+            }
+            for (let i = 0; i < len; i++) {
+              let child = list[i]
+              let children: Array<LIOpts> = []
+              let hasChildren = false
+              let isExtend = false
+              if (child.hasChildren === 'block') {
+                let l = child.childList.length
+                let t = 0
+                for (t = 0; t < l; t++) {
+                  let c = child.childList[t]
+                  if (c.pageName === currentPage) {
+                    isExtend = true
+                  }
+                  if (c.childList instanceof Array) {
+                    c.childList.forEach((item) => {
+                      childMap.set(item, c.pageName + '|' + child.pageName)
+                    })
+                  }
+                  children.push({
+                    isIcon: false,
+                    title: c.title,
+                    pageName: c.pageName,
+                    level: c.level,
+                    background: c.backgroundColor.replace('0x', '#'),
+                    hasChildren: false,
+                  })
+                  extendMap.set(c.pageName, child.pageName)
+                }
+                hasChildren = true
+              }
+              if (child.pageName === currentPage || isExtend) {
+                optsList.set(child.pageName, {
+                  isIcon: false,
+                  isExtend: true,
+                  title: child.title,
+                  pageName: child.pageName,
+                  level: child.level,
+                  background: child.backgroundColor.replace('0x', '#'),
+                  hasChildren: hasChildren,
+                  logoPath: child.logoPath,
+                  children: children,
+                })
+                if (hasChildren) {
+                  // @ts-expect-error
+                  window.navBar.extendSet.add(child.pageName)
+                }
+              } else {
+                optsList.set(child.pageName, {
+                  isIcon: false,
+                  isExtend: false,
+                  title: child.title,
+                  pageName: child.pageName,
+                  level: child.level,
+                  background: child.backgroundColor.replace('0x', '#'),
+                  hasChildren: hasChildren,
+                  logoPath: child.logoPath,
+                  children: children,
+                })
+              }
+            }
+            // @ts-expect-error
+            window.navBar.list = optsList
+            // @ts-expect-error
+            window.navBar.linkMap = childMap
+            // @ts-expect-error
+            window.navBar.extendMap = extendMap
+          }
+          // @ts-expect-error
+          let navBar = window.navBar
+          let navList = navBar.list
+
+          const toStr = (obj: Object): string => {
+            return JSON.stringify(obj)
+              .replace(new RegExp(',', 'g'), ';')
+              .replace(new RegExp('"', 'g'), '')
+              .replace('{', '')
+              .replace('}', '')
+          }
+
+          interface LIOpts {
+            hasChildren?: boolean
+            level?: number
+            isIcon: boolean
+            title?: string
+            pageName?: string
+            logoPath?: string
+            background?: string
+            isExtend?: boolean
+            children?: Array<LIOpts>
+          }
+
+          class ul {
+            dom: HTMLUListElement
+            constructor(
+              css: string,
+              opts: Array<LIOpts> | Map<string, LIOpts>,
+            ) {
+              this.dom = document.createElement('ul')
+              this.dom.style.cssText = css
+              opts.forEach((child) => {
+                // console.log("CHILD", child)
+                this.dom.appendChild(new li(toStr(liCss), child).dom)
+              })
+            }
+          }
+
+          class li {
+            dom: HTMLLIElement
+            constructor(css: string, opts: LIOpts) {
+              this.dom = document.createElement('li')
+              this.dom.style.cssText = css
+              let divDom = new div(
+                toStr(
+                  Object.assign({ ...divCss }, { background: opts.background }),
+                ),
+                opts,
+              ).dom
+              // if(opts.level === 2)
+              if (!opts.hasChildren) divDom.id = `_${opts.pageName}_`
+              this.dom.appendChild(divDom)
+              if (opts.hasChildren) {
+                let level2UlCss = {}
+                if (opts.isExtend) {
+                  level2UlCss = Object.assign(
+                    { ...ulCss },
+                    {
+                      height: 'auto',
+                      position: 'relative',
+                      display: 'block',
+                    },
+                  )
+                } else {
+                  level2UlCss = Object.assign(
+                    { ...ulCss },
+                    {
+                      height: 'auto',
+                      position: 'absolute',
+                      display: 'none',
+                    },
+                  )
+                }
+                let ulD = new ul(
+                  toStr(level2UlCss),
+                  opts.children as Array<LIOpts>,
+                ).dom
+                ulD.id = `_${opts.pageName}`
+                this.dom.appendChild(ulD)
+              }
+            }
+          }
+
+          class div {
+            dom: HTMLElement
+            constructor(css: string, opts: LIOpts) {
+              this.dom = document.createElement('div')
+              this.dom.style.cssText = css
+              if (!opts.isIcon) {
+                this.dom.setAttribute('data-key', opts.title as string)
+                if (opts.level === 1) {
+                  const logoPathLeft =
+                    Number(opts.logoPath?.split('px')[0]) * ratio
+                  const logoPathRight =
+                    Number(opts.logoPath?.split('px')[1]) * ratio
+                  let iconCss = Object.assign(
+                    { ...divCss },
+                    {
+                      // @ts-expect-error
+                      width: 0.1 * Number(width) + 'px',
+                      // @ts-expect-error
+                      height:
+                        Math.ceil((2.5 / Number(style?.height)) * height) /
+                          100 +
+                        'px',
+                      // @ts-expect-error
+                      left:
+                        Math.ceil((1.5 / Number(style?.width)) * width) / 100 +
+                        'px',
+                      // @ts-expect-error
+                      top:
+                        Math.ceil((1.5 / Number(style?.height)) * height) /
+                          100 +
+                        'px',
+                      position: 'absolute',
+                      background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
+                      'background-size': `${ratio * originIconWidth}px ${
+                        ratio * originIconHeight
+                      }px`,
+                    },
+                  )
+                  this.dom.appendChild(
+                    new div(toStr(iconCss), { isIcon: true }).dom,
+                  )
+                }
+                let label = document.createElement('div')
+                label.innerHTML = opts.title as string
+                label.style.cssText = toStr(title1Css)
+                label.setAttribute('title-value', `${opts.pageName}`)
+                this.dom.appendChild(label)
+                if (opts.hasChildren) {
+                  let imageDom = document.createElement('img')
+                  imageDom.src = opts.isExtend ? up : down
+                  imageDom.style.cssText = toStr(imgCss)
+                  imageDom.setAttribute('title-value', `${opts.pageName}`)
+                  imageDom.id = `__${opts.pageName}`
+                  this.dom.appendChild(imageDom)
+                }
+              }
+            }
+          }
+          const ulDom = new ul(toStr(ulCss), optsList).dom
+
+          node.appendChild(ulDom)
+
+          ulDom.addEventListener('click', (event) => {
+            let dom = event.target as HTMLImageElement
+            app.updateRoot((draft) => {
+              set(draft, component.get('data-key'), {
+                pageName: 'ScheduleManagement',
+                isGoto: false,
+                status: true
+              })
+            })
+            if (dom.tagName === 'DIV') {
+              try {
+                const action = (value: string) => {
+                  // @ts-expect-error
+                  navBar.selectedPage = value
+                  // @ts-expect-error
+                  document.getElementById(
+                    `_${navBar.selectedPage}_`,
+                  ).style.background = '#1871b3'
+                  try {
+                    let isExtend = navList.get(value).isExtend
+                    if (!isExtend) {
+                      extendSet.forEach((v) => {
+                        if (navList.get(v).hasChildren) {
+                          ;(
+                            document.getElementById(`_${v}`) as HTMLUListElement
+                          ).style.position = 'absolute'
+                          ;(
+                            document.getElementById(`_${v}`) as HTMLUListElement
+                          ).style.display = 'none'
+                          ;(
+                            document.getElementById(
+                              `__${v}`,
+                            ) as HTMLImageElement
+                          ).src = down
+                          navList.get(v).isExtend = false
+                        }
+                      })
+                      extendSet.clear()
+                    }
+                    if (navList.get(value).hasChildren) {
+                      extendSet.add(value)
+                      navList.get(value).isExtend = true
+                    }
+                  } catch (error) {}
+                  app.updateRoot((draft) => {
+                    set(draft, component.get('data-key'), {
+                      pageName: value,
+                      isGoto: true,
+                      status: true
+                    })
+                  })
+                }
+                let value = dom.getAttribute('title-value') as string
+                let img = document.getElementById(
+                  `__${value}`,
+                ) as HTMLImageElement
+                if (img) {
+                  let value = dom.getAttribute('title-value')
+                  // @ts-expect-error
+                  let isExtend = navList.get(value).isExtend
+                  let ul = document.getElementById(
+                    `_${value}`,
+                  ) as HTMLUListElement
+                  if (!isExtend) {
+                    ul.style.position = 'relative'
+                    ul.style.display = 'block'
+                    img.src = up
+                  }
+                }
+                action(value)
+              } catch (error) {}
+            } else if (dom.tagName === 'IMG') {
+              let value = dom.getAttribute('title-value')
+              // @ts-expect-error
+              let isExtend = navList.get(value).isExtend
+              let ul = document.getElementById(`_${value}`) as HTMLUListElement
+              // @ts-expect-error
+              window.app.root.Global.pageName = ''
+              if (isExtend) {
+                ul.style.position = 'absolute'
+                ul.style.display = 'none'
+                dom.src = down
+                extendSet.delete(value)
+                navList.get(value).isExtend = false
+              } else {
+                ul.style.position = 'relative'
+                ul.style.display = 'block'
+                dom.src = up
+                extendSet.add(value)
+                navList.get(value).isExtend = true
+              }
+            }
+          })
+
+          let extendSet = navBar.extendSet
+
+          if(menuBarInfo.remainName !== '') {
+            currentPage = menuBarInfo.remainName
+            app.updateRoot(dratf => {
+              set(dratf, component.get('data-key'), {
+                isGoto: menuBarInfo.isGoto,
+                pageName: menuBarInfo.pageName,
+                remainName: ''
+              })
+            })
+          }
+
+          if (childMap.has(currentPage)) {
+            // console.log("AAAABC")
+            let info = childMap.get(currentPage)
+            let PAGE = info?.split('|')[0]
+            let BLOCK = info?.split('|')[1]
+            if (navBar.selectedPage !== PAGE) {
+              extendSet.forEach((v) => {
+                if (navList.get(v).hasChildren) {
+                  ;(
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.position = 'absolute'
+                  ;(
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.display = 'none'
+                  ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                    down
+                  navList.get(v).isExtend = false
+                }
+              })
+              extendSet.clear()
+              extendSet.add(BLOCK)
+              navList.get(BLOCK).isExtend = true
+              ;(
+                document.getElementById(`_${BLOCK}`) as HTMLUListElement
+              ).style.position = 'relative'
+              ;(
+                document.getElementById(`_${BLOCK}`) as HTMLUListElement
+              ).style.display = 'block'
+              if (navList.get(BLOCK).hasChildren) {
+                ;(
+                  document.getElementById(`__${BLOCK}`) as HTMLImageElement
+                ).src = up
+              }
+              // @ts-expect-error
+              navBar.selectedPage = PAGE
+              // @ts-expect-error
+              // document.getElementById(`_${navBar.selectedPage}_`).style.background = '#1871b3'
+            }
+          }
+
+          if (extendMap.has(currentPage)) {
+            let extendPage = extendMap.get(currentPage)
+            extendSet.forEach((v) => {
+              if (navList.get(v).hasChildren) {
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.position = 'absolute'
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.display = 'none'
+                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                  down
+                navList.get(v).isExtend = false
+              }
+            })
+            extendSet.clear()
+            extendSet.add(extendPage)
+            navList.get(extendPage).isExtend = true
+            ;(
+              document.getElementById(`_${extendPage}`) as HTMLUListElement
+            ).style.position = 'relative'
+            ;(
+              document.getElementById(`_${extendPage}`) as HTMLUListElement
+            ).style.display = 'block'
+            if (navList.get(extendPage).hasChildren) {
+              ;(
+                document.getElementById(`__${extendPage}`) as HTMLImageElement
+              ).src = up
+            }
+            // @ts-expect-error
+            window.navBar.selectedPage = currentPage
+          }
+
+          if (
+            optsList.has(currentPage) &&
+            !optsList.get(currentPage)?.hasChildren
+          ) {
+            extendSet.forEach((v) => {
+              if (navList.get(v).hasChildren) {
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.position = 'absolute'
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.display = 'none'
+                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                  down
+                navList.get(v).isExtend = false
+              }
+              extendSet.clear()
+              // @ts-expect-error
+              window.navBar.selectedPage = currentPage
+            })
+          }
+
+          // @ts-expect-error
+          if (navBar.selectedPage) {
+            try {
+              // @ts-expect-error
+              document.getElementById(
+                `_${navBar.selectedPage}_`,
+              ).style.background = '#1871b3'
+            } catch (error) {}
+          }
+        }
+
+        if (img.complete) {
+          draw()
+        } else {
+          img.onload = () => {
+            draw()
+            img.onload = null
+          }
+        }
+        
+      }
+    },
+    '[App editor]': {
+      cond: "editor",
+      resolve({ node, component }) {
+        let style = document.createElement("style") as HTMLStyleElement
+        const ROOT_CHILD = document.getElementById("root")?.children[0] as HTMLDivElement
+        style.innerHTML = 
+          styleText
+          .replace("@[SWAL_WIDTH]", `${ROOT_CHILD.clientWidth}px`)
+          .replace("@[SWAL_LEFT]", `${0.16 * ROOT_CHILD.clientWidth}px`)
+        document.body.appendChild(style)
+        node.style.width = "100%"
+        node.style.height = "100%"
+        node.style.display = "flex"
+        node.style.justifyContent = "center"
+        node.style.alignItems = "center"
+        node.innerHTML = editorHtml;
+
+        // uuidMap.clear()
+
+        // node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-82}px`)
+
+        const assetsUrl = app.nui.getAssetsUrl() || ""
+        const expend = `${assetsUrl}expend.svg`
+        const contract = `${assetsUrl}contract.svg`
+        const img = document.createElement("img") as HTMLImageElement
+        img.src = expend
+        img.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          cursor: pointer;
+          z-index: 1;
+        `
+        node.appendChild(img)
+
+        CalculateInit()
+
+        const kp = new keypress()
+        let isUseHotKey = false;
+
+        const id = node.id
+
+        kp.clean()
+        kp.listen({
+          type: "keydown",
+          key: ' ',
+          callback: () => {
+            // console.log(document.getElementById(id))
+            if(document.getElementById(id) !== null)
+              isUseHotKey = true
+            else {
+              kp.clean()
+            }
+          }
+        })
+
+        kp.listen({
+          type: "keydown",
+          skip: [
+            ' ',
+            'shift@'
+          ],
+          callback: (event) => {
+            if(isUseHotKey) isUseHotKey = false
+          }
+        })
+
+        kp.listen({
+          type: 'keydown',
+          key: '@',
+          useCombination: 'shift',
+          callback: () => {
+          if(isUseHotKey) {
+              const editor: IDomEditor = window.app.root.editor
+              const selection = editor.selection
+              searchPopUp({
+                  editor,
+                  selection,
+                  isUseHotKey
+              })
+              isUseHotKey = false
+              // editor.insertText(`-editing-@[]-editing-`)
+              // searchPopUp(editor)
+            }
+              // console.log(editor.selection)
+          }
+        })
+  
+        let isExpend = true
+
+        img.addEventListener("click", ()=> {
+          if(isExpend) {
+            img.src = contract;
+            (document.getElementById("preViewBox") as HTMLElement).style.display = "none";
+            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "100%";
+            isExpend = false
+          } else {
+            img.src = expend;
+            (document.getElementById("preViewBox") as HTMLElement).style.display = "block";
+            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "45%";
+            isExpend = true
+          }
+        })
+
+        let oldSHA = ''
+        const change = (editor: IDomEditor) => {
+          const str = editor.getHtml()
+          let newSHA = createHash('sha256').update(str).digest('hex')
+          if(newSHA !== oldSHA) {
+            // const oldTemplateInfo = get(app.root, component.get('data-key'))
+            // const html = matchChar(str)
+            const html = matchBlock(str).replace(/__replace__/g, assetsUrl)
+            app.updateRoot(draft => {
+              set(draft, component.get("data-key"), {
+                html: str,
+                yaml: getYaml(editor)
+              })
+            });
+            (document.getElementById("preView") as HTMLDivElement).innerHTML = html
+            oldSHA = newSHA
+          }
+        }
+        editorConfig.onChange = change
+        
+        const editor = createEditor({
+          content: [],
+          selector: '#editor-container',
+          html: '<p><br></p>',
+          config: editorConfig,
+          mode: 'default', // or 'simple'
+        })
+        
+        const toolbar = createToolbar({
+          editor,
+          selector: '#toolbar-container',
+          config: registerToolbar(),
+          mode: 'default', // or 'simple'
+        })
+        
+        let timer
+        const calculateHeight = () => {
+          let toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          if(toolbarDom.clientHeight) {
+            const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
+            (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
+            (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
+            (document.getElementById("preView") as HTMLDivElement).style.height = height;
+            node.removeEventListener("load", calculateHeight)
+            const templateInfo = get(app.root, component.get('data-key'))
+            if(templateInfo.title && templateInfo.title !== '') {
+              editor.focus()
+              // editor.dangerouslyInsertHtml(templateInfo.html)
+              editor.setHtml(templateInfo.html)
+              app.updateRoot(draft => {
+                set(draft, component.get("data-key"), {
+                  html: editor.getHtml(),
+                  yaml: getYaml(editor)
+                })
+              })
+            }
+            if(!timer) {
+              clearTimeout(timer)
+            }
+            editor.focus(true)
+          } else {
+            timer = setTimeout(calculateHeight, 0)
+          }
+        }
+        calculateHeight()
+
+        // node.addEventListener("load", calculateHeight)
+
+        const adaptHeight = () => {
+          const toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          const editorDom = document.getElementById("editor-container") as HTMLDivElement
+          // console.log(height);
+          console.log(`${editorDom.clientHeight}px`);
+          (document.getElementById("preView") as HTMLDivElement ).style.height = `${editorDom.clientHeight}px`;
+          (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
+        }
+
+        editor.on("fullScreen", () => {
+          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
+          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
+          if(!editorClass) editorClass = '';
+          if(!previewClass) previewClass = '';
+          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
+          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
+          img.style.display = "none";
+          adaptHeight()
+        })
+
+        editor.on("unFullScreen", () => {
+          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
+          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
+          if(!editorClass) editorClass = '';
+          if(!previewClass) previewClass = '';
+          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
+          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
+          img.style.display = "block";
+          adaptHeight()
+        })
+
+        i18nChangeLanguage("en")
+
+        app.updateRoot(draft => {
+          set(draft, "editor", editor);
+          set(draft, 'toolbar', toolbar);
+        })
+
+        const resource = i18nGetResources("en")
+        resource.fontSize["default"] = "Font Size"
+
+        app.mainPage.once(eventId.page.on.ON_DOM_CLEANUP, () => {
+          // console.log("TEST")
+          node.remove()
+          kp.clean()
+          editor.destroy()
+          toolbar.destroy()
+        })
+
+      }
+    },
+    '[App templateView]': {
+      cond: "templateView",
+      resolve({ node, component }) {
+        const html = get(app.root, component.get('data-key'))
+        const assetsUrl = app.nui.getAssetsUrl() || ""
+        const style = `
+          <style>
+            p {
+              margin: 15px 0;
+            }
+          </style>
+        `
+        // node.innerHTML = style + matchChar(html)
+        node.innerHTML = style + matchBlock(html).replace(/__replace__/g, assetsUrl)
+      }
+    },
+    '[App horizontalScroll]': {
+      cond: "horizontalScroll",
+      resolve({ node, component }) {
+        
+        node.style.display = 'flex'
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+
+        let listStyle = {
+          color: "#005795", 
+          background: "#f0f0f0",
+          textDecoration: "underline",
+          marginLeft: 10,
+          marginRight: 0,
+          buttonWidth: 40
+        }
+
+        let liStyle = component.get("listStyle")
+
+        // console.log(liStyle, document.getElementById("root")?.clientWidth)
+        if(liStyle) {
+          const fullWidth = document.getElementById("root")?.children[0].clientWidth as number
+          const floatReg = /^0.[0-9]*$/
+          const pxReg = /^[1-9][0-9]*px$/
+          if("marginLeft" in liStyle) {
+            if(floatReg.test(liStyle["marginLeft"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["marginLeft"]) * fullWidth
+            else if(pxReg.test((liStyle["marginLeft"])))
+              liStyle["marginLeft"] = liStyle["marginLeft"].replace("px", "")
+            else
+              delete liStyle["marginLeft"]
+          }
+          if("margin-left" in liStyle) {
+            if(floatReg.test(liStyle["margin-left"]))
+              liStyle["marginLeft"] = parseFloat(liStyle["margin-left"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-left"])))
+              liStyle["marginLeft"] = liStyle["margin-left"].replace("px", "")
+            else
+              delete liStyle["margin-left"]
+          }
+          if("marginRight" in liStyle) {
+            if(floatReg.test(liStyle["marginRight"]))
+              liStyle["marginRight"] = parseFloat(liStyle["marginRight"]) * fullWidth
+            else if(pxReg.test((liStyle["marginRight"])))
+              liStyle["marginRight"] = liStyle["marginRight"].replace("px", "")
+            else
+              delete liStyle["marginRight"]
+          }
+          if("margin-right" in liStyle) {
+            if(floatReg.test(liStyle["margin-right"]))
+              liStyle["marginRight"] = parseFloat(liStyle["margin-right"]) * fullWidth
+            else if(pxReg.test((liStyle["margin-right"])))
+              liStyle["marginRight"] = liStyle["margin-right"].replace("px", "")
+            else
+              delete liStyle["margin-right"]
+          }
+          if("buttonWidth" in liStyle) {
+            if(floatReg.test(liStyle["buttonWidth"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["buttonWidth"]) * fullWidth
+            else if(pxReg.test((liStyle["buttonWidth"])))
+              liStyle["buttonWidth"] = liStyle["buttonWidth"].replace("px", "")
+            else
+              delete liStyle["buttonWidth"]
+          }
+          if("button-width" in liStyle) {
+            if(floatReg.test(liStyle["button-width"]))
+              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * fullWidth
+            else if(pxReg.test((liStyle["button-width"])))
+              liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
+            else
+              delete liStyle["button-width"]
+          }
+          listStyle = Object.assign(listStyle, liStyle)
+        }
+
+        const currentPage = app.currentPage
+
+        const MenuShowNumber = 5
+        const MenuItemHeight = 40
+
+        const MENU = document.createElement("div")
+        MENU.style.cssText = `
+          width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
+          height: inherit;
+          flex-shrink: 0;
+          border-radius: 6px;
+          cursor: pointer;
+          box-sizing: border-box;
+          background: url(${assetsUrl}menuIcon.svg) no-repeat;
+          background-size: 50% 50%;
+          background-position: center;
+        `
+        // MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.5 * listStyle.buttonWidth}" height="${0.5 * listStyle.buttonWidth}">`
+
+        const MENULIST = document.createElement("div")
+        MENULIST.style.cssText = `
+          width: 300px;
+          height: ${MenuShowNumber*MenuItemHeight}px;
+          background: #ffffff;
+          position: absolute;
+          top: 2px;
+          left: 0;
+          border-radius: 10px;
+          overflow-x: hidden;
+          overflew-y: scroll;
+          scroll-behavior: smooth;
+          box-shadow: 0px 2px 5px #cccccc
+        `
+        // MENU.appendChild(MENULIST)
+
+        const horizontalScroll = document.createElement('div')
+        // const BTWidth = 100;
+        horizontalScroll.style.cssText = `
+          width: calc(100% - ${3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
+          height: inherit;
+          display: flex;
+          overflow-x: scroll;
+          overflow-y: hidden;
+          scroll-behavior: smooth;
+          flex-shrink: 0;
+        `
+        const list = get(app.root?.[currentPage], component.get('list'))
+        const titlePath = component.get("titlePath")
+        const dataKey = component.get("data-key")
+
+        const Items = new Array<HTMLDivElement>()
+        const MenuItems = new Array<HTMLDivElement>()
+        const ALLWIDTHS = new Array<number>()
+        const SHOWWIDTHS = new Array<number>()
+        const SHOWITEM = new Map<number, HTMLDivElement>()
+
+        let currentItem = {}
+        let currentIndex = 0
+        if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+          currentItem = get(app.root, dataKey)
+        } else {
+          currentItem = get(app.root?.[currentPage], dataKey)
+        }
+
+        list.forEach((item, index) => {
+          const Item = document.createElement("div")
+          Item.innerText = `${get(item, titlePath)}`
+          Item.style.cssText = `
+            background: ${listStyle.background};
+            text-decoration: underline;
+            color: ${listStyle.color};
+            text-align: center;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 0px 30px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            margin-left: ${listStyle.marginLeft}px;
+            margin-right: ${listStyle.marginRight}px;
+            cursor: pointer;
+            box-sizing: border-box;
+          `
+          Item.setAttribute("class", "horizontal")
+          Item.setAttribute("alt", `${index}`)
+          // if(index !== 0) Item.style.marginLeft = "4px"
+          Items.push(Item)
+          horizontalScroll.appendChild(Item)
+          const MENUItem = document.createElement("div")
+          MENUItem.setAttribute("class", "li")
+          MENUItem.setAttribute("alt", `${index}`)
+          MENUItem.innerText = `${get(item, titlePath)}`
+          MENUItem.style.cssText = `
+            background: #ffffff;
+            width: inherit;
+            height: ${MenuItemHeight}px;
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            text-align: left;
+            text-indent: 1em;
+          `
+          MenuItems.push(MENUItem)
+          MENULIST.appendChild(MENUItem)
+          // 校验ID, 无ID
+          if(currentItem 
+            && get(currentItem, "id") 
+            && get(currentItem, "id") === get(item, "id")) {
+            currentIndex = index
+          }
+        })
+        const style = document.createElement("style")
+        style.innerText = `
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          .li:hover {
+            background: ${listStyle.background} !important;
+            font-weight: 700;
+          }
+          .horizontal:hover{
+            background: ${listStyle.color} !important;
+            color: #ffffff !important;
+            font-weight: 700;
+          }
+        `
+        node.appendChild(style)
+        node.appendChild(MENU)
+        node.appendChild(horizontalScroll)
+        const BT = document.createElement("div")
+        BT.style.cssText = `
+          width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
+          height: inherit;
+          display: flex;
+          justify-content: space-around;
+          flex-shrink: 0;
+        `
+        const LEFT = document.createElement("div")
+        LEFT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        `
+        LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
+        const RIGHT = document.createElement("div")
+        RIGHT.style.cssText = `
+          width: ${listStyle.buttonWidth}px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all .1;
+        `
+        RIGHT.innerHTML = `<img src="${assetsUrl}rightBarIcon.svg" />`
+        BT.appendChild(LEFT)
+        BT.appendChild(RIGHT)
+        // node.appendChild(BT)
+        
+        // dom渲染监听
+        let timer
+        const getAllWidths = () => {
+          if(horizontalScroll.clientWidth) {
+            const WIDTH = horizontalScroll.clientWidth
+            const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
+            ? node.style.maxWidth.replace("px", "")
+            : node.style.maxWidth) - 3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight))
+            const HEIGHT = horizontalScroll.clientHeight
+            Items.forEach(item => {
+              ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+            })
+            if(WIDTH >= MAXWIDTH) {
+              const blank = document.createElement("div")
+              blank.style.cssText = `
+                width: ${WIDTH}px;
+                height: inherit;
+                flex-shrink: 0;
+              `
+              horizontalScroll.appendChild(blank)
+              node.appendChild(BT)
+            } else {
+              horizontalScroll.style.width = `${WIDTH + 2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px`
+            }
+            MENULIST.style.marginTop = `${HEIGHT}px`
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(getAllWidths, 0)
+          }
+        }
+        getAllWidths()
+        const refreshAllWidth = () => {
+          ALLWIDTHS.length = 0
+          Items.forEach(item => {
+            ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+          })
+        }
+
+        const sum = (arr: Array<number>) => {
+          let res = 0
+          arr.forEach(item => {
+            res += item
+          })
+          return res
+        }
+
+        const getShowWidths = (start: number) => {
+          let count = 0
+          const WIDTH = horizontalScroll.clientWidth
+          SHOWWIDTHS.length = 0
+          SHOWITEM.clear()
+          do {
+            if(ALLWIDTHS[start]) {
+              SHOWWIDTHS.push(ALLWIDTHS[start])
+              SHOWITEM.set(start, Items[start])
+              count += ALLWIDTHS[start]
+              start++
+            } else {
+              break
+            }
+          } while (count < WIDTH);
+          if(sum(SHOWWIDTHS) > WIDTH) {
+            SHOWITEM.delete(start-1)
+          }
+        }
+        let index = 0
+        let selectIndex = 0
+        getShowWidths(index)
+        let lastIndex = index + SHOWWIDTHS.length - 1
+        const calculateRight = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          if(lastIndex < ALLWIDTHS.length) {
+            horizontalScroll.scrollLeft += ALLWIDTHS[index]
+            index++
+            lastIndex = index + SHOWWIDTHS.length - 1
+          }
+          changBT()
+        }
+        const calculateLeft = () => {
+          refreshAllWidth()
+          getShowWidths(index)
+          if(index > 0) {
+            horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
+            index--
+            lastIndex = index + SHOWWIDTHS.length -1
+          }
+          changBT()
+        }
+
+        const changBT = () => {
+          if(index === 0) {
+            LEFT.style.filter = "grayscale(100%)"
+          } else {
+            LEFT.style.filter = "none"
+          }
+          refreshAllWidth()
+          getShowWidths(index)
+          const WIDTH = horizontalScroll.clientWidth
+          // if(sum(SHOWWIDTHS) >= WIDTH) {
+          if(lastIndex < ALLWIDTHS.length) {
+            RIGHT.style.filter = "none"
+          } else {
+            RIGHT.style.filter = "grayscale(100%)"
+          }
+        }
+        changBT()
+
+        const delay_frame = (delay:number) => {
+          let count=0;     
+          return new Promise(function (resolve, reject) {
+            (function raf(){
+              count++;
+              let id =window.requestAnimationFrame(raf);
+              if( count>delay){
+                  window.cancelAnimationFrame(id);
+                  resolve(true);
+              }
+            }())
+          })
+        }
+
+        const gotoIndex = async (target: number) => {
+          selectIndex = target
+          app.updateRoot(draft => {
+            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+              set(draft, dataKey, list[target])
+            } else {
+              set(draft?.[currentPage], dataKey, list[target])
+            }
+          })
+          if(target >= lastIndex) {
+            while(!SHOWITEM.has(target)) {
+              calculateRight()
+              await delay_frame(20)
+            }
+          } else if(target < index) {
+            const step = index - target
+            for(let i = 0; i < step; i++) {
+              calculateLeft()
+              await delay_frame(20)
+            }
+          }
+          const targetDom = Items[target]
+          Items.forEach(item => {
+            if(item === targetDom) {
+              item.style.background = listStyle.color
+              item.style.color = "#ffffff"
+              item.style.fontWeight = "700"
+            } else {
+              item.style.background = listStyle.background
+              item.style.color = listStyle.color
+              item.style.fontWeight = "normal"
+            }
+          })
+        }
+
+        function debounce(fn, delay = 500) {
+          // timer 是在闭包中的
+          let timer: NodeJS.Timeout | null = null;
+          
+          return function(...args) {
+            const context = this 
+            if (timer) {
+                clearTimeout(timer)
+            }
+            timer = setTimeout(() => {
+                fn.apply(context, args)
+                timer = null
+            }, delay)
+          }
+        }
+
+        horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
+          event.preventDefault()
+          try {
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch { }
+          // const WIDTH = horizontalScroll.clientWidth
+          refreshAllWidth()
+          getShowWidths(index)
+          if(event.deltaY > 0) {
+            calculateRight()
+          } else {
+            calculateLeft()
+          }
+        }, 200))
+
+        LEFT.addEventListener("click", (e) => {
+          e.stopPropagation()
+          debounce(() => {
+            calculateLeft()
+          }, 200)()
+        })
+
+        RIGHT.addEventListener("click", (e) => {
+          e.stopPropagation()
+          debounce(() => {
+            calculateRight()
+          }, 200)()
+        })
+
+        horizontalScroll.addEventListener("click", (event: MouseEvent) => {
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          try { 
+            MENU.removeChild(MENULIST) 
+            isShow = false
+          } catch {}
+          if(!Number.isNaN(idx)) {
+            selectIndex = idx
+            refreshAllWidth()
+            getShowWidths(index)
+            if(!SHOWITEM.has(idx)) {
+              calculateRight()
+            }
+            app.updateRoot(draft => {
+              if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+                set(draft, dataKey, list[idx])
+              } else {
+                set(draft?.[currentPage], dataKey, list[idx])
+              }
+            })
+            Items.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.color
+                item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = listStyle.background
+                item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          } else {
+            event.stopPropagation()
+          }
+        })
+        
+        let isShow = false
+        MENU.addEventListener("click", (event: MouseEvent) => {
+          if(event.target === MENU) 
+            event.stopPropagation()
+          isShow = !isShow
+          if(isShow) {
+            MENU.appendChild(MENULIST)
+            if(selectIndex > MenuShowNumber - 1) {
+              const step = selectIndex - (MenuShowNumber - 1)
+              MENULIST.scrollTop += step * MenuItemHeight
+            }
+            const target = MenuItems[selectIndex]
+            MenuItems.forEach(item => {
+              if(item === target) {
+                item.style.background = listStyle.background
+                // item.style.color = "#ffffff"
+                item.style.fontWeight = "700"
+              } else {
+                item.style.background = "#ffffff"
+                // item.style.color = listStyle.color
+                item.style.fontWeight = "normal"
+              }
+            })
+          } else {
+            MENU.removeChild(MENULIST)
+          }
+          const target = event.target as HTMLDivElement
+          // const WIDTH = horizontalScroll.clientWidth
+          const idx = parseInt(target.getAttribute("alt") as string)
+          if(!Number.isNaN(idx)) {
+            gotoIndex(idx)
+          }
+        })
+
+        document.body.addEventListener("click", (event) => {
+          if(event.target !== MENU && !(new Set(MenuItems).has(event.target as HTMLDivElement)) && isShow) {
+            isShow = !isShow
+            MENU.removeChild(MENULIST)
+          }
+        }, {capture: true})
+
+        // MENULIST.addEventListener("click", (event) => {
+          
+        // })
+
+        const listenLoad = async () => {
+          if(horizontalScroll.clientWidth) {
+            await delay_frame(20)
+            gotoIndex(currentIndex)
+            if(!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(listenLoad, 0)
+          }
+        }
+        listenLoad()
+
+      }
+    }
   }
 
   return u

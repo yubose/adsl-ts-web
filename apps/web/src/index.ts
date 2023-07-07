@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import type * as jss from 'jsstore'
-import log from 'loglevel'
+import log from './log'
 import { asHtmlElement, findByViewTag } from 'noodl-ui'
 import { toast } from './utils/dom'
 import { isChrome } from './utils/common'
@@ -40,11 +40,12 @@ async function initializeApp(
       getStatus: Account?.getStatus?.bind(Account),
     }) as App
     u.assign(app.spinner.opts, {
-      lines: 13, // The number of lines to draw
-      length: 38, // The length of each line
-      width: 17, // The line thickness
-      radius: 45, // The radius of the inner circle
+      lines: 10, // The number of lines to draw
+      length: 4, // The length of each line
+      width: 4, // The line thickness
+      radius: 10, // The radius of the inner circle
       animation: 'spinner-line-shrink', // The CSS animation name for the lines
+      speed: 2,
       color: '#000', // CSS color or array of colors
       zIndex: 2000000000, // The z-index (defaults to 2e9)
     })
@@ -65,7 +66,7 @@ async function initializeApp(
               )
 
             app.serviceWorker?.addEventListener('statechange', (evt) => {
-              console.log(
+              log.log(
                 `%c[App - serviceWorker] State changed`,
                 `color:#c4a901;`,
                 evt,
@@ -78,7 +79,7 @@ async function initializeApp(
             ) => {
               const awaitStateChange = async (evt?: Event) => {
                 await app.serviceWorkerRegistration?.update()
-                console.log(
+                log.log(
                   `%c[App - serviceWorkerRegistration] Update found`,
                   `color:#c4a901;`,
                   evt,
@@ -103,11 +104,7 @@ async function initializeApp(
             })
 
             navigator.serviceWorker.addEventListener('message', (msg) => {
-              console.log(
-                `%c[App] serviceWorker message`,
-                `color:#00b406;`,
-                msg,
-              )
+              log.log(`%c[App] serviceWorker message`, `color:#00b406;`, msg)
               if (msg?.type === 'send-skip-waiting') {
                 app.serviceWorkerRegistration?.waiting?.postMessage(
                   'skipWaiting',
@@ -132,7 +129,7 @@ async function initializeApp(
         !notification?.initiated && (await notification?.init())
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
-        console.error(err)
+        log.error(err)
       }
     },
     onSdkInit(sdk) {
@@ -150,9 +147,9 @@ async function initializeApp(
 
 window.addEventListener('load', async (e) => {
   if (isChrome()) {
-    console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
+    log.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
   } else {
-    console.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
+    log.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
   }
 
   try {
@@ -163,6 +160,8 @@ window.addEventListener('load', async (e) => {
     const { Account } = await import('@aitmed/cadl')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
+
+    startObservingAppPerformance()
 
     log.debug('Initializing [App] instance')
     app = await initializeApp({ noodl, Account })
@@ -186,7 +185,7 @@ window.addEventListener('load', async (e) => {
         } else if (e.key == '2') {
           node = asHtmlElement(findByViewTag('2')) as HTMLElement
         }
-        console.log(node)
+        log.log(node)
         node?.click?.()
       }
     })
@@ -198,7 +197,7 @@ window.addEventListener('load', async (e) => {
 
     window.addEventListener('popstate', createOnPopState(app))
   } catch (error) {
-    console.error(error)
+    log.error(error)
   } finally {
     !attachDebugUtilsToWindow.attached && attachDebugUtilsToWindow(app)
   }
@@ -206,15 +205,23 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
-
-  const notifiedForChromeDesktop = await localForage.getItem(
-    'notified-chrome-desktop',
-  )
-
-  if (!isChrome() && notifiedForChromeDesktop != 'notified') {
+  // for desktop version comment by chenchen.xu 2023.2.18
+  // const notifiedForChromeDesktop = await localForage.getItem(
+  //   'notified-chrome-desktop',
+  // )
+  // if (!isChrome() && notifiedForChromeDesktop != 'notified') {
+  //   const width = window.outerWidth
+  //   if (width > 1000) {
+  //     await localForage.setItem('notified-chrome-desktop', 'notified')
+  //     toast(`For best performance, please use the Chrome browser`, {
+  //       timeout: 10000,
+  //       type: 'dark',
+  //     })
+  //   }
+  // }
+  if (!isChrome()) {
     const width = window.outerWidth
     if (width > 1000) {
-      await localForage.setItem('notified-chrome-desktop', 'notified')
       toast(`For best performance, please use the Chrome browser`, {
         timeout: 10000,
         type: 'dark',
@@ -223,9 +230,7 @@ window.addEventListener('load', async (e) => {
   }
 
   if (__NOODL_SEARCH_CLIENT__ in window) {
-    console.log(
-      `Custom SearchClient available in window.__NOODL_SEARCH_CLIENT__`,
-    )
+    log.log(`Custom SearchClient available in window.__NOODL_SEARCH_CLIENT__`)
     const searchClient = window.__NOODL_SEARCH_CLIENT__({
       timestamp: new Date().toISOString(),
     })
@@ -272,6 +277,24 @@ function attachDebugUtilsToWindow(app: App) {
 
 attachDebugUtilsToWindow.attached = false
 
+function startObservingAppPerformance() {
+  log.log(`Observing app performance through the PerformanceObserver.`)
+  const callback: PerformanceObserverCallback = function onPerformanceObserved(
+    list: PerformanceObserverEntryList,
+    obs: PerformanceObserver,
+  ) {
+    list.getEntries().forEach(function onPerformanceObserverEntry(entry) {
+      const { name, entryType, duration, startTime } = entry
+      const json = entry.toJSON()
+      console.log({ json, entry, name, entryType, duration, startTime })
+      debugger
+    })
+  }
+  const observer = new PerformanceObserver(callback)
+  observer.observe({ entryTypes: ['frame'] })
+  return observer
+}
+
 /**
  * Initializes the Personal Index Worker
  * @param { Worker } worker
@@ -280,14 +303,14 @@ function initPiBackgroundWorker(worker: Worker) {
   const _color = 'navajowhite'
 
   /**
-   * Wraps the worker with a "sendMessage" method. This is the same as postMessage but is being used here so we don't write "console.log" every time to debug logs
+   * Wraps the worker with a "sendMessage" method. This is the same as postMessage but is being used here so we don't write "log.log" every time to debug logs
    * @param worker
    * @returns { Worker }
    */
   const withSendMessage = (worker: Worker) => {
     Object.defineProperty(worker, 'sendMessage', {
       value: function (this: Worker, ...args: any[]) {
-        console.log(
+        log.log(
           `%c[client] Sending "${args[0]?.type}"`,
           `color:${_color};`,
           args[0],
@@ -350,7 +373,7 @@ function initPiBackgroundWorker(worker: Worker) {
         // const { table, result, query } = data
         // const resp = await fetch('/cpt')
         // const respData = await resp.json()
-        // console.log(`searchResult`, result)
+        // log.log(`searchResult`, result)
         break
       }
       // case 'FETCHED_STORE_DATA': {
@@ -369,22 +392,9 @@ function initPiBackgroundWorker(worker: Worker) {
     }
   })
   piWorker.addEventListener('messageerror', function (evt) {
-    console.log(`%c[client] MessageError`, `color:tomato;`, evt)
+    log.log(`%c[client] MessageError`, `color:tomato;`, evt)
   })
   piWorker.addEventListener('error', function (evt) {
-    console.log(`%c[client] Error`, `color:tomato;`, evt)
-  })
-}
-
-if (module.hot) {
-  module.hot.accept()
-  if (module.hot.status() === 'apply') {
-    app = window.app as App
-    window.app.reset(true)
-    delete window.app
-  }
-
-  module.hot.dispose((data = {}) => {
-    u.keys(data).forEach((key) => delete data[key])
+    log.log(`%c[client] Error`, `color:tomato;`, evt)
   })
 }

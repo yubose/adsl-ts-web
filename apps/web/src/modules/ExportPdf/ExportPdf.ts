@@ -11,6 +11,7 @@ import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
 import sizes from './sizes'
 import type { GeneratePagesOptions } from './generatePages'
 import * as t from './exportPdfTypes'
+import log from '../../log'
 
 export const ExportPdf = (function () {
   /**
@@ -97,7 +98,7 @@ export const ExportPdf = (function () {
         })
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
-        console.log(
+        log.log(
           `[ExportPDF-${err.name}] Error occurred while creating a PDF using the addImage method. Using fallback HTML strategy now...`,
           err,
         )
@@ -113,7 +114,7 @@ export const ExportPdf = (function () {
         })
       }
     } catch (error) {
-      console.error(error instanceof Error ? error : new Error(String(error)))
+      log.error(error instanceof Error ? error : new Error(String(error)))
     } finally {
       flattener?.clear?.()
     }

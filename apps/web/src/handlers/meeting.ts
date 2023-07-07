@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
-import log from 'loglevel'
-import { isComponent } from 'noodl-ui'
+import log from '../log'
+import { findByUX, isComponent } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
 import { isMobile } from '../utils/common'
@@ -16,6 +16,7 @@ import { isVisible, parseCssText, toast } from '../utils/dom'
 import is from '../utils/is'
 import App from '../App'
 import { LocalParticipant } from 'twilio-video'
+import { get, set } from 'lodash'
 
 type RemoteParticipantConnectionChangeEvent =
   | 'participantConnected'
@@ -31,6 +32,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.debug(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
         // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        // app.meeting.getMainStreamElement()
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
@@ -38,6 +40,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           app.register.extendVideoFunction('onDisconnect')
         }
         toast(`A participant disconnected`, { type: 'error' })
+        const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
+        videoNode.style.display = 'none'
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {
@@ -102,6 +106,18 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       }
       log.debug(`Bound local participant to selfStream`, app.selfStream)
     }
+    const remoteParticipants = room?.participants
+    if(remoteParticipants.size == 0){
+      // twilioOnNoParticipant
+    }else{
+      // twilioOnPeopleJoin
+      app.register.extendVideoFunction('twilioOnPeopleJoin')
+    }
+
+    if(remoteParticipants && remoteParticipants.size ==0){
+      app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+    }
+
     for (const participant of room.participants.values()) {
       await app.meeting.addRemoteParticipant(participant)
     }
@@ -224,6 +240,26 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         function onMutation(mutations: Parameters<MutationCallback>[0]) {
           log.debug(`Mutation change`, mutations)
 
+          const timerNode = findByUX('videoTimer') as HTMLElement
+          if(timerNode && mutations.length == 2){
+            let dataKey = timerNode.getAttribute('data-key') || 0
+            const Interval = setInterval(()=>{
+              app.updateRoot((draft) => {
+                const seconds = get(draft, dataKey, 0)
+                set(draft, dataKey, seconds + 1)
+              })
+
+            },1000)
+            //@ts-expect-error
+            app.ndom.global.intervals.set('VideoChatTimer',Interval)
+          }else{
+            //@ts-expect-error
+            const interval =app.ndom.global.intervals.get('VideoChatTimer')
+            if(interval){
+              clearInterval(interval)
+            }
+          }
+
           const prevStyle = parseCssText(mutations[0]?.oldValue || '')
           const newStyle = parseCssText(
             (mutations[0].target as HTMLDivElement)?.style?.cssText || '',
@@ -311,6 +347,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   | null
 
                 if (is.isBooleanTrue(isBinding)) {
+                  //Prevent duplicate windows
+                  const selfStreamEl = app.meeting.selfStream.getElement()
+                  selfStreamEl.style.visibility = 'hidden'
+                  
                   const el = app.meeting.mainStream.getElement()
                   el.style.width = '100%'
                   el.style.height = '100%'
@@ -318,6 +358,14 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                     `${streamLabel} is set to true. ` +
                       `Proceeding to turn on ${type} streaming now...`,
                   )
+                  const elNodes = el.childNodes
+                  for(const elem  of elNodes){
+                    const type = (elem as HTMLElement)?.tagName?.toLowerCase?.() || ''
+                    if(!(/audio|video/.test(type))){
+                      el.removeChild(elem)
+                    }
+                  }
+                  
 
                   if (el) {
                     log.debug(
@@ -345,6 +393,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                       )
                     } else {
                       node.appendChild(el)
+                      
                     }
                   } else {
                     log.debug(
@@ -377,7 +426,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                         error instanceof Error
                           ? error
                           : new Error(String(error))
-                      console.error(err)
+                      log.error(err)
                     }
                   } else {
                     log.debug(
@@ -399,7 +448,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   node.removeChild(el)
                   el.remove()
                 } catch (error) {
-                  console.error(
+                  log.error(
                     error instanceof Error ? error : new Error(String(error)),
                   )
                 }

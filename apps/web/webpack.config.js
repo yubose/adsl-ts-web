@@ -12,6 +12,7 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const serializeErr = (err) => ({
   name: err.name,
   message: err.message,
@@ -74,7 +75,7 @@ function getWebpackConfig(env) {
     mode === 'production' ? `[name].[contenthash].js` : '[name].js'
 
   if (!Number.isNaN(pkgVersionRev)) {
-    buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
+    buildVersion = [...pkgVersionPaths, pkgVersionRev].join('.')
   }
 
   const version = {
@@ -84,6 +85,12 @@ function getWebpackConfig(env) {
     lvl3:
       pkgJson.current.dependencies['@aitmed/cadl'] ||
       pkgJson.current.devDependencies['@aitmed/cadl'],
+    noodlUi:
+      pkgJson.current.dependencies['noodl-ui'] ||
+      pkgJson.current.devDependencies['noodl-ui'],
+    noodlTypes:
+      pkgJson.current.dependencies['noodl-types'] ||
+      pkgJson.current.devDependencies['noodl-types'],
   }
 
   const staticPaths = [paths.public]
@@ -146,23 +153,23 @@ function getWebpackConfig(env) {
     test: /\.ts$/,
     use: [
       {
-        loader: path.resolve(__dirname, "./dropConsole.js"),
+        loader: path.resolve(__dirname, './dropConsole.js'),
         options: {
-          name: "web"
-        }
+          name: 'web',
+        },
       },
     ],
   }
-  let arrObject = [];
-  (mode==="production")&&arrObject.push(obj);
+  let arrObject = []
+  mode === 'production' && arrObject.push(obj)
 
   let headers = {
     'Access-Control-Allow-Credentials': true,
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers':
       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-  };
-  (mode==="production")&&(headers['Cache-Control']='max-age=86400');
+  }
+  mode === 'production' && (headers['Cache-Control'] = 'max-age=86400')
   const webpackOptions = {
     entry: {
       main: [
@@ -178,6 +185,7 @@ function getWebpackConfig(env) {
     },
     ignoreWarnings: [/InjectManifest/],
     mode,
+
     devServer: {
       allowedHosts: [
         'localhost',
@@ -187,10 +195,14 @@ function getWebpackConfig(env) {
         'aitmed.io',
       ],
       compress: true,
+
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
       headers: headers,
+      client: {
+        overlay: false,
+      },
       port: 3000,
       ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
       /**
@@ -205,6 +217,16 @@ function getWebpackConfig(env) {
         }
         return middlewares
       },
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:9999',
+          secure: false,
+          changeOrigin: true,
+          pathRewrite: {
+            '^/api': ''
+          }
+        }
+      }
     },
     devtool: false,
     externals: [],
@@ -289,9 +311,9 @@ function getWebpackConfig(env) {
           packages: {
             '@aitmed/cadl': version.lvl3,
             '@aitmed/ecos-lvl2-sdk': version.lvl2,
-            'noodl-types': version['noodl-types'],
-            'noodl-ui': version['noodl-ui'],
-            'noodl-utils': version['noodl-utils'],
+            '@aitmed/cadl': version.lvl3,
+            'noodl-types': version.noodlTypes,
+            'noodl-ui': version.noodlUi,
           },
           timestamp: new Date().toLocaleString(),
         },
@@ -346,6 +368,19 @@ function getWebpackConfig(env) {
           },
         ],
       }),
+      // new TerserPlugin({
+      //   cache: true,
+      //   sourceMap: false,
+      //   // 多进程
+      //   parallel: true,
+      //   terserOptions: {
+      //     warnings: false,
+      //     compress: {
+      //       drop_console: false,
+      //       drop_debugger: false
+      //     }
+      //   },
+      // }),
       new webpack.ProgressPlugin({
         // handler: webpackProgress,
       }),
@@ -353,6 +388,11 @@ function getWebpackConfig(env) {
         new InjectScriptsPlugin({ path: settings.injectScripts }),
       ]) ||
         []),
+      new webpack.DefinePlugin({
+        'process.env': {
+          NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+        },
+      }),
     ],
     optimization:
       mode === 'production'
@@ -360,6 +400,17 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
+            minimizer: [
+              new TerserPlugin({
+                terserOptions: {
+                  warnings: false,
+                  compress: {
+                    drop_console: false,
+                    drop_debugger: false,
+                  },
+                },
+              }),
+            ],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
