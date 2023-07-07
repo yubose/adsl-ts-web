@@ -110,20 +110,31 @@ const insertBreak = (editor: IDomEditor) => {
     }
     editor.insertNode(Break)
 }
-let index = 0
+
 const getUuid = () => {
-    const basePrefixC = 65
-    const basePrefix = 97
-    const isCap = Math.floor(Math.random()*2)
-    const prefix = 
-        isCap === 1 ? 
-        basePrefixC + Math.floor(Math.random()*26) :
-        basePrefix + Math.floor(Math.random()*26)
-    const prefixChar = String.fromCharCode(prefix)
-    const date = Math.floor(Date.now()/1000)
-    const dateChar = date.toString(32)
-    index++
-    return prefixChar + dateChar + `${index}`
+    let index = 0
+    let hash = ``
+    const setUuid = () => {
+        const basePrefixC = 65
+        const basePrefix = 97
+        const isCap = Math.floor(Math.random()*2)
+        const prefix = 
+            isCap === 1 ? 
+            basePrefixC + Math.floor(Math.random()*26) :
+            basePrefix + Math.floor(Math.random()*26)
+        const prefixChar = String.fromCharCode(prefix)
+        const date = Math.floor(Date.now()/1000)
+        const dateChar = date.toString(32)
+        const newHash = prefixChar + dateChar
+        if(newHash === hash) {
+            index++
+        } else {
+            index = 0
+            hash = newHash
+        }
+        return newHash + `${index}`
+    }
+    return setUuid()
 }
 
 const getHTMLDataArray = (str: string) => {

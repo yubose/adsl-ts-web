@@ -1,10 +1,7 @@
-import { DomEditor, IDomEditor, SlateElement } from "@wangeditor/editor";
-import Swal from "sweetalert2";
-import DataSource from "../dataSource/data"
-import getTitleList from "../utils/getTitleList";
+import { DomEditor, IDomEditor, SlateElement, SlateTransforms } from "@wangeditor/editor";
 
 function withBlock<T extends IDomEditor>(editor: T) {
-    const { isInline, isVoid, insertNode } = editor
+    const { isInline, isVoid, apply } = editor
     const newEditor = editor
 
     newEditor.isInline = elem => {
@@ -24,6 +21,16 @@ function withBlock<T extends IDomEditor>(editor: T) {
         // if(type === "infoblock") return true
         return isVoid(elem) 
     } 
+
+    newEditor.apply = operation => {
+        // console.log(operation)
+        // @ts-ignore
+        if(operation.node && operation.node.type === 'table') {
+            // @ts-ignore
+            operation.node.width = "100%"
+        }
+        apply(operation)
+    }
 
     // newEditor.insertNode = async elem => {
     //     const type = DomEditor.getNodeType(elem)

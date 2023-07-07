@@ -561,18 +561,21 @@ const populateBlock = ({
                         }
                         item.children.forEach((it, idx) => {
                             let textAlign = it?.isHeader ? {x: 'center'} : {x: 'start'}
+                            let justifyContent = it?.isHeader ? 'center' : 'start'
                             textAlign = it?.textAlign ? {x: it.textAlign} : textAlign
+                            justifyContent = it?.textAlign ? it.textAlign : justifyContent
                             let backgroundColor = it?.isHeader ? "#f5f2f0" : "#ffffff"
                             let fontWeight = it?.isHeader ? "600" : "normal"
                             const c = {
                                 type: "view",
                                 style: {
                                     width: widthArray[idx],
+                                    minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                     // minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     border: "1px solid #cccccc",
                                     backgroundColor,
                                     display: "flex",
-                                    justifyContent: textAlign,
+                                    justifyContent,
                                     alignItems: "center",
                                     textAlign,
                                     flexShrink: flexShrinks[idx],
@@ -590,6 +593,7 @@ const populateBlock = ({
                                             dataKey: "formData.data." + key,
                                             style: {
                                                 display: `..formData.atrribute.is_edit`,
+                                                minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                                 width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                                 border: "none",
@@ -603,11 +607,12 @@ const populateBlock = ({
                                             // text: "--",
                                             style: {
                                                 display: `..formData.atrribute.is_read`,
+                                                minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                                 width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                                 textAlign,
                                                 wordBreak: "break-word",
-                                                fontWeight
+                                                fontWeight,
                                             }
                                         }
                                     ])
@@ -617,16 +622,17 @@ const populateBlock = ({
                                         text: `${it.children[0].text}`,
                                         style: {
                                             width: `calc(100%)`,
+                                            minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                             textAlign,
                                             fontSize: "..formData.atrribute.noodl_font.text",
                                             wordBreak: "break-word",
-                                            fontWeight
+                                            fontWeight,
                                         }
                                     })
                                 }
                             }
-                            child.children.push(c)
+                            // child.children.push(c)
                         })
                         target.children.push(child)
                     })
