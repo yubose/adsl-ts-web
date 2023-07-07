@@ -5201,8 +5201,9 @@ const createExtendedDOMResolvers = function (app: App) {
                     }
                     set(draft?.[pageName], dataKey,val);
                 })
-                node.value = val;
-              }
+                const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+                node.value = (end_w)? ` ${node.value}${val}`: node.value?`${node.value}.${val}`:`${node.value}${val}`;
+              } 
               });
               xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
@@ -5217,7 +5218,7 @@ const createExtendedDOMResolvers = function (app: App) {
             node.parentNode?.appendChild(img);
           }
           node.addEventListener("click",appendEle);
-          document.addEventListener("click",(e)=>{
+          document.addEventListener(device_is_web?'mousedown':"touchstart",(e)=>{
             if(node.parentNode?.contains(img)&&!["target_img",node.id].includes(e.target?.id as string)){
               img.removeEventListener("click",appendEle);
               recorder.stop();
