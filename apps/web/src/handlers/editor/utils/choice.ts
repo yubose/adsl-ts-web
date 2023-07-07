@@ -266,7 +266,6 @@ const choice = ({
                 border-radius: 4px;
             "
             id="w-editor_title--TITLEID--"
-            placeholder="Option --INDEX--"
             value="--TITLEVALUE--"
         />
         <div style="
@@ -316,8 +315,8 @@ const choice = ({
     const update = () => {
         choiceTitles.innerHTML = ""
         choiceTitleList.forEach((item, index) => {
-            item.setAttribute("alt", `${index}`)
-            item.innerHTML = item.innerHTML.replace(/--INDEX--/g, `${index+1}`)
+            item.setAttribute("alt", `${index}`);
+            (item.children[0] as HTMLInputElement).placeholder = `Option ${index+1}`
             choiceTitles.appendChild(item)
         })
     }

@@ -562,6 +562,7 @@ const populateBlock = ({
                                 display: "flex",
                                 width: width
                             },
+                            table: "td",
                             children: new Array()
                         }
                         item.children.forEach((it, idx) => {
