@@ -3406,9 +3406,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataValue['path'],
             )
             if (
-              dataValue['selectedData'].includes(
-                get(dataValue['allData'][i], dataValue['path']),
-              )
+              dataValue['selectedData'] == get(dataValue['allData'][i], dataValue['path'])
             ) {
               childInput.checked = true
               app.updateRoot((draft) => {

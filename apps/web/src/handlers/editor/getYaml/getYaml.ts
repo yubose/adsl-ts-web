@@ -389,6 +389,9 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                                     style: {
                                         display: "..formData.atrribute.is_read",
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                        wordWrap: "break-word",
+                                        wordBreak: "break-word",
+                                        whiteSpace: "pre-wrap"
                                     }
                                 }
                             ]
@@ -439,7 +442,9 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             marginTop: "0.005",
                             paddingTop: "0.005",
                             fontSize: "..formData.atrribute.noodl_font.text",
-                            wordBreak: "break-all",
+                            wordWrap: "break-word",
+                            wordBreak: "break-word",
+                            whiteSpace: "pre-wrap",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             // alignItems: "..formData.atrribute.alignItems",
@@ -471,7 +476,8 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
                             fontSize: "..formData.atrribute.noodl_font.text",
                             flexWrap: "wrap",
                             wordWrap: "break-word",
-                            wordBreak: "break-word"
+                            wordBreak: "break-word",
+                            whiteSpace: "pre-wrap",
                         }
                     }
                     let inheritStyle = {}
@@ -500,10 +506,13 @@ const populateBlock = (obj, BaseJsonCopy, style = {}) => {
             if(obj.text === '') return {}
             target = {
                 type: "label",
-                text: obj.text.replace(/ /g, "&nbsp;"),
+                text: obj.text,
                 style: {
                     // width: "..formData.atrribute.noodl_font.fullWidth",
                     fontSize: "..formData.atrribute.noodl_font.text",
+                    wordWrap: "break-word",
+                    wordBreak: "break-word",
+                    whiteSpace: "pre-wrap",
                 }
             }
             Object.keys(obj).forEach(key => {
