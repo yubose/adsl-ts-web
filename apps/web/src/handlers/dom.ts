@@ -50,7 +50,7 @@ import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar from './editor/toolbar'
-
+import Recorder from 'mic-recorder-to-mp3'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -3325,25 +3325,23 @@ const createExtendedDOMResolvers = function (app: App) {
           let C = `{
             appearance: none;
         }`
-          let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
-            .web.cadlVersion.stable
-          let cadlConfigUrl = JSON.parse(
-            localStorage.getItem('config') as string,
-          ).cadlBaseUrl as string
-          let url = cadlConfigUrl.startsWith('http')
-            ? cadlConfigUrl.match(/(\S*)\$/)?.[1] + cadlVersion
-            : '/admin/admin'
+          // let cadlVersion = JSON.parse(localStorage.getItem('config') as string)
+          //   .web.cadlVersion.stable
+          // let cadlConfigUrl = JSON.parse(
+          //   localStorage.getItem('config') as string,
+          // ).cadlBaseUrl as string
+          const assetsUrl = app.nui.getAssetsUrl() || ''
           let chechedC = `{
           content: "";
           display: inline-block;
           vertical-align: middle;
           width: 13px;
           height: 13px;
-          background-image: url(${url}/assets/selectGray.svg);
+          background-image: url(${assetsUrl}selectGray.svg);
           background-size: 100%;
         }`
           let chechedCheck = `{
-          background-image: url(${url}/assets/selectGrayBlue.svg);
+          background-image: url(${assetsUrl}selectGrayBlue.svg);
         }`
           switch (styleCheckBox) {
             case 'A': {
@@ -3387,7 +3385,7 @@ const createExtendedDOMResolvers = function (app: App) {
               break
             }
           }
-          const arrData: number[] = []
+          // const arrData: number[] = []
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
@@ -3406,7 +3404,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataValue['path'],
             )
             if (
-              dataValue['selectedData'] == get(dataValue['allData'][i], dataValue['path'])
+              dataValue['selectedData'] ==  get(dataValue['allData'][i], dataValue['path'])
             ) {
               childInput.checked = true
               app.updateRoot((draft) => {
@@ -5117,7 +5115,152 @@ const createExtendedDOMResolvers = function (app: App) {
         listenLoad()
 
       }
-    }
+    },
+    '[App] Audio': {
+      cond: ({component:c})=> ["textField","textView"].includes(c.type),
+      resolve({ node, component }) {
+        if (!(component.blueprint.audio === false)) {
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          let pageName = app.currentPage;
+          const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || '';
+          const img = document.createElement("img");
+          img.id = "target_img"
+          img.src = `${assetsUrl}audio_start.svg`
+          img.style.cssText = `
+            position: fixed;
+            right: 0;
+            cursor: pointer;
+            top: 40%;
+          `;
+          const recorder = new Recorder({
+            bitRate: 128
+          });
+          let offsetX = 0;
+          let offsetY = 0;
+          let proccess_fun = true;
+          let isDragging = false;
+          const device_is_web = (()=>{
+            try {
+              document.createEvent("TouchEvent"); return false;
+            } catch(e) {
+              return true; 
+            }
+          })();
+          img.addEventListener(device_is_web?'mousedown':"touchstart",onMouseDown );
+          function onMouseDown(e){
+            device_is_web&&e.preventDefault();
+              offsetX = (e.clientX||e.touches[0].clientX) - img.offsetLeft;
+              offsetY = (e.clientY||e.touches[0].clientY) - img.offsetTop;
+              document.addEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
+              document.addEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          }
+          function onMouseMove(e) {
+            isDragging = true;
+            const newLeft =(e.clientX||e.touches[0].clientX) - offsetX;
+            const newTop =  (e.clientY||e.touches[0].clientY) - offsetY;
+            const offW = document.documentElement.clientWidth - img.offsetWidth;
+            const offH = document.documentElement.clientHeight - img.offsetHeight;
+            if(newLeft<0){
+              img.style.left  = "0"
+            }else if(offW<=newLeft){
+              img.style.left  = offW+"px"
+            }else{
+              img.style.left  = newLeft+"px"
+            }
+            if(newTop<0){
+              img.style.top  = "0"
+            }else if(offH<=newTop){
+              img.style.top  = offH+"px"
+            }else{
+              img.style.top  = newTop+"px"
+            }
+          }
+          function onMouseUp(e) {
+            img.removeEventListener('click', stopRecording);
+            img.removeEventListener('click', startRecording);
+            if(!isDragging){
+              img.addEventListener('click',proccess_fun?startRecording:stopRecording);
+            }
+            isDragging = false;
+            document.removeEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
+            document.removeEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          }
+          function startRecording() {
+            recorder.start().then(() => {
+            img.src = `${assetsUrl}audio_loading.svg`
+              img.removeEventListener('click', startRecording);
+              proccess_fun = false;
+              img.addEventListener('click', stopRecording);
+
+            }).catch((e) => {
+              console.error(e);
+            });
+          }
+          function stopRecording() {
+            img.removeEventListener('click', stopRecording);
+            proccess_fun = true;
+            recorder.stop().getMp3().then(([buffer, blob]) => {
+              const file = new File(buffer, 'audio.mp3', {
+                type: blob.type,
+                lastModified: Date.now()
+              });
+              img.src = `${assetsUrl}audio_start.svg`;
+              let data = new FormData();
+              data.append("task", "translate");
+              data.append("audio_file", file, "audio.mp3");              
+              let xhr = new XMLHttpRequest();
+              xhr.withCredentials = true;
+              xhr.addEventListener("readystatechange", function() {
+              let val;
+              if(this.readyState === 4) {
+                  app.updateRoot(draft => {
+                    try{
+                      val = JSON.parse(this.responseText).text;
+                    }catch{
+                      val = ""
+                    }
+                    set(draft?.[pageName], dataKey,val);
+                })
+                const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+                node.value = (end_w)? ` ${node.value}${val}`: node.value?`${node.value}.${val}`:`${node.value}${val}`;
+              } 
+              });
+              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
+              xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+              xhr.send(data);
+              img.removeEventListener('click', stopRecording);
+              img.addEventListener('click', startRecording);
+            }).catch((e) => {
+              console.error(e);
+            });
+          }
+          const appendEle = (e)=>{
+            node.parentNode?.appendChild(img);
+          }
+          node.addEventListener("click",appendEle);
+          document.addEventListener(device_is_web?'mousedown':"touchstart",(e)=>{
+            if(node.parentNode?.contains(img)&&!["target_img",node.id].includes(e.target?.id as string)){
+              img.removeEventListener("click",appendEle);
+              recorder.stop();
+              img.src = `${assetsUrl}audio_start.svg`
+              proccess_fun = true;
+              img.removeEventListener('click', stopRecording);
+              img.addEventListener('click', startRecording);
+              node.parentNode?.removeChild(img);
+              img.remove()
+              
+            }else{
+              if(node.parentNode?.contains(img)&&!device_is_web){
+                node.focus();
+              }
+            }
+          })
+        } else {
+          log.error('Image array is empty')
+        }
+      },
+    },
   }
 
   return u
