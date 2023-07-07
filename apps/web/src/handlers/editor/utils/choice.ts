@@ -266,7 +266,7 @@ const choice = ({
                 border-radius: 4px;
             "
             id="w-editor_title--TITLEID--"
-            placeholder="Enter here"
+            placeholder="Option --INDEX--"
             value="--TITLEVALUE--"
         />
         <div style="
@@ -317,6 +317,7 @@ const choice = ({
         choiceTitles.innerHTML = ""
         choiceTitleList.forEach((item, index) => {
             item.setAttribute("alt", `${index}`)
+            item.innerHTML = item.innerHTML.replace(/--INDEX--/g, `${index+1}`)
             choiceTitles.appendChild(item)
         })
     }
@@ -328,7 +329,7 @@ const choice = ({
             const inputs = item.getElementsByTagName("input")
             inputBoxes.push(inputs[0])
             choiceDataArray.push({
-                title: inputs[0].value,
+                title: inputs[0].value === "" ? inputs[0].placeholder : inputs[0].value,
                 check: inputs[1].checked ? "checked" : ""
             })
         })

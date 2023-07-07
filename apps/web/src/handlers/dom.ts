@@ -4580,6 +4580,7 @@ const createExtendedDOMResolvers = function (app: App) {
             table {
               border-collapse: collapse;
               margin: 15px 0;
+              table-layout: fixed;
             }
 
             th {
