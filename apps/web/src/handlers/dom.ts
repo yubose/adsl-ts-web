@@ -4370,7 +4370,7 @@ const createExtendedDOMResolvers = function (app: App) {
           top: 10px;
           right: 10px;
           cursor: pointer;
-          z-index: 1;
+          z-index: 2;
         `
         node.appendChild(img)
 
