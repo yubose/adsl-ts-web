@@ -4461,7 +4461,6 @@ const createExtendedDOMResolvers = function (app: App) {
             });
             (document.getElementById("preView") as HTMLDivElement).innerHTML = html
             oldSHA = newSHA
-            console.log(Object.keys(app.root.Global.formData.templateInfo.yaml.data).length)
           }
         }
         editorConfig.onChange = change
