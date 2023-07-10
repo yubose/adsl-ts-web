@@ -102,7 +102,7 @@ const styleText = `
     margin-top: 20px;
     border-radius: 10px;
     overflow: auto;
-    box-shadow: 0px 4px 5px #CCCCCC;
+    box-shadow: 0px 3px 3px #CCCCCC;
 }
 
 #w-e_search-title {
