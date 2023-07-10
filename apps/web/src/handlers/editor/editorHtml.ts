@@ -93,6 +93,21 @@ const styleText = `
     overflow: visible !important;
 }
 
+.w-e_search-container input[type="checkbox"] {
+    flex-shrink: 0;
+    flex-grow: 0;
+    -webkit-appearance:none;
+    border: 2px solid #c1c1c1;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.w-e_search-container input[type="checkbox"]:checked {
+    background: url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIwNSA1NyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgZGF0YS1uYW1lPSIxODE1MyIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzAwNTc5NSIvPjxwYXRoIGRhdGEtbmFtZT0iMTI1NyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4zIiBkPSJNNC41IDguNWwyIDIiLz48cGF0aCBkYXRhLW5hbWU9IjEyNTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMyIgZD0iTTExLjUgNS41bC01IDUiLz48L3N2Zz4=) no-repeat center;
+    border: 2px solid #005795;
+}
+
 #w-e_search-box {
     width: 100%;
     display: flex;
@@ -156,13 +171,11 @@ const styleText = `
 }
 
 .w-e_search-item:hover {
-    color: #ffffff;
-    background: #2988e6;
+    background: #f4f4f4 !important;
 }
 
 .w-e_search-item:focus {
-    color: #ffffff;
-    background: #2988e6;
+    background: #f4f4f4;
 }
 
 .w-e_full-editor {

@@ -509,15 +509,17 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         type: "view",
                                         style: {
                                             display: "flex",
-                                            alignItems: "center",
+                                            // alignItems: "center",
                                             width: "..formData.atrribute.noodl_font.fullWidth",
                                         },
                                         children: [
                                             {
                                                 type: "image",
                                                 style: {
+                                                    display: "block",
                                                     width: "..formData.atrribute.noodl_font.choice.checkbox.width",
-                                                    marginTop: "0.002"
+                                                    height: "calc(100%)",
+                                                    marginTop: "0.005"
                                                 },
                                                 path: {
                                                     emit: {
