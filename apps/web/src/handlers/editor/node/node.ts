@@ -2,6 +2,7 @@ import { IDomEditor, SlateElement } from "@wangeditor/editor";
 import { h, VNode } from "snabbdom";
 import choice from "../utils/choice";
 import { SharpType } from "../utils/config";
+import dateAndTime from "../utils/date&time";
 import { inputPopUp } from "../utils/popUp";
 import searchPopUp from "../utils/search";
 import { choiceSharpReg, textSharpReg, textSharpSplitReg } from "../utils/textSharp";
@@ -34,6 +35,9 @@ function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDo
 
     return attachVnode
 }
+
+const choiceSet = new Set(["Radio", "Checkbox", "Drop Down Box"])
+const dateTimeSet = new Set(["Date", "Time", "Date&Time"])
 
 function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
@@ -73,11 +77,19 @@ function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: 
                         // console.log(text)
                         inputPopUp(editor, text as SharpType, selection, event.target as HTMLElement)
                     } else if(choiceSharpReg.test((event.target as HTMLElement).innerText)) {
-                        choice({
-                            editor,
-                            selection,
-                            target: event.target as HTMLElement
-                        })
+                        const type = (event.target as HTMLElement).innerText.split(textSharpSplitReg)[0].replace(/[#*$]/g, '')
+                        if(choiceSet.has(type))
+                            choice({
+                                editor,
+                                selection,
+                                target: event.target as HTMLElement
+                            })
+                        else if(dateTimeSet.has(type))
+                            dateAndTime({
+                                editor,
+                                selection,
+                                target: event.target as HTMLElement
+                            })
                     }
                 },
                 "mouseenter": (event) => {

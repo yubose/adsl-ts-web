@@ -1,5 +1,7 @@
 import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
+import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
+import { insertNode } from "./utils"
 
 const dateAndTime = ({
     editor,
@@ -10,6 +12,18 @@ const dateAndTime = ({
     selection
     target?: HTMLElement | undefined
 }) => {
+
+    const isChange = target instanceof HTMLElement
+    let type = `Date`
+    let title = ''
+    let isRequired = ''
+    let currentTime = ''
+    if(isChange) {
+        type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*$]/g, "")
+        title = target.innerText.split(textSharpSplitReg)[1];
+        isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
+        currentTime = target.innerText.split(textSharpSplitReg)[0].includes("$") ? "checked" : "";
+    }
 
     const formatNum = (num: number) => {
         return num < 10 ? `0${num}` : `${num}`
@@ -41,7 +55,7 @@ const dateAndTime = ({
                     width: 100%;
                     text-indent: 0.8em;
                     height: 40px;
-                    border-color: rgb(222,222,222);
+                    border-color: #dedede;
                     color: rgb(51,51,51);
                     outline: none;
                     border-style: solid;
@@ -51,6 +65,7 @@ const dateAndTime = ({
                 "
                 id="w-editor_title"
                 placeholder="Enter here"
+                value="${title}"
             />
             <div style="
                 text-align: start;
@@ -74,11 +89,11 @@ const dateAndTime = ({
                     align-items: center;
                     text-align: start;
                     padding: 0 10px;
-                ">
-                    <div style="width: 40%;">Date</div>
-                    <div style="width: 55%;">${DATE}</div>
-                    <div style="width: 5%;">
-                        <img style="display: block;" src="${checkSvg}" />
+                " alt="Date" class="w-e_search-item">
+                    <div style="width: 40%;" alt="Date">Date</div>
+                    <div style="width: 55%;" alt="Date">${DATE}</div>
+                    <div style="width: 5%;" alt="Date">
+                        <img style="display: block;" src="${checkSvg}" alt="Date"/>
                     </div>
                 </div>
                 <div style="
@@ -88,11 +103,11 @@ const dateAndTime = ({
                     align-items: center;
                     text-align: start;
                     padding: 0 10px;
-                ">
-                    <div style="width: 40%;">Time</div>
-                    <div style="width: 55%;">${TIME}</div>
-                    <div style="width: 5%;">
-                        <img style="display: block;" src="${checkSvg}" />
+                " alt="Time" class="w-e_search-item">
+                    <div style="width: 40%;" alt="Time">Time</div>
+                    <div style="width: 55%;" alt="Time">${TIME}</div>
+                    <div style="width: 5%;" alt="Time">
+                        <img style="display: block;" src="${checkSvg}" alt="Time"/>
                     </div>
                 </div>
                 <div style="
@@ -102,13 +117,60 @@ const dateAndTime = ({
                     align-items: center;
                     text-align: start;
                     padding: 0 10px;
-                ">
-                    <div style="width: 40%;">Date&Time</div>
-                    <div style="width: 55%;">${DATE} ${TIME}</div>
-                    <div style="width: 5%;">
-                        <img style="display: block;" src="${checkSvg}" />
+                " alt="Date&Time" class="w-e_search-item">
+                    <div style="width: 40%;" alt="Date&Time">Date&Time</div>
+                    <div style="width: 55%;" alt="Date&Time">${DATE} ${TIME}</div>
+                    <div style="width: 5%;" alt="Date&Time">
+                        <img style="display: block;" src="${checkSvg}" alt="Date&Time"/>
                     </div>
                 </div>
+            </div>
+            <div style="
+                display: flex;    
+                align-items: center;
+                margin-top: 15px;
+                font-size: 16px;
+            ">
+                <input 
+                    id="w-editor_currentTime"
+                    style= "
+                        width: 18px;
+                        height: 18px;
+                        cursor: pointer;
+                    "
+                    type="checkbox"
+                    ${currentTime}
+                />
+                <div style="
+                    margin-left: 8px;
+                ">Current time</div>
+            </div>
+            <div style="
+                margin-left: 26px;
+                margin-top: 5px;
+                text-align: start;
+                font-size: 14px;
+                color: #999999;
+            ">The user's filling time will be auto-filled in</div>
+            <div style="
+                display: flex;    
+                align-items: center;
+                margin-top: 10px;
+                font-size: 16px;
+            ">
+                <input 
+                    id="w-editor_require"
+                    style= "
+                        width: 18px;
+                        height: 18px;
+                        cursor: pointer;
+                    "
+                    type="checkbox"
+                    ${isRequired}
+                />
+                <div style="
+                    margin-left: 8px;
+                ">Required</div>
             </div>
         `,
         width: 600,
@@ -128,7 +190,73 @@ const dateAndTime = ({
             validationMessage: "w-e_swal_validatMsg",
             htmlContainer: "w-e_search-container",
         },
+        preConfirm: () => {
+            let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
+            let currentTime = (<HTMLInputElement>document.getElementById("w-editor_currentTime")).checked
+            let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
+            return {
+                type,
+                title,
+                currentTime,
+                required
+            }
+        }
+    }).then(res => {
+        // console.log(res)
+        if(res.isConfirmed && res.value) {
+            let s = ``
+            const str = res.value?.required ? '*' : ''
+            const currentTime = res.value?.currentTime ? '$' : ''
+            const value = res.value
+            s = `#${value?.type}${str}${currentTime}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
+            insertNode({editor, type: "sharpblock", value: s, selection, isChange})
+        }
     })
+
+    const confirmButton = Swal.getConfirmButton() as HTMLButtonElement
+    const typeSelector = document.getElementById('w-editor_select') as HTMLDivElement
+    const typeClidren = typeSelector.children
+    const titleElement = document.getElementById('w-editor_title') as HTMLInputElement
+
+    const refreshType = () => {
+        for(let i = 0; i < typeClidren.length; i++) {
+            const child = typeClidren.item(i) as HTMLDivElement
+            const childType = child.getAttribute("alt")
+            if(type === childType) {
+                child.style.background = "#f4f4f4"
+                if(child.getElementsByTagName('img').length > 0)
+                    child.getElementsByTagName('img')[0].style.display = "block"
+            } else {
+                child.style.background = "#ffffff"
+                if(child.getElementsByTagName('img').length > 0)
+                    child.getElementsByTagName('img')[0].style.display = "none"
+            }
+        }
+    }
+    refreshType()
+    if(titleElement.value === '') {
+        confirmButton.setAttribute("disabled", "true")
+    }
+
+    typeSelector.addEventListener("click", (event) => {
+        const target = event.target as HTMLDivElement
+        const selectType = target.getAttribute("alt")
+        if(selectType) {
+            type = selectType
+            refreshType()
+        }
+    })
+
+    titleElement.addEventListener('input', () => {
+        if(titleElement.value === '') {
+            titleElement.style.borderColor = "#ff0000"
+            confirmButton.setAttribute("disabled", "true")
+        } else {
+            titleElement.style.borderColor = "#dedede"
+            confirmButton.removeAttribute("disabled")
+        }
+    })
+
 }
 
 export default dateAndTime
