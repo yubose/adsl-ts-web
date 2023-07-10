@@ -541,14 +541,20 @@ const populateBlock = ({
                     } 
                     else {
                         let W = 0
+                        let R = 1
                         widthList.forEach(it => {
-                            W += it
+                            if(it === Math.floor(10000/row.length)/100) {
+                                R -= it/100
+                            } else {
+                                W += it
+                            }   
                         })
                         widthList.forEach((it, i) => {
-                            widthArray[i] = `calc(${100*Math.floor(100*it/W)/100}%)`
                             if(it === Math.floor(10000/row.length)/100) {
+                                widthArray[i] = `calc(${it}%)`
                                 flexShrinks[i] = 0
                             } else {
+                                widthArray[i] = `calc(${Math.floor(10000*R*it/W)/100}%)`
                                 flexShrinks[i] = 1
                             }
                         })
@@ -602,6 +608,7 @@ const populateBlock = ({
                                                 minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                                 width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
+                                                height: "calc(100%)",
                                                 fontSize: "..formData.atrribute.noodl_font.text",
                                                 border: "none",
                                                 textAlign,
