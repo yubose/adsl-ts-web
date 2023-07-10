@@ -111,9 +111,9 @@ const insertBreak = (editor: IDomEditor) => {
     editor.insertNode(Break)
 }
 
+let index = 0
+// let hash = ``
 const getUuid = () => {
-    let index = 0
-    let hash = ``
     const setUuid = () => {
         const basePrefixC = 65
         const basePrefix = 97
@@ -126,12 +126,7 @@ const getUuid = () => {
         const date = Math.floor(Date.now()/1000)
         const dateChar = date.toString(32)
         const newHash = prefixChar + dateChar
-        if(newHash === hash) {
-            index++
-        } else {
-            index = 0
-            hash = newHash
-        }
+        index++
         return newHash + `${index}`
     }
     return setUuid()

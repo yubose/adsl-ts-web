@@ -93,7 +93,6 @@ const choice = ({
                     width: 32%;
                     height: 40px;
                     line-height: 30px;
-                    padding: 5px;
                     border-style: solid;
                     border-width: thin;
                     border-radius: 4px;
@@ -107,6 +106,7 @@ const choice = ({
                             background: ${downSvg};
                             background-repeat: no-repeat;
                             background-position: right;
+                            margin: 5px;
                         "
                     >${type}</div>
                     <div 
@@ -120,16 +120,14 @@ const choice = ({
                             border-style: solid;
                             border-width: thin;
                             border-radius: 4px;
-                            top: 5px;
-                            left: -5px;
                             width: 100%;
-                            padding: 5px;
                             box-shadow: 0px 2px 5px #ccc;
+                            overflow: hidden;
                         "
                     >
-                        <div class="w-e_search-item">Radio</div>
-                        <div class="w-e_search-item">Checkbox</div>
-                        <div class="w-e_search-item">Drop Down Box</div>
+                        <div style="padding: 5px;" class="w-e_search-item">Radio</div>
+                        <div style="padding: 5px;" class="w-e_search-item">Checkbox</div>
+                        <div style="padding: 5px;" class="w-e_search-item">Drop Down Box</div>
                     </div>
                 </div>
                 <div style="
@@ -159,12 +157,12 @@ const choice = ({
                 </div>
             </div>
             <div style="
-                margin-top: 5px;
+                margin-top: 20px;
                 width: 100%;
                 display: flex;
             ">
                 <div style="
-                    width: 90%;
+                    width: 88%;
                     text-align: start;
                     font-weight:bold;
                     color:#33333;
@@ -172,12 +170,10 @@ const choice = ({
                     font-weight: 600;
                 ">Option text</div>
                 <div style="
-                    width: 10%;
+                    width: 12%;
                     text-align: center;
-                    font-weight:bold;
-                    color:#33333;
+                    color:#333333;
                     font-size: 16px;
-                    font-weight: 600;
                 ">Default</div>
             </div>
             <div 
@@ -205,7 +201,8 @@ const choice = ({
             closeButton: "w-editor_popup_close",
             actions: "w-editor_popup_actions",
             container: "w-editor_swal_container",
-            validationMessage: "w-e_swal_validatMsg"
+            validationMessage: "w-e_swal_validatMsg",
+            htmlContainer: "w-e_search-container",
         },
         preConfirm: () => {
             const repetitionSet = getRepetition()
@@ -255,7 +252,7 @@ const choice = ({
         <input 
             style="
                 box-sizing: border-box;
-                width: 80%;
+                width: 78%;
                 text-indent: 0.8em;
                 height: 40px;
                 border-color: rgb(222,222,222);
@@ -279,7 +276,7 @@ const choice = ({
             <img id="w-e_reduceButton--TITLEID--" style="cursor:pointer" src="${reduceSvg}" />
         </div>
         <div style="
-            width: 10%;
+            width: 12%;
             height: 40px;
             display: flex;
             justify-content: center;
@@ -377,6 +374,15 @@ const choice = ({
         if(isShow) {
             choiceType.style.backgroundImage = upSvg
             choiceTypes.style.display = "block"
+            const children = choiceTypes.children
+            for(let i = 0; i < children.length; i++) {
+                const child = children.item(i) as HTMLDivElement
+                if(child.innerText === type) {
+                    child.style.background = '#f4f4f4'
+                } else {
+                    child.style.background = '#ffffff'
+                }
+            }
         } else {
             choiceType.style.backgroundImage = downSvg
             choiceTypes.style.display = "none"
@@ -389,6 +395,7 @@ const choice = ({
         if(event.target !== choiceTypes) {
             choiceType.style.backgroundImage = downSvg
             choiceType.innerText = (event.target as HTMLDivElement).innerText
+            type = choiceType.innerText
             choiceTypes.style.display = "none"
             isShow = true
             getDataArray()
@@ -435,7 +442,8 @@ const choice = ({
             const index = parseInt(indexDom.getAttribute("alt") as string)
             const splitList = splitArray(index+1)
             choiceTitleList = splitList[0].concat([createLI()], splitList[1])
-            update()
+            update();
+            (choiceTitleList[index+1].children.item(0) as HTMLElement ).focus()
         } else if(target.id.startsWith("w-e_reduceButton")) {
             if(choiceTitleList.length > 1) {
                 const indexDom = target.parentNode?.parentNode as HTMLDivElement
