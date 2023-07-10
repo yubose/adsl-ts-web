@@ -223,7 +223,7 @@ const choice = ({
                 // confirmButton?.setAttribute("disabled", "true")
                 showTip(repetitionMsg)
                 inputBoxes.forEach(item => {
-                    if(repetitionSet.has(item.value)) {
+                    if(repetitionSet.has(item.value) || repetitionSet.has(item.placeholder)) {
                         item.style.borderColor = "red"
                     }
                 })
@@ -266,7 +266,6 @@ const choice = ({
                 border-radius: 4px;
             "
             id="w-editor_title--TITLEID--"
-            placeholder="Enter here"
             value="--TITLEVALUE--"
         />
         <div style="
@@ -316,7 +315,8 @@ const choice = ({
     const update = () => {
         choiceTitles.innerHTML = ""
         choiceTitleList.forEach((item, index) => {
-            item.setAttribute("alt", `${index}`)
+            item.setAttribute("alt", `${index}`);
+            (item.children[0] as HTMLInputElement).placeholder = `Option ${index+1}`
             choiceTitles.appendChild(item)
         })
     }
@@ -328,7 +328,7 @@ const choice = ({
             const inputs = item.getElementsByTagName("input")
             inputBoxes.push(inputs[0])
             choiceDataArray.push({
-                title: inputs[0].value,
+                title: inputs[0].value === "" ? inputs[0].placeholder : inputs[0].value,
                 check: inputs[1].checked ? "checked" : ""
             })
         })
@@ -497,7 +497,7 @@ const choice = ({
         if(repetitionSet.size > 0) {
             showTip(repetitionMsg)
             inputBoxes.forEach(item => {
-                if(repetitionSet.has(item.value)) {
+                if(repetitionSet.has(item.value) || repetitionSet.has(item.placeholder)) {
                     item.style.borderColor = "red"
                 }
             })

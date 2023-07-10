@@ -6,11 +6,13 @@ export default class DefaultSelect implements ISelectMenu {
     tag: string
     width?: number
     options: Array<VALUE>
+    disabled: boolean
     // callback: (editor: IDomEditor, value: string | boolean) => void
     constructor(opts: selectOptions) {
         this.title = opts.title
         this.tag = 'select'
         this.width = opts.width ? opts.width : 60
+        this.disabled = false
         // this.options = [{ value: this.title, text: this.title }, ...opts.options]
         this.options = opts.options
         const classFunctions = opts.classFunctions 
@@ -41,7 +43,7 @@ export default class DefaultSelect implements ISelectMenu {
 
     // 菜单是否需要禁用（如选中 H1 ，“引用”菜单被禁用），用不到则返回 false
     isDisabled(editor: IDomEditor): boolean {   // TS 语法
-        return false
+        return this.disabled
     }
 
     // 点击菜单时触发的函数

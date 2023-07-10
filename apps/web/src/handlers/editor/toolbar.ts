@@ -255,9 +255,17 @@ const registerToolbar = () => {
             DynamicFields.title,
         ]
     }
-    return toolbarConfig
+    return {
+        toolbarConfig,
+        templateSelect,
+        InfoSelect
+    }
 }
 
 export default registerToolbar
+
+export {
+    DynamicFields
+}
 
 // export default toolbarConfig
