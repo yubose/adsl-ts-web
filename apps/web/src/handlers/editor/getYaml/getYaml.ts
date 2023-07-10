@@ -585,13 +585,16 @@ const populateBlock = ({
                                     minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                     // minHeight: "..formData.atrribute.noodl_font.lineHeight",
                                     border: "1px solid #cccccc",
+                                    marginLeft: "-1px",
+                                    marginTop: "-1px",
                                     backgroundColor,
                                     display: "flex",
                                     justifyContent,
                                     alignItems: "center",
                                     textAlign,
                                     flexShrink: flexShrinks[idx],
-                                    fontWeight
+                                    fontWeight,
+                                    padding: "0.005"
                                 },
                                 children: new Array()
                             }

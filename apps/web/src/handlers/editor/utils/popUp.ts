@@ -95,8 +95,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             ">
                 <input 
                     style= "
-                        width: 20px;
-                        height: 20px;
+                        width: 18px;
+                        height: 18px;
                         margin-top: 2px;
                         margin-left: 2px;
                     "
@@ -124,7 +124,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
             cancelButton: "w-editor_popup_cancel",
             closeButton: "w-editor_popup_close",
             actions: "w-editor_popup_actions",
-            container: "w-editor_swal_container"
+            container: "w-editor_swal_container",
+            htmlContainer: "w-e_search-container",
         },
         preConfirm: ()=>{
             let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
