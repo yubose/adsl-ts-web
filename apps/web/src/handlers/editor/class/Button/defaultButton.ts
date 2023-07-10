@@ -14,6 +14,7 @@ class DefaultButton implements IButtonMenu {   // TS 语法
     title: string
     tag: string
     iconSvg?: string
+    disabled: boolean
     // status: boolean
     // callback: (editor: IDomEditor, value: string | boolean) => void
 
@@ -21,6 +22,7 @@ class DefaultButton implements IButtonMenu {   // TS 语法
         this.title = opts.title // 自定义菜单标题
         this.iconSvg = opts.svg ? opts.svg : ''
         this.tag = 'button'
+        this.disabled = false
         // this.callback = opts.callback
         // this.status = false
         const classFunctions = opts.classFunctions 
@@ -47,7 +49,7 @@ class DefaultButton implements IButtonMenu {   // TS 语法
 
     // 菜单是否需要禁用（如选中 H1 ，“引用”菜单被禁用），用不到则返回 false
     isDisabled(editor: IDomEditor): boolean {   // TS 语法
-        return false
+        return this.disabled
     }
 
     // 点击菜单时触发的函数

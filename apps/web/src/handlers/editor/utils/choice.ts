@@ -223,7 +223,7 @@ const choice = ({
                 // confirmButton?.setAttribute("disabled", "true")
                 showTip(repetitionMsg)
                 inputBoxes.forEach(item => {
-                    if(repetitionSet.has(item.value)) {
+                    if(repetitionSet.has(item.value) || repetitionSet.has(item.placeholder)) {
                         item.style.borderColor = "red"
                     }
                 })
@@ -497,7 +497,7 @@ const choice = ({
         if(repetitionSet.size > 0) {
             showTip(repetitionMsg)
             inputBoxes.forEach(item => {
-                if(repetitionSet.has(item.value)) {
+                if(repetitionSet.has(item.value) || repetitionSet.has(item.placeholder)) {
                     item.style.borderColor = "red"
                 }
             })

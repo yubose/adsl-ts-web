@@ -49,7 +49,7 @@ import getYaml from './editor/getYaml/getYaml'
 import keypress from "@atslotus/keypress"
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
-import registerToolbar from './editor/toolbar'
+import registerToolbar, { DynamicFields } from './editor/toolbar'
 import Recorder from 'mic-recorder-to-mp3'
 // import moment from "moment"
 // import * as echarts from "echarts";
@@ -4378,7 +4378,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         const kp = new keypress()
         let isUseHotKey = false;
-
+        let kpIsDisabled = false
         const id = node.id
 
         kp.clean()
@@ -4387,10 +4387,12 @@ const createExtendedDOMResolvers = function (app: App) {
           key: ' ',
           callback: () => {
             // console.log(document.getElementById(id))
-            if(document.getElementById(id) !== null)
-              isUseHotKey = true
-            else {
-              kp.clean()
+            if(!kpIsDisabled) {
+              if(document.getElementById(id) !== null)
+                isUseHotKey = true
+              else {
+                kp.clean()
+              }
             }
           }
         })
@@ -4470,11 +4472,13 @@ const createExtendedDOMResolvers = function (app: App) {
           config: editorConfig,
           mode: 'default', // or 'simple'
         })
+
+        const toolbarRegister = registerToolbar()
         
         const toolbar = createToolbar({
           editor,
           selector: '#toolbar-container',
-          config: registerToolbar(),
+          config: toolbarRegister.toolbarConfig,
           mode: 'default', // or 'simple'
         })
         
@@ -4562,6 +4566,19 @@ const createExtendedDOMResolvers = function (app: App) {
             set(draft, "editor", null);
             set(draft, 'toolbar', null);
           })
+        })
+
+        document.getElementById('editor—wrapper')?.addEventListener('click', (event) => {
+          try {
+            // @ts-ignore
+            const isDisabled = editor.getFragment()[0].type === "table"
+            kpIsDisabled = isDisabled
+            toolbarRegister.templateSelect.disabled = isDisabled
+            toolbarRegister.InfoSelect.disabled = isDisabled
+            DynamicFields.disabled = isDisabled
+          } catch (error) {
+            
+          }
         })
 
       }
