@@ -1338,7 +1338,8 @@ export const extendedSdkBuiltIns = {
       if (newRoom) {
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
-        const { cameraOn, micOn } = this.root.VideoChat || this.root.MeetingPage || {}
+        const page = this.initPage?this.initPage:'VideoChat'
+        const { cameraOn, micOn } = this.root?.[page] || {}
         const { localParticipant } = newRoom
 
         const toggle =

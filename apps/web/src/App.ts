@@ -76,7 +76,7 @@ class App {
       page: '',
     },
   }
-
+  #initPage:string|null = null
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #ecosLogger: ReturnType<typeof createEcosLogger>
@@ -307,6 +307,9 @@ class App {
   get piBackgroundWorker() {
     return this.#piBackgroundWorker as Worker
   }
+  get initPage(){
+    return this.#initPage
+  }
 
   getState() {
     return this.#state
@@ -479,6 +482,7 @@ class App {
       }
 
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
+      this.#initPage = _page.requesting
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {

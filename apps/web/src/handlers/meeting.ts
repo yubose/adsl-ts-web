@@ -201,7 +201,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           component,
           selfStream: selfStream.snapshot(),
         })
-
+        
         if (app.mainPage.page === 'VideoChat' || app.mainPage.page === 'MeetingPage') {
           // If the selfStream already has an element, re-use it and reload the
           // media tracks on it
@@ -250,10 +250,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               })
 
             },1000)
-            //@ts-expect-error
             app.ndom.global.intervals.set('VideoChatTimer',Interval)
           }else{
-            //@ts-expect-error
             const interval =app.ndom.global.intervals.get('VideoChatTimer')
             if(interval){
               clearInterval(interval)
