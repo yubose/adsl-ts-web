@@ -454,7 +454,8 @@ class App {
                 while (
                   pageToDestroy &&
                   pageToDestroy !== _page.requesting &&
-                  pageToDestroy !== 'VideoChat'
+                  pageToDestroy !== 'VideoChat' &&
+                  pageToDestroy !== 'MeetingPage'
                 ) {
                   if (pageToDestroy in this.noodl.root) {
                     delete this.noodl.root[pageToDestroy]
@@ -1153,7 +1154,9 @@ class App {
     }
 
     const onBeforeClearnode = () => {
-      if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+      if ((page.page === 'VideoChat' && page.requesting !== 'VideoChat')||
+        (page.page === 'MeetingPage' && page.requesting !== 'MeetingPage')
+      ) {
         const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
@@ -1173,6 +1176,7 @@ class App {
 
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
+      console.log('test99',page.page)
       if (page.page === 'VideoChat') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)

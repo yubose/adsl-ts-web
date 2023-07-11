@@ -443,8 +443,8 @@ class MeetingStream {
       }
 
 
-      if((window as any).app.root.VideoChat){
-        const {cameraOn,micOn} = (window as any).app.root.VideoChat
+      if((window as any).app.root.VideoChat || (window as any).app.root.MeetingPage){
+        const {cameraOn,micOn} = (window as any).app.root.VideoChat || (window as any).app.root.MeetingPage
         if(track.kind === 'audio'){
           micOn ? track?.['enable']?.() : track?.['disable']?.()
         }else if(track.kind === 'video'){

@@ -202,7 +202,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           selfStream: selfStream.snapshot(),
         })
 
-        if (app.mainPage.page === 'VideoChat') {
+        if (app.mainPage.page === 'VideoChat' || app.mainPage.page === 'MeetingPage') {
           // If the selfStream already has an element, re-use it and reload the
           // media tracks on it
           if (selfStream.hasElement()) {
@@ -308,7 +308,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                 streamParticipant === localParticipant ||
                 streamParticipant?.sid === localParticipant?.sid
 
-              if (currentPage === 'VideoChat') {
+              if (currentPage === 'VideoChat' || currentPage === 'MeetingPage') {
                 // Restore the self stream back to the local participant
                 if (!isStreamingLocalParticipant) {
                   // debugger
