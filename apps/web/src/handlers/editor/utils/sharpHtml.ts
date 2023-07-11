@@ -1,6 +1,6 @@
 import { SharpOption, SharpType } from "./config"
 import { textSharpSplitReg } from "./textSharp"
-import { getHTMLDataArray, getUuid } from "./utils"
+import { editorBlockCss, getHTMLDataArray, getUuid } from "./utils"
 
 const circleSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48ZyBkYXRhLW5hbWU9IjcwOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjdiN2I3Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iOCIgc3Ryb2tlPSJub25lIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjcuNSIvPjwvZz48L3N2Zz4=`
 const circleDefault = `data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjE2NiAzIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48ZyBkYXRhLW5hbWU9IjcwOCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDA1Nzk1IiBzdHJva2Utd2lkdGg9IjIiPjxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSI4IiBzdHJva2U9Im5vbmUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNyIgZmlsbD0ibm9uZSIvPjwvZz48Y2lyY2xlIGRhdGEtbmFtZT0iNzEwIiBjeD0iNCIgY3k9IjQiIHI9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQgNCkiIGZpbGw9IiMwMDU3OTUiLz48L3N2Zz4=`
@@ -37,7 +37,7 @@ const sharpHtml = (opts: SharpOption) => {
                             border-style: solid;
                             border-width: thin;
                             border-radius: 4px;
-                            line-height: 24px;
+                            line-height: ${editorBlockCss.height};
                         "
                         placeholder="${opts.config.placeholder}"
                         readonly
@@ -61,7 +61,7 @@ const sharpHtml = (opts: SharpOption) => {
                             box-sizing: border-box;
                             width: 100%;
                             text-indent: 0.8em;
-                            height: 24px;
+                            height: ${editorBlockCss.height};
                             border-color: rgb(222,222,222);
                             color: rgb(51,51,51);
                             outline: none;
@@ -98,7 +98,7 @@ const sharpHtml = (opts: SharpOption) => {
                         position: relative;
                         top: 90px;
                         width: 390px;
-                        height: 24px;
+                        height: ${editorBlockCss.height};
                         margin: auto;
                         font-size: 1.54vw;
                         z-index: 1;
@@ -334,7 +334,7 @@ const sharpHtml = (opts: SharpOption) => {
                 dropDownStr += `
                 <div style="
                     width: 100%;
-                    min-height: 24px;
+                    min-height: ${editorBlockCss.height};
                     outline: none;
                     border: 1px solid rgb(222,222,222);
                     border-radius: 4px;
@@ -380,7 +380,7 @@ const sharpHtml = (opts: SharpOption) => {
                 let optionStr = `
                 <div id="w-e_select${dropDownID}" style="
                     width: 100%;
-                    min-height: 24px;
+                    min-height: ${editorBlockCss.height};
                     outline: none;
                     border: 1px solid rgb(222,222,222);
                     border-radius: 4px;

@@ -1,3 +1,5 @@
+import { editorBlockCss } from "./utils/utils"
+
 const editorRatio = 45
 const previewRatio = 100 - editorRatio
 
@@ -308,7 +310,7 @@ const editorHtml = `
 
 #preView p{
     margin: 15px 0;
-    line-height: 24px;
+    line-height: ${editorBlockCss.height};
 }
 
 #preView table {
@@ -319,7 +321,7 @@ const editorHtml = `
 
 #preView th {
     min-width: 24px;
-    height: 24px;
+    height: ${editorBlockCss.height};
     padding: 3px 5px;
     border: 1px solid #ccc;
     background: #f5f2f0;
@@ -327,7 +329,7 @@ const editorHtml = `
 
 #preView td {
     min-width: 24px;
-    height: 24px;
+    height: ${editorBlockCss.height};
     padding: 3px 5px;
     border: 1px solid #ccc;
 }
@@ -335,7 +337,7 @@ const editorHtml = `
 #preView .w-e_select_option {
     z-index: 10;
     width: 100%;
-    min-height: 24px;
+    min-height: ${editorBlockCss.height};
     padding: 0 10px;
     box-sizing: border-box;
 }
