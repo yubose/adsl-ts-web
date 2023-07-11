@@ -1105,6 +1105,12 @@ class App {
         })
         viewport.width = sizes.width
         viewport.height = sizes.height
+        const userAgent = window.navigator.userAgent
+        if(/Mobi|Android|iPhone/.test(userAgent)){
+          viewport.width = window.innerWidth
+          viewport.height = window.innerHeight
+        }
+        
       } else {
         viewport.width = w
         viewport.height = h
