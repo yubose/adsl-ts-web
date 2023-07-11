@@ -322,8 +322,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
       app.meeting.room?.removeAllListeners?.()
-      app.meeting.room?.disconnect?.()
       app.meeting.leave()
+      app.meeting.room?.disconnect?.()
     }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(
@@ -437,7 +437,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           // Set to true if am item exists
           nextDataValue = !dataValue
         }
-        set(dataObject, parts, nextDataValue)
+        // set(dataObject, parts, nextDataValue)
       } else {
         const onNextValue = (
           prevValue: any,
@@ -448,11 +448,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             nextValue = !is.isBooleanTrue(prevValue)
           }
           nextValue = !prevValue
-          if (updateDraft) {
-            app.updateRoot(
-              (draft) => void set(draft, updateDraft.path, nextValue),
-            )
-          }
+          // if (updateDraft) {
+          //   app.updateRoot(
+          //     (draft) => void set(draft, updateDraft.path, nextValue),
+          //   )
+          // }
           // Propagate the changes to to UI if there is a path "if" object that
           // references the value as well
           if (node && u.isObj(path)) {

@@ -139,7 +139,6 @@ export const matchBlock = (html) => {
         const texts = item.match(textSharpGetReg)
         // const text = texts[0].replace(/[#><]/g, '')
         const text = texts[0].slice(2, texts[0].length-1)
-        console.log(text, texts[0])
         const arr = text.split(textSharpSplitRegG)
         html = sharpHtml({
             type: arr[0] as SharpType,
@@ -150,13 +149,6 @@ export const matchBlock = (html) => {
                 placeholder: arr[2] as string
             }
         })
-        // if(arr[0].endsWith('*')) 
-        //     html = html.replace(arr[1], `
-        //     <div style="
-        //         color:#333333;
-        //         font-weight: 600;
-        //     "><span>${arr[1]} </span><span style="color: red"> *</span>
-        //     </div>`)
     })
 
     const sharpChoiceBlockReg = new RegExp(
@@ -168,7 +160,8 @@ export const matchBlock = (html) => {
     // console.log(sharpChoiceBlockReg, sharpChoiceKeywords)
     sharpChoiceKeywords && sharpChoiceKeywords.forEach(item => {
         const texts = item.match(choiceSharpGetReg)
-        const text = texts[0].replace(/[#><]/g, '')
+        // const text = texts[0].replace(/[#><]/g, '')
+        const text = texts[0].slice(2, texts[0].length-1)
         const arr = text.split(textSharpSplitRegG)
         html = sharpHtml({
             type: arr[0] as SharpType,

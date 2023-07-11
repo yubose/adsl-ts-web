@@ -6,6 +6,7 @@ import dateAndTime from "../utils/date&time";
 import { inputPopUp } from "../utils/popUp";
 import searchPopUp from "../utils/search";
 import { choiceSharpReg, textSharpReg, textSharpSplitReg } from "../utils/textSharp";
+import { editorBlockCss } from "../utils/utils";
 
 function renderAtBlock(elem: SlateElement, children: VNode[] | null, editor: IDomEditor): VNode {
 
@@ -47,7 +48,7 @@ function renderSharpBlock(elem: SlateElement, children: VNode[] | null, editor: 
     const tips = document.createElement("div")
     tips.style.cssText = `
         width: 100%;
-        min-height: 24px;
+        min-height: ${editorBlockCss.height};
         white-space: pre-wrap;
         word-break: break-word;
         border-radius: 4px;

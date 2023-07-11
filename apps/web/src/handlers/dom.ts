@@ -51,6 +51,7 @@ import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar, { DynamicFields } from './editor/toolbar'
 import Recorder from 'mic-recorder-to-mp3'
+import { editorBlockCss } from './editor/utils/utils'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -4461,7 +4462,6 @@ const createExtendedDOMResolvers = function (app: App) {
             });
             (document.getElementById("preView") as HTMLDivElement).innerHTML = html
             oldSHA = newSHA
-            console.log(Object.keys(app.root.Global.formData.templateInfo.yaml.data).length)
           }
         }
         editorConfig.onChange = change
@@ -4603,7 +4603,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             th {
               min-width: 24px;
-              height: 24px;
+              height: ${editorBlockCss.height};
               padding: 3px 5px;
               border: 1px solid #ccc;
               background: #f5f2f0;
@@ -4611,7 +4611,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             td {
               min-width: 24px;
-              height: 24px;
+              height: ${editorBlockCss.height};
               padding: 3px 5px;
               border: 1px solid #ccc;
             }
@@ -4619,7 +4619,7 @@ const createExtendedDOMResolvers = function (app: App) {
             .w-e_select_option {
               z-index: 10;
               width: 100%;
-              min-height: 24px;
+              min-height: ${editorBlockCss.height};
               padding: 0 10px;
               box-sizing: border-box;
             }

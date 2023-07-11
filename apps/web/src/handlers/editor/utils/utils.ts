@@ -154,11 +154,16 @@ const reverseEscape = new Map([
     ['&quot;', '"']
 ])
 
+const editorBlockCss = {
+    height: "24px"
+}
+
 export {
     toReg,
     insertText,
     insertNode,
     getUuid,
     getHTMLDataArray,
-    reverseEscape
+    reverseEscape,
+    editorBlockCss
 }
