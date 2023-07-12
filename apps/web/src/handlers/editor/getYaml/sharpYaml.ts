@@ -949,7 +949,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
             return {
                 type: "view",
                 style: {
-                    marginTop: "0.03"
+                    width: "..formData.atrribute.noodl_font.fullWidth",
+                    margin: "auto",
                 },
                 children: [
                     {
@@ -1010,7 +1011,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                     }, 
                                     {
                                         type: "image",
-                                        path: "calendarBlue.svg",
+                                        path: "..formData.atrribute.noodl_font.DateAndTime.calendar",
                                         style: {
                                             width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
                                         }
@@ -1080,7 +1081,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
             return {
                 type: "view",
                 style: {
-                    marginTop: "0.03"
+                    width: "..formData.atrribute.noodl_font.fullWidth",
+                    margin: "auto",
                 },
                 children: [
                     {
@@ -1146,7 +1148,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             }, 
                                             {
                                                 type: "image",
-                                                path: "circleClock.svg",
+                                                path: "..formData.atrribute.noodl_font.DateAndTime.clock",
                                                 style: {
                                                     width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
                                                 }
@@ -1306,7 +1308,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
             return {
                 type: "view",
                 style: {
-                    marginTop: "0.03"
+                    width: "..formData.atrribute.noodl_font.fullWidth",
+                    margin: "auto",
                 },
                 children: [
                     {
@@ -1333,6 +1336,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                     display: "flex",
                                     justifyContent: "space-between",
                                     width: "..formData.atrribute.noodl_font.fullWidth",
+                                    flexWrap: "wrap"
                                 },
                                 children: [
                                     {
@@ -1375,7 +1379,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             }, 
                                             {
                                                 type: "image",
-                                                path: "calendarBlue.svg",
+                                                path: "..formData.atrribute.noodl_font.DateAndTime.calendar",
                                                 style: {
                                                     width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
                                                 }
@@ -1472,7 +1476,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                     }, 
                                                     {
                                                         type: "image",
-                                                        path: "circleClock.svg",
+                                                        path: "..formData.atrribute.noodl_font.DateAndTime.clock",
                                                         style: {
                                                             width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
                                                         }
