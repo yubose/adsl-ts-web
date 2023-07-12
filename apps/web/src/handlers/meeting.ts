@@ -39,9 +39,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         if (participantsNumber == 0 && app.meeting.room.state === 'connected') {
           app.register.extendVideoFunction('onDisconnect')
         }
-        toast(`A participant disconnected`, { type: 'error' })
-        const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
-        videoNode.style.display = 'none'
+        // toast(`A participant disconnected`, { type: 'error' })
+        const videoNode = app.meeting.mainStream.getVideoElement()
+        videoNode && (videoNode.style.display = 'none')
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {

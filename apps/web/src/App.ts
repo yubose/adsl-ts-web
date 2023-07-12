@@ -1186,7 +1186,6 @@ class App {
 
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
-      console.log('test99',page.page)
       if (page.page === 'VideoChat') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)

@@ -67,7 +67,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.debug(`Toggling ${kind}`)
-    let devicePath = `VideoChat.${kind === 'audio' ? 'micOn' : 'cameraOn'}`
+    const page = app.initPage?app.initPage:'VideoChat'
+    let devicePath = `${page}.${kind === 'audio' ? 'micOn' : 'cameraOn'}`
     let localParticipant = app.meeting.localParticipant
     let localTrack: LocalAudioTrack | LocalVideoTrack | undefined
     if (localParticipant) {
@@ -82,9 +83,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               ? (videoNode.style.display = 'none')
               : (videoNode.style.display = 'block')
           }
-
           localTrack[localTrack.isEnabled ? 'disable' : 'enable']?.()
-          set(draft, devicePath, !localTrack.isEnabled)
+
+          // set(draft, devicePath, !localTrack.isEnabled)
           log.debug(
             `Toggled ${kind} ${localTrack.isEnabled ? 'off' : 'on'}`,
             localParticipant,
