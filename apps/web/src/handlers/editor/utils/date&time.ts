@@ -17,12 +17,12 @@ const dateAndTime = ({
     let type = `Date`
     let title = ''
     let isRequired = ''
-    let currentTime = ''
+    // let currentTime = ''
     if(isChange) {
-        type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*$]/g, "")
+        type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, "")
         title = target.innerText.split(textSharpSplitReg)[1];
         isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
-        currentTime = target.innerText.split(textSharpSplitReg)[0].includes("$") ? "checked" : "";
+        // currentTime = target.innerText.split(textSharpSplitReg)[0].includes("$") ? "checked" : "";
     }
 
     const formatNum = (num: number) => {
@@ -32,7 +32,7 @@ const dateAndTime = ({
     const checkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48ZyBkYXRhLW5hbWU9IjIxNzcwIiBmaWxsPSJub25lIj48cGF0aCBkYXRhLW5hbWU9Ijk1NjQiIGQ9Ik0yLjgwNyAxMS40OTRsNi4xMzIgNi4zNTIgMTEuOS0xMi4wNDMiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuOCIvPjxwYXRoIGRhdGEtbmFtZT0iMTk3MjYiIGQ9Ik0wIDBoMjR2MjRIMHoiLz48L2c+PC9zdmc+`
     const time = new Date()
     const DATE = `${formatNum(time.getDate())}/${formatNum(time.getMonth()+1)}/${time.getFullYear()}`
-    const TIME = `${formatNum(time.getHours())}:${formatNum(time.getMinutes())} ${time.getHours() < 12 ? 'AM' : 'PM'}`
+    const TIME = `${formatNum(time.getHours() <= 12 ? time.getHours() : time.getHours() - 12)}:${formatNum(time.getMinutes())} ${time.getHours() < 12 ? 'AM' : 'PM'}`
 
     Swal.fire({
         html: `
@@ -125,7 +125,7 @@ const dateAndTime = ({
                     </div>
                 </div>
             </div>
-            <div style="
+            <!-- <div style="
                 display: flex;    
                 align-items: center;
                 margin-top: 15px;
@@ -139,7 +139,6 @@ const dateAndTime = ({
                         cursor: pointer;
                     "
                     type="checkbox"
-                    ${currentTime}
                 />
                 <div style="
                     margin-left: 8px;
@@ -151,7 +150,7 @@ const dateAndTime = ({
                 text-align: start;
                 font-size: 14px;
                 color: #999999;
-            ">The user's filling time will be auto-filled in</div>
+            ">The user's filling time will be auto-filled in</div> -->
             <div style="
                 display: flex;    
                 align-items: center;
@@ -192,12 +191,12 @@ const dateAndTime = ({
         },
         preConfirm: () => {
             let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
-            let currentTime = (<HTMLInputElement>document.getElementById("w-editor_currentTime")).checked
+            // let currentTime = (<HTMLInputElement>document.getElementById("w-editor_currentTime")).checked
             let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
             return {
                 type,
                 title,
-                currentTime,
+                // currentTime,
                 required
             }
         }
@@ -206,9 +205,9 @@ const dateAndTime = ({
         if(res.isConfirmed && res.value) {
             let s = ``
             const str = res.value?.required ? '*' : ''
-            const currentTime = res.value?.currentTime ? '$' : ''
+            // const currentTime = res.value?.currentTime ? '$' : ''
             const value = res.value
-            s = `#${value?.type}${str}${currentTime}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
+            s = `#${value?.type}${str}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
             insertNode({editor, type: "sharpblock", value: s, selection, isChange})
         }
     })

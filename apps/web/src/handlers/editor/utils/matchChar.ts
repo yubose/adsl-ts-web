@@ -157,7 +157,6 @@ export const matchBlock = (html) => {
         .replace(/--key--/g, choiceSharpRegStr)
         .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+" data-array="${choiceArrayStr}"`), 'g')
     const sharpChoiceKeywords = html.match(sharpChoiceBlockReg)
-    // console.log(sharpChoiceBlockReg, sharpChoiceKeywords)
     sharpChoiceKeywords && sharpChoiceKeywords.forEach(item => {
         const texts = item.match(choiceSharpGetReg)
         // const text = texts[0].replace(/[#><]/g, '')
@@ -170,6 +169,27 @@ export const matchBlock = (html) => {
             config: {
                 title: arr[1] as string,
                 placeholder: arr[2] as string
+            }
+        })
+    })
+
+    const sharpDateTimeBlockReg = new RegExp(
+        REG
+        .replace(/--type--/g, 'sharpblock')
+        .replace(/--key--/g, choiceSharpRegStr)
+        .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+"`), 'g')
+    const sharpDateTimeKeywords = html.match(sharpDateTimeBlockReg)
+    sharpDateTimeKeywords && sharpDateTimeKeywords.forEach(item => {
+        const texts = item.match(choiceSharpGetReg)
+        // const text = texts[0].replace(/[#><]/g, '')
+        const text = texts[0].slice(2, texts[0].length-1)
+        const arr = text.split(textSharpSplitRegG)
+        html = sharpHtml({
+            type: arr[0] as SharpType,
+            html: html,
+            split: item,
+            config: {
+                title: arr[1] as string
             }
         })
     })

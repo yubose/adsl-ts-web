@@ -11,9 +11,15 @@ const downSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vc
 const timeSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNi40MzIiIGhlaWdodD0iMTYuNDA3IiB2aWV3Qm94PSIwIDAgMTYuNDMyIDE2LjQwNyI+PHBhdGggZGF0YS1uYW1lPSI4NjM0IiBkPSJNOC4yMTYgMTQuODczYTYuNjcgNi42NyAwIDEgMSA2LjY4LTYuNjcgNi42ODMgNi42ODMgMCAwIDEtNi42OCA2LjY3bTAtMTQuNjc0YTggOCAwIDEgMCA4LjAxNiA4IDguMDE5IDguMDE5IDAgMCAwLTguMDE2LThtLjY2OCA3Ljg3NlY0LjIwMmEuNjY4LjY2OCAwIDAgMC0xLjMzNiAwdjQuMTVhLjY2NC42NjQgMCAwIDAgLjIuNDcybDIuMjQgMi4yMzZhLjY2OC42NjggMCAwIDAgLjk0NS0uOTQzem0wIDAiIGZpbGw9IiMyOTg4ZTYiIHN0cm9rZT0iIzI5ODhlNiIgc3Ryb2tlLXdpZHRoPSIuNCIvPjwvc3ZnPg==`
 const dateSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNC4yMyIgaGVpZ2h0PSIxNC44ODQiIHZpZXdCb3g9IjAgMCAxNC4yMyAxNC44ODQiPjxwYXRoIGRhdGEtbmFtZT0iSWNvbiBpb25pYy1tZC1jYWxlbmRhciIgZD0iTTExLjI2NSA4LjA2Mkg3LjcwOHYzLjcyMWgzLjU1N3pNMTAuMDc5IDB2MS4yNEg0LjE1VjBIMi4zNzJ2MS4yNGgtLjg5QTEuNTIyIDEuNTIyIDAgMCAwIDAgMi43OTF2MTAuNTQyYTEuNTIyIDEuNTIyIDAgMCAwIDEuNDgyIDEuNTVoMTEuMjY1YTEuNTIyIDEuNTIyIDAgMCAwIDEuNDgyLTEuNTVWMi43OTFhMS41MjIgMS41MjIgMCAwIDAtMS40ODItMS41NWgtLjg4OVYwem0yLjY2OCAxMy4zMzNIMS40ODJWNS4xMTZoMTEuMjY1eiIgZmlsbD0iIzI5ODhlNiIvPjwvc3ZnPg==`
 
+const formatNum = (num: number) => {
+    return num < 10 ? `0${num}` : `${num}`
+} 
+
 const sharpHtml = (opts: SharpOption) => {
     let Asterisk = ``
-    let type = opts.type.replace(/\*/g, '')
+    let currentTime = ``
+    let currentDate = ``
+    let type = opts.type.replace(/[*]/g, '')
     switch (type) {
         case "TextView":
             if(opts.type?.endsWith("*")) 
@@ -431,9 +437,14 @@ const sharpHtml = (opts: SharpOption) => {
                 dropDownStr = opts.split
             }
             return opts.html.replace(opts.split, dropDownStr)
-        case "Time": 
+        case "Date":
             if(opts.type?.endsWith("*")) 
                 Asterisk = `<span style="color: red"> *</span>`
+            // if(opts.type?.includes("$")) {
+            //     const time = new Date() 
+            //     currentDate = `${formatNum(time.getDate())}/${formatNum(time.getMonth()+1)}/${time.getFullYear()}`
+            // }
+            currentDate = currentDate === "" ? 'Select' : currentDate
             return opts.html.replace(opts.split, `
                 <div style="margin: 15px 0;">
                     <div style="
@@ -443,8 +454,90 @@ const sharpHtml = (opts: SharpOption) => {
                     ">${opts.config.title}${Asterisk}</div>
                     <div style="
                         width: 48%;
-                        height: 24px;
-                    "></div>
+                        height: 40px;
+                        line-height: 40px;
+                        border: 1px solid #dedede;
+                        border-radius: 4px;
+                        background: url(${dateSvg}) no-repeat;
+                        background-position: right 10px center;
+                        color: #c1c1c1;
+                        text-indent: 0.8em;
+                    ">${currentDate}</div>
+                </div>
+            `)
+        case "Time":
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
+            // if(opts.type?.includes("$")) {
+            //     const time = new Date() 
+            //     currentTime = `${formatNum(time.getHours() <= 12 ? time.getHours() : time.getHours() - 12)}:${formatNum(time.getMinutes())} ${time.getHours() < 12 ? 'AM' : 'PM'}`
+            // }
+            currentTime = currentTime === "" ? 'Select' : currentTime
+            return opts.html.replace(opts.split, `
+                <div style="margin: 15px 0;">
+                    <div style="
+                        margin: 15px 0;
+                        color:#333333;
+                        font-weight: 600;
+                    ">${opts.config.title}${Asterisk}</div>
+                    <div style="
+                        width: 48%;
+                        height: 40px;
+                        line-height: 40px;
+                        border: 1px solid #dedede;
+                        border-radius: 4px;
+                        background: url(${timeSvg}) no-repeat;
+                        background-position: right 10px center;
+                        color: #c1c1c1;
+                        text-indent: 0.8em;
+                    ">${currentTime}</div>
+                </div>
+            `)
+        case "Date&Time":
+            if(opts.type?.endsWith("*")) 
+                Asterisk = `<span style="color: red"> *</span>`
+            // if(opts.type?.includes("$")) {
+            //     const time = new Date() 
+            //     currentDate = `${formatNum(time.getDate())}/${formatNum(time.getMonth()+1)}/${time.getFullYear()}`
+            //     currentTime = `${formatNum(time.getHours() <= 12 ? time.getHours() : time.getHours() - 12)}:${formatNum(time.getMinutes())} ${time.getHours() < 12 ? 'AM' : 'PM'}`
+            // }
+            currentDate = currentDate === "" ? 'Select' : currentDate
+            currentTime = currentTime === "" ? 'Select' : currentTime
+            return opts.html.replace(opts.split, `
+                <div style="margin: 15px 0;">
+                    <div style="
+                        margin: 15px 0;
+                        color:#333333;
+                        font-weight: 600;
+                    ">${opts.config.title}${Asterisk}</div>
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                    ">
+                        <div style="
+                            width: 48%;
+                            height: 40px;
+                            line-height: 40px;
+                            border: 1px solid #dedede;
+                            border-radius: 4px;
+                            background: url(${dateSvg}) no-repeat;
+                            background-position: right 10px center;
+                            color: #c1c1c1;
+                            text-indent: 0.8em;
+                        ">${currentDate}</div>
+                        <div style="
+                            width: 48%;
+                            height: 40px;
+                            line-height: 40px;
+                            border: 1px solid #dedede;
+                            border-radius: 4px;
+                            background: url(${timeSvg}) no-repeat;
+                            background-position: right 10px center;
+                            color: #c1c1c1;
+                            text-indent: 0.8em;
+                        ">${currentTime}</div>
+                    </div>
+                    
                 </div>
             `)
         default:

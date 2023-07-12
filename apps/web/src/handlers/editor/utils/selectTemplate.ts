@@ -60,7 +60,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.insertBreak()
             
             break
-        case "DateAndTime":
+        case "Date&Time":
             dateAndTime({
                 editor,
                 selection

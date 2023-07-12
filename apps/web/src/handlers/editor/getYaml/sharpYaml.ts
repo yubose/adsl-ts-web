@@ -1,3 +1,4 @@
+import { boxShadow } from "html2canvas/dist/types/css/property-descriptors/box-shadow"
 import { SharpYamlOption } from "../utils/config"
 import formatKey from "../utils/format"
 import { textSharpSplitReg } from "../utils/textSharp"
@@ -943,6 +944,741 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                     }
                 ]
             }
+        case "Date":
+            BaseJsonCopy.formData[opts.config.key as string]['Date'] = ''
+            return {
+                type: "view",
+                style: {
+                    marginTop: "0.03"
+                },
+                children: [
+                    {
+                        type: "label",
+                        contentType: "html",
+                        text: opts.config.title+str,
+                        style: {
+                            color: "0x333333",
+                            fontSize: '..formData.atrribute.noodl_font.text',
+                            fontWeight: "600",
+                            wordBreak: "keep-all",
+                        }
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            display: "..formData.atrribute.is_edit",
+                        },
+                        children: [
+                            {
+                                type: "view",
+                                style: {
+                                    marginTop: "0.0046",                                    
+                                    height: "0.0405",
+                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                    border: {
+                                        style: "3"
+                                    },
+                                    borderRadius: "4",
+                                    borderColor: "0xdedede",
+                                    boxSizing: "border-box",
+                                    overflow: "hidden",
+                                    display: "flex",
+                                    alignItems: "center"
+                                },
+                                children: [
+                                    {
+                                        type: "textField",
+                                        isEditable: false,
+                                        placeholder: "Select",
+                                        dataKey: "formData.data." + opts.config.key + '.Date',
+                                        style:{
+                                            textIndent: "0.8em",
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.inputWidth",
+                                            height: "0.0405",
+                                            boxSizing: "border-box",
+                                            fontSize: '..formData.atrribute.noodl_font.text',
+                                            border:{
+                                                style: "5"
+                                            },
+                                            display: "inline-block",
+                                            backgroundColor: "0xffffff",
+                                            color: "0x333333",
+                                            flexGrow: 0
+                                        },
+                                        viewTag: opts.config.key + "Tag",
+                                    }, 
+                                    {
+                                        type: "image",
+                                        path: "calendarBlue.svg",
+                                        style: {
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
+                                        }
+                                    }
+                                ],
+                                onClick: [
+                                    {
+                                        emit: {
+                                            actions: [
+                                                {
+                                                    "..formData.data.DataAndTime.flag@": opts.config.key + "Tag"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        actionType: "popUp",
+                                        popUpView: "Date&TimeTag"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            marginTop: "0.01",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            boxSizing: "border-box",
+                            height: "auto",
+                            display: "..formData.atrribute.is_read",
+                        },
+                        children: [
+                            {
+                                type: "label",
+                                text: "No Content",
+                                dataKey: "formData.data." + opts.config.key + ".Date",
+                                style: {
+                                    width: "calc(50%)",
+                                    height: "auto",
+                                    verticalAlign: "middle",
+                                    fontSize: "..formData.atrribute.noodl_font.h4",
+                                    color: "0x666666",
+                                    wordWrap: "break-word",
+                                    wordBreak: "break-word",
+                                    paddingTop: "0.0046",
+                                    paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box",
+                                    backgroundColor: "0xf4f4f4",
+                                } 
+                            }
+                        ]
+                    }
+                ]
+            }
+        case "Time":
+            BaseJsonCopy.formData[opts.config.key as string]['Time'] = ''
+            BaseJsonCopy.formData[opts.config.key as string]['isShow'] = 'none'
+            BaseJsonCopy.formData[opts.config.key as string]['list'] = getTimes()
+            const isShowAssignment = {}
+            isShowAssignment["..formData.data." + opts.config.key + ".isShow@"] = "block"
+            const isShowAssignmentCancel = {}
+            isShowAssignmentCancel["..formData.data." + opts.config.key + ".isShow@"] = "none"
+            const dataKeyAssignment = {}
+            dataKeyAssignment["..formData.data." + opts.config.key + '.Time@'] = "$var.value"
+            return {
+                type: "view",
+                style: {
+                    marginTop: "0.03"
+                },
+                children: [
+                    {
+                        type: "label",
+                        contentType: "html",
+                        text: opts.config.title+str,
+                        style: {
+                            color: "0x333333",
+                            fontSize: '..formData.atrribute.noodl_font.text',
+                            fontWeight: "600",
+                            wordBreak: "keep-all",
+                        }
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            display: "..formData.atrribute.is_edit",
+                        },
+                        children: [
+                            {
+                                type: "view",
+                                style: {
+                                    marginTop: "0.0046",                                    
+                                    height: "0.0405",
+                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                },
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {                                 
+                                            height: "0.0405",
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                            border: {
+                                                style: "3"
+                                            },
+                                            borderRadius: "4",
+                                            borderColor: "0xdedede",
+                                            boxSizing: "border-box",
+                                            overflow: "hidden",
+                                            display: "flex",
+                                            alignItems: "center"
+                                        },  
+                                        children: [
+                                            {
+                                                type: "textField",
+                                                placeholder: "Select",
+                                                dataKey: "formData.data." + opts.config.key + '.Time',
+                                                style:{
+                                                    textIndent: "0.8em",
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.inputWidth",
+                                                    height: "0.0405",
+                                                    boxSizing: "border-box",
+                                                    fontSize: '..formData.atrribute.noodl_font.text',
+                                                    outline: "none",
+                                                    border: "none",
+                                                    backgroundColor: "0xffffff",
+                                                    color: "0x333333",
+                                                    flexGrow: 0
+                                                },
+                                                viewTag: opts.config.key + "Tag",
+                                                // onInput
+                                            }, 
+                                            {
+                                                type: "image",
+                                                path: "circleClock.svg",
+                                                style: {
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
+                                                }
+                                            }
+                                        ],
+                                        onClick: [
+                                            {
+                                                emit: {
+                                                    actions: [
+                                                        {
+                                                            if: [
+                                                                {
+                                                                    "=.builtIn.string.equal": {
+                                                                        dataIn: {
+                                                                            string1: "=..formData.data." + opts.config.key + ".isShow",
+                                                                            string2: "none"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                isShowAssignment,
+                                                                isShowAssignmentCancel
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                actionType: "builtIn",
+                                                funcName: "redraw",
+                                                viewTag: opts.config.key + "SelectTag"
+                                            }
+                                        ]
+                                    }, 
+                                    {
+                                        type: "view",
+                                        viewTag: opts.config.key + "SelectTag",
+                                        style: {
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                            height: "0.2",
+                                            borderRadius: "4px",
+                                            boxShadow: "0 3px 3px #CCCCCC",
+                                            display: "..formData.data." + opts.config.key + ".isShow",
+                                            zIndex: "100",
+                                            backgroundColor: "0xffffff"
+                                        },
+                                        children: [
+                                            {
+                                                type: "list",
+                                                contentType: "listObject",
+                                                listObject: "..formData.data." + opts.config.key + ".list",
+                                                iteratorVar: "itemObject",
+                                                style: {
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                    height: "0.2",
+                                                    overflow: "scroll",
+                                                    cursor: "pointer"
+                                                },
+                                                children: [
+                                                    {
+                                                        type: "listItem",
+                                                        itemObject: "",
+                                                        style: {
+                                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                            height: "0.04"
+                                                        },
+                                                        children: [
+                                                            {
+                                                                type: 'label',
+                                                                dataKey: "itemObject.value",
+                                                                style: {
+                                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                                    height: "0.04",
+                                                                    textAlign: {
+                                                                        x: "center",
+                                                                        y: "center"
+                                                                    }
+                                                                }
+                                                            }
+                                                        ],
+                                                        onClick: [
+                                                            {
+                                                                emit: {
+                                                                    dataKey: {
+                                                                        var: "itemObject"
+                                                                    },
+                                                                    actions: [
+                                                                        dataKeyAssignment,
+                                                                        isShowAssignmentCancel
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                actionType: "builtIn",
+                                                                funcName: "redraw",
+                                                                viewTag: opts.config.key + "SelectTag"
+                                                            },
+                                                            {
+                                                                actionType: "builtIn",
+                                                                funcName: "redraw",
+                                                                viewTag: opts.config.key + "Tag"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            marginTop: "0.01",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            boxSizing: "border-box",
+                            height: "auto",
+                            display: "..formData.atrribute.is_read",
+                        },
+                        children: [
+                            {
+                                type: "label",
+                                text: "No Content",
+                                dataKey: "formData.data." + opts.config.key + ".Time",
+                                style: {
+                                    width: "calc(50%)",
+                                    height: "auto",
+                                    verticalAlign: "middle",
+                                    fontSize: "..formData.atrribute.noodl_font.h4",
+                                    color: "0x666666",
+                                    wordWrap: "break-word",
+                                    wordBreak: "break-word",
+                                    paddingTop: "0.0046",
+                                    paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box",
+                                    backgroundColor: "0xf4f4f4",
+                                } 
+                            }
+                        ]
+                    }
+                ]
+            }
+        case "Date&Time":
+            BaseJsonCopy.formData[opts.config.key as string]['DateAndTime'] = []
+            BaseJsonCopy.formData[opts.config.key as string]['Date'] = ''
+            BaseJsonCopy.formData[opts.config.key as string]['Time'] = ''
+            BaseJsonCopy.formData[opts.config.key as string]['isShow'] = 'none'
+            BaseJsonCopy.formData[opts.config.key as string]['list'] = getTimes()
+            const isDTShowAssignment = {}
+            isDTShowAssignment["..formData.data." + opts.config.key + ".isShow@"] = "block"
+            const isDTShowAssignmentCancel = {}
+            isDTShowAssignmentCancel["..formData.data." + opts.config.key + ".isShow@"] = "none"
+            const dTDataKeyAssignment = {}
+            dTDataKeyAssignment["..formData.data." + opts.config.key + '.Time@'] = "$var.value"
+            return {
+                type: "view",
+                style: {
+                    marginTop: "0.03"
+                },
+                children: [
+                    {
+                        type: "label",
+                        contentType: "html",
+                        text: opts.config.title+str,
+                        style: {
+                            color: "0x333333",
+                            fontSize: '..formData.atrribute.noodl_font.text',
+                            fontWeight: "600",
+                            wordBreak: "keep-all",
+                        }
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            display: "..formData.atrribute.is_edit",
+                        },
+                        children: [
+                            {
+                                type: "view",
+                                style: {
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                },
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {
+                                            marginTop: "0.0046",                                    
+                                            height: "0.0405",
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                            border: {
+                                                style: "3"
+                                            },
+                                            borderRadius: "4",
+                                            borderColor: "0xdedede",
+                                            boxSizing: "border-box",
+                                            overflow: "hidden",
+                                            display: "flex",
+                                            alignItems: "center"
+                                        },
+                                        children: [
+                                            {
+                                                type: "textField",
+                                                isEditable: false,
+                                                placeholder: "Select",
+                                                dataKey: "formData.data." + opts.config.key + '.Date',
+                                                style:{
+                                                    textIndent: "0.8em",
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.inputWidth",
+                                                    height: "0.0405",
+                                                    boxSizing: "border-box",
+                                                    fontSize: '..formData.atrribute.noodl_font.text',
+                                                    border:{
+                                                        style: "5"
+                                                    },
+                                                    display: "inline-block",
+                                                    backgroundColor: "0xffffff",
+                                                    color: "0x333333",
+                                                    flexGrow: 0
+                                                },
+                                                viewTag: opts.config.key + "Tag",
+                                            }, 
+                                            {
+                                                type: "image",
+                                                path: "calendarBlue.svg",
+                                                style: {
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
+                                                }
+                                            }
+                                        ],
+                                        onClick: [
+                                            {
+                                                emit: {
+                                                    actions: [
+                                                        {
+                                                            "..formData.data.DataAndTime.flag@": opts.config.key + "Tag",
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                actionType: "popUp",
+                                                popUpView: "Date&TimeTag"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        type: "view",
+                                        style: {
+                                            marginTop: "0.0046",                                    
+                                            height: "0.0405",
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                        },
+                                        children: [
+                                            {
+                                                type: "view",
+                                                style: {                                 
+                                                    height: "0.0405",
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                    border: {
+                                                        style: "3"
+                                                    },
+                                                    borderRadius: "4",
+                                                    borderColor: "0xdedede",
+                                                    boxSizing: "border-box",
+                                                    overflow: "hidden",
+                                                    display: "flex",
+                                                    alignItems: "center"
+                                                },  
+                                                children: [
+                                                    {
+                                                        type: "textField",
+                                                        placeholder: "Select",
+                                                        dataKey: "formData.data." + opts.config.key + '.Time',
+                                                        style:{
+                                                            textIndent: "0.8em",
+                                                            width: "..formData.atrribute.noodl_font.DateAndTime.inputWidth",
+                                                            height: "0.0405",
+                                                            boxSizing: "border-box",
+                                                            fontSize: '..formData.atrribute.noodl_font.text',
+                                                            outline: "none",
+                                                            border: "none",
+                                                            backgroundColor: "0xffffff",
+                                                            color: "0x333333",
+                                                            flexGrow: 0
+                                                        },
+                                                        viewTag: opts.config.key + "Tag",
+                                                        onInput: [
+                                                            {
+                                                                emit: {
+                                                                    actions: [
+                                                                        {
+                                                                            "=.builtIn.array.clear": {
+                                                                                dataIn: {
+                                                                                    object: "=..formData.data." + opts.config.key + ".DateAndTime"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "=.builtIn.array.add": {
+                                                                                dataIn: {
+                                                                                    object: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                                                                    value: "=..formData.data." + opts.config.key + ".Date"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "=.builtIn.array.add": {
+                                                                                dataIn: {
+                                                                                    object: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                                                                    value: "=..formData.data." + opts.config.key + ".Time"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }, 
+                                                    {
+                                                        type: "image",
+                                                        path: "circleClock.svg",
+                                                        style: {
+                                                            width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
+                                                        }
+                                                    }
+                                                ],
+                                                onClick: [
+                                                    {
+                                                        emit: {
+                                                            actions: [
+                                                                {
+                                                                    if: [
+                                                                        {
+                                                                            "=.builtIn.string.equal": {
+                                                                                dataIn: {
+                                                                                    string1: "=..formData.data." + opts.config.key + ".isShow",
+                                                                                    string2: "none"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        isDTShowAssignment,
+                                                                        isDTShowAssignmentCancel
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        actionType: "builtIn",
+                                                        funcName: "redraw",
+                                                        viewTag: opts.config.key + "SelectTag"
+                                                    }
+                                                ]
+                                            }, 
+                                            {
+                                                type: "view",
+                                                viewTag: opts.config.key + "SelectTag",
+                                                style: {
+                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                    height: "0.2",
+                                                    borderRadius: "4px",
+                                                    boxShadow: "0 3px 3px #CCCCCC",
+                                                    display: "..formData.data." + opts.config.key + ".isShow",
+                                                    zIndex: "100",
+                                                    backgroundColor: "0xffffff"
+                                                },
+                                                children: [
+                                                    {
+                                                        type: "list",
+                                                        contentType: "listObject",
+                                                        listObject: "..formData.data." + opts.config.key + ".list",
+                                                        iteratorVar: "itemObject",
+                                                        style: {
+                                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                            height: "0.2",
+                                                            overflow: "scroll",
+                                                            cursor: "pointer"
+                                                        },
+                                                        children: [
+                                                            {
+                                                                type: "listItem",
+                                                                itemObject: "",
+                                                                style: {
+                                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                                    height: "0.04"
+                                                                },
+                                                                children: [
+                                                                    {
+                                                                        type: 'label',
+                                                                        dataKey: "itemObject.value",
+                                                                        style: {
+                                                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                                                            height: "0.04",
+                                                                            textAlign: {
+                                                                                x: "center",
+                                                                                y: "center"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                onClick: [
+                                                                    {
+                                                                        emit: {
+                                                                            dataKey: {
+                                                                                var: "itemObject"
+                                                                            },
+                                                                            actions: [
+                                                                                dTDataKeyAssignment,
+                                                                                isDTShowAssignmentCancel,
+                                                                                {
+                                                                                    "=.builtIn.array.clear": {
+                                                                                        dataIn: {
+                                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime"
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "=.builtIn.array.add": {
+                                                                                        dataIn: {
+                                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                                                                            value: "=..formData.data." + opts.config.key + ".Date"
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "=.builtIn.array.add": {
+                                                                                        dataIn: {
+                                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                                                                            value: "=..formData.data." + opts.config.key + ".Time"
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        actionType: "builtIn",
+                                                                        funcName: "redraw",
+                                                                        viewTag: opts.config.key + "SelectTag"
+                                                                    },
+                                                                    {
+                                                                        actionType: "builtIn",
+                                                                        funcName: "redraw",
+                                                                        viewTag: opts.config.key + "Tag"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            marginTop: "0.01",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            boxSizing: "border-box",
+                            height: "auto",
+                            display: "..formData.atrribute.is_read",
+                        },
+                        children: [
+                            {
+                                type: "view",
+                                // text: "No Content",
+                                // dataKey: "formData.data." + opts.config.key + ".Time",
+                                style: {
+                                    width: "calc(50%)",
+                                    height: "auto",
+                                    verticalAlign: "middle",
+                                    fontSize: "..formData.atrribute.noodl_font.h4",
+                                    color: "0x666666",
+                                    wordWrap: "break-word",
+                                    wordBreak: "break-word",
+                                    paddingTop: "0.0046",
+                                    paddingBottom: "0.0046",
+                                    paddingLeft: "0.0046",
+                                    boxSizing: "border-box",
+                                    backgroundColor: "0xf4f4f4",
+                                },
+                                children: [
+                                    {
+                                        type: "list",
+                                        contentType: "listObject",
+                                        listObject: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                        iteratorVar: "itemObject",
+                                        style: {
+                                            fontSize: "..formData.atrribute.noodl_font.h4",
+                                            color: "0x666666",
+                                            wordWrap: "break-word",
+                                            wordBreak: "break-word",
+                                            display: "flex"
+                                        },
+                                        children: [
+                                            {
+                                                type: "listItem",
+                                                itemObject: "",
+                                                style: {
+                                                    fontSize: "..formData.atrribute.noodl_font.h4",
+                                                    color: "0x666666",
+                                                    marginRight: "10px"
+                                                },
+                                                children: [
+                                                    {
+                                                        type: "label",
+                                                        text: "-",
+                                                        dataKey: "itemObject",
+                                                        style: {
+                                                            fontSize: "..formData.atrribute.noodl_font.h4",
+                                                            color: "0x666666",
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
         default:
             return {
                 type: "view",
@@ -1022,6 +1758,21 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                 ]
             }
     }
+}
+
+const formatNum = (num: number) => {
+    return num < 10 ? `0${num}` : `${num}`
+} 
+
+const getTimes = () => {
+    let res = new Array()
+    for(let i = 0; i < 24; i++) {
+        res.push({
+            value: `${formatNum(i <= 12 ? i : i - 12)}:00${i < 12 ? "AM" : "PM"}`,
+            bgColor: `#ffffff`
+        })
+    }
+    return res
 }
 
 export default sharpYaml
