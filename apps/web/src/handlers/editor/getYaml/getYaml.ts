@@ -490,10 +490,13 @@ const populateBlock = ({
                             wordBreak: "break-word",
                             whiteSpace: "pre-wrap",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                            display: "flex",
-                            // alignItems: "..formData.atrribute.alignItems",
-                            alignItems: "center",
-                            flexWrap: "wrap"
+                            textAlign: {
+                                y: "center"
+                            }
+                            // display: "flex",
+                            // // alignItems: "..formData.atrribute.alignItems",
+                            // alignItems: "center",
+                            // flexWrap: "wrap"
                         }
                     }
                     let inherit = {}
