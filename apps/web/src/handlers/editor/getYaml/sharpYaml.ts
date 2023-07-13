@@ -1637,6 +1637,29 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                             ]
                                                                         }
                                                                     }
+                                                                },
+                                                                {
+                                                                    "=.builtIn.array.clear": {
+                                                                        dataIn: {
+                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "=.builtIn.array.add": {
+                                                                        dataIn: {
+                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                                                            value: "=..formData.data." + opts.config.key + ".Date"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "=.builtIn.array.add": {
+                                                                        dataIn: {
+                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
+                                                                            value: "=..formData.data." + opts.config.key + ".Time"
+                                                                        }
+                                                                    }
                                                                 }
                                                             ]
                                                         }
