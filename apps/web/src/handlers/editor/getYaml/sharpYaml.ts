@@ -1519,13 +1519,14 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             justifyContent: "space-between",
                             width: "..formData.atrribute.noodl_font.fullWidth",
                             flexWrap: "wrap",
+                            position: "absolute"
                         },
                         children: [
                             {
                                 type: "view",
                                 style: {
                                     width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                    height: 0
+                                    height: "0.000001"
                                 }
                             },
                             {
@@ -1533,19 +1534,19 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                 children: [
                                     {
                                         type: "list",
+                                        viewTag: opts.config.key + "SelectTag",
                                         contentType: "listObject",
                                         listObject: "..formData.data." + opts.config.key + ".list",
                                         iteratorVar: "itemObject",
-                                        viewTag: opts.config.key + "SelectTag",
                                         style: {
                                             height: "0.2",
                                             cursor: "pointer",
                                             width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                            display: "..formData.data." + opts.config.key + ".isShow",
                                             overflow: "scroll",
                                             border: "1px solid #cccccc",
                                             borderRadius: "4px",
                                             marginTop: "0.002",
-                                            display: "..formData.data." + opts.config.key + ".isShow",
                                             // position: "absolute",
                                             background: "0xffffff",
                                             zIndex: "100",
@@ -1648,7 +1649,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                 type: "view",
                                 style: {
                                     width: "calc(50%)",
-                                    height: "auto",
+                                    height: "..formData.atrribute.noodl_font.lineHeight",
                                     verticalAlign: "middle",
                                     fontSize: "..formData.atrribute.noodl_font.h4",
                                     color: "0x666666",
