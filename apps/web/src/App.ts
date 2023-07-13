@@ -331,13 +331,11 @@ class App {
         script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
         script.onload = () => {
           resolve(window[tempGlobal])
-          delete window[tempGlobal]
-          script.remove()
         }
         script.onerror = () => {
-          reject(new Error('Failed to load module script with URL ' + url))
           delete window[tempGlobal]
           script.remove()
+          reject(new Error('Failed to load module script with URL ' + url))
         }
         document.documentElement.appendChild(script)
       } else if (url.endsWith('css')) {
@@ -628,8 +626,23 @@ class App {
         this.disableSpinner()
       })
       if (this.noodl) await this.noodl.init()
+      const initInjectScripts = this.noodl.config?.preloadlibInit
+      if (u.isArr(initInjectScripts) && initInjectScripts.length > 0) {
+        // eslint-disable-next-line
+        const loadjs = (url:string)=>{
+          return new Promise((resolve,reject)=>{
+            const script_ = document.createElement('script')
+            script_.onload = () => resolve(true)
+            script_.onerror = () => reject()
+            script_.type = 'text/javascript'
+            script_.async = true
+            document.body.append(script_)
+            script_.src = url
+          })
+        }
+        await Promise.all(initInjectScripts.map(async (url) => await loadjs(url)))
+      }
       onSdkInit?.(this.noodl)
-
       // console.time('a')
 
       log.debug(`Initialized @aitmed/cadl sdk instance`)
