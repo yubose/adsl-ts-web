@@ -41,10 +41,6 @@ const choice = ({
             })
         }
     }
-
-    interface RES {
-        
-    }
     
     Swal.fire({
         html: `
@@ -205,25 +201,33 @@ const choice = ({
             htmlContainer: "w-e_search-container",
         },
         preConfirm: () => {
-            const repetitionSet = getRepetition()
-            if(repetitionSet.size === 0) {
-                let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
-                let choiceType = (<HTMLInputElement>document.getElementById("w-e_choiceType")).innerText
-                let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
-                return {
-                    title,
-                    choiceType,
-                    required,
-                    list: choiceDataArray
+            let hasValue = judgeDateArray()
+            if(hasValue) {
+                const repetitionSet = getRepetition()
+                if(repetitionSet.size === 0) {
+                    let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
+                    let choiceType = (<HTMLInputElement>document.getElementById("w-e_choiceType")).innerText
+                    let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
+                    return {
+                        title,
+                        choiceType,
+                        required,
+                        list: choiceDataArray
+                    }
+                } else if(repetitionSet.size !== 0) {
+                    showTip(repetitionMsg)
+                    inputBoxes.forEach(item => {
+                        if(repetitionSet.has(item.value)) {
+                            item.style.borderColor = "red"
+                        }
+                    })
+                    setTimeout(() => {
+                        confirmButton.setAttribute("disabled", "true")
+                    })
+                    return false
                 }
             } else {
-                // confirmButton?.setAttribute("disabled", "true")
-                showTip(repetitionMsg)
-                inputBoxes.forEach(item => {
-                    if(repetitionSet.has(item.value) || repetitionSet.has(item.placeholder)) {
-                        item.style.borderColor = "red"
-                    }
-                })
+                showTip(hasValueMsg)
                 setTimeout(() => {
                     confirmButton.setAttribute("disabled", "true")
                 })
@@ -325,10 +329,21 @@ const choice = ({
             const inputs = item.getElementsByTagName("input")
             inputBoxes.push(inputs[0])
             choiceDataArray.push({
-                title: inputs[0].value === "" ? inputs[0].placeholder : inputs[0].value,
+                title: inputs[0].value,
                 check: inputs[1].checked ? "checked" : ""
             })
         })
+    }
+
+    const judgeDateArray = () => {
+        getDataArray()
+        const length = choiceDataArray.length
+        for(let i = 0; i < length; i++) {
+            if(choiceDataArray[i].title !== "") {
+                return true
+            }
+        }
+        return false
     }
 
     const getRepetition = () => {
@@ -361,6 +376,7 @@ const choice = ({
     
     const reduceMsg = "Please keep at least one option"
     const repetitionMsg = "Option repetition!"
+    const hasValueMsg = "Please enter at least one option"
 
     const showTip = (Msg: string) => {
         Swal.showValidationMessage(Msg)
@@ -483,6 +499,7 @@ const choice = ({
         Swal.resetValidationMessage()
     })
 
+    titleInput.focus()
     if(titleInput.value === "") {
         // titleInput.style.borderColor = "#ff0000"
         confirmButton?.setAttribute("disabled", "true")
@@ -498,24 +515,36 @@ const choice = ({
             // Swal.disableButtons()
             confirmButton?.setAttribute("disabled", "true")
         }
+        titleInput.value = title.replace(/\|-|-\|/g, "")
     })
 
     choiceTitles.addEventListener("input", (event) => {
-        const repetitionSet = getRepetition()
-        if(repetitionSet.size > 0) {
-            showTip(repetitionMsg)
-            inputBoxes.forEach(item => {
-                if(repetitionSet.has(item.value) || repetitionSet.has(item.placeholder)) {
-                    item.style.borderColor = "red"
+        getDataArray()
+        const target = event.target as HTMLInputElement
+        if(new Set(inputBoxes).has(target)) {
+            const hasValue = judgeDateArray()
+            if(!hasValue) {
+                showTip(hasValueMsg)
+                confirmButton.setAttribute("disabled", "true")
+            } else {
+                const repetitionSet = getRepetition()
+                if(repetitionSet.size > 0) {
+                    showTip(repetitionMsg)
+                    inputBoxes.forEach(item => {
+                        if(repetitionSet.has(item.value)) {
+                            item.style.borderColor = "red"
+                        }
+                    })
+                    confirmButton.setAttribute("disabled", "true")
+                } else {
+                    Swal.resetValidationMessage()
+                    confirmButton.removeAttribute("disabled")
+                    inputBoxes.forEach(item => {
+                        item.style.borderColor = "#dedede"
+                    })
                 }
-            })
-            confirmButton.setAttribute("disabled", "true")
-        } else {
-            Swal.resetValidationMessage()
-            confirmButton.removeAttribute("disabled")
-            inputBoxes.forEach(item => {
-                item.style.borderColor = "#dedede"
-            })
+            }
+            target.value = target.value.replace(/\|-|-\|/g, "")
         }
     })
 }

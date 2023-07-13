@@ -582,9 +582,9 @@ const populateBlock = ({
                             children: new Array()
                         }
                         item.children.forEach((it, idx) => {
-                            let textAlign = it?.isHeader ? {x: 'center'} : {x: 'start'}
+                            let textAlign = it?.isHeader ? {x: 'center', y:"center"} : {x: 'start', y:"center"}
                             let justifyContent = it?.isHeader ? 'center' : 'start'
-                            textAlign = it?.textAlign ? {x: it.textAlign} : textAlign
+                            textAlign = it?.textAlign ? {x: it.textAlign, y:"center"} : textAlign
                             justifyContent = it?.textAlign ? it.textAlign : justifyContent
                             let backgroundColor = it?.isHeader ? "#f5f2f0" : "#ffffff"
                             let fontWeight = it?.isHeader ? "600" : "normal"
@@ -604,7 +604,8 @@ const populateBlock = ({
                                     textAlign,
                                     flexShrink: flexShrinks[idx],
                                     fontWeight,
-                                    padding: "0.005"
+                                    padding: "0.005",
+                                    boxSizing: "border-box"
                                 },
                                 children: new Array()
                             }

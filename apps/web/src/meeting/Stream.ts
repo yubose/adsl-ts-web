@@ -375,8 +375,8 @@ class MeetingStream {
     let backdrop = this.#node?.querySelector?.(
       `#${backdropId}`,
     ) as HTMLDivElement
-    const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
-    videoNode.style.display = type === 'close'?'none':'block'
+    const videoNode = window.app.meeting.mainStream.getVideoElement()
+    videoNode && (videoNode.style.display = type === 'close'?'none':'block')
     // if (!backdrop) {
     //   backdrop = document.createElement('div')
     //   backdrop.id = backdropId
@@ -442,9 +442,9 @@ class MeetingStream {
         }
       }
 
-
-      if((window as any).app.root.VideoChat){
-        const {cameraOn,micOn} = (window as any).app.root.VideoChat
+      const page = window.app.initPage
+      if(window.app.root?.[page]){
+        const {cameraOn,micOn} = window.app.root?.[page]
         if(track.kind === 'audio'){
           micOn ? track?.['enable']?.() : track?.['disable']?.()
         }else if(track.kind === 'video'){

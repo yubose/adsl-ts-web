@@ -39,9 +39,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         if (participantsNumber == 0 && app.meeting.room.state === 'connected') {
           app.register.extendVideoFunction('onDisconnect')
         }
-        toast(`A participant disconnected`, { type: 'error' })
-        const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
-        videoNode.style.display = 'none'
+        // toast(`A participant disconnected`, { type: 'error' })
+        const videoNode = app.meeting.mainStream.getVideoElement()
+        videoNode && (videoNode.style.display = 'none')
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {
@@ -147,10 +147,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           participant,
         ]),
       )
-      if (!has(app.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
+      if (!has(app.root, app.getPathToRemoteParticipantsInRoot())) {
         log.error(
           'Could not find a path to remote participants in the VideoChat page! Path: ' +
-            PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+          app.getPathToRemoteParticipantsInRoot(),
           app.root,
         )
       }
@@ -201,8 +201,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           component,
           selfStream: selfStream.snapshot(),
         })
-
-        if (app.mainPage.page === 'VideoChat') {
+        
+        if (app.mainPage.page === 'VideoChat' || app.mainPage.page === 'MeetingPage') {
           // If the selfStream already has an element, re-use it and reload the
           // media tracks on it
           if (selfStream.hasElement()) {
@@ -250,10 +250,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               })
 
             },1000)
-            //@ts-expect-error
             app.ndom.global.intervals.set('VideoChatTimer',Interval)
           }else{
-            //@ts-expect-error
             const interval =app.ndom.global.intervals.get('VideoChatTimer')
             if(interval){
               clearInterval(interval)
@@ -308,7 +306,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                 streamParticipant === localParticipant ||
                 streamParticipant?.sid === localParticipant?.sid
 
-              if (currentPage === 'VideoChat') {
+              if (currentPage === 'VideoChat' || currentPage === 'MeetingPage') {
                 // Restore the self stream back to the local participant
                 if (!isStreamingLocalParticipant) {
                   // debugger

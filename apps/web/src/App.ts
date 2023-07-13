@@ -76,7 +76,7 @@ class App {
       page: '',
     },
   }
-
+  #initPage:string|null = null
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #ecosLogger: ReturnType<typeof createEcosLogger>
@@ -307,6 +307,9 @@ class App {
   get piBackgroundWorker() {
     return this.#piBackgroundWorker as Worker
   }
+  get initPage(){
+    return this.#initPage
+  }
 
   getState() {
     return this.#state
@@ -328,13 +331,11 @@ class App {
         script.textContent = `import * as m from "${url}"; window.${tempGlobal} = m;`
         script.onload = () => {
           resolve(window[tempGlobal])
-          delete window[tempGlobal]
-          script.remove()
         }
         script.onerror = () => {
-          reject(new Error('Failed to load module script with URL ' + url))
           delete window[tempGlobal]
           script.remove()
+          reject(new Error('Failed to load module script with URL ' + url))
         }
         document.documentElement.appendChild(script)
       } else if (url.endsWith('css')) {
@@ -454,7 +455,8 @@ class App {
                 while (
                   pageToDestroy &&
                   pageToDestroy !== _page.requesting &&
-                  pageToDestroy !== 'VideoChat'
+                  pageToDestroy !== 'VideoChat' &&
+                  pageToDestroy !== 'MeetingPage'
                 ) {
                   if (pageToDestroy in this.noodl.root) {
                     delete this.noodl.root[pageToDestroy]
@@ -478,6 +480,7 @@ class App {
       }
 
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
+      this.#initPage = _page.requesting
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {
@@ -623,8 +626,23 @@ class App {
         this.disableSpinner()
       })
       if (this.noodl) await this.noodl.init()
+      const initInjectScripts = this.noodl.config?.preloadlibInit
+      if (u.isArr(initInjectScripts) && initInjectScripts.length > 0) {
+        // eslint-disable-next-line
+        const loadjs = (url:string)=>{
+          return new Promise((resolve,reject)=>{
+            const script_ = document.createElement('script')
+            script_.onload = () => resolve(true)
+            script_.onerror = () => reject()
+            script_.type = 'text/javascript'
+            script_.async = true
+            document.body.append(script_)
+            script_.src = url
+          })
+        }
+        await Promise.all(initInjectScripts.map(async (url) => await loadjs(url)))
+      }
       onSdkInit?.(this.noodl)
-
       // console.time('a')
 
       log.debug(`Initialized @aitmed/cadl sdk instance`)
@@ -715,11 +733,13 @@ class App {
           startPage = cachedPage.name
         }
       }
+
       const injectScripts = this.noodl.config?.preloadlib
       if (u.isArr(injectScripts) && injectScripts.length > 0) {
         // eslint-disable-next-line
         Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
       }
+
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
@@ -1044,12 +1064,16 @@ class App {
   }
 
   getSdkParticipants(root = this.noodl?.root): t.RemoteParticipant[] {
-    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) || null
+    return get(root, this.getPathToRemoteParticipantsInRoot()) || null
   }
 
   setSdkParticipants(participants: any[]) {
-    this.updateRoot(PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
+    this.updateRoot(this.getPathToRemoteParticipantsInRoot(), participants)
     return this.getSdkParticipants() || null
+  }
+  getPathToRemoteParticipantsInRoot(){
+    const page = this.initPage?this.initPage:'VideoChat'
+    return `${page}listData.participants`
   }
 
   observeViewport(viewport: VP) {
@@ -1100,6 +1124,12 @@ class App {
         })
         viewport.width = sizes.width
         viewport.height = sizes.height
+        const userAgent = window.navigator.userAgent
+        if(/Mobi|Android|iPhone/.test(userAgent)){
+          viewport.width = window.innerWidth
+          viewport.height = window.innerHeight
+        }
+        
       } else {
         viewport.width = w
         viewport.height = h
@@ -1153,7 +1183,9 @@ class App {
     }
 
     const onBeforeClearnode = () => {
-      if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+      if ((page.page === 'VideoChat' && page.requesting !== 'VideoChat')||
+        (page.page === 'MeetingPage' && page.requesting !== 'MeetingPage')
+      ) {
         const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
@@ -1173,7 +1205,7 @@ class App {
 
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
-      if (page.page === 'VideoChat') {
+      if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)
           this.meeting.calledOnConnected = true
@@ -1364,9 +1396,9 @@ class App {
         )
         this.ndom.page = this.mainPage
       }
-      has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) &&
+      has(this.noodl.root, this.getPathToRemoteParticipantsInRoot()) &&
         this.updateRoot((draft) => {
-          set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
+          set(draft, this.getPathToRemoteParticipantsInRoot(), [])
         })
       return this
     }
