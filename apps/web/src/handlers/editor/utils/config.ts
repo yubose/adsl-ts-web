@@ -2,10 +2,13 @@ export type SharpType =
     "TextView"|
     "TextField"|
     "Signature"|
-    "Diagnosis" |
-    "Radio" |
-    "Checkbox" |
-    "Drop Down Box"
+    "Diagnosis"|
+    "Radio"|
+    "Checkbox"|
+    "Drop Down Box"|
+    "Date"|
+    "Time"|
+    "Date&Time"
 
 export interface SharpOption {
     html: string
@@ -26,4 +29,5 @@ export interface SharpYamlOption {
         list?: string
     },
     isRequired?:boolean
+    isCurrentTime?:boolean
 }

@@ -5,7 +5,10 @@ interface REQUIRED {
 
 const BaseJson = {
     formData: {
-        
+        DataAndTime: {
+            flag: '',
+            value: ''
+        }
     },
     required: new Array<REQUIRED>(),
     components: {

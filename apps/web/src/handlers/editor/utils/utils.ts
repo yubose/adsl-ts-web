@@ -158,6 +158,11 @@ const editorBlockCss = {
     height: "24px"
 }
 
+const editorBlockSet = {
+    choiceSet: new Set(["Radio", "Checkbox", "Drop Down Box"]),
+    dateTimeSet: new Set(["Date", "Time", "Date&Time"])
+}
+
 export {
     toReg,
     insertText,
@@ -165,5 +170,6 @@ export {
     getUuid,
     getHTMLDataArray,
     reverseEscape,
-    editorBlockCss
+    editorBlockCss,
+    editorBlockSet
 }
