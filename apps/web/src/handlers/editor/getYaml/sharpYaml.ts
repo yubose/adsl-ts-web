@@ -1141,7 +1141,8 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                     border: "none",
                                                     backgroundColor: "0xffffff",
                                                     color: "0x333333",
-                                                    flexGrow: 0
+                                                    flexGrow: 0,
+                                                    cursor: "pointer"
                                                 },
                                                 viewTag: opts.config.key + "Tag",
                                                 // onInput
@@ -1153,108 +1154,133 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                     width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
                                                 }
                                             }
-                                        ],
-                                        onClick: [
-                                            {
-                                                emit: {
-                                                    actions: [
-                                                        {
-                                                            if: [
-                                                                {
-                                                                    "=.builtIn.string.equal": {
-                                                                        dataIn: {
-                                                                            string1: "=..formData.data." + opts.config.key + ".isShow",
-                                                                            string2: "none"
-                                                                        }
-                                                                    }
-                                                                },
-                                                                isShowAssignment,
-                                                                isShowAssignmentCancel
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        onClick: [
+                            {
+                                emit: {
+                                    actions: [
+                                        {
+                                            if: [
+                                                {
+                                                    "=.builtIn.string.equal": {
+                                                        dataIn: {
+                                                            string1: "=..formData.data." + opts.config.key + ".isShow",
+                                                            string2: "none"
+                                                        }
+                                                    }
+                                                },
+                                                isShowAssignment,
+                                                isShowAssignmentCancel
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                actionType: "builtIn",
+                                funcName: "redraw",
+                                viewTag: opts.config.key + "SelectTag"
+                            }
+                        ]
+                    },
+                    {
+                        type: "list",
+                        contentType: "listObject",
+                        listObject: "..formData.data." + opts.config.key + ".list",
+                        iteratorVar: "itemObject",
+                        viewTag: opts.config.key + "SelectTag",
+                        style: {
+                            height: "0.2",
+                            cursor: "pointer",
+                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                            overflow: "scroll",
+                            border: "1px solid #cccccc",
+                            borderRadius: "4px",
+                            marginTop: "0.002",
+                            display: "..formData.data." + opts.config.key + ".isShow",
+                            position: "absolute",
+                            background: "0xffffff",
+                            zIndex: "100",
+                            boxSizing: "border-box"
+                        },
+                        children: [
+                            {
+                                type: "listItem",
+                                itemObject: "",
+                                style: {
+                                    width: "calc(100%)",
+                                    height: "0.04"
+                                },
+                                children: [
+                                    {
+                                        type: 'label',
+                                        hover: {
+                                            backgroundColor: "0x1e90ff",
+                                            color: "0xffffff"
+                                        },
+                                        dataKey: "itemObject.value",
+                                        style: {
+                                            height: "0.04",
+                                            textAlign: {
+                                                x: "center",
+                                                y: "center"
+                                            },
+                                            backgroundColor: "itemObject.backgroundColor",
+                                            color: "itemObject.color",
+                                            fontWeight: "600",
+                                            width: "calc(100%)",
+                                            padding: "0px 18px",
+                                            wordBreak: "break-word",
+                                            boxSizing: "border-box"
+                                        }
+                                    }
+                                ],
+                                onClick: [
+                                    {
+                                        emit: {
+                                            dataKey: {
+                                                var: "itemObject"
+                                            },
+                                            actions: [
+                                                dataKeyAssignment,
+                                                isShowAssignmentCancel,
+                                                {
+                                                    "=.builtIn.object.setProperty": {
+                                                        dataIn: {
+                                                            obj: "=..formData.data." + opts.config.key + ".list",
+                                                            label: "value",
+                                                            text: "$var.value",
+                                                            arr: [
+                                                                "backgroundColor",
+                                                                "color"
+                                                            ],
+                                                            valueArr: [
+                                                                "0x1e90ff",
+                                                                "0xffffff"
+                                                            ],
+                                                            errorArr: [
+                                                                "0xffffff",
+                                                                "0x333333"
                                                             ]
                                                         }
-                                                    ]
-                                                }
-                                            },
-                                            {
-                                                actionType: "builtIn",
-                                                funcName: "redraw",
-                                                viewTag: opts.config.key + "SelectTag"
-                                            }
-                                        ]
-                                    }, 
-                                    {
-                                        type: "view",
-                                        viewTag: opts.config.key + "SelectTag",
-                                        style: {
-                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                            height: "0.2",
-                                            borderRadius: "4px",
-                                            boxShadow: "0 3px 3px #CCCCCC",
-                                            display: "..formData.data." + opts.config.key + ".isShow",
-                                            zIndex: "100",
-                                            backgroundColor: "0xffffff"
-                                        },
-                                        children: [
-                                            {
-                                                type: "list",
-                                                contentType: "listObject",
-                                                listObject: "..formData.data." + opts.config.key + ".list",
-                                                iteratorVar: "itemObject",
-                                                style: {
-                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                    height: "0.2",
-                                                    overflow: "scroll",
-                                                    cursor: "pointer"
-                                                },
-                                                children: [
-                                                    {
-                                                        type: "listItem",
-                                                        itemObject: "",
-                                                        style: {
-                                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                            height: "0.04"
-                                                        },
-                                                        children: [
-                                                            {
-                                                                type: 'label',
-                                                                dataKey: "itemObject.value",
-                                                                style: {
-                                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                                    height: "0.04",
-                                                                    textAlign: {
-                                                                        x: "center",
-                                                                        y: "center"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ],
-                                                        onClick: [
-                                                            {
-                                                                emit: {
-                                                                    dataKey: {
-                                                                        var: "itemObject"
-                                                                    },
-                                                                    actions: [
-                                                                        dataKeyAssignment,
-                                                                        isShowAssignmentCancel
-                                                                    ]
-                                                                }
-                                                            },
-                                                            {
-                                                                actionType: "builtIn",
-                                                                funcName: "redraw",
-                                                                viewTag: opts.config.key + "SelectTag"
-                                                            },
-                                                            {
-                                                                actionType: "builtIn",
-                                                                funcName: "redraw",
-                                                                viewTag: opts.config.key + "Tag"
-                                                            }
-                                                        ]
                                                     }
-                                                ]
-                                            }
-                                        ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        actionType: "builtIn",
+                                        funcName: "redraw",
+                                        viewTag: opts.config.key + "SelectTag"
+                                    },
+                                    {
+                                        actionType: "builtIn",
+                                        funcName: "redraw",
+                                        viewTag: opts.config.key + "Tag"
                                     }
                                 ]
                             }
@@ -1481,24 +1507,136 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                             width: "..formData.atrribute.noodl_font.DateAndTime.imgWidth"
                                                         }
                                                     }
+                                                ]
+                                            }
+                                        ],
+                                        onClick: [
+                                            {
+                                                emit: {
+                                                    actions: [
+                                                        {
+                                                            if: [
+                                                                {
+                                                                    "=.builtIn.string.equal": {
+                                                                        dataIn: {
+                                                                            string1: "=..formData.data." + opts.config.key + ".isShow",
+                                                                            string2: "none"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                isDTShowAssignment,
+                                                                isDTShowAssignmentCancel
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                actionType: "builtIn",
+                                                funcName: "redraw",
+                                                viewTag: opts.config.key + "SelectTag"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                type: "view",
+                                style: {
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    width: "..formData.atrribute.noodl_font.fullWidth",
+                                    flexWrap: "wrap"
+                                },
+                                children: [
+                                    {
+                                        type: "view",
+                                        style: {
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                            height: 0
+                                        }
+                                    },
+                                    {
+                                        type: "list",
+                                        contentType: "listObject",
+                                        listObject: "..formData.data." + opts.config.key + ".list",
+                                        iteratorVar: "itemObject",
+                                        viewTag: opts.config.key + "SelectTag",
+                                        style: {
+                                            height: "0.2",
+                                            cursor: "pointer",
+                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                            overflow: "scroll",
+                                            border: "1px solid #cccccc",
+                                            borderRadius: "4px",
+                                            marginTop: "0.002",
+                                            display: "..formData.data." + opts.config.key + ".isShow",
+                                            // position: "absolute",
+                                            background: "0xffffff",
+                                            zIndex: "100",
+                                            boxSizing: "border-box"
+                                        },
+                                        children: [
+                                            {
+                                                type: "listItem",
+                                                itemObject: "",
+                                                style: {
+                                                    width: "calc(100%)",
+                                                    height: "0.04"
+                                                },
+                                                children: [
+                                                    {
+                                                        type: 'label',
+                                                        hover: {
+                                                            backgroundColor: "0x1e90ff",
+                                                            color: "0xffffff"
+                                                        },
+                                                        dataKey: "itemObject.value",
+                                                        style: {
+                                                            height: "0.04",
+                                                            textAlign: {
+                                                                x: "center",
+                                                                y: "center"
+                                                            },
+                                                            backgroundColor: "itemObject.backgroundColor",
+                                                            color: "itemObject.color",
+                                                            fontWeight: "600",
+                                                            width: "calc(100%)",
+                                                            padding: "0px 18px",
+                                                            wordBreak: "break-word",
+                                                            boxSizing: "border-box"
+                                                        }
+                                                    }
                                                 ],
                                                 onClick: [
                                                     {
                                                         emit: {
+                                                            dataKey: {
+                                                                var: "itemObject"
+                                                            },
                                                             actions: [
+                                                                dTDataKeyAssignment,
+                                                                isDTShowAssignmentCancel,
                                                                 {
-                                                                    if: [
-                                                                        {
-                                                                            "=.builtIn.string.equal": {
-                                                                                dataIn: {
-                                                                                    string1: "=..formData.data." + opts.config.key + ".isShow",
-                                                                                    string2: "none"
-                                                                                }
-                                                                            }
-                                                                        },
-                                                                        isDTShowAssignment,
-                                                                        isDTShowAssignmentCancel
-                                                                    ]
+                                                                    "=.builtIn.object.setProperty": {
+                                                                        dataIn: {
+                                                                            obj: "=..formData.data." + opts.config.key + ".list",
+                                                                            label: "value",
+                                                                            text: "$var.value",
+                                                                            arr: [
+                                                                                "backgroundColor",
+                                                                                "color"
+                                                                            ],
+                                                                            valueArr: [
+                                                                                "0x1e90ff",
+                                                                                "0xffffff"
+                                                                            ],
+                                                                            errorArr: [
+                                                                                "0xffffff",
+                                                                                "0x333333"
+                                                                            ]
+                                                                        }
+                                                                    }
                                                                 }
                                                             ]
                                                         }
@@ -1507,110 +1645,18 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                         actionType: "builtIn",
                                                         funcName: "redraw",
                                                         viewTag: opts.config.key + "SelectTag"
-                                                    }
-                                                ]
-                                            }, 
-                                            {
-                                                type: "view",
-                                                viewTag: opts.config.key + "SelectTag",
-                                                style: {
-                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                    height: "0.2",
-                                                    borderRadius: "4px",
-                                                    boxShadow: "0 3px 3px #CCCCCC",
-                                                    display: "..formData.data." + opts.config.key + ".isShow",
-                                                    zIndex: "100",
-                                                    backgroundColor: "0xffffff"
-                                                },
-                                                children: [
+                                                    },
                                                     {
-                                                        type: "list",
-                                                        contentType: "listObject",
-                                                        listObject: "..formData.data." + opts.config.key + ".list",
-                                                        iteratorVar: "itemObject",
-                                                        style: {
-                                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                            height: "0.2",
-                                                            overflow: "scroll",
-                                                            cursor: "pointer"
-                                                        },
-                                                        children: [
-                                                            {
-                                                                type: "listItem",
-                                                                itemObject: "",
-                                                                style: {
-                                                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                                    height: "0.04"
-                                                                },
-                                                                children: [
-                                                                    {
-                                                                        type: 'label',
-                                                                        dataKey: "itemObject.value",
-                                                                        style: {
-                                                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                                                            height: "0.04",
-                                                                            textAlign: {
-                                                                                x: "center",
-                                                                                y: "center"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ],
-                                                                onClick: [
-                                                                    {
-                                                                        emit: {
-                                                                            dataKey: {
-                                                                                var: "itemObject"
-                                                                            },
-                                                                            actions: [
-                                                                                dTDataKeyAssignment,
-                                                                                isDTShowAssignmentCancel,
-                                                                                {
-                                                                                    "=.builtIn.array.clear": {
-                                                                                        dataIn: {
-                                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime"
-                                                                                        }
-                                                                                    }
-                                                                                },
-                                                                                {
-                                                                                    "=.builtIn.array.add": {
-                                                                                        dataIn: {
-                                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                                                                            value: "=..formData.data." + opts.config.key + ".Date"
-                                                                                        }
-                                                                                    }
-                                                                                },
-                                                                                {
-                                                                                    "=.builtIn.array.add": {
-                                                                                        dataIn: {
-                                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                                                                            value: "=..formData.data." + opts.config.key + ".Time"
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        actionType: "builtIn",
-                                                                        funcName: "redraw",
-                                                                        viewTag: opts.config.key + "SelectTag"
-                                                                    },
-                                                                    {
-                                                                        actionType: "builtIn",
-                                                                        funcName: "redraw",
-                                                                        viewTag: opts.config.key + "Tag"
-                                                                    }
-                                                                ]
-                                                            }
-                                                        ]
+                                                        actionType: "builtIn",
+                                                        funcName: "redraw",
+                                                        viewTag: opts.config.key + "Tag"
                                                     }
                                                 ]
                                             }
                                         ]
-                                    }
+                                    },
                                 ]
-                            }
+                            },
                         ]
                     },
                     {
@@ -1773,7 +1819,8 @@ const getTimes = () => {
     for(let i = 0; i < 24; i++) {
         res.push({
             value: `${formatNum(i <= 12 ? i : i - 12)}:00${i < 12 ? "AM" : "PM"}`,
-            bgColor: `#ffffff`
+            backgroundColor: `#ffffff`,
+            color: `0x333333`
         })
     }
     return res
