@@ -147,10 +147,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           participant,
         ]),
       )
-      if (!has(app.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
+      if (!has(app.root, app.getPathToRemoteParticipantsInRoot())) {
         log.error(
           'Could not find a path to remote participants in the VideoChat page! Path: ' +
-            PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+          app.getPathToRemoteParticipantsInRoot(),
           app.root,
         )
       }
