@@ -1448,7 +1448,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                     boxSizing: "border-box",
                                                     overflow: "hidden",
                                                     display: "flex",
-                                                    alignItems: "center"
+                                                    alignItems: "center",
                                                 },  
                                                 children: [
                                                     {
@@ -1465,40 +1465,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                             border: "none",
                                                             backgroundColor: "0xffffff",
                                                             color: "0x333333",
-                                                            flexGrow: 0
+                                                            flexGrow: 0,
+                                                            cursor: "pointer"
                                                         },
                                                         viewTag: opts.config.key + "Tag",
-                                                        onInput: [
-                                                            {
-                                                                emit: {
-                                                                    actions: [
-                                                                        {
-                                                                            "=.builtIn.array.clear": {
-                                                                                dataIn: {
-                                                                                    object: "=..formData.data." + opts.config.key + ".DateAndTime"
-                                                                                }
-                                                                            }
-                                                                        },
-                                                                        {
-                                                                            "=.builtIn.array.add": {
-                                                                                dataIn: {
-                                                                                    object: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                                                                    value: "=..formData.data." + opts.config.key + ".Date"
-                                                                                }
-                                                                            }
-                                                                        },
-                                                                        {
-                                                                            "=.builtIn.array.add": {
-                                                                                dataIn: {
-                                                                                    object: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                                                                    value: "=..formData.data." + opts.config.key + ".Time"
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            }
-                                                        ]
                                                     }, 
                                                     {
                                                         type: "image",
@@ -1549,7 +1519,6 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             justifyContent: "space-between",
                             width: "..formData.atrribute.noodl_font.fullWidth",
                             flexWrap: "wrap",
-                            paddingTop: "0.01"
                         },
                         children: [
                             {
@@ -1643,29 +1612,6 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                                             ]
                                                                         }
                                                                     }
-                                                                },
-                                                                {
-                                                                    "=.builtIn.array.clear": {
-                                                                        dataIn: {
-                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime"
-                                                                        }
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "=.builtIn.array.add": {
-                                                                        dataIn: {
-                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                                                            value: "=..formData.data." + opts.config.key + ".Date"
-                                                                        }
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "=.builtIn.array.add": {
-                                                                        dataIn: {
-                                                                            object: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                                                            value: "=..formData.data." + opts.config.key + ".Time"
-                                                                        }
-                                                                    }
                                                                 }
                                                             ]
                                                         }
@@ -1700,8 +1646,6 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                         children: [
                             {
                                 type: "view",
-                                // text: "No Content",
-                                // dataKey: "formData.data." + opts.config.key + ".Time",
                                 style: {
                                     width: "calc(50%)",
                                     height: "auto",
@@ -1715,42 +1659,29 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                     paddingLeft: "0.0046",
                                     boxSizing: "border-box",
                                     backgroundColor: "0xf4f4f4",
+                                    display: "flex"
                                 },
                                 children: [
                                     {
-                                        type: "list",
-                                        contentType: "listObject",
-                                        listObject: "=..formData.data." + opts.config.key + ".DateAndTime",
-                                        iteratorVar: "itemObject",
+                                        type: "label",
+                                        text: "--",
+                                        dataKey: "formData.data." + opts.config.key + '.Date',
                                         style: {
                                             fontSize: "..formData.atrribute.noodl_font.h4",
                                             color: "0x666666",
-                                            wordWrap: "break-word",
-                                            wordBreak: "break-word",
-                                            display: "flex"
-                                        },
-                                        children: [
-                                            {
-                                                type: "listItem",
-                                                itemObject: "",
-                                                style: {
-                                                    fontSize: "..formData.atrribute.noodl_font.h4",
-                                                    color: "0x666666",
-                                                    marginRight: "10px"
-                                                },
-                                                children: [
-                                                    {
-                                                        type: "label",
-                                                        text: "-",
-                                                        dataKey: "itemObject",
-                                                        style: {
-                                                            fontSize: "..formData.atrribute.noodl_font.h4",
-                                                            color: "0x666666",
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        ]
+                                            marginRight: "10px",
+                                            heigth: "auto"
+                                        }
+                                    },
+                                    {
+                                        type: "label",
+                                        text: "--",
+                                        dataKey: "formData.data." + opts.config.key + '.Time',
+                                        style: {
+                                            fontSize: "..formData.atrribute.noodl_font.h4",
+                                            color: "0x666666",
+                                            heigth: "auto"
+                                        }
                                     }
                                 ]
                             }
