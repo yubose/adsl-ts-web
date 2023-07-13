@@ -1539,23 +1539,29 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         ]
                                     }
                                 ]
-                            },
+                            }
+                        ]
+                    },
+                    {
+                        type: "view",
+                        style: {
+                            display: "flex",
+                            justifyContent: "space-between",
+                            width: "..formData.atrribute.noodl_font.fullWidth",
+                            flexWrap: "wrap",
+                            paddingTop: "0.01"
+                        },
+                        children: [
                             {
                                 type: "view",
                                 style: {
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    width: "..formData.atrribute.noodl_font.fullWidth",
-                                    flexWrap: "wrap"
-                                },
+                                    width: "..formData.atrribute.noodl_font.DateAndTime.width",
+                                    height: 0
+                                }
+                            },
+                            {
+                                type: "view",
                                 children: [
-                                    {
-                                        type: "view",
-                                        style: {
-                                            width: "..formData.atrribute.noodl_font.DateAndTime.width",
-                                            height: 0
-                                        }
-                                    },
                                     {
                                         type: "list",
                                         contentType: "listObject",
@@ -1677,9 +1683,9 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 ]
                                             }
                                         ]
-                                    },
+                                    }
                                 ]
-                            },
+                            }
                         ]
                     },
                     {
