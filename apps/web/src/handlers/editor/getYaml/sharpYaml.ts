@@ -1156,34 +1156,34 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             }
                                         ]
                                     }
-                                ]
-                            }
-                        ],
-                        onClick: [
-                            {
-                                emit: {
-                                    actions: [
-                                        {
-                                            if: [
+                                ],
+                                onClick: [
+                                    {
+                                        emit: {
+                                            actions: [
                                                 {
-                                                    "=.builtIn.string.equal": {
-                                                        dataIn: {
-                                                            string1: "=..formData.data." + opts.config.key + ".isShow",
-                                                            string2: "none"
-                                                        }
-                                                    }
-                                                },
-                                                isShowAssignment,
-                                                isShowAssignmentCancel
+                                                    if: [
+                                                        {
+                                                            "=.builtIn.string.equal": {
+                                                                dataIn: {
+                                                                    string1: "=..formData.data." + opts.config.key + ".isShow",
+                                                                    string2: "none"
+                                                                }
+                                                            }
+                                                        },
+                                                        isShowAssignment,
+                                                        isShowAssignmentCancel
+                                                    ]
+                                                }
                                             ]
                                         }
-                                    ]
-                                }
-                            },
-                            {
-                                actionType: "builtIn",
-                                funcName: "redraw",
-                                viewTag: opts.config.key + "SelectTag"
+                                    },
+                                    {
+                                        actionType: "builtIn",
+                                        funcName: "redraw",
+                                        viewTag: opts.config.key + "SelectTag"
+                                    }
+                                ]
                             }
                         ]
                     },
