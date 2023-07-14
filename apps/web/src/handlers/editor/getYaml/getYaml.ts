@@ -490,13 +490,13 @@ const populateBlock = ({
                             wordBreak: "break-word",
                             whiteSpace: "pre-wrap",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                            textAlign: {
-                                y: "center"
-                            }
-                            // display: "flex",
-                            // // alignItems: "..formData.atrribute.alignItems",
-                            // alignItems: "center",
-                            // flexWrap: "wrap"
+                            // textAlign: {
+                            //     y: "center"
+                            // },
+                            display: "flex",
+                            // alignItems: "..formData.atrribute.alignItems",
+                            alignItems: "center",
+                            flexWrap: "wrap"
                         }
                     }
                     let inherit = {}
@@ -507,7 +507,8 @@ const populateBlock = ({
                         }
                     })
                     if(obj.children.length === 1 && obj.children[0].text === '') {
-                        target.style.minHeight = "..formData.atrribute.noodl_font.blankHeight"
+                        delete target.style.minHeight
+                        target.style.height = "..formData.atrribute.noodl_font.blankHeight"
                     }
                     target.children = populateBlock({
                         obj: obj.children, 
