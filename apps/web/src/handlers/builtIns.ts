@@ -1108,18 +1108,33 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if(devices && u.isArr(devices)){
         const videoInputs = devices.filter(device=>device.kind === 'videoinput')
         let videoTrackLabel
-        const localVideoTracks = app.meeting.localParticipant.videoTracks
-        localVideoTracks.forEach(publishTrack=>{
+        const videoTracks = app.meeting.room.localParticipant.videoTracks
+        videoTracks.forEach(publishTrack=>{
           videoTrackLabel = publishTrack.track.mediaStreamTrack.label
         })
-        if(u.isArr(videoInputs) && videoInputs.length === 2){
-          for(let i = 0;i<videoInputs.length;i++){   
+        if(u.isArr(videoInputs) && videoInputs.length >= 2){
+          for(let i = 0;i<2;i++){   
             if(videoInputs[i].label !== videoTrackLabel){
-              //TODO - Memory Optimization
-              app.meeting.room.localParticipant?.publishTrack(
-                await Twilio.Video.createLocalVideoTrack({deviceId:{exact:videoInputs[i].deviceId}}),
-              )
-              break
+                await Twilio.Video.createLocalVideoTrack({deviceId:{exact:videoInputs[i].deviceId}})
+                .then(function(localVideoTrack){
+                const tracks = Array.from(videoTracks.values())
+                const localVideoTracks = tracks.reduce(
+                  (acc,cur)=>{
+                    return acc.concat(cur.track)
+                  },
+                  [] as LocalVideoTrack[]
+                )
+
+               localVideoTracks.forEach(track=>{
+                  track.stop?.()
+                  track.detach().forEach((detachedElement) => {
+                    detachedElement.remove()
+                  })
+                })
+              
+                app.meeting.room.localParticipant.unpublishTracks(localVideoTracks)
+                app.meeting.room.localParticipant.publishTrack(localVideoTrack)
+              })
             }
           }
         }
