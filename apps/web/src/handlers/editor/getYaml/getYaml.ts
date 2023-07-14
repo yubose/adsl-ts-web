@@ -9,8 +9,9 @@ import { SharpType } from "../utils/config";
 import formatKey from "../utils/format";
 import { facilityInfoYaml } from "../dataSource/infoYaml";
 import getTitleList from "../utils/getTitleList";
-import { getUuid } from "../utils/utils";
+import { editorBlockSet, getUuid } from "../utils/utils";
 import { choiceSharpReg, textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
+import { getDateAndTime } from "../utils/events";
 
 
 const getYaml = (editor: IDomEditor) => {
@@ -25,6 +26,9 @@ const getYaml = (editor: IDomEditor) => {
         // BaseJsonCopy.formData = Object.assign(BaseJsonCopy.formData, uuids.formData)
 
         const required = getTitleList(editor)
+        const events = {
+            DateAndTime: getDateAndTime(editor)
+        }
         // let required = new Array()
 
         // requiredSet.forEach((item: string) => {
@@ -37,7 +41,8 @@ const getYaml = (editor: IDomEditor) => {
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
-            required: required
+            required: required,
+            events
         }
 
         // return {
@@ -438,19 +443,24 @@ const populateBlock = ({
                         const list = obj.choiceStr
                         const splitArr = text.split(textSharpSplitRegG)
                         let required = false
+                        // let currentTime = false
                         let title = splitArr[1]
                         if(splitArr[0].endsWith("*")) {
                             required = true
                         }
+                        // if(splitArr[0].includes("$")) {
+                        //     currentTime = true
+                        // }
                         BaseJsonCopy.formData[obj.key] = {}
                         target = sharpYaml({
-                            type: splitArr[0].replace("*", '') as SharpType,
+                            type: splitArr[0].replace("*", '').replace('$', '') as SharpType,
                             config: {
                                 title: title,
                                 key: obj.key,
                                 list
                             },
-                            isRequired: required
+                            isRequired: required,
+                            // isCurrentTime: currentTime
                         }, BaseJsonCopy)
                     } else if(obj.value === "#Signature") {
                         const text = obj.value.replace(/#/, '')
@@ -480,10 +490,13 @@ const populateBlock = ({
                             wordBreak: "break-word",
                             whiteSpace: "pre-wrap",
                             minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                            display: "flex",
-                            // alignItems: "..formData.atrribute.alignItems",
-                            alignItems: "center",
-                            flexWrap: "wrap"
+                            textAlign: {
+                                y: "center"
+                            }
+                            // display: "flex",
+                            // // alignItems: "..formData.atrribute.alignItems",
+                            // alignItems: "center",
+                            // flexWrap: "wrap"
                         }
                     }
                     let inherit = {}
@@ -493,6 +506,9 @@ const populateBlock = ({
                             inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
+                    if(obj.children.length === 1 && obj.children[0].text === '') {
+                        target.style.minHeight = "..formData.atrribute.noodl_font.blankHeight"
+                    }
                     target.children = populateBlock({
                         obj: obj.children, 
                         BaseJsonCopy, 

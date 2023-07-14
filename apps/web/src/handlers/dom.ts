@@ -3259,7 +3259,6 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           }
         } else {
-          log.error('Image array is empty')
         }
       },
     },
@@ -5312,7 +5311,6 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         } else {
-          log.error('Image array is empty')
         }
       },
     },

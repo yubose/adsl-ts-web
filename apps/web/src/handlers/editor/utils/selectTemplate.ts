@@ -1,5 +1,6 @@
 import { IDomEditor, SlateTransforms } from "@wangeditor/editor"
 import choice from "./choice"
+import dateAndTime from "./date&time"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
 import { insertNode } from "./utils"
@@ -58,6 +59,12 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             })
             editor.insertBreak()
             
+            break
+        case "Date&Time":
+            dateAndTime({
+                editor,
+                selection
+            })
             break
         default:
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
