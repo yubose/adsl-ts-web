@@ -1097,6 +1097,35 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       clearTimeout(id)
     }, delayTime)
   }
+  const switchCamera: Store.BuiltInObject['fn'] = async function onSwitchCamera(
+    action,
+    options,
+  ) {
+    log.debug('switchCamera', options)
+    const userAgent = window.navigator.userAgent
+    if(/Mobi|Android|iPhone/.test(userAgent)){
+      const devices = await window.navigator.mediaDevices.enumerateDevices()
+      if(devices && u.isArr(devices)){
+        const videoInputs = devices.filter(device=>device.kind === 'videoinput')
+        let videoTrackLabel
+        const localVideoTracks = app.meeting.localParticipant.videoTracks
+        localVideoTracks.forEach(publishTrack=>{
+          videoTrackLabel = publishTrack.track.mediaStreamTrack.label
+        })
+        if(u.isArr(videoInputs) && videoInputs.length === 2){
+          for(let i = 0;i<videoInputs.length;i++){   
+            if(videoInputs[i].label !== videoTrackLabel){
+              //TODO - Memory Optimization
+              app.meeting.room.localParticipant?.publishTrack(
+                await Twilio.Video.createLocalVideoTrack({deviceId:{exact:videoInputs[i].deviceId}}),
+              )
+              break
+            }
+          }
+        }
+      }
+    }
+  }
   const countDown = async function onCountDown(options: {
     viewTag: string
     timeFormat: string
@@ -1150,6 +1179,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     delayTask,
     getViewTagValue,
     countDown,
+    switchCamera,
   }
 
   /** Shared common logic for both lock/logout logic */

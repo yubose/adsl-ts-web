@@ -69,6 +69,9 @@ export function getSdkHelpers(app: App) {
     get redraw() {
       return app.builtIns.get('redraw')?.find(Boolean)?.fn
     },
+    get switchCamera() {
+      return app.builtIns.get('switchCamera')?.find(Boolean)?.fn
+    },
     get redrawCurrent() {
       return app.builtIns.get('redrawCurrent')?.find(Boolean)?.fn
     },
