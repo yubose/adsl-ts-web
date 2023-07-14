@@ -483,8 +483,8 @@ const populateBlock = ({
                         type: typeConfig.get(obj.type),
                         style: {
                             width: "..formData.atrribute.noodl_font.fullWidth",
-                            marginTop: "0.005",
-                            paddingTop: "0.005",
+                            marginTop: "0.01",
+                            // paddingTop: "0.005",
                             fontSize: "..formData.atrribute.noodl_font.text",
                             wordWrap: "break-word",
                             wordBreak: "break-word",
