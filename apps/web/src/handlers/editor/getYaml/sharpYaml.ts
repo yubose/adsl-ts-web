@@ -828,7 +828,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             overflow: "hidden",
                             position: "absolute",
                             background: "0xffffff",
-                            zIndex: "100",
+                            zIndex: "10000",
                             boxSizing: "border-box"
                         },
                         children: [
@@ -1204,7 +1204,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                             display: "..formData.data." + opts.config.key + ".isShow",
                             position: "absolute",
                             background: "0xffffff",
-                            zIndex: "100",
+                            zIndex: "10000",
                             boxSizing: "border-box"
                         },
                         children: [
@@ -1549,7 +1549,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             marginTop: "0.002",
                                             // position: "absolute",
                                             background: "0xffffff",
-                                            zIndex: "100",
+                                            zIndex: "10000",
                                             boxSizing: "border-box"
                                         },
                                         children: [

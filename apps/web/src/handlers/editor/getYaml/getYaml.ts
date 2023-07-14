@@ -506,6 +506,9 @@ const populateBlock = ({
                             inherit = Object.assign(inherit, JSON.parse(styleConfig.get(key)?.replace(/__REPLACE__/g, obj[key]) as string))
                         }
                     })
+                    if(obj.children.length === 1 && obj.children[0].text === '') {
+                        target.style.minHeight = "..formData.atrribute.noodl_font.blankHeight"
+                    }
                     target.children = populateBlock({
                         obj: obj.children, 
                         BaseJsonCopy, 
