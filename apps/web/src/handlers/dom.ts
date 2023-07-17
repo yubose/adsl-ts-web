@@ -230,6 +230,10 @@ const createExtendedDOMResolvers = function (app: App) {
       }, wait)
     }
   }
+  let audioT = "40%";
+  let audioL = "85%";
+  
+
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
@@ -5183,9 +5187,7 @@ const createExtendedDOMResolvers = function (app: App) {
           img.src = `${assetsUrl}audio_start.svg`
           img.style.cssText = `
             position: fixed;
-            right: 0;
             cursor: pointer;
-            top: 40%;
           `;
           const recorder = new Recorder({
             bitRate: 128
@@ -5229,6 +5231,8 @@ const createExtendedDOMResolvers = function (app: App) {
             }else{
               img.style.top  = newTop+"px"
             }
+            audioL = img.style.left;
+            audioT = img.style.top;
           }
           function onMouseUp(e) {
             img.removeEventListener('click', stopRecording);
@@ -5291,18 +5295,26 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           const appendEle = (e)=>{
             node.parentNode?.appendChild(img);
+            console.log(audioL,audioT)
+            img.style.left= audioL;
+           img.style.top = audioT;
           }
           node.addEventListener("click",appendEle);
           document.addEventListener(device_is_web?'mousedown':"touchstart",(e)=>{
             if(node.parentNode?.contains(img)&&!["target_img",node.id].includes(e.target?.id as string)){
+              // audioR = img.getBoundingClientRect().right +"px";
+              // audioT = img.style.top;
+              // console.log(audioT,audioR)
               img.removeEventListener("click",appendEle);
               recorder.stop();
               img.src = `${assetsUrl}audio_start.svg`
               proccess_fun = true;
               img.removeEventListener('click', stopRecording);
               img.addEventListener('click', startRecording);
+              
               node.parentNode?.removeChild(img);
               img.remove()
+
               
             }else{
               if(node.parentNode?.contains(img)&&!device_is_web){
