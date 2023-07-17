@@ -1,6 +1,6 @@
 import { IDomEditor, SlateTransforms } from "@wangeditor/editor"
 import choice from "./choice"
-import dateAndTime from "./date&time"
+import dateAndTime from "./dateAndtime"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
 import { insertNode } from "./utils"

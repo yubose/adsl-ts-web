@@ -235,6 +235,9 @@ const dateAndTime = ({
         }
     }
     refreshType()
+
+    titleElement.value = title
+    titleElement.focus()
     if(titleElement.value === '') {
         confirmButton.setAttribute("disabled", "true")
     }

@@ -73,7 +73,6 @@ const choice = ({
                 "
                 id="w-editor_title"
                 placeholder="Enter here"
-                value="${title}"
             />
             <div style="
                 width: 100%;
@@ -242,6 +241,7 @@ const choice = ({
             }
         }
     }).then(res => {
+        // console.log(res)
         if(res.isConfirmed && res.value) {
             let s = ``
             const str = res.value?.required ? '*' : ''
@@ -260,22 +260,6 @@ const choice = ({
     let choiceTitleList = new Array<HTMLDivElement>()
 
     const LiItem = `
-        <input 
-            style="
-                box-sizing: border-box;
-                width: 78%;
-                text-indent: 0.8em;
-                height: 40px;
-                border-color: rgb(222,222,222);
-                color: rgb(51,51,51);
-                outline: none;
-                border-style: solid;
-                border-width: thin;
-                border-radius: 4px;
-            "
-            id="w-editor_title--TITLEID--"
-            value="--TITLEVALUE--"
-        />
         <div style="
             width: 10%;
             height: 40px;
@@ -312,11 +296,33 @@ const choice = ({
             display: flex;
             margin-top: 5px;
         `
+        const uuid = getUuid()
+        const input = document.createElement("input")
+        input.id = `w-editor_title${uuid}`
+        input.value = data?.title ? data?.title : ""
+        input.value = input.value
+        // console.log(input.value)
+        input.type = "text"
+        input.style.cssText = `
+            box-sizing: border-box;
+            width: 78%;
+            text-indent: 0.8em;
+            height: 40px;
+            border-color: rgb(222,222,222);
+            color: rgb(51,51,51);
+            outline: none;
+            border-style: solid;
+            border-width: thin;
+            border-radius: 4px;
+        `
         LI.innerHTML = 
             LiItem
-            .replace(/--TITLEID--/g, `${getUuid()}`)
-            .replace(/--TITLEVALUE--/g, `${data?.title ? data?.title : ""}`)
+            .replace(/--TITLEID--/g, `${uuid}`)
+            // .replace(/--TITLEVALUE--/g, `${data?.title ? data?.title.replaceAll("\"", "&quot;") : ""}`)
             .replace(/--TITLECHECK--/g, `${data?.check ? data.check : ""}`)
+        LI.insertBefore(input, LI.children[0])
+        // const ipt = LI.children[0] as HTMLInputElement
+        // if(data) ipt.setAttribute("value", data.title)
         return LI
     }
 
@@ -324,7 +330,7 @@ const choice = ({
         choiceTitles.innerHTML = ""
         choiceTitleList.forEach((item, index) => {
             item.setAttribute("alt", `${index}`);
-            (item.children[0] as HTMLInputElement).placeholder = `Option ${index+1}`
+            (item.children[0] as HTMLInputElement).placeholder = `Option ${index+1}`;
             choiceTitles.appendChild(item)
         })
     }
@@ -506,6 +512,7 @@ const choice = ({
         Swal.resetValidationMessage()
     })
 
+    titleInput.value = title
     titleInput.focus()
     if(titleInput.value === "") {
         // titleInput.style.borderColor = "#ff0000"
