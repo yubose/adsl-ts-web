@@ -166,6 +166,7 @@ const editorBlockSet = {
 export {
     toReg,
     insertText,
+    insertBreak,
     insertNode,
     getUuid,
     getHTMLDataArray,

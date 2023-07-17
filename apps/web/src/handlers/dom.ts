@@ -4581,6 +4581,19 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         })
 
+        document.getElementById('editor—wrapper')?.addEventListener('copy', (e) => {
+          e.clipboardData && e.clipboardData.setData('text/plain', JSON.stringify(editor.getFragment()))
+        })
+
+        let cutData
+        document.getElementById('editor—wrapper')?.addEventListener('cut', (e) => {
+          cutData = editor.getFragment()
+        }, true)
+
+        document.getElementById('editor—wrapper')?.addEventListener('cut', (e) => {
+          e.clipboardData && e.clipboardData.setData('text/plain', JSON.stringify(cutData))
+        })
+
       }
     },
     '[App templateView]': {

@@ -1,4 +1,4 @@
-import { IEditorConfig, IDomEditor } from "@wangeditor/editor"
+import { IEditorConfig, IDomEditor, SlateTransforms  } from "@wangeditor/editor"
 
 type InsertFnType = (url: string, alt: string, href: string) => void
 
@@ -41,15 +41,21 @@ const editorConfig: Partial<IEditorConfig> = {
         }
     },
     customPaste: (editor: IDomEditor, event: ClipboardEvent): boolean => {
-        const text = event.clipboardData?.getData("text/plain")
-        if(text !== "") {
-            const arr = text?.split(/[\n\r]/g)
-            arr?.forEach(item => {
-                if(item !== '') {
-                    editor.insertText(item)
-                    editor.insertBreak()
-                }
-            })
+        let text = event.clipboardData?.getData("text/plain")
+        console.log(text)
+        if(text && text !== "") {
+            try {
+                const nodes = JSON.parse(text)
+                SlateTransforms.insertNodes(editor, nodes)
+            } catch (error) {
+                // console.log(text)
+                const arr = text?.split(/[\n\r]/g)
+                arr?.forEach(item => {
+                    if(item !== '') {
+                        editor.insertText(item)
+                    }
+                })
+            }
             return false
         } else {
             return true
