@@ -5173,7 +5173,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: ({component:c})=> ["textField","textView"].includes(c.type),
       resolve({ node, component }) {
-        if (false) {
+        if (!(component.blueprint.audio === false)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage;
           const dataKey =
@@ -5280,7 +5280,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 node.value = (end_w)? ` ${node.value}${val}`: node.value?`${node.value}.${val}`:`${node.value}${val}`;
               } 
               });
-              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"http://ecosapip1.aitmed.us:9002/asr");
+              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"https://whisper.aitmed.com.cn:9005/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
               xhr.send(data);
               img.removeEventListener('click', stopRecording);
