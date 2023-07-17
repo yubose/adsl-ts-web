@@ -208,11 +208,18 @@ const choice = ({
                     let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
                     let choiceType = (<HTMLInputElement>document.getElementById("w-e_choiceType")).innerText
                     let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
-                    return {
-                        title,
-                        choiceType,
-                        required,
-                        list: choiceDataArray
+                    if(title !== '') {
+                        return {
+                            title,
+                            choiceType,
+                            required,
+                            list: choiceDataArray
+                        }
+                    } else {
+                        setTimeout(() => {
+                            confirmButton.setAttribute("disabled", "true")
+                        })
+                        return false
                     }
                 } else if(repetitionSet.size !== 0) {
                     showTip(repetitionMsg)
@@ -538,7 +545,7 @@ const choice = ({
                     confirmButton.setAttribute("disabled", "true")
                 } else {
                     Swal.resetValidationMessage()
-                    confirmButton.removeAttribute("disabled")
+                    titleInput.value !== '' && confirmButton.removeAttribute("disabled")
                     inputBoxes.forEach(item => {
                         item.style.borderColor = "#dedede"
                     })
