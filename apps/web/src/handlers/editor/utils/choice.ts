@@ -299,8 +299,7 @@ const choice = ({
         const uuid = getUuid()
         const input = document.createElement("input")
         input.id = `w-editor_title${uuid}`
-        input.value = data?.title ? data?.title : ""
-        input.value = input.value
+        input.value = data?.title ? data?.title.replace(/&quot;/g, "\"") : ""
         // console.log(input.value)
         input.type = "text"
         input.style.cssText = `
@@ -342,7 +341,7 @@ const choice = ({
             const inputs = item.getElementsByTagName("input")
             inputBoxes.push(inputs[0])
             choiceDataArray.push({
-                title: inputs[0].value,
+                title: inputs[0].value.replace(/"/g, "&quot;"),
                 check: inputs[1].checked ? "checked" : ""
             })
         })
