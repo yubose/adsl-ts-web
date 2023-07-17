@@ -15,8 +15,9 @@ const dateAndTime = ({
 
     const isChange = target instanceof HTMLElement
     let type = `Date`
-    let title = ''
+    let title = 'Date'
     let isRequired = ''
+    let titleIsChange = isChange
     // let currentTime = ''
     if(isChange) {
         type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, "")
@@ -81,6 +82,7 @@ const dateAndTime = ({
                 overflow: auto;
                 cursor: pointer;
                 font-size: 16px;
+                margin-top: 5px;
             ">
                 <div style="
                     height: 40px;
@@ -242,6 +244,10 @@ const dateAndTime = ({
         const selectType = target.getAttribute("alt")
         if(selectType) {
             type = selectType
+            if(!titleIsChange){
+                title = selectType
+                titleElement.value = title
+            }
             refreshType()
         }
     })
@@ -251,6 +257,7 @@ const dateAndTime = ({
             titleElement.style.borderColor = "#ff0000"
             confirmButton.setAttribute("disabled", "true")
         } else {
+            titleIsChange = true
             titleElement.style.borderColor = "#dedede"
             confirmButton.removeAttribute("disabled")
         }
