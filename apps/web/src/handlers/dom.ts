@@ -5173,7 +5173,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: ({component:c})=> ["textField","textView"].includes(c.type),
       resolve({ node, component }) {
-        if (false) {
+        if (!(component.blueprint.audio === false)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage;
           const dataKey =
