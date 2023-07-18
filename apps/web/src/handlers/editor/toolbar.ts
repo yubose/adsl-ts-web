@@ -85,7 +85,8 @@ const registerToolbar = () => {
             {value: "TextView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
             {value: "Choice", text: "Choice", styleForRenderMenuList: getImageObject('choice')},
             {value: "Diagnosis", text: `Diagnosis`, styleForRenderMenuList: getImageObject('diagnosis')},
-            {value: "Signature", text: `Signature`, styleForRenderMenuList: getImageObject('signature')},
+            {value: "Patient/Guardian Signature", text: `Patient/Guardian Signature`, styleForRenderMenuList: getImageObject('patient/guardian signature')},
+            {value: "Provider Signature", text: `Provider Signature`, styleForRenderMenuList: getImageObject('signature')},
             {value: "Date&Time", text: `Date&Time`, styleForRenderMenuList: getImageObject('dateAndTime')}
         ],
         classFunctions: {

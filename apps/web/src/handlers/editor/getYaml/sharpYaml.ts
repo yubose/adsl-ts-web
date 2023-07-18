@@ -223,6 +223,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
             //     ]
             // }
             return { "..customComponents.documentTemplateSignature": null }
+        case "Provider Signature":
+            return { "..customComponents.documentTemplateSignature": null }
+        case "Patient/Guardian Signature":
+            return { "..customComponents.documentTemplatePatientSignature": null }
         case "Diagnosis":
             return { "..customComponents.documentTemplateDiagnoses": null }
         case "Radio":

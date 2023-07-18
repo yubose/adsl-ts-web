@@ -197,11 +197,11 @@ export const matchBlock = (html) => {
     const SharpBlockReg = new RegExp(
         REG
         .replace(/--type--/g, 'sharpblock')
-        .replace(/--key--/g, `#[\\w ]+`)
+        .replace(/--key--/g, `#[\\w /]+`)
         .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+"`), 'g')
     const sharpKeywords = html.match(SharpBlockReg)
     sharpKeywords && sharpKeywords.forEach(item => {
-        const text = item.match(/>#[\w ]+</g)[0].replace(/[#><]/g, '')
+        const text = item.match(/>#[\w /]+</g)[0].replace(/[#><]/g, '')
         html = sharpHtml({
             type: text,
             html,
