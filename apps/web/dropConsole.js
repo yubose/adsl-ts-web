@@ -1,4 +1,4 @@
-const reg =new RegExp(/(log.debug)|(log.info)|(trackProperty)|(console.log)|(log\.teal)|(log\.salmon)|(log\.grey)|(log\.func)|(log\.red)|(log\.hotpink)|(log\.orange)|(log\.green)/,"g")
+const reg =new RegExp(/(log.log)|(log.error)|(log.debug)|(log.info)|(trackProperty)|(console.log)|(log\.teal)|(log\.salmon)|(log\.grey)|(log\.func)|(log\.red)|(log\.hotpink)|(log\.orange)|(log\.green)/,"g")
 module.exports = function(source) {
     let targetArr = source?.match(reg);
     if(targetArr?.length){
