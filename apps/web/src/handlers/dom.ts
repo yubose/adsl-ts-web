@@ -4877,7 +4877,7 @@ const createExtendedDOMResolvers = function (app: App) {
             const WIDTH = horizontalScroll.clientWidth
             const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
             ? node.style.maxWidth.replace("px", "")
-            : node.style.maxWidth) - 3 * listStyle.buttonWidth)
+            : node.style.maxWidth) - 3 * (listStyle.buttonWidth  + listStyle.marginLeft + listStyle.marginRight))
             const HEIGHT = horizontalScroll.clientHeight
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
