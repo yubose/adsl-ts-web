@@ -5188,6 +5188,7 @@ const createExtendedDOMResolvers = function (app: App) {
           img.style.cssText = `
             position: fixed;
             cursor: pointer;
+            z-index: 99999999
           `;
           const recorder = new Recorder({
             bitRate: 128
