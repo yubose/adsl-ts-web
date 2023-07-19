@@ -479,7 +479,7 @@ const populateBlock = ({
                     } else if(obj.value === "#Patient/Guardian Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["patdSignatureId"] = ''
-                        BaseJsonCopy.formData["needPatdSignature"] = 'true'
+                        BaseJsonCopy.formData["needPatdSignature"] = true
                         target = sharpYaml({
                             type: text,
                             config: {}

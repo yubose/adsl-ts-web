@@ -199,17 +199,17 @@ const sharpHtml = (opts: SharpOption) => {
                 </div>
                 <div style="
                     display: flex;
-                    align-items: baseline;
                     margin-top: 10px;
                 "> 
                     <div>
                         <img style="
                             display: block;
-                            margin-top: 5px;
+                            margin-top: 4px;
                         " src="${checkSvg}" />
                     </div>
                     <div style="
                         margin-left: 10px;
+                        font-size: 14px;
                     ">
                         Click here if you are a parent or legal guardian or caregiver on behalf of the patient(you need to give your own signature)
                     </div>
