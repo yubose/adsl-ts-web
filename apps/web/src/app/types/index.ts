@@ -89,6 +89,7 @@ export interface AppNotificationHooks {
   initiated(client: firebase.app.App): void
   initError(error: Error): void
   token(token: string): void
+  click(notificationID:number):void
 }
 
 export type AppNotificationHook = keyof AppNotificationHooks

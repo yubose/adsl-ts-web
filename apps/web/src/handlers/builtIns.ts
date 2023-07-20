@@ -57,6 +57,8 @@ import {
 import type { Format as PdfPageFormat } from "../modules/ExportPdf";
 import * as c from '../constants'
 import axios from 'axios'
+import isLocalReference from 'noodl-types/dist/utils/isLocalReference'
+import isRootReference from 'noodl-types/dist/utils/isRootReference'
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
@@ -673,6 +675,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const currentPageName = pageComponent?.get?.('path')
           ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
         }
+      }
+
+      //find reference value
+      if(isLocalReference(destination)){
+        destination = destination.substring(2)
+        app.initPage && (
+          destination = get(app.root[app.initPage],destination)
+        )
+      }else if(isRootReference(destination)){
+        destination = destination.substring(1)
+        destination = get(app.root,destination)
       }
 
       if (destination === destinationParam) {
@@ -1429,7 +1442,7 @@ export const extendedSdkBuiltIns = {
       }
     } catch (error) {
       log.error(error)
-      error instanceof Error && toast(error.message, { type: 'error' })
+      error instanceof Error && toast(error.message, { type: 'default' })
     }
   },
   async initExtend(

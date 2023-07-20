@@ -24,23 +24,6 @@ class createRegisters {
   constructor(app: App) {
     this.app = app
 
-    this.app.notification?.on('message', (message) => {
-      if (message) {
-        const { data } = message
-        if (data?.did) {
-          //  call onNewEcosDoc for now  until we propose a more generic approach
-          const onNewEcosDocRegisterComponent = app.globalRegister?.find?.(
-            (obj) => obj?.eventId === 'onNewEcosDoc',
-          )
-          // @ts-expect-error
-          onNewEcosDocRegisterComponent?.onEvent?.(data.did)
-        } else {
-          log.log({ message })
-          // debugger
-        }
-      }
-    })
-
     this.o = {
       async FCMOnTokenReceive(
         obj: Register.Object,
@@ -72,7 +55,6 @@ class createRegisters {
           return error
         }
       },
-      async onNotificationClicked(obj: Register.Object, arg) {},
       // twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       //   log.func('twilioOnPeopleJoin')
       //   log.debug(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
@@ -261,6 +243,41 @@ class createRegisters {
             log.error(error)
           }
         }
+      },
+      async onNotificationClicked(componentObject: GlobalRegisterComponent) {
+        componentObject.eventId = 'onNotificationClicked'
+        
+        const action = createAction({
+          action: { emit: componentObject.emit, actionType: 'register' },
+          trigger: 'register',
+        }) as EmitAction
+
+        const component = (await app.nui?.resolveComponents(
+          componentObject,
+        )) as NuiComponent.Instance
+
+        componentObject.onEvent = async function onNewEcosDoc(notificationID:number) {
+          try {
+            action.dataKey = { var: notificationID }
+            await Promise.all(
+              app.actions?.emit
+                .get('register')
+                ?.map((obj: Store.ActionObject) =>
+                  obj?.fn?.(
+                    action,
+                    app.nui?.getConsumerOptions({
+                      component,
+                      page: app.mainPage?.getNuiPage(),
+                    }),
+                  ),
+                ) || [],
+            )
+            return notificationID
+          } catch (error) {
+            log.error(error)
+          }
+        }
+        
       },
       async onNewMeetingInvite(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'onNewMeetingInvite'

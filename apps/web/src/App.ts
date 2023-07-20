@@ -604,12 +604,43 @@ class App {
           throw new Error(`Level 3 is not provided or instantiated`)
         }
       }
-
-      if (!this.#notification) {
+      if (!this.#notification?.initiated) {
         try {
           this.#notification = new AppNotification()
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
+
+          this.notification?.on('message', (message) => {
+            if (message) {
+              const { data } = message
+              const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                (obj) => obj?.eventId === 'onNewEcosDoc',
+              )
+
+              if (data?.did) {
+                //  call onNewEcosDoc for now  until we propose a more generic approach
+                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                  (obj) => obj?.eventId === 'onNewEcosDoc',
+                )
+                //@ts-expect-error
+                onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+              } else {
+                log.log({ message })
+                // debugger
+              }
+            }
+          })
+
+          this.notification?.on('click', (notificationID) => {
+            if (notificationID) {
+              //  call onNewEcosDoc for now  until we propose a more generic approach
+              const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                (obj) => obj?.eventId === 'onNotificationClicked',
+              )
+              //@ts-expect-error
+              onNewEcosDocRegisterComponent?.onEvent?.(notificationID)
+            }
+          })
         } catch (error) {
           log.error(error instanceof Error ? error : new Error(String(error)))
         }

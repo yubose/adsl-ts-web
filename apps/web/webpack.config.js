@@ -272,7 +272,7 @@ function getWebpackConfig(env) {
     plugins: [
       new WorkboxPlugin.InjectManifest({
         swSrc: getFilePath('src/firebase-messaging-sw.ts'),
-        swDest: getFilePath('firebase-messaging-sw.js'),
+        swDest: getFilePath('public/firebase-messaging-sw.js'),
         maximumFileSizeToCacheInBytes: 500000000,
         mode: 'production',
         manifestTransforms: [
@@ -287,6 +287,8 @@ function getWebpackConfig(env) {
               if (entry.url.match(mainBundleRegExp)) {
                 // Force the worker to use the url as the revision
                 entry.revision = null
+              }else if(entry.url.indexOf('apps/web') !== -1){
+                entry.url = entry.url.replace('../../../apps/web/','')
               }
             }
             return { manifest: entries, warnings: [] }
