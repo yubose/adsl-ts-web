@@ -9,7 +9,7 @@ fi
 
 if [ -z "$2" ]
 then
-DBucket="test.aitmed.com"
+DBucket="test-aitmed-com"
 CloudFrontID="E23VGVK9SI3AEE"
 else
     # for devtest.aitmed.com

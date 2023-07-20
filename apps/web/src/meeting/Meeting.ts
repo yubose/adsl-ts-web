@@ -38,7 +38,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     function handleTrackErr(kind: 'audio' | 'video', err: Error) {
       let errMsg = ''
       if (/NotAllowedError/i.test(err.name)) {
-        errMsg = `Permission to your ${kind} device was denied.`
+        kind === 'video' && (errMsg = `The camera permisson is not enabled`)
+        kind === 'audio' && (errMsg = `The microphone permisson is not enabled`)
       } else if (/NotFoundError/i.test(err.name)) {
         errMsg = `Could not locate your ${kind} device.`
       } else if (/NotReadableError/i.test(err.name)) {
@@ -47,7 +48,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         errMsg = err.message
       }
       log.error(err)
-      toast(errMsg, { type: 'error' })
+      toast(errMsg, { type: 'default' })
     }
     if (o.selfStream?.hasElement?.()) {
       log.debug(
