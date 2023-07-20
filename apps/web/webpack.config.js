@@ -235,19 +235,19 @@ function getWebpackConfig(env) {
             },
           ],
         },
-        mode === 'production'?
-          {
-            test: /\.ts$/,
-            use: [
-              {
-                loader: path.resolve(__dirname, './dropConsole.js'),
-                options: {
-                  name: 'web',
-                },
-              },
-            ],
-          }:
-          undefined
+        // mode === 'production'?
+        //   {
+        //     test: /\.ts$/,
+        //     use: [
+        //       {
+        //         loader: path.resolve(__dirname, './dropConsole.js'),
+        //         options: {
+        //           name: 'web',
+        //         },
+        //       },
+        //     ],
+        //   }:
+        //   undefined
       ],
     },
     resolve: {
@@ -408,9 +408,6 @@ function getWebpackConfig(env) {
                     drop_debugger: false,
                   },
                 },
-              }),
-              new UglifyJsPlugin({
-                parallel: 4,
               }),
             ],
             nodeEnv: 'production',
