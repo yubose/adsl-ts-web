@@ -16,7 +16,13 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             // editor.insertText(`-editing-#[textField:editableTitle:editableText]-editing-`)
             inputPopUp(editor, value, selection)
             break
-        case "Signature":
+        // case "Signature":
+        //     insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
+        //     break
+        case "Provider Signature":
+            insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
+            break
+        case "Patient/Guardian Signature":
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
             break
         case "Diagnosis":

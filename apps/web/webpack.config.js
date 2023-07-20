@@ -149,19 +149,6 @@ function getWebpackConfig(env) {
   /**
    * @type { import('webpack').Configuration } webpackOptions
    */
-  let obj = {
-    test: /\.ts$/,
-    use: [
-      {
-        loader: path.resolve(__dirname, './dropConsole.js'),
-        options: {
-          name: 'web',
-        },
-      },
-    ],
-  }
-  let arrObject = []
-  mode === 'production' && arrObject.push(obj)
 
   let headers = {
     'Access-Control-Allow-Credentials': true,
@@ -248,7 +235,19 @@ function getWebpackConfig(env) {
             },
           ],
         },
-        // ...arrObject
+        // mode === 'production'?
+        //   {
+        //     test: /\.ts$/,
+        //     use: [
+        //       {
+        //         loader: path.resolve(__dirname, './dropConsole.js'),
+        //         options: {
+        //           name: 'web',
+        //         },
+        //       },
+        //     ],
+        //   }:
+        //   undefined
       ],
     },
     resolve: {

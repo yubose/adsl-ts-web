@@ -918,7 +918,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 "Content-Type": "text/plain"
               },
               data:  app.root
-            }).catch(e=>console.log(e))
+            }).catch(e=>console.error(e))
           }
           
 

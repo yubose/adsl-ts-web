@@ -500,7 +500,7 @@ class App {
           "Content-Type": "text/plain"
         },
         data:  this.#noodl?.root
-      }).catch(e=>console.log(e))
+      }).catch(e=>console.error(e))
     }
     
 

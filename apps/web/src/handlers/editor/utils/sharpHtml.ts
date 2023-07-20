@@ -121,6 +121,101 @@ const sharpHtml = (opts: SharpOption) => {
                 </div>
                 `
             )
+        case "Provider Signature":
+            return opts.html.replace(
+                opts.split,
+                `
+                <div style="
+                    color: #333333;
+                    font-weight: 600;
+                    wordBreak: keep-all
+                ">
+                    Provider Signature
+                </div>
+                <div style="
+                    margin: 15px 0;
+                    width: 480px;
+                    height: 160px;
+                    background-color: #ffffff;
+                    border: 2px dashed #a9a9a9;
+                    border-radius: 0px;
+                    outline: none;
+                ">
+                    <div style="
+                        position: relative;
+                        top: 90px;
+                        width: 390px;
+                        height: ${editorBlockCss.height};
+                        margin: auto;
+                        font-size: 1.54vw;
+                        z-index: 1;
+                        border-width: 1px;
+                        border-color: #707070;
+                        border-style: none none solid;
+                        outline: none;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                    ">X</div>
+                </div>
+                `
+            )
+        case "Patient/Guardian Signature":
+            return opts.html.replace(
+                opts.split,
+                `
+                <div style="
+                    color: #333333;
+                    font-weight: 600;
+                    wordBreak: keep-all
+                ">
+                    Patient/Guardian Signature
+                </div>
+                <div style="
+                    margin: 15px 0 0 0;
+                    width: 480px;
+                    height: 160px;
+                    background-color: #ffffff;
+                    border: 2px dashed #a9a9a9;
+                    border-radius: 0px;
+                    outline: none;
+                ">
+                    <div style="
+                        position: relative;
+                        top: 90px;
+                        width: 390px;
+                        height: ${editorBlockCss.height};
+                        margin: auto;
+                        font-size: 1.54vw;
+                        z-index: 1;
+                        border-width: 1px;
+                        border-color: #707070;
+                        border-style: none none solid;
+                        outline: none;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                    ">X</div>
+                </div>
+                <div style="
+                    display: flex;
+                    margin-top: 10px;
+                "> 
+                    <div>
+                        <img style="
+                            display: block;
+                            margin-top: 4px;
+                        " src="${checkSvg}" />
+                    </div>
+                    <div style="
+                        margin-left: 10px;
+                        font-size: 14px;
+                    ">
+                        Click here if you are a parent or legal guardian or caregiver on behalf of the patient(you need to give your own signature)
+                    </div>
+                </div>
+                `
+            )
         case "Diagnosis":
             return opts.html.replace(
                 opts.split,

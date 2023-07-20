@@ -2,6 +2,8 @@ export type SharpType =
     "TextView"|
     "TextField"|
     "Signature"|
+    "Provider Signature"|
+    "Patient/Guardian Signature"|
     "Diagnosis"|
     "Radio"|
     "Checkbox"|

@@ -469,6 +469,21 @@ const populateBlock = ({
                             type: text,
                             config: {}
                         })
+                    } else if(obj.value === "#Provider Signature") {
+                        const text = obj.value.replace(/#/, '')
+                        BaseJsonCopy.formData["signatureId"] = ''
+                        target = sharpYaml({
+                            type: text,
+                            config: {}
+                        })
+                    } else if(obj.value === "#Patient/Guardian Signature") {
+                        const text = obj.value.replace(/#/, '')
+                        BaseJsonCopy.formData["patdSignatureId"] = ''
+                        BaseJsonCopy.formData["needPatdSignature"] = true
+                        target = sharpYaml({
+                            type: text,
+                            config: {}
+                        })
                     } else {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData[formatKey(text)] = ''
