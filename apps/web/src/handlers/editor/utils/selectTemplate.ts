@@ -72,6 +72,32 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                 selection
             })
             break
+        case "Image": 
+            const input = document.createElement('input')
+            input.type = 'file'
+            input.click()
+            input.onchange = () => {
+                // console.log(input.files)
+                if(input.files) {
+                    const file = input.files[0] as File
+                    const reader = new FileReader
+                    reader.onload = e => {
+                        // console.log(e.target?.result)
+                        const node = {
+                            type: "image",
+                            alt: file.name,
+                            src: e.target?.result,
+                            href: '',
+                            children: [
+                                {text: ''}
+                            ]
+                        }
+                        editor.insertNode(node)
+                    }
+                    reader.readAsDataURL(file)
+                }
+            }
+            break
         default:
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
             break

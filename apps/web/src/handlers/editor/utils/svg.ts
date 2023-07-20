@@ -70,6 +70,11 @@ const getImageObject = (key: string): {[key: string]: string} => {
                 backgroundImage: dateAndTimeSvg,
                 backgroundPositionX: "6px"
             }, backgroundPosition)
+        case 'image': 
+            return Object.assign({
+                backgroundImage: '',
+                backgroundPositionX: "6px"
+            }, backgroundPosition)
         default: 
             return {}
     }
