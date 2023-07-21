@@ -3,7 +3,7 @@ import choice from "./choice"
 import dateAndTime from "./date&time"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
-import { insertNode } from "./utils"
+import { getUuid, insertNode } from "./utils"
 
 const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
     const selection = editor.selection
@@ -75,17 +75,20 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
         case "Image": 
             const input = document.createElement('input')
             input.type = 'file'
+            input.accept = 'image/*'
             input.click()
             input.onchange = () => {
                 // console.log(input.files)
                 if(input.files) {
                     const file = input.files[0] as File
                     const reader = new FileReader
+                    console.log(file)
                     reader.onload = e => {
                         // console.log(e.target?.result)
                         const node = {
                             type: "image",
-                            alt: file.name,
+                            // alt: file.name,
+                            alt: getUuid(),
                             src: e.target?.result,
                             href: '',
                             children: [

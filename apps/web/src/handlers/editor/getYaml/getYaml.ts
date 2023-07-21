@@ -12,6 +12,7 @@ import getTitleList from "../utils/getTitleList";
 import { editorBlockSet, getUuid } from "../utils/utils";
 import { choiceSharpReg, textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
 import { getDateAndTime } from "../utils/events";
+import getImageList from "../utils/getImageList";
 
 
 const getYaml = (editor: IDomEditor) => {
@@ -41,6 +42,7 @@ const getYaml = (editor: IDomEditor) => {
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
+            images: getImageList(editor),
             required: required,
             events
         }
@@ -690,6 +692,19 @@ const populateBlock = ({
                         })
                         target.children.push(child)
                     })
+                    break
+                case "image": 
+                    let style = {}
+                    BaseJsonCopy.formData[obj.alt] = ``
+                    if(obj.style) {
+                        style = obj.style
+                    }
+                    target = {
+                        type: "image",
+                        "path=func": "=..customEvent.prepareDocToPath",
+                        dataKey: 'formData.data.' + obj.alt,
+                        style
+                    }
                     break
                 default: 
                     let paddingTop = '0.005'
