@@ -235,6 +235,8 @@ function getWebpackConfig(env) {
             },
           ],
         },
+        
+        
         // mode === 'production'?
         //   {
         //     test: /\.ts$/,
@@ -271,7 +273,7 @@ function getWebpackConfig(env) {
     plugins: [
       new WorkboxPlugin.InjectManifest({
         swSrc: getFilePath('src/firebase-messaging-sw.ts'),
-        swDest: getFilePath('public/firebase-messaging-sw.js'),
+        swDest: mode === 'production'? path.resolve(paths.build, 'firebase-messaging-sw.js'):getFilePath('public/firebase-messaging-sw.js'),
         maximumFileSizeToCacheInBytes: 500000000,
         mode: 'production',
         manifestTransforms: [
@@ -357,15 +359,15 @@ function getWebpackConfig(env) {
         patterns: [
           {
             from: getFilePath('public/piBackgroundWorker.js'),
-            to: getFilePath('piBackgroundWorker.js'),
+            to: path.resolve(paths.build, 'piBackgroundWorker.js'),
           },
           {
             from: getFilePath('public/jsstoreWorker.min.js'),
-            to: getFilePath('jsstoreWorker.min.js'),
+            to: path.resolve(paths.build, 'jsstoreWorker.min.js'),
           },
           {
             from: getFilePath('public/sql-wasm.wasm'),
-            to: getFilePath('sql-wasm.wasm'),
+            to: path.resolve(paths.build, 'sql-wasm.wasm'),
           },
         ],
       }),
