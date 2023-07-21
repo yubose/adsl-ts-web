@@ -5358,7 +5358,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // canvas_con.height = canvas_con.getBoundingClientRect().height;
             // ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
             image.width = node.getBoundingClientRect().width
-            image.height = node.getBoundingClientRect().height
+            image.height = node.getBoundingClientRect().height - 80;
             canvas_con.width = image.width;
             canvas_con.height = image.height;
             ctx.drawImage(image, 0, 0, image.width, image.height);
@@ -5379,11 +5379,15 @@ const createExtendedDOMResolvers = function (app: App) {
           canvas_con.draggable = false;
 
           line_width_input.style.cssText = `
-            margin: 0 15%;
+            width: 18%;
+            margin: 0 18%;
 
           `
           color_picker.style.cssText = `
-            margin: 0 18%;
+          width: 10%;
+          margin: 0 18%;
+
+
           `
           btns_container.style.cssText = `
             height: auto;
@@ -5395,9 +5399,7 @@ const createExtendedDOMResolvers = function (app: App) {
           options_container.style.cssText = `
             height: auto;
             width: 100%;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
+ 
           `
           canvas_con.style.cssText = `
             width: "100%"; 
@@ -5408,7 +5410,7 @@ const createExtendedDOMResolvers = function (app: App) {
             border: none;
             background-color: green;
             color: #fff;
-            border-radius: 6px;
+            border-radius: 5px;
             padding: 5px 8px;
             font-size: 16px;
           `
@@ -5416,7 +5418,7 @@ const createExtendedDOMResolvers = function (app: App) {
           border: none;
             background-color: blue;
             color: #fff;
-            border-radius: 6px;
+            border-radius: 5px;
             padding: 5px 8px;
             font-size: 16px;
           
@@ -5425,7 +5427,7 @@ const createExtendedDOMResolvers = function (app: App) {
             border: none;
             background-color: red;
             color: #fff;
-            border-radius: 6px;
+            border-radius: 5px;
             padding: 5px 8px;
             font-size: 16px;
           
@@ -5433,7 +5435,7 @@ const createExtendedDOMResolvers = function (app: App) {
           save_btn.style.cssText = `
             border: none;
             color: #fff;
-            border-radius: 6px;
+            border-radius: 5px;
             padding: 5px 8px;
             font-size: 16px;
             background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
@@ -5442,7 +5444,7 @@ const createExtendedDOMResolvers = function (app: App) {
           btns_container.append(clear_btn, undo_btn, redo_btn, save_btn)
           options_container.append(color_picker, line_width_input)
           node.append(btns_container,canvas_con,options_container)
-
+          
           function start(e: TouchEvent) {
             let touch = e.targetTouches[0];
             ctx.beginPath();
