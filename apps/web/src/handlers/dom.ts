@@ -5554,6 +5554,12 @@ const createExtendedDOMResolvers = function (app: App) {
             app.updateRoot((draft) => {
               set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
             })
+            node.removeChild(btns_container);
+            node.removeChild(canvas_con);
+            node.removeChild(options_container);
+            options_container.remove()
+            canvas_con.remove()
+            btns_container.remove()
           })
         }
       },
