@@ -4598,6 +4598,8 @@ const createExtendedDOMResolvers = function (app: App) {
           e.clipboardData && e.clipboardData.setData('text/plain', JSON.stringify(cutData))
         })
 
+        // document.getElementById('editor—wrapper')?.addEventListener('')
+
       }
     },
     '[App templateView]': {

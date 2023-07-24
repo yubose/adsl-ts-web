@@ -43,6 +43,7 @@ const editorConfig: Partial<IEditorConfig> = {
     },
     customPaste: (editor: IDomEditor, event: ClipboardEvent): boolean => {
         let text = event.clipboardData?.getData("text/plain")
+        const items = event.clipboardData?.items
         let image = event.clipboardData?.items?.[0].getAsFile()
         if(text && text !== "") {
             try {
@@ -59,27 +60,27 @@ const editorConfig: Partial<IEditorConfig> = {
             }
             return false
         }
-        if(!!image) {
+        if(items && items.length > 0) {
             try {
-                const reader = new FileReader()
-                reader.onload = e => {
-                    console.log(e.target?.result)
-                    const node = {
-                        type: "image",
-                        alt: getUuid(),
-                        src: e.target?.result,
-                        href: '',
-                        children: [
-                            {text: ''}
-                        ]
+                for(let i = 0; i < items.length; i++) {
+                    const image = items[i].getAsFile()
+                    if(image) {
+                        const reader = new FileReader()
+                        reader.onload = e => {
+                            const node = {
+                                type: "image",
+                                alt: getUuid(),
+                                src: e.target?.result,
+                                href: '',
+                                children: [
+                                    {text: ''}
+                                ]
+                            }
+                            editor.insertNode(node)
+                        }
+                        reader.readAsDataURL(image)
                     }
-                    console.log("START")
-                    editor.focus()
-                    editor.insertNode(node)
-                    console.log("END")
                 }
-                reader.readAsDataURL(image)
-                console.log(image)
             } catch (error) {
                 
             }
