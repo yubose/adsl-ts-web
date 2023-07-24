@@ -46,6 +46,7 @@ const getYaml = (editor: IDomEditor) => {
             components: BaseJsonCopy.components,
             images: imageObj.imageList,
             imageOptions: imageObj.imageOptions,
+            imgCanvas: BaseJsonCopy.imgCanvas,
             required: required,
             events
         }
@@ -701,36 +702,59 @@ const populateBlock = ({
                     if(obj.style) {
                         imageStyle = obj.style
                     }
-                    target = {
-                        type: "image",
-                        "path=func": "=..customEvent.prepareDocToPath",
-                        dataKey: 'formData.data.' + obj.alt,
-                        style: imageStyle
-                    }
                     BaseJsonCopy.formData[obj.alt] = ``
                     if(obj.href !== '') {
-                        BaseJsonCopy.formData[obj.href] = ``
-                        target.onClick = [
-                            // {
-                            //     emit: {
-                            //         actions: [
-                            //             {
-                            //                 "..formData.data.imgCanvas.imgCanvasId@": obj.alt
-                            //             },
-                            //             // {
-                            //             //     "..formData.data.imgCanvas.imgCanvasDataKey@": 'formData.data.' + obj.href
-                            //             // },
-                                        
-                            //         ]
-                            //     }
-                            // },
-                            {
-                                actionType: "popUp",
-                                popUpView: "imgCanvasTag"
-                            }
-                        ]
+                        target = {
+                            type: "view",
+                            children: [
+                                {
+                                    type: "image",
+                                    "path=func": "=..customEvent.prepareDocToPath",
+                                    dataKey: 'formData.data.' + obj.alt,
+                                    viewTag: obj.alt,
+                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_edit"}),
+                                    onClick: [
+                                        {
+                                            emit: {
+                                                actions: [
+                                                    {
+                                                        "=.builtIn.object.set": {
+                                                            dataIn: {
+                                                                object: "=..formData.imgCanvas",
+                                                                key: "option",
+                                                                value: "=..formData.editableImage." + obj.alt
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            actionType: "builtIn",
+                                            funcName: "redraw",
+                                            viewTag: "imgCanvasTag"
+                                        },
+                                        {
+                                            actionType: "popUp",
+                                            popUpView: "imgCanvasTag"
+                                        },
+                                    ]
+                                },
+                                {
+                                    type: "image",
+                                    "path=func": "=..customEvent.prepareDocToPath",
+                                    dataKey: 'formData.data.' + obj.alt,
+                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_read"})
+                                }
+                            ]
+                        }
                     } else {
-                        
+                        target = {
+                            type: "image",
+                            "path=func": "=..customEvent.prepareDocToPath",
+                            dataKey: 'formData.data.' + obj.alt,
+                            style: imageStyle
+                        }
                     }
                     
                     break
