@@ -5334,14 +5334,14 @@ const createExtendedDOMResolvers = function (app: App) {
               return true;
             }
           })();
-          const [file_name, path] = [dataOptions["fileName"], dataOptions["imgPath"]];
+          const [file_name, path] = [dataOptions["fileName"]||"image", dataOptions["imgPath"]];
           const canvas_con = document.createElement("canvas");
           const color_picker = document.createElement("input");
           const line_width_input = document.createElement("input");
           const clear_btn = document.createElement("button");
           const undo_btn = document.createElement("button");
           const redo_btn = document.createElement("button");
-          const save_btn = document.createElement("button");
+          // const save_btn = document.createElement("button");
           const btns_container = document.createElement("div");
           const options_container = document.createElement("div");
           const ctx = canvas_con.getContext("2d") as CanvasRenderingContext2D;
@@ -5375,7 +5375,7 @@ const createExtendedDOMResolvers = function (app: App) {
           clear_btn.textContent = "clear"
           undo_btn.textContent = "undo"
           redo_btn.textContent = "redo"
-          save_btn.textContent = "complete"
+          // save_btn.textContent = "complete"
           canvas_con.draggable = false;
 
           line_width_input.style.cssText = `
@@ -5432,35 +5432,51 @@ const createExtendedDOMResolvers = function (app: App) {
             font-size: 16px;
           
           `
-          save_btn.style.cssText = `
-            border: none;
-            color: #fff;
-            border-radius: 5px;
-            padding: 5px 8px;
-            font-size: 16px;
-            background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
-          `
+          // save_btn.style.cssText = `
+          //   border: none;
+          //   color: #fff;
+          //   border-radius: 5px;
+          //   padding: 5px 8px;
+          //   font-size: 16px;
+          //   background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
+          // `
 
-          btns_container.append(clear_btn, undo_btn, redo_btn, save_btn)
+          // btns_container.append(clear_btn, undo_btn, redo_btn, save_btn)
+          btns_container.append(clear_btn, undo_btn, redo_btn)
           options_container.append(color_picker, line_width_input)
           node.append(btns_container,canvas_con,options_container)
           
+          function getParentsCompute(ele:HTMLElement){
+            let top = ele.offsetTop;
+            const ele_get_top = (ele_p:HTMLElement)=>{
+              top+=ele_p.offsetTop;
+              if(ele_p.offsetParent){
+                ele_get_top(ele_p.offsetParent);
+              }
+            }
+            ele_get_top(ele.offsetParent)
+            return top;
+          }
           function start(e: TouchEvent) {
             let touch = e.targetTouches[0];
             ctx.beginPath();
-            ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.clientY - canvas_con.offsetTop);
+            // console.log(getParentsCompute(canvas_con),"kkkkkkkk",touch.clientY,touch.clientY -  (canvas_con.offsetParent?.offsetParent?.offsetTop as number)- (canvas_con.offsetParent?.offsetTop as number)-canvas_con.offsetTop)
+            ctx.moveTo(touch.clientX -canvas_con.offsetLeft ,touch.clientY - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+            // ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.offsetY);
             canvas_con.addEventListener('touchmove', move, false)
             canvas_con.addEventListener('touchend', end, false)
 
           }
           function move(e) {
             if (e.targetTouches.length === 1) {
+              e.preventDefault()
               let touch = e.targetTouches[0];
               ctx.strokeStyle = drawColor;
               ctx.lineWidth = lineWidth;
               //现在的坐标减去原来的坐标
-              ctx.lineTo(touch.clientX - canvas_con.offsetLeft, touch.clientY - canvas_con.offsetTop);
+              ctx.lineTo(touch.clientX - canvas_con.offsetLeft,touch.clientY  - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
               ctx.stroke();
+
             }
           }
           function end(e) {
@@ -5473,7 +5489,9 @@ const createExtendedDOMResolvers = function (app: App) {
           function start_web(e: MouseEvent) {
             flag = false;
             ctx.beginPath();
-            ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
+            // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
+            ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
+
             canvas_con.addEventListener('mousemove', move_web, true)
             canvas_con.addEventListener('mouseup', end_web, false)
           }
@@ -5483,8 +5501,11 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             ctx.strokeStyle = drawColor;
             ctx.lineWidth = lineWidth;
-            ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
+            // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
+            ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
             ctx.stroke();
+
+
           }
           function end_web(e) {
             flag = true;
@@ -5494,8 +5515,20 @@ const createExtendedDOMResolvers = function (app: App) {
             const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
             drawHistory.push(imageData);
             redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+            const dataURL = canvas_con.toDataURL();
+            // let arr = dataURL.split(","),
+            //   mime = arr[0].match(/:(.*?);/)?.[1],
+            //   bin_str = atob(arr[1]),
+            //   index = bin_str.length,
+            //   u8_arr = new Uint8Array(index);
+            // while (index--) {
+            //   u8_arr[index] = bin_str.charCodeAt(index);
+            // }
+            app.updateRoot((draft) => {
+              // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+              set(draft?.[pageName], dataKey, dataURL)
+            })
           }
-
           // color
           color_picker.addEventListener("change", () => {
             drawColor = color_picker.value;
@@ -5541,26 +5574,26 @@ const createExtendedDOMResolvers = function (app: App) {
               ctx.putImageData(nextDraw, 0, 0);
             }
           });
-          save_btn.addEventListener("click", () => {
-            const dataURL = canvas_con.toDataURL();
-            let arr = dataURL.split(","),
-              mime = arr[0].match(/:(.*?);/)?.[1],
-              bin_str = atob(arr[1]),
-              index = bin_str.length,
-              u8_arr = new Uint8Array(index);
-            while (index--) {
-              u8_arr[index] = bin_str.charCodeAt(index);
-            }
-            app.updateRoot((draft) => {
-              set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
-            })
-            node.removeChild(btns_container);
-            node.removeChild(canvas_con);
-            node.removeChild(options_container);
-            options_container.remove()
-            canvas_con.remove()
-            btns_container.remove()
-          })
+          // save_btn.addEventListener("click", () => {
+          //   const dataURL = canvas_con.toDataURL();
+          //   let arr = dataURL.split(","),
+          //     mime = arr[0].match(/:(.*?);/)?.[1],
+          //     bin_str = atob(arr[1]),
+          //     index = bin_str.length,
+          //     u8_arr = new Uint8Array(index);
+          //   while (index--) {
+          //     u8_arr[index] = bin_str.charCodeAt(index);
+          //   }
+          //   app.updateRoot((draft) => {
+          //     set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+          //   })
+          //   node.removeChild(btns_container);
+          //   node.removeChild(canvas_con);
+          //   node.removeChild(options_container);
+          //   options_container.remove()
+          //   canvas_con.remove()
+          //   btns_container.remove()
+          // })
         }
       },
     },
