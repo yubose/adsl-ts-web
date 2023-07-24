@@ -489,6 +489,9 @@ class App {
         const components = await this.render(_page)
         window.pcomponents = components as any
       }
+
+      _page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
+      _page.emitSync(eventId.page.on.ON_MOUNTED,_page,)
     } catch (error) {
       throw new Error(error as any)
     }
@@ -503,83 +506,9 @@ class App {
       }).catch(e=>console.error(e))
     }
     
-
     let e = Date.now()
     log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
-    setTimeout(async()=>{
-      let isAborted = false
-      const pageObject = this.root[NDOMPage.page]
-      const Mounted = this.root[NDOMPage.page]?.onMounted
-      if (Mounted && pageObject) {
-        const onMounted = async (current, index, mounted) => {
-          log.debug('', { current, index, mounted, page: NDOMPage.page })
-
-          const validateReference = (ref: string) => {
-            const datapath = nu.trimReference(ref as ReferenceString)
-            const location = ref.startsWith(`=.builtIn`)
-              ? 'root'
-              : is.localKey(datapath)
-              ? 'local'
-              : 'root'
-            if (
-              !has(
-                location === 'local' ? this.root[NDOMPage.page] : this.root,
-                datapath.split('.'),
-              )
-            ) {
-              log.error(
-                `The reference "${ref}" is missing from the ${
-                  location === 'local'
-                    ? `local root for page "${NDOMPage.page}"`
-                    : 'root'
-                }`,
-                {
-                  previous: mounted[index - 1],
-                  current: { value: current, index },
-                  next: mounted[index + 1],
-                  datapath,
-                  location,
-                  page: NDOMPage.page,
-                  snapshot: cloneDeep(
-                    location === 'root' ? this.root : this.root[NDOMPage.page],
-                  ),
-                },
-              )
-            }
-          }
-
-          const validateObject = (obj: Record<string, any>) => {
-            for (const [key, value] of u.entries(obj)) {
-              is.reference(key) && validateReference(key)
-              is.reference(value) && validateReference(value)
-              if (u.isObj(value)) validateObject(value)
-            }
-          }
-
-          u.isObj(current) && validateObject(current)
-
-          if (!isAborted) {
-            let currentIndex = this.loadingPages[NDOMPage.page]?.findIndex?.(
-              (o) => o.id === NDOMPage.id,
-            )
-
-            if (currentIndex > -1) {
-              if (currentIndex > 0) {
-                isAborted = true
-                this.loadingPages[NDOMPage.page].splice(currentIndex, 1)
-              } else {
-                this.loadingPages[NDOMPage.page].shift()
-              }
-            }
-          }
-        }
-        await this.noodl?.runMounted({
-          pageObject,
-          onMounted: onMounted,
-          pageName: NDOMPage.page,
-        })
-      }
-    })
+    
   }
 
   async initialize({
@@ -1063,8 +992,6 @@ class App {
       )?.aborted
 
       log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
-      let e = Date.now()
-      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
 
       if (isAbortedFromSDK) {
         log.info(
@@ -1081,6 +1008,8 @@ class App {
       }
 
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
+      let e = Date.now()
+      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
       return this.root[pageRequesting]
     } catch (error) {
       log.error(error)
@@ -1194,6 +1123,8 @@ class App {
         log.debug(`Removing room listeners...`)
         // this.meeting.room?.removeAllListeners?.()
       }
+      //@ts-expect-error
+      page.mounted = false
     }
 
     const onNavigateStale = (args: {
@@ -1259,11 +1190,93 @@ class App {
 
     }
 
+    const onMounted = (page:NDOMPage)=>{
+      //onMounted
+      setTimeout(async()=>{
+        log.log('execute onMounted')
+        let isAborted = false
+        const pageObject = this.root[page.page]
+        const Mounted = this.root[page.page]?.onMounted
+        if (Mounted && pageObject) {
+          const onMounted = async (current, index, mounted) => {
+            log.debug('', { current, index, mounted, page: page.page })
+
+            const validateReference = (ref: string) => {
+              const datapath = nu.trimReference(ref as ReferenceString)
+              const location = ref.startsWith(`=.builtIn`)
+                ? 'root'
+                : is.localKey(datapath)
+                ? 'local'
+                : 'root'
+              if (
+                !has(
+                  location === 'local' ? this.root[page.page] : this.root,
+                  datapath.split('.'),
+                )
+              ) {
+                log.error(
+                  `The reference "${ref}" is missing from the ${
+                    location === 'local'
+                      ? `local root for page "${page.page}"`
+                      : 'root'
+                  }`,
+                  {
+                    previous: mounted[index - 1],
+                    current: { value: current, index },
+                    next: mounted[index + 1],
+                    datapath,
+                    location,
+                    page: page.page,
+                    snapshot: cloneDeep(
+                      location === 'root' ? this.root : this.root[page.page],
+                    ),
+                  },
+                )
+              }
+            }
+
+            const validateObject = (obj: Record<string, any>) => {
+              for (const [key, value] of u.entries(obj)) {
+                is.reference(key) && validateReference(key)
+                is.reference(value) && validateReference(value)
+                if (u.isObj(value)) validateObject(value)
+              }
+            }
+
+            u.isObj(current) && validateObject(current)
+
+            if (!isAborted) {
+              let currentIndex = this.loadingPages[page.page]?.findIndex?.(
+                (o) => o.id === page.id,
+              )
+
+              if (currentIndex > -1) {
+                if (currentIndex > 0) {
+                  isAborted = true
+                  this.loadingPages[page.page].splice(currentIndex, 1)
+                } else {
+                  this.loadingPages[page.page].shift()
+                }
+              }
+            }
+          }
+          await this.noodl?.runMounted({
+            pageObject,
+            onMounted: onMounted,
+            pageName: page.page,
+          })
+        }
+      },0)
+      //@ts-expect-error
+      page.mounted = true
+    }
+
     page
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearnode)
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
+      .on(eventId.page.on.ON_MOUNTED, onMounted)
   }
 
   async render(page: NDOMPage) {
