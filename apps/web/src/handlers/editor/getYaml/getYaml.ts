@@ -701,22 +701,36 @@ const populateBlock = ({
                     if(obj.style) {
                         imageStyle = obj.style
                     }
+                    target = {
+                        type: "image",
+                        "path=func": "=..customEvent.prepareDocToPath",
+                        dataKey: 'formData.data.' + obj.alt,
+                        style: imageStyle
+                    }
                     BaseJsonCopy.formData[obj.alt] = ``
                     if(obj.href !== '') {
                         BaseJsonCopy.formData[obj.href] = ``
-                        target = {
-                            type: 'imageCanvas',
-                            dataKey: 'formData.data.' + obj.href,
-                            dataOption: 'formData.data.editableImage.' + obj.alt,
-                            style: imageStyle
-                        }
+                        target.onClick = [
+                            // {
+                            //     emit: {
+                            //         actions: [
+                            //             {
+                            //                 "..formData.data.imgCanvas.imgCanvasId@": obj.alt
+                            //             },
+                            //             // {
+                            //             //     "..formData.data.imgCanvas.imgCanvasDataKey@": 'formData.data.' + obj.href
+                            //             // },
+                                        
+                            //         ]
+                            //     }
+                            // },
+                            {
+                                actionType: "popUp",
+                                popUpView: "imgCanvasTag"
+                            }
+                        ]
                     } else {
-                        target = {
-                            type: "image",
-                            "path=func": "=..customEvent.prepareDocToPath",
-                            dataKey: 'formData.data.' + obj.alt,
-                            style: imageStyle
-                        }
+                        
                     }
                     
                     break

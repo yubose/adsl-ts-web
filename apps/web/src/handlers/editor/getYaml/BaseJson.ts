@@ -8,6 +8,10 @@ const BaseJson = {
         DataAndTime: {
             flag: '',
             value: ''
+        },
+        imgCanvas: {
+            imgCanvasId: ``,
+            imgCanvasDataKey: ``
         }
     },
     required: new Array<REQUIRED>(),

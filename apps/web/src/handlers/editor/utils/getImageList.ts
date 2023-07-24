@@ -25,7 +25,7 @@ const getImageList = (editor: IDomEditor) => {
         })
         if(image.href !== '') {
             imageOptions[image.alt] = {
-                fileName: "",
+                fileName: "test",
                 imgPath: ""
             }
         }
