@@ -30,6 +30,8 @@ const getYaml = (editor: IDomEditor) => {
         const events = {
             DateAndTime: getDateAndTime(editor)
         }
+
+        const imageObj = getImageList(editor)
         // let required = new Array()
 
         // requiredSet.forEach((item: string) => {
@@ -42,7 +44,8 @@ const getYaml = (editor: IDomEditor) => {
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
-            images: getImageList(editor),
+            images: imageObj.imageList,
+            imageOptions: imageObj.imageOptions,
             required: required,
             events
         }
@@ -694,17 +697,28 @@ const populateBlock = ({
                     })
                     break
                 case "image": 
-                    let style = {}
-                    BaseJsonCopy.formData[obj.alt] = ``
+                    let imageStyle = {}
                     if(obj.style) {
-                        style = obj.style
+                        imageStyle = obj.style
                     }
-                    target = {
-                        type: "image",
-                        "path=func": "=..customEvent.prepareDocToPath",
-                        dataKey: 'formData.data.' + obj.alt,
-                        style
+                    BaseJsonCopy.formData[obj.alt] = ``
+                    if(obj.href !== '') {
+                        BaseJsonCopy.formData[obj.href] = ``
+                        target = {
+                            type: 'imageCanvas',
+                            dataKey: 'formData.data.' + obj.href,
+                            dataOption: 'formData.data.editableImage.' + obj.alt,
+                            style: imageStyle
+                        }
+                    } else {
+                        target = {
+                            type: "image",
+                            "path=func": "=..customEvent.prepareDocToPath",
+                            dataKey: 'formData.data.' + obj.alt,
+                            style: imageStyle
+                        }
                     }
+                    
                     break
                 default: 
                     let paddingTop = '0.005'

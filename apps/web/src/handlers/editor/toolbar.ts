@@ -114,6 +114,7 @@ const registerToolbar = () => {
             {value: "Provider Signature", text: `Provider Signature`, styleForRenderMenuList: getImageObject('signature')},
             {value: "Date&Time", text: `Date&Time`, styleForRenderMenuList: getImageObject('dateAndTime')},
             {value: "Image", text: "Image", styleForRenderMenuList: getImageObject('image')},
+            {value: "Image(Markeable)", text: "Image(Markeable)", styleForRenderMenuList: getImageObject('markeableImage')},
         ],
         classFunctions: {
             exec: (editor: IDomEditor, value: string | boolean) => {

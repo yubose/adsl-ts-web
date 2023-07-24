@@ -101,6 +101,35 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                 }
             }
             break
+        case "Image(Markeable)": 
+            const markeableInput = document.createElement('input')
+            markeableInput.type = 'file'
+            markeableInput.accept = 'image/*'
+            markeableInput.click()
+            markeableInput.onchange = () => {
+                // console.log(markeableInput.files)
+                if(markeableInput.files) {
+                    const file = markeableInput.files[0] as File
+                    const reader = new FileReader
+                    console.log(file)
+                    reader.onload = e => {
+                        // console.log(e.target?.result)
+                        const node = {
+                            type: "image",
+                            // alt: file.name,
+                            alt: getUuid(),
+                            src: e.target?.result,
+                            href: getUuid(),
+                            children: [
+                                {text: ''}
+                            ]
+                        }
+                        editor.insertNode(node)
+                    }
+                    reader.readAsDataURL(file)
+                }
+            }
+            break
         default:
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
             break

@@ -17,13 +17,23 @@ interface Image {
 const getImageList = (editor: IDomEditor) => {
     const allImage = editor.getElemsByType('image') as ImageElement[]
     const imageList = new Array<Image>()
+    const imageOptions = new Object()
     allImage.forEach((image: ImageElement) => { 
         imageList.push({
             key: image.alt,
             value: image.src
         })
+        if(image.href !== '') {
+            imageOptions[image.alt] = {
+                fileName: "",
+                imgPath: ""
+            }
+        }
     })
-    return imageList
+    return {
+        imageList,
+        imageOptions
+    }
 }
 
 export default getImageList
