@@ -5344,7 +5344,9 @@ const createExtendedDOMResolvers = function (app: App) {
           // const save_btn = document.createElement("button");
           const btns_container = document.createElement("div");
           const options_container = document.createElement("div");
-          const ctx = canvas_con.getContext("2d") as CanvasRenderingContext2D;
+          const ctx = canvas_con.getContext("2d", {
+            willReadFrequently: true,
+          }) as CanvasRenderingContext2D;
           const image = new Image();
           image.src = ((path as string).startsWith("blob"))?path:`${assetsUrl}${path}`;
           
@@ -5486,14 +5488,17 @@ const createExtendedDOMResolvers = function (app: App) {
             drawHistory.push(imageData);
             redoHistory = []; // 每次绘制新内容时，清空已撤销历史
           }
+          let domRect = canvas_con.getBoundingClientRect()
           function start_web(e: MouseEvent) {
             flag = false;
+            domRect = canvas_con.getBoundingClientRect()
             ctx.beginPath();
             // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
-            ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
-
+            // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
+            ctx.moveTo(e.clientX - domRect.left, e.clientY - domRect.top)
             canvas_con.addEventListener('mousemove', move_web, true)
             canvas_con.addEventListener('mouseup', end_web, false)
+            canvas_con.addEventListener('mouseleave', end_web)
           }
           function move_web(e) {
             if (flag) {
@@ -5502,12 +5507,15 @@ const createExtendedDOMResolvers = function (app: App) {
             ctx.strokeStyle = drawColor;
             ctx.lineWidth = lineWidth;
             // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
-            ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
+            // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
+            ctx.lineTo(e.clientX - domRect.left, e.clientY - domRect.top)
             ctx.stroke();
 
 
           }
           function end_web(e) {
+            if(flag) return
+            console.log("TEST")
             flag = true;
             e.stopPropagation();
             ctx.closePath();
@@ -5515,19 +5523,20 @@ const createExtendedDOMResolvers = function (app: App) {
             const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
             drawHistory.push(imageData);
             redoHistory = []; // 每次绘制新内容时，清空已撤销历史
-            const dataURL = canvas_con.toDataURL();
-            // let arr = dataURL.split(","),
-            //   mime = arr[0].match(/:(.*?);/)?.[1],
-            //   bin_str = atob(arr[1]),
-            //   index = bin_str.length,
-            //   u8_arr = new Uint8Array(index);
-            // while (index--) {
-            //   u8_arr[index] = bin_str.charCodeAt(index);
-            // }
-            app.updateRoot((draft) => {
-              // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
-              set(draft?.[pageName], dataKey, dataURL)
-            })
+            saveData()
+            // const dataURL = canvas_con.toDataURL();
+            // // let arr = dataURL.split(","),
+            // //   mime = arr[0].match(/:(.*?);/)?.[1],
+            // //   bin_str = atob(arr[1]),
+            // //   index = bin_str.length,
+            // //   u8_arr = new Uint8Array(index);
+            // // while (index--) {
+            // //   u8_arr[index] = bin_str.charCodeAt(index);
+            // // }
+            // app.updateRoot((draft) => {
+            //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+            //   set(draft?.[pageName], dataKey, dataURL)
+            // })
           }
           // color
           color_picker.addEventListener("change", () => {
@@ -5545,7 +5554,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // drawHistory.push(drawHistory.at(-1) as ImageData); 
             // = []; // 删除到绘制历史
             // redoHistory = []; // 删除到已撤销历史
-
+            saveData()
           });
           // undo
           undo_btn.addEventListener("click", () => {
@@ -5562,6 +5571,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
 
               }
+              saveData()
             }
           });
           // redo
@@ -5572,8 +5582,25 @@ const createExtendedDOMResolvers = function (app: App) {
               // 清除Canvas并恢复下一步绘制历史
               ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
               ctx.putImageData(nextDraw, 0, 0);
+              saveData()
             }
           });
+
+          const saveData = () => {
+            const dataURL = canvas_con.toDataURL();
+            let arr = dataURL.split(","),
+              mime = arr[0].match(/:(.*?);/)?.[1],
+              bin_str = atob(arr[1]),
+              index = bin_str.length,
+              u8_arr = new Uint8Array(index);
+            while (index--) {
+              u8_arr[index] = bin_str.charCodeAt(index);
+            }
+            app.updateRoot((draft) => {
+              set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+            })
+          }
+
           // save_btn.addEventListener("click", () => {
           //   const dataURL = canvas_con.toDataURL();
           //   let arr = dataURL.split(","),
