@@ -753,7 +753,7 @@ const populateBlock = ({
                             type: "image",
                             "path=func": "=..customEvent.prepareDocToPath",
                             dataKey: 'formData.data.' + obj.alt,
-                            style: imageStyle
+                            style: {...imageStyle}
                         }
                     }
                     
