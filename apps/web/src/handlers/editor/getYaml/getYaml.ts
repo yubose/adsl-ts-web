@@ -12,6 +12,7 @@ import getTitleList from "../utils/getTitleList";
 import { editorBlockSet, getUuid } from "../utils/utils";
 import { choiceSharpReg, textSharpReg, textSharpSplitRegG } from "../utils/textSharp";
 import { getDateAndTime } from "../utils/events";
+import getImageList from "../utils/getImageList";
 
 
 const getYaml = (editor: IDomEditor) => {
@@ -29,6 +30,8 @@ const getYaml = (editor: IDomEditor) => {
         const events = {
             DateAndTime: getDateAndTime(editor)
         }
+
+        const imageObj = getImageList(editor)
         // let required = new Array()
 
         // requiredSet.forEach((item: string) => {
@@ -41,6 +44,9 @@ const getYaml = (editor: IDomEditor) => {
         return {
             data: BaseJsonCopy.formData,
             components: BaseJsonCopy.components,
+            images: imageObj.imageList,
+            imageOptions: imageObj.imageOptions,
+            imgCanvas: BaseJsonCopy.imgCanvas,
             required: required,
             events
         }
@@ -690,6 +696,67 @@ const populateBlock = ({
                         })
                         target.children.push(child)
                     })
+                    break
+                case "image": 
+                    let imageStyle = {}
+                    if(obj.style) {
+                        imageStyle = obj.style
+                    }
+                    BaseJsonCopy.formData[obj.alt] = ``
+                    if(obj.href !== '') {
+                        target = {
+                            type: "view",
+                            children: [
+                                {
+                                    type: "image",
+                                    "path=func": "=..customEvent.prepareDocToPath",
+                                    dataKey: 'formData.data.' + obj.alt,
+                                    viewTag: obj.alt,
+                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_edit"}),
+                                    onClick: [
+                                        {
+                                            emit: {
+                                                actions: [
+                                                    {
+                                                        "=.builtIn.object.set": {
+                                                            dataIn: {
+                                                                object: "=..formData.imgCanvas",
+                                                                key: "option",
+                                                                value: "=..formData.editableImage." + obj.alt
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            actionType: "builtIn",
+                                            funcName: "redraw",
+                                            viewTag: "imgCanvasTag"
+                                        },
+                                        {
+                                            actionType: "popUp",
+                                            popUpView: "imgCanvasTag"
+                                        },
+                                    ]
+                                },
+                                {
+                                    type: "image",
+                                    "path=func": "=..customEvent.prepareDocToPath",
+                                    dataKey: 'formData.data.' + obj.alt,
+                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_read"})
+                                }
+                            ]
+                        }
+                    } else {
+                        target = {
+                            type: "image",
+                            "path=func": "=..customEvent.prepareDocToPath",
+                            dataKey: 'formData.data.' + obj.alt,
+                            style: imageStyle
+                        }
+                    }
+                    
                     break
                 default: 
                     let paddingTop = '0.005'

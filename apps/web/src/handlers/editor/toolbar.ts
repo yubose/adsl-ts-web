@@ -11,6 +11,31 @@ import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import selectTemplate from "./utils/selectTemplate";
 
 
+// const input = document.createElement('input')
+// input.type = 'file'
+// input.click()
+// input.onchange = () => {
+//     // console.log(input.files)
+//     if(input.files) {
+//         const file = input.files[0] as File
+//         const reader = new FileReader
+//         reader.onload = e => {
+//             console.log(e.target?.result)
+//             const node = {
+//                 type: "image",
+//                 alt: file.name,
+//                 src: e.target?.result,
+//                 href: '',
+//                 children: [
+//                     {text: ''}
+//                 ]
+//             }
+//             editor.insertNode(node)
+//         }
+//         reader.readAsDataURL(file)
+//     }
+// }
+
 const DynamicFields = new DefaultButton({
     title: "Dynamic Fields",
     classFunctions: {
@@ -87,7 +112,9 @@ const registerToolbar = () => {
             {value: "Diagnosis", text: `Diagnosis`, styleForRenderMenuList: getImageObject('diagnosis')},
             {value: "Patient/Guardian Signature", text: `Patient/Guardian Signature`, styleForRenderMenuList: getImageObject('patient/guardian signature')},
             {value: "Provider Signature", text: `Provider Signature`, styleForRenderMenuList: getImageObject('signature')},
-            {value: "Date&Time", text: `Date&Time`, styleForRenderMenuList: getImageObject('dateAndTime')}
+            {value: "Date&Time", text: `Date&Time`, styleForRenderMenuList: getImageObject('dateAndTime')},
+            {value: "Image", text: "Image", styleForRenderMenuList: getImageObject('image')},
+            {value: "Image(Markeable)", text: "Image(Markeable)", styleForRenderMenuList: getImageObject('markeableImage')},
         ],
         classFunctions: {
             exec: (editor: IDomEditor, value: string | boolean) => {
