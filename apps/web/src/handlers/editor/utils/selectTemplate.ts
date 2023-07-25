@@ -82,7 +82,6 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                 if(input.files) {
                     const file = input.files[0] as File
                     const reader = new FileReader
-                    console.log(file)
                     reader.onload = e => {
                         const src = e.target?.result as string
                         const imageObj = new Image()
@@ -118,7 +117,6 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                 if(markeableInput.files) {
                     const file = markeableInput.files[0] as File
                     const reader = new FileReader
-                    console.log(file)
                     reader.onload = e => {
                         const src = e.target?.result as string
                         const imageObj = new Image()

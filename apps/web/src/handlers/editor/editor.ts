@@ -34,6 +34,11 @@ const editorConfig: Partial<IEditorConfig> = {
                 "deleteTableCol", 
                 "deleteTable"
             ]
+        },
+        image: {
+            menuKeys: [
+                "deleteImage"
+            ]
         }
     },
     MENU_CONF: {
@@ -71,7 +76,6 @@ const editorConfig: Partial<IEditorConfig> = {
                             const imageObj = new Image()
                             imageObj.src = src
                             imageObj.onload = () => {
-                                console.log(imageObj.width)
                                 const node = {
                                     type: "image",
                                     alt: getUuid(),
