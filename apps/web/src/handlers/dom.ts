@@ -52,6 +52,7 @@ import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar, { DynamicFields } from './editor/toolbar'
 import Recorder from 'mic-recorder-to-mp3'
 import { editorBlockCss } from './editor/utils/utils'
+import { store } from '@aitmed/cadl'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -5515,7 +5516,6 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           function end_web(e) {
             if(flag) return
-            console.log("TEST")
             flag = true;
             e.stopPropagation();
             ctx.closePath();
@@ -5588,16 +5588,13 @@ const createExtendedDOMResolvers = function (app: App) {
 
           const saveData = () => {
             const dataURL = canvas_con.toDataURL();
-            let arr = dataURL.split(","),
-              mime = arr[0].match(/:(.*?);/)?.[1],
-              bin_str = atob(arr[1]),
-              index = bin_str.length,
-              u8_arr = new Uint8Array(index);
-            while (index--) {
-              u8_arr[index] = bin_str.charCodeAt(index);
-            }
+            const arr = dataURL.split(',') as Array<string>
+            const data = store.level2SDK.utilServices.base64ToBlob(
+              arr[1],
+              arr[0].match(/:(.*?);/)?.[1]
+            )
             app.updateRoot((draft) => {
-              set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+              set(draft?.[pageName], dataKey, data)
             })
           }
 
