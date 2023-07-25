@@ -5336,6 +5336,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })();
           const [file_name, path] = [dataOptions["fileName"]||"image", dataOptions["imgPath"]];
+          const canvas_box = document.createElement('div')
           const canvas_con = document.createElement("canvas");
           const color_picker = document.createElement("input");
           const line_width_input = document.createElement("input");
@@ -5360,8 +5361,23 @@ const createExtendedDOMResolvers = function (app: App) {
             // canvas_con.width = canvas_con.getBoundingClientRect().width;
             // canvas_con.height = canvas_con.getBoundingClientRect().height;
             // ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
-            image.width = node.getBoundingClientRect().width
-            image.height = node.getBoundingClientRect().height - 80;
+            canvas_box.style.cssText = `
+              width: ${node.getBoundingClientRect().width}px;
+              height: ${node.getBoundingClientRect().height - 80}px;
+              display: flex;
+              align-items: center;
+              margin: 10px 0;
+            `
+            
+            if(image.width > image.height) {
+              image.height = (node.getBoundingClientRect().width/image.width) * image.height
+              image.width = node.getBoundingClientRect().width
+            } else {
+              image.width = (node.getBoundingClientRect().height/image.height) * image.width
+              image.height = node.getBoundingClientRect().height - 80; 
+            }
+            // image.width = node.getBoundingClientRect().width
+            // image.height = node.getBoundingClientRect().height - 80;
             canvas_con.width = image.width;
             canvas_con.height = image.height;
             ctx.drawImage(image, 0, 0, image.width, image.height);
@@ -5404,11 +5420,12 @@ const createExtendedDOMResolvers = function (app: App) {
             width: 100%;
  
           `
-          canvas_con.style.cssText = `
-            width: "100%"; 
-            height: "100%";
-            margin: 10px 0;
-          `
+
+          // canvas_con.style.cssText = `
+          //   width: "100%"; 
+          //   height: "100%";
+          //   margin: 10px 0;
+          // `
           redo_btn.style.cssText = `
             border: none;
             background-color: green;
@@ -5447,7 +5464,8 @@ const createExtendedDOMResolvers = function (app: App) {
           // btns_container.append(clear_btn, undo_btn, redo_btn, save_btn)
           btns_container.append(clear_btn, undo_btn, redo_btn)
           options_container.append(color_picker, line_width_input)
-          node.append(btns_container,canvas_con,options_container)
+          node.append(btns_container,canvas_box,options_container)
+          canvas_box.append(canvas_con)
           
           function getParentsCompute(ele:HTMLElement){
             let top = ele.offsetTop;
