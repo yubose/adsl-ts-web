@@ -40,7 +40,7 @@ import * as c from '../constants'
 import { cloneDeep } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
-import { editorHtml, styleText }from './editor/editorHtml'
+import { editorHtml, styleText } from './editor/editorHtml'
 import { Boot, createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
 import editorConfig from "./editor/editor"
 // import toolbarConfig from "./editor/toolbar"
@@ -52,6 +52,7 @@ import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar, { DynamicFields } from './editor/toolbar'
 import Recorder from 'mic-recorder-to-mp3'
 import { editorBlockCss } from './editor/utils/utils'
+import { store } from '@aitmed/cadl'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -100,13 +101,13 @@ const createExtendedDOMResolvers = function (app: App) {
       pageName !== page.page && (pageName = page.page)
 
       let value = (event.target as any)?.value || ''
-      if(component?.has('richtext')) value = (event.target as any)?.textContent || ''
+      if (component?.has('richtext')) value = (event.target as any)?.textContent || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
         if (initialCapital) {
           value = value.slice(0, 1).toUpperCase() + value.slice(1)
-          ;(node as HTMLInputElement).value = value
+            ; (node as HTMLInputElement).value = value
         }
         if (dataObject) {
           set(
@@ -120,7 +121,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.error(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-              `to update its value but a dataObject was not found`,
+            `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -144,7 +145,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             if (initialCapital) {
               value = value.slice(0, 1).toUpperCase() + value.slice(1)
-              ;(node as HTMLInputElement).value = value
+                ; (node as HTMLInputElement).value = value
             }
 
             if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
@@ -202,24 +203,24 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-  ;(function () {
-    let beforeUnload_time = 0,
-      gap_time = 0
-    window.onunload = function () {
-      gap_time = new Date().getTime() - beforeUnload_time
-      if (gap_time <= 2) {
-        //浏览器关闭判断
-        clearCookie()
+    ; (function () {
+      let beforeUnload_time = 0,
+        gap_time = 0
+      window.onunload = function () {
+        gap_time = new Date().getTime() - beforeUnload_time
+        if (gap_time <= 2) {
+          //浏览器关闭判断
+          clearCookie()
+        }
       }
-    }
-    window.onbeforeunload = function () {
-      beforeUnload_time = new Date().getTime()
-    }
-    function clearCookie() {
-      //清除localstorage
-      window.localStorage.clear()
-    }
-  })()
+      window.onbeforeunload = function () {
+        beforeUnload_time = new Date().getTime()
+      }
+      function clearCookie() {
+        //清除localstorage
+        window.localStorage.clear()
+      }
+    })()
 
   const antiShake = (fn, wait) => {
     let timer
@@ -232,7 +233,6 @@ const createExtendedDOMResolvers = function (app: App) {
   }
   let audioT = "40%";
   let audioL = "85%";
-  
 
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
@@ -492,11 +492,11 @@ const createExtendedDOMResolvers = function (app: App) {
                           data: [],
                         },
                       )
-                      ;(settingWeek.xAxis.data as any).forEach((element) => {
-                        _dateTempObj[element] = {}
-                        _dateTempObj[element]['Systolic'] = []
-                        _dateTempObj[element]['Diastolic'] = []
-                      })
+                        ; (settingWeek.xAxis.data as any).forEach((element) => {
+                          _dateTempObj[element] = {}
+                          _dateTempObj[element]['Systolic'] = []
+                          _dateTempObj[element]['Diastolic'] = []
+                        })
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
                         let signal = Intl.DateTimeFormat('en-US', {
@@ -526,12 +526,12 @@ const createExtendedDOMResolvers = function (app: App) {
                             ).toFixed(),
                           )
                         } else {
-                          ;(settingWeek.series[0]['data'] as any[]).push(
+                          ; (settingWeek.series[0]['data'] as any[]).push(
                             undefined,
                           )
-                          ;(settingWeek.series[1]['data'] as any[]).push(
-                            undefined,
-                          )
+                            ; (settingWeek.series[1]['data'] as any[]).push(
+                              undefined,
+                            )
                         }
                       })
 
@@ -587,12 +587,12 @@ const createExtendedDOMResolvers = function (app: App) {
                           ],
                         },
                       })
-                      ;(settingWeek.xAxis.data as any).forEach((element) => {
-                        _dateTempObj[element] = {}
-                        _dateTempObj[element][
-                          `${dataType[dataValue.dataType][0]}`
-                        ] = []
-                      })
+                        ; (settingWeek.xAxis.data as any).forEach((element) => {
+                          _dateTempObj[element] = {}
+                          _dateTempObj[element][
+                            `${dataType[dataValue.dataType][0]}`
+                          ] = []
+                        })
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
                         let signal = Intl.DateTimeFormat('en-US', {
@@ -606,13 +606,12 @@ const createExtendedDOMResolvers = function (app: App) {
                               item,
                               `name.data.${dataType[dataValue.dataType][2][0]}`,
                             ) +
-                              '.' +
-                              get(
-                                item,
-                                `name.data.${
-                                  dataType[dataValue.dataType][2][1]
-                                }`,
-                              ),
+                            '.' +
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2][1]
+                              }`,
+                            ),
                           )
                         } else {
                           _dateTempObj[signal][
@@ -642,7 +641,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             settingWeek.series[0]['data'].push(cum.toFixed())
                           }
                         } else {
-                          ;(settingWeek.series[0]['data'] as any[]).push(
+                          ; (settingWeek.series[0]['data'] as any[]).push(
                             undefined,
                           )
                         }
@@ -859,17 +858,15 @@ const createExtendedDOMResolvers = function (app: App) {
                             ]?.push(
                               get(
                                 item,
-                                `name.data.${
-                                  dataType[dataValue.dataType][2][0]
+                                `name.data.${dataType[dataValue.dataType][2][0]
                                 }`,
                               ) +
-                                '.' +
-                                get(
-                                  item,
-                                  `name.data.${
-                                    dataType[dataValue.dataType][2][1]
-                                  }`,
-                                ),
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
                             )
                           } else {
                             _dateTempObj[signal][
@@ -924,7 +921,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                     setting = settingDay as any
                   } else if (dataValue.dateType === 'month') {
-                    
+
                     let settingMonth = {
                       title: {
                         show: true,
@@ -983,7 +980,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         },
                         axisLabel: {
                           rotate: 45,
-                          interval: 0,  
+                          interval: 0,
                         },
                         // boundaryGap: false,
                         data: null,
@@ -1030,18 +1027,18 @@ const createExtendedDOMResolvers = function (app: App) {
                       // height: "80%",
                       series: [],
                     }
-                    const getDateX = ()=>{
-                      const arr:string[] = [];
+                    const getDateX = () => {
+                      const arr: string[] = [];
                       // for (let index = 0; index < 6; index++) {
                       //   arr.unshift(moment().subtract(index ===5 ?30: index*7,"days").format("MM-DD"))
                       // }
                       for (let index = 0; index < 31; index++) {
-                        arr.unshift(moment().subtract(index,"days").format("MM-DD"))
+                        arr.unshift(moment().subtract(index, "days").format("MM-DD"))
                       }
                       return arr
                     }
                     // settingMonth.xAxis.data =  getSmartDate() as any
-                    settingMonth.xAxis.data =   getDateX() as any
+                    settingMonth.xAxis.data = getDateX() as any
                     if (dataValue.dataType == '371201') {
                       settingMonth.title.text = 'Blood Pressure'
                       settingMonth.yAxis.name = 'mmHg'
@@ -1135,11 +1132,11 @@ const createExtendedDOMResolvers = function (app: App) {
                           data: [],
                         }
                       )
-                      ;(settingMonth.xAxis.data as any).forEach((element) => {
-                        _dateTempObj[element] = {}
-                        _dateTempObj[element]['Systolic'] = []
-                        _dateTempObj[element]['Diastolic'] = []
-                      })
+                        ; (settingMonth.xAxis.data as any).forEach((element) => {
+                          _dateTempObj[element] = {}
+                          _dateTempObj[element]['Systolic'] = []
+                          _dateTempObj[element]['Diastolic'] = []
+                        })
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
                         let signal = moment(_stamp * 1000).format("MM-DD");
@@ -1167,12 +1164,12 @@ const createExtendedDOMResolvers = function (app: App) {
                             ).toFixed(),
                           )
                         } else {
-                          ;(settingMonth.series[0]['data'] as any[]).push(
+                          ; (settingMonth.series[0]['data'] as any[]).push(
                             undefined,
                           )
-                          ;(settingMonth.series[1]['data'] as any[]).push(
-                            undefined,
-                          )
+                            ; (settingMonth.series[1]['data'] as any[]).push(
+                              undefined,
+                            )
                         }
                       })
 
@@ -1229,7 +1226,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           ],
                         },
                       })
-                      ;
+                        ;
                       (settingMonth.xAxis.data as any).forEach((element) => {
                         _dateTempObj[element] = {}
                         _dateTempObj[element][
@@ -1248,13 +1245,12 @@ const createExtendedDOMResolvers = function (app: App) {
                               item,
                               `name.data.${dataType[dataValue.dataType][2][0]}`,
                             ) +
-                              '.' +
-                              get(
-                                item,
-                                `name.data.${
-                                  dataType[dataValue.dataType][2][1]
-                                }`,
-                              ),
+                            '.' +
+                            get(
+                              item,
+                              `name.data.${dataType[dataValue.dataType][2][1]
+                              }`,
+                            ),
                           )
                         } else {
                           _dateTempObj[signal][
@@ -1285,7 +1281,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             settingMonth.series[0]['data'].push(cum.toFixed())
                           }
                         } else {
-                          ;(settingMonth.series[0]['data'] as any[]).push(
+                          ; (settingMonth.series[0]['data'] as any[]).push(
                             undefined,
                           )
                         }
@@ -1301,8 +1297,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   //@ts-expect-error
                   // setting.height =  "80%";
-                  setting!.grid!.left =  "3%";
-                  setting!.grid!.bottom =  "2%";
+                  setting!.grid!.left = "3%";
+                  setting!.grid!.bottom = "2%";
                   let myChart = echarts.init(node)
                   dataValue && myChart.setOption(setting)
                 } catch (error) {
@@ -1533,7 +1529,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) {},
+                    viewDidMount(mountArg) { },
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -1562,7 +1558,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                              new Date().getTimezoneOffset() * 60 * 1000,
+                            new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '<div  style="padding-top:3px">Duration：' +
@@ -1619,7 +1615,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                   })
                   window.setTimeout(() => {
-                    ;(
+                    ; (
                       document.querySelectorAll(
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
@@ -1851,14 +1847,14 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: ({ node,component }) => isTextFieldLike(node) || component.has('richtext'),
+      cond: ({ node, component }) => isTextFieldLike(node) || component.has('richtext'),
       before({ node, component }) {
-        ;(node as HTMLInputElement).value = component.get('data-value') || ''
+        ; (node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ;(node as HTMLSelectElement)['selectedIndex'] = 0
+            ; (node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -1918,18 +1914,7 @@ const createExtendedDOMResolvers = function (app: App) {
             if (component?.type == 'textField') {
               const executeFunc = component.blueprint.debounce
                 ? antiShake(
-                    getOnChange({
-                      component,
-                      dataKey,
-                      evtName: 'onInput',
-                      node: node as NDOMElement,
-                      iteratorVar,
-                      page,
-                      initialCapital,
-                    }),
-                    component.blueprint.debounce,
-                  )
-                : getOnChange({
+                  getOnChange({
                     component,
                     dataKey,
                     evtName: 'onInput',
@@ -1937,7 +1922,18 @@ const createExtendedDOMResolvers = function (app: App) {
                     iteratorVar,
                     page,
                     initialCapital,
-                  })
+                  }),
+                  component.blueprint.debounce,
+                )
+                : getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                  initialCapital,
+                })
               const listener = addListener(node, 'input', executeFunc)
               component.addEventListeners(listener)
               // node.addEventListener(
@@ -1991,7 +1987,7 @@ const createExtendedDOMResolvers = function (app: App) {
               //   }),
               // )
             }
-            if(component.has('richtext')){
+            if (component.has('richtext')) {
               const executeFunc = getOnChange({
                 component,
                 dataKey,
@@ -2003,7 +1999,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const listener = addListener(node, 'blur', executeFunc)
               component.addEventListeners(listener)
             }
-            
+
           }
         }
         if (component.blueprint?.onBlur) {
@@ -2136,7 +2132,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            ;(node as HTMLImageElement).src = url
+            ; (node as HTMLImageElement).src = url
           })
         }
       },
@@ -2376,8 +2372,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-              ? false
-              : true
+                ? false
+                : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -2546,14 +2542,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                        Name +
-                        ' </span><br> <span style="font-size: 1vh;">' +
-                        Speciality +
-                        '</span><br> <span style="font-size: 1vh;">' +
-                        phoneNumber +
-                        '</span><br> <span style="font-size: 1vh;">' +
-                        address +
-                        '</span>',
+                      Name +
+                      ' </span><br> <span style="font-size: 1vh;">' +
+                      Speciality +
+                      '</span><br> <span style="font-size: 1vh;">' +
+                      phoneNumber +
+                      '</span><br> <span style="font-size: 1vh;">' +
+                      address +
+                      '</span>',
                     )
                     .addTo(map)
                 })
@@ -2582,8 +2578,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-              ? false
-              : true
+                ? false
+                : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -2664,14 +2660,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (app.subStreams.elementExists(node)) {
               log.error(
                 `Attempted to add an element to a subStream but it ` +
-                  `already exists in the subStreams container`,
+                `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
           } else {
             log.error(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-                `was not available`,
+              `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
@@ -2833,8 +2829,8 @@ const createExtendedDOMResolvers = function (app: App) {
             /number|integer/i.test(contentType)
               ? 'number'
               : u.isStr(contentType)
-              ? contentType
-              : 'text',
+                ? contentType
+                : 'text',
           )
         }
       },
@@ -2847,11 +2843,11 @@ const createExtendedDOMResolvers = function (app: App) {
             max: Number.MAX_VALUE,
             min: 1
           }
-          if(component.props.strictLength) {
-            if(component.props.strictLength.max >= 0) {
+          if (component.props.strictLength) {
+            if (component.props.strictLength.max >= 0) {
               strictLength.max = component.props.strictLength.max
             }
-            if(component.props.strictLength.min >= 0) {
+            if (component.props.strictLength.min >= 0) {
               strictLength.min = component.props.strictLength.min
             }
           }
@@ -2871,11 +2867,11 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           const strict = () => {
             const value = (node as HTMLInputElement).value
-            if(value.length < strictLength.min) {
+            if (value.length < strictLength.min) {
               (node as HTMLInputElement).style.borderColor = "#ff0000";
               tips.style.display = "block"
               oldValue = value;
-            } else if(value.length > strictLength.max) {
+            } else if (value.length > strictLength.max) {
               (node as HTMLInputElement).value = oldValue;
             } else {
               (node as HTMLInputElement).style.borderColor = borderColor
@@ -2889,15 +2885,15 @@ const createExtendedDOMResolvers = function (app: App) {
             isFocus = true
           })
           node.addEventListener('blur', () => {
-            if(isFocus) {
+            if (isFocus) {
               strict()
               isFocus = false
             }
           })
           node.addEventListener('input', strict)
 
-          const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
+          const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
               if (mutation.type == "attributes" && mutation.attributeName == "style") {
                 strict()
               }
@@ -2931,11 +2927,11 @@ const createExtendedDOMResolvers = function (app: App) {
             max: Number.MAX_VALUE,
             min: 1
           }
-          if(component.props.strictLength) {
-            if(component.props.strictLength.max >= 0) {
+          if (component.props.strictLength) {
+            if (component.props.strictLength.max >= 0) {
               strictLength.max = component.props.strictLength.max
             }
-            if(component.props.strictLength.min >= 0) {
+            if (component.props.strictLength.min >= 0) {
               strictLength.min = component.props.strictLength.min
             }
           }
@@ -2955,11 +2951,11 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           const strict = () => {
             const value = (node as HTMLInputElement).value
-            if(value.length < strictLength.min) {
+            if (value.length < strictLength.min) {
               (node as HTMLInputElement).style.borderColor = "#ff0000";
               tips.style.display = "block"
               oldValue = value;
-            } else if(value.length > strictLength.max) {
+            } else if (value.length > strictLength.max) {
               (node as HTMLInputElement).value = oldValue;
             } else {
               (node as HTMLInputElement).style.borderColor = borderColor
@@ -2973,15 +2969,15 @@ const createExtendedDOMResolvers = function (app: App) {
             isFocus = true
           })
           node.addEventListener('blur', () => {
-            if(isFocus) {
+            if (isFocus) {
               strict()
               isFocus = false
             }
           })
           node.addEventListener('input', strict)
 
-          const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
+          const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
               if (mutation.type == "attributes" && mutation.attributeName == "style") {
                 strict()
               }
@@ -3059,20 +3055,20 @@ const createExtendedDOMResolvers = function (app: App) {
             direction?: 'horizontal' | 'vertical'
             spaceBetween?: number
             autoplay?:
-              | boolean
-              | {
-                  delay: number
-                  stopOnLastSlide?: boolean
-                  disableOnInteraction?: boolean
-                }
+            | boolean
+            | {
+              delay: number
+              stopOnLastSlide?: boolean
+              disableOnInteraction?: boolean
+            }
             slidesPerView?: number
             effect?: 'coverflow' | 'cube' | 'fade' | 'flip' | 'slide'
             pagination?:
-              | boolean
-              | {
-                  type?: 'bullets' | 'custom' | 'fraction' | 'progressbar'
-                  clickable?: boolean
-                }
+            | boolean
+            | {
+              type?: 'bullets' | 'custom' | 'fraction' | 'progressbar'
+              clickable?: boolean
+            }
             navigation?: boolean
             childStyle?: {
               width?: number | string
@@ -3141,11 +3137,11 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           for (let index = 0; index < listDom.childElementCount; index++) {
-            ;(listDom.children[index] as HTMLLIElement).setAttribute(
+            ; (listDom.children[index] as HTMLLIElement).setAttribute(
               'class',
               'swiper-slide',
             )
-            ;(listDom.children[index] as HTMLLIElement).style.cssText = `
+              ; (listDom.children[index] as HTMLLIElement).style.cssText = `
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -3408,7 +3404,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataValue['path'],
             )
             if (
-              dataValue['selectedData'] ==  get(dataValue['allData'][i], dataValue['path'])
+              dataValue['selectedData'] == get(dataValue['allData'][i], dataValue['path'])
             ) {
               childInput.checked = true
               app.updateRoot((draft) => {
@@ -3424,7 +3420,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['inputStyle'])[index]}`
               let styleValue =
                 dataOptions['inputStyle'][
-                  `${Object.keys(dataOptions['inputStyle'])[index]}`
+                `${Object.keys(dataOptions['inputStyle'])[index]}`
                 ]
               childInput.style[styleKey] = styleValue
             }
@@ -3436,7 +3432,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['textStyle'])[index]}`
               let styleValue =
                 dataOptions['textStyle'][
-                  `${Object.keys(dataOptions['textStyle'])[index]}`
+                `${Object.keys(dataOptions['textStyle'])[index]}`
                 ]
               spanDom.style[styleKey] = styleValue
             }
@@ -3445,12 +3441,11 @@ const createExtendedDOMResolvers = function (app: App) {
               index < Object.keys(dataOptions['containerStyle']).length;
               index++
             ) {
-              let styleKey = `${
-                Object.keys(dataOptions['containerStyle'])[index]
-              }`
+              let styleKey = `${Object.keys(dataOptions['containerStyle'])[index]
+                }`
               let styleValue =
                 dataOptions['containerStyle'][
-                  `${Object.keys(dataOptions['containerStyle'])[index]}`
+                `${Object.keys(dataOptions['containerStyle'])[index]}`
                 ]
               contanierDiv.style[styleKey] = styleValue
             }
@@ -3604,10 +3599,10 @@ const createExtendedDOMResolvers = function (app: App) {
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
             let chatBackground: string
-            ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
-              domNode,
-              this.IsOwner(Msg.bsig),
-            )
+              ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+                domNode,
+                this.IsOwner(Msg.bsig),
+              )
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
@@ -3635,10 +3630,10 @@ const createExtendedDOMResolvers = function (app: App) {
           private createPdfNode(Msg: any): HTMLElement {
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
-            ;[domNode, domNodeContent] = this.judgeIsOwner(
-              domNode,
-              this.IsOwner(Msg.bsig),
-            )
+              ;[domNode, domNodeContent] = this.judgeIsOwner(
+                domNode,
+                this.IsOwner(Msg.bsig),
+              )
             let pdfInfo = this.judgePdfIsOwner(
               domNodeContent,
               this.IsOwner(Msg.bsig),
@@ -3740,17 +3735,14 @@ const createExtendedDOMResolvers = function (app: App) {
             pdfIcon.style.cssText = `
               width: ${this.pdfCss.pdfIconWidth}px;
               height: ${this.pdfCss.pdfIconHeight}px;
-              margin: ${
-                (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-              }px 10px ${
-              (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-            }px 10px;
+              margin: ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px;
             `
             let pdfInfo = document.createElement('div')
             pdfInfo.style.cssText = `
-                width: ${
-                  this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
-                }px;
+                width: ${this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
+              }px;
                 height: auto;
                 margin: 5px 10px 5px 10px;
                 display: flex;
@@ -4077,7 +4069,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       // @ts-expect-error
                       height:
                         Math.ceil((2.5 / Number(style?.height)) * height) /
-                          100 +
+                        100 +
                         'px',
                       // @ts-expect-error
                       left:
@@ -4086,13 +4078,12 @@ const createExtendedDOMResolvers = function (app: App) {
                       // @ts-expect-error
                       top:
                         Math.ceil((1.5 / Number(style?.height)) * height) /
-                          100 +
+                        100 +
                         'px',
                       position: 'absolute',
                       background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
-                      'background-size': `${ratio * originIconWidth}px ${
-                        ratio * originIconHeight
-                      }px`,
+                      'background-size': `${ratio * originIconWidth}px ${ratio * originIconHeight
+                        }px`,
                     },
                   )
                   this.dom.appendChild(
@@ -4142,17 +4133,17 @@ const createExtendedDOMResolvers = function (app: App) {
                     if (!isExtend) {
                       extendSet.forEach((v) => {
                         if (navList.get(v).hasChildren) {
-                          ;(
+                          ; (
                             document.getElementById(`_${v}`) as HTMLUListElement
                           ).style.position = 'absolute'
-                          ;(
-                            document.getElementById(`_${v}`) as HTMLUListElement
-                          ).style.display = 'none'
-                          ;(
-                            document.getElementById(
-                              `__${v}`,
-                            ) as HTMLImageElement
-                          ).src = down
+                            ; (
+                              document.getElementById(`_${v}`) as HTMLUListElement
+                            ).style.display = 'none'
+                            ; (
+                              document.getElementById(
+                                `__${v}`,
+                              ) as HTMLImageElement
+                            ).src = down
                           navList.get(v).isExtend = false
                         }
                       })
@@ -4162,7 +4153,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       extendSet.add(value)
                       navList.get(value).isExtend = true
                     }
-                  } catch (error) {}
+                  } catch (error) { }
                   app.updateRoot((draft) => {
                     set(draft, component.get('data-key'), {
                       pageName: value,
@@ -4189,7 +4180,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                 }
                 action(value)
-              } catch (error) {}
+              } catch (error) { }
             } else if (dom.tagName === 'IMG') {
               let value = dom.getAttribute('title-value')
               // @ts-expect-error
@@ -4215,7 +4206,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           let extendSet = navBar.extendSet
 
-          if(menuBarInfo.remainName !== '') {
+          if (menuBarInfo.remainName !== '') {
             currentPage = menuBarInfo.remainName
             app.updateRoot(dratf => {
               set(dratf, component.get('data-key'), {
@@ -4234,28 +4225,28 @@ const createExtendedDOMResolvers = function (app: App) {
             if (navBar.selectedPage !== PAGE) {
               extendSet.forEach((v) => {
                 if (navList.get(v).hasChildren) {
-                  ;(
+                  ; (
                     document.getElementById(`_${v}`) as HTMLUListElement
                   ).style.position = 'absolute'
-                  ;(
-                    document.getElementById(`_${v}`) as HTMLUListElement
-                  ).style.display = 'none'
-                  ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
-                    down
+                    ; (
+                      document.getElementById(`_${v}`) as HTMLUListElement
+                    ).style.display = 'none'
+                    ; (document.getElementById(`__${v}`) as HTMLImageElement).src =
+                      down
                   navList.get(v).isExtend = false
                 }
               })
               extendSet.clear()
               extendSet.add(BLOCK)
               navList.get(BLOCK).isExtend = true
-              ;(
-                document.getElementById(`_${BLOCK}`) as HTMLUListElement
-              ).style.position = 'relative'
-              ;(
-                document.getElementById(`_${BLOCK}`) as HTMLUListElement
-              ).style.display = 'block'
+                ; (
+                  document.getElementById(`_${BLOCK}`) as HTMLUListElement
+                ).style.position = 'relative'
+                ; (
+                  document.getElementById(`_${BLOCK}`) as HTMLUListElement
+                ).style.display = 'block'
               if (navList.get(BLOCK).hasChildren) {
-                ;(
+                ; (
                   document.getElementById(`__${BLOCK}`) as HTMLImageElement
                 ).src = up
               }
@@ -4270,28 +4261,28 @@ const createExtendedDOMResolvers = function (app: App) {
             let extendPage = extendMap.get(currentPage)
             extendSet.forEach((v) => {
               if (navList.get(v).hasChildren) {
-                ;(
+                ; (
                   document.getElementById(`_${v}`) as HTMLUListElement
                 ).style.position = 'absolute'
-                ;(
-                  document.getElementById(`_${v}`) as HTMLUListElement
-                ).style.display = 'none'
-                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
-                  down
+                  ; (
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.display = 'none'
+                  ; (document.getElementById(`__${v}`) as HTMLImageElement).src =
+                    down
                 navList.get(v).isExtend = false
               }
             })
             extendSet.clear()
             extendSet.add(extendPage)
             navList.get(extendPage).isExtend = true
-            ;(
-              document.getElementById(`_${extendPage}`) as HTMLUListElement
-            ).style.position = 'relative'
-            ;(
-              document.getElementById(`_${extendPage}`) as HTMLUListElement
-            ).style.display = 'block'
+              ; (
+                document.getElementById(`_${extendPage}`) as HTMLUListElement
+              ).style.position = 'relative'
+              ; (
+                document.getElementById(`_${extendPage}`) as HTMLUListElement
+              ).style.display = 'block'
             if (navList.get(extendPage).hasChildren) {
-              ;(
+              ; (
                 document.getElementById(`__${extendPage}`) as HTMLImageElement
               ).src = up
             }
@@ -4305,14 +4296,14 @@ const createExtendedDOMResolvers = function (app: App) {
           ) {
             extendSet.forEach((v) => {
               if (navList.get(v).hasChildren) {
-                ;(
+                ; (
                   document.getElementById(`_${v}`) as HTMLUListElement
                 ).style.position = 'absolute'
-                ;(
-                  document.getElementById(`_${v}`) as HTMLUListElement
-                ).style.display = 'none'
-                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
-                  down
+                  ; (
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.display = 'none'
+                  ; (document.getElementById(`__${v}`) as HTMLImageElement).src =
+                    down
                 navList.get(v).isExtend = false
               }
               extendSet.clear()
@@ -4328,7 +4319,7 @@ const createExtendedDOMResolvers = function (app: App) {
               document.getElementById(
                 `_${navBar.selectedPage}_`,
               ).style.background = '#1871b3'
-            } catch (error) {}
+            } catch (error) { }
           }
         }
 
@@ -4340,7 +4331,7 @@ const createExtendedDOMResolvers = function (app: App) {
             img.onload = null
           }
         }
-        
+
       }
     },
     '[App editor]': {
@@ -4348,10 +4339,10 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         let style = document.createElement("style") as HTMLStyleElement
         const ROOT_CHILD = document.getElementById("root")?.children[0] as HTMLDivElement
-        style.innerHTML = 
+        style.innerHTML =
           styleText
-          .replace("@[SWAL_WIDTH]", `${ROOT_CHILD.clientWidth}px`)
-          .replace("@[SWAL_LEFT]", `${0.16 * ROOT_CHILD.clientWidth}px`)
+            .replace("@[SWAL_WIDTH]", `${ROOT_CHILD.clientWidth}px`)
+            .replace("@[SWAL_LEFT]", `${0.16 * ROOT_CHILD.clientWidth}px`)
         document.body.appendChild(style)
         node.style.width = "100%"
         node.style.height = "100%"
@@ -4391,8 +4382,8 @@ const createExtendedDOMResolvers = function (app: App) {
           key: ' ',
           callback: () => {
             // console.log(document.getElementById(id))
-            if(!kpIsDisabled) {
-              if(document.getElementById(id) !== null)
+            if (!kpIsDisabled) {
+              if (document.getElementById(id) !== null)
                 isUseHotKey = true
               else {
                 kp.clean()
@@ -4408,7 +4399,7 @@ const createExtendedDOMResolvers = function (app: App) {
             'shift@'
           ],
           callback: (event) => {
-            if(isUseHotKey) isUseHotKey = false
+            if (isUseHotKey) isUseHotKey = false
           }
         })
 
@@ -4417,26 +4408,26 @@ const createExtendedDOMResolvers = function (app: App) {
           key: '@',
           useCombination: 'shift',
           callback: () => {
-          if(isUseHotKey) {
+            if (isUseHotKey) {
               const editor: IDomEditor = window.app.root.editor
               const selection = editor.selection
               searchPopUp({
-                  editor,
-                  selection,
-                  isUseHotKey
+                editor,
+                selection,
+                isUseHotKey
               })
               isUseHotKey = false
               // editor.insertText(`-editing-@[]-editing-`)
               // searchPopUp(editor)
             }
-              // console.log(editor.selection)
+            // console.log(editor.selection)
           }
         })
-  
+
         let isExpend = true
 
-        img.addEventListener("click", ()=> {
-          if(isExpend) {
+        img.addEventListener("click", () => {
+          if (isExpend) {
             img.src = contract;
             (document.getElementById("preViewBox") as HTMLElement).style.display = "none";
             (document.getElementById("editor—wrapper") as HTMLElement).style.width = "100%";
@@ -4453,7 +4444,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const change = (editor: IDomEditor) => {
           const str = editor.getHtml()
           let newSHA = createHash('sha256').update(str).digest('hex')
-          if(newSHA !== oldSHA) {
+          if (newSHA !== oldSHA) {
             // const oldTemplateInfo = get(app.root, component.get('data-key'))
             // const html = matchChar(str)
             const html = matchBlock(str).replace(/__replace__/g, assetsUrl)
@@ -4468,7 +4459,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
         editorConfig.onChange = change
-        
+
         const editor = createEditor({
           content: [],
           selector: '#editor-container',
@@ -4478,25 +4469,25 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         const toolbarRegister = registerToolbar()
-        
+
         const toolbar = createToolbar({
           editor,
           selector: '#toolbar-container',
           config: toolbarRegister.toolbarConfig,
           mode: 'default', // or 'simple'
         })
-        
+
         let timer
         const calculateHeight = () => {
           let toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
-          if(toolbarDom.clientHeight) {
+          if (toolbarDom.clientHeight) {
             const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
-            (document.getElementById("editor-container") as HTMLDivElement ).style.height = height;
+            (document.getElementById("editor-container") as HTMLDivElement).style.height = height;
             (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
             (document.getElementById("preView") as HTMLDivElement).style.height = height;
             node.removeEventListener("load", calculateHeight)
             const templateInfo = get(app.root, component.get('data-key'))
-            if(templateInfo.title && templateInfo.title !== '') {
+            if (templateInfo.title && templateInfo.title !== '') {
               editor.focus()
               // editor.dangerouslyInsertHtml(templateInfo.html)
               editor.setHtml(templateInfo.html)
@@ -4507,7 +4498,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
               })
             }
-            if(!timer) {
+            if (!timer) {
               clearTimeout(timer)
             }
             editor.focus(true)
@@ -4524,15 +4515,15 @@ const createExtendedDOMResolvers = function (app: App) {
           const editorDom = document.getElementById("editor-container") as HTMLDivElement
           // console.log(height);
           console.log(`${editorDom.clientHeight}px`);
-          (document.getElementById("preView") as HTMLDivElement ).style.height = `${editorDom.clientHeight}px`;
+          (document.getElementById("preView") as HTMLDivElement).style.height = `${editorDom.clientHeight}px`;
           (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
         }
 
         editor.on("fullScreen", () => {
           let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
           let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
-          if(!editorClass) editorClass = '';
-          if(!previewClass) previewClass = '';
+          if (!editorClass) editorClass = '';
+          if (!previewClass) previewClass = '';
           (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
           (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
           img.style.display = "none";
@@ -4542,8 +4533,8 @@ const createExtendedDOMResolvers = function (app: App) {
         editor.on("unFullScreen", () => {
           let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
           let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
-          if(!editorClass) editorClass = '';
-          if(!previewClass) previewClass = '';
+          if (!editorClass) editorClass = '';
+          if (!previewClass) previewClass = '';
           (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
           (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
           img.style.display = "block";
@@ -4581,7 +4572,7 @@ const createExtendedDOMResolvers = function (app: App) {
             toolbarRegister.InfoSelect.disabled = isDisabled
             DynamicFields.disabled = isDisabled
           } catch (error) {
-            
+
           }
         })
 
@@ -4652,12 +4643,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App horizontalScroll]': {
       cond: "horizontalScroll",
       resolve({ node, component }) {
-        
+
         node.style.display = 'flex'
         const assetsUrl = app.nui.getAssetsUrl() || ''
 
         let listStyle = {
-          color: "#005795", 
+          color: "#005795",
           background: "#f0f0f0",
           textDecoration: "underline",
           marginLeft: 10,
@@ -4668,54 +4659,54 @@ const createExtendedDOMResolvers = function (app: App) {
         let liStyle = component.get("listStyle")
 
         // console.log(liStyle, document.getElementById("root")?.clientWidth)
-        if(liStyle) {
+        if (liStyle) {
           const fullWidth = document.getElementById("root")?.children[0].clientWidth as number
           const floatReg = /^0.[0-9]*$/
           const pxReg = /^[1-9][0-9]*px$/
-          if("marginLeft" in liStyle) {
-            if(floatReg.test(liStyle["marginLeft"]))
+          if ("marginLeft" in liStyle) {
+            if (floatReg.test(liStyle["marginLeft"]))
               liStyle["marginLeft"] = parseFloat(liStyle["marginLeft"]) * fullWidth
-            else if(pxReg.test((liStyle["marginLeft"])))
+            else if (pxReg.test((liStyle["marginLeft"])))
               liStyle["marginLeft"] = liStyle["marginLeft"].replace("px", "")
             else
               delete liStyle["marginLeft"]
           }
-          if("margin-left" in liStyle) {
-            if(floatReg.test(liStyle["margin-left"]))
+          if ("margin-left" in liStyle) {
+            if (floatReg.test(liStyle["margin-left"]))
               liStyle["marginLeft"] = parseFloat(liStyle["margin-left"]) * fullWidth
-            else if(pxReg.test((liStyle["margin-left"])))
+            else if (pxReg.test((liStyle["margin-left"])))
               liStyle["marginLeft"] = liStyle["margin-left"].replace("px", "")
             else
               delete liStyle["margin-left"]
           }
-          if("marginRight" in liStyle) {
-            if(floatReg.test(liStyle["marginRight"]))
+          if ("marginRight" in liStyle) {
+            if (floatReg.test(liStyle["marginRight"]))
               liStyle["marginRight"] = parseFloat(liStyle["marginRight"]) * fullWidth
-            else if(pxReg.test((liStyle["marginRight"])))
+            else if (pxReg.test((liStyle["marginRight"])))
               liStyle["marginRight"] = liStyle["marginRight"].replace("px", "")
             else
               delete liStyle["marginRight"]
           }
-          if("margin-right" in liStyle) {
-            if(floatReg.test(liStyle["margin-right"]))
+          if ("margin-right" in liStyle) {
+            if (floatReg.test(liStyle["margin-right"]))
               liStyle["marginRight"] = parseFloat(liStyle["margin-right"]) * fullWidth
-            else if(pxReg.test((liStyle["margin-right"])))
+            else if (pxReg.test((liStyle["margin-right"])))
               liStyle["marginRight"] = liStyle["margin-right"].replace("px", "")
             else
               delete liStyle["margin-right"]
           }
-          if("buttonWidth" in liStyle) {
-            if(floatReg.test(liStyle["buttonWidth"]))
+          if ("buttonWidth" in liStyle) {
+            if (floatReg.test(liStyle["buttonWidth"]))
               liStyle["buttonWidth"] = parseFloat(liStyle["buttonWidth"]) * fullWidth
-            else if(pxReg.test((liStyle["buttonWidth"])))
+            else if (pxReg.test((liStyle["buttonWidth"])))
               liStyle["buttonWidth"] = liStyle["buttonWidth"].replace("px", "")
             else
               delete liStyle["buttonWidth"]
           }
-          if("button-width" in liStyle) {
-            if(floatReg.test(liStyle["button-width"]))
+          if ("button-width" in liStyle) {
+            if (floatReg.test(liStyle["button-width"]))
               liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * fullWidth
-            else if(pxReg.test((liStyle["button-width"])))
+            else if (pxReg.test((liStyle["button-width"])))
               liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
             else
               delete liStyle["button-width"]
@@ -4745,7 +4736,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const MENULIST = document.createElement("div")
         MENULIST.style.cssText = `
           width: 300px;
-          height: ${MenuShowNumber*MenuItemHeight}px;
+          height: ${MenuShowNumber * MenuItemHeight}px;
           background: #ffffff;
           position: absolute;
           top: 2px;
@@ -4781,7 +4772,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let currentItem = {}
         let currentIndex = 0
-        if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+        if (dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
           currentItem = get(app.root, dataKey)
         } else {
           currentItem = get(app.root?.[currentPage], dataKey)
@@ -4828,8 +4819,8 @@ const createExtendedDOMResolvers = function (app: App) {
           MenuItems.push(MENUItem)
           MENULIST.appendChild(MENUItem)
           // 校验ID, 无ID
-          if(currentItem 
-            && get(currentItem, "id") 
+          if (currentItem
+            && get(currentItem, "id")
             && get(currentItem, "id") === get(item, "id")) {
             currentIndex = index
           }
@@ -4882,20 +4873,20 @@ const createExtendedDOMResolvers = function (app: App) {
         BT.appendChild(LEFT)
         BT.appendChild(RIGHT)
         // node.appendChild(BT)
-        
+
         // dom渲染监听
         let timer
         const getAllWidths = () => {
-          if(horizontalScroll.clientWidth) {
+          if (horizontalScroll.clientWidth) {
             const WIDTH = horizontalScroll.clientWidth
             const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
             ? node.style.maxWidth.replace("px", "")
-            : node.style.maxWidth) - 3 * listStyle.buttonWidth)
+            : node.style.maxWidth) - 3 * (listStyle.buttonWidth  + listStyle.marginLeft + listStyle.marginRight))
             const HEIGHT = horizontalScroll.clientHeight
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
             })
-            if(WIDTH >= MAXWIDTH) {
+            if (WIDTH >= MAXWIDTH) {
               const blank = document.createElement("div")
               blank.style.cssText = `
                 width: ${WIDTH}px;
@@ -4909,7 +4900,7 @@ const createExtendedDOMResolvers = function (app: App) {
               horizontalScroll.style.width = "100%"
             }
             MENULIST.style.marginTop = `${HEIGHT}px`
-            if(!timer) {
+            if (!timer) {
               clearTimeout(timer)
             }
           } else {
@@ -4938,7 +4929,7 @@ const createExtendedDOMResolvers = function (app: App) {
           SHOWWIDTHS.length = 0
           SHOWITEM.clear()
           do {
-            if(ALLWIDTHS[start]) {
+            if (ALLWIDTHS[start]) {
               SHOWWIDTHS.push(ALLWIDTHS[start])
               SHOWITEM.set(start, Items[start])
               count += ALLWIDTHS[start]
@@ -4947,8 +4938,8 @@ const createExtendedDOMResolvers = function (app: App) {
               break
             }
           } while (count < WIDTH);
-          if(sum(SHOWWIDTHS) > WIDTH) {
-            SHOWITEM.delete(start-1)
+          if (sum(SHOWWIDTHS) > WIDTH) {
+            SHOWITEM.delete(start - 1)
           }
         }
         let index = 0
@@ -4958,7 +4949,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const calculateRight = () => {
           refreshAllWidth()
           getShowWidths(index)
-          if(lastIndex < ALLWIDTHS.length) {
+          if (lastIndex < ALLWIDTHS.length) {
             horizontalScroll.scrollLeft += ALLWIDTHS[index]
             index++
             lastIndex = index + SHOWWIDTHS.length - 1
@@ -4968,16 +4959,16 @@ const createExtendedDOMResolvers = function (app: App) {
         const calculateLeft = () => {
           refreshAllWidth()
           getShowWidths(index)
-          if(index > 0) {
+          if (index > 0) {
             horizontalScroll.scrollLeft -= ALLWIDTHS[index - 1]
             index--
-            lastIndex = index + SHOWWIDTHS.length -1
+            lastIndex = index + SHOWWIDTHS.length - 1
           }
           changBT()
         }
 
         const changBT = () => {
-          if(index === 0) {
+          if (index === 0) {
             LEFT.style.filter = "grayscale(100%)"
           } else {
             LEFT.style.filter = "none"
@@ -4986,7 +4977,7 @@ const createExtendedDOMResolvers = function (app: App) {
           getShowWidths(index)
           const WIDTH = horizontalScroll.clientWidth
           // if(sum(SHOWWIDTHS) >= WIDTH) {
-          if(lastIndex < ALLWIDTHS.length) {
+          if (lastIndex < ALLWIDTHS.length) {
             RIGHT.style.filter = "none"
           } else {
             RIGHT.style.filter = "grayscale(100%)"
@@ -4994,15 +4985,15 @@ const createExtendedDOMResolvers = function (app: App) {
         }
         changBT()
 
-        const delay_frame = (delay:number) => {
-          let count=0;     
+        const delay_frame = (delay: number) => {
+          let count = 0;
           return new Promise(function (resolve, reject) {
-            (function raf(){
+            (function raf() {
               count++;
-              let id =window.requestAnimationFrame(raf);
-              if( count>delay){
-                  window.cancelAnimationFrame(id);
-                  resolve(true);
+              let id = window.requestAnimationFrame(raf);
+              if (count > delay) {
+                window.cancelAnimationFrame(id);
+                resolve(true);
               }
             }())
           })
@@ -5011,27 +5002,27 @@ const createExtendedDOMResolvers = function (app: App) {
         const gotoIndex = async (target: number) => {
           selectIndex = target
           app.updateRoot(draft => {
-            if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+            if (dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
               set(draft, dataKey, list[target])
             } else {
               set(draft?.[currentPage], dataKey, list[target])
             }
           })
-          if(target >= lastIndex) {
-            while(!SHOWITEM.has(target)) {
+          if (target >= lastIndex) {
+            while (!SHOWITEM.has(target)) {
               calculateRight()
               await delay_frame(20)
             }
-          } else if(target < index) {
+          } else if (target < index) {
             const step = index - target
-            for(let i = 0; i < step; i++) {
+            for (let i = 0; i < step; i++) {
               calculateLeft()
               await delay_frame(20)
             }
           }
           const targetDom = Items[target]
           Items.forEach(item => {
-            if(item === targetDom) {
+            if (item === targetDom) {
               item.style.background = listStyle.color
               item.style.color = "#ffffff"
               item.style.fontWeight = "700"
@@ -5046,15 +5037,15 @@ const createExtendedDOMResolvers = function (app: App) {
         function debounce(fn, delay = 500) {
           // timer 是在闭包中的
           let timer: NodeJS.Timeout | null = null;
-          
-          return function(...args) {
-            const context = this 
+
+          return function (...args) {
+            const context = this
             if (timer) {
-                clearTimeout(timer)
+              clearTimeout(timer)
             }
             timer = setTimeout(() => {
-                fn.apply(context, args)
-                timer = null
+              fn.apply(context, args)
+              timer = null
             }, delay)
           }
         }
@@ -5062,13 +5053,13 @@ const createExtendedDOMResolvers = function (app: App) {
         horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
           event.preventDefault()
           try {
-            MENU.removeChild(MENULIST) 
+            MENU.removeChild(MENULIST)
             isShow = false
           } catch { }
           // const WIDTH = horizontalScroll.clientWidth
           refreshAllWidth()
           getShowWidths(index)
-          if(event.deltaY > 0) {
+          if (event.deltaY > 0) {
             calculateRight()
           } else {
             calculateLeft()
@@ -5093,26 +5084,26 @@ const createExtendedDOMResolvers = function (app: App) {
           const target = event.target as HTMLDivElement
           // const WIDTH = horizontalScroll.clientWidth
           const idx = parseInt(target.getAttribute("alt") as string)
-          try { 
-            MENU.removeChild(MENULIST) 
+          try {
+            MENU.removeChild(MENULIST)
             isShow = false
-          } catch {}
-          if(!Number.isNaN(idx)) {
+          } catch { }
+          if (!Number.isNaN(idx)) {
             selectIndex = idx
             refreshAllWidth()
             getShowWidths(index)
-            if(!SHOWITEM.has(idx)) {
+            if (!SHOWITEM.has(idx)) {
               calculateRight()
             }
             app.updateRoot(draft => {
-              if(dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+              if (dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
                 set(draft, dataKey, list[idx])
               } else {
                 set(draft?.[currentPage], dataKey, list[idx])
               }
             })
             Items.forEach(item => {
-              if(item === target) {
+              if (item === target) {
                 item.style.background = listStyle.color
                 item.style.color = "#ffffff"
                 item.style.fontWeight = "700"
@@ -5126,21 +5117,21 @@ const createExtendedDOMResolvers = function (app: App) {
             event.stopPropagation()
           }
         })
-        
+
         let isShow = false
         MENU.addEventListener("click", (event: MouseEvent) => {
-          if(event.target === MENU) 
+          if (event.target === MENU)
             event.stopPropagation()
           isShow = !isShow
-          if(isShow) {
+          if (isShow) {
             MENU.appendChild(MENULIST)
-            if(selectIndex > MenuShowNumber - 1) {
+            if (selectIndex > MenuShowNumber - 1) {
               const step = selectIndex - (MenuShowNumber - 1)
               MENULIST.scrollTop += step * MenuItemHeight
             }
             const target = MenuItems[selectIndex]
             MenuItems.forEach(item => {
-              if(item === target) {
+              if (item === target) {
                 item.style.background = listStyle.background
                 // item.style.color = "#ffffff"
                 item.style.fontWeight = "700"
@@ -5156,27 +5147,27 @@ const createExtendedDOMResolvers = function (app: App) {
           const target = event.target as HTMLDivElement
           // const WIDTH = horizontalScroll.clientWidth
           const idx = parseInt(target.getAttribute("alt") as string)
-          if(!Number.isNaN(idx)) {
+          if (!Number.isNaN(idx)) {
             gotoIndex(idx)
           }
         })
 
         document.body.addEventListener("click", (event) => {
-          if(event.target !== MENU && !(new Set(MenuItems).has(event.target as HTMLDivElement)) && isShow) {
+          if (event.target !== MENU && !(new Set(MenuItems).has(event.target as HTMLDivElement)) && isShow) {
             isShow = !isShow
             MENU.removeChild(MENULIST)
           }
-        }, {capture: true})
+        }, { capture: true })
 
         // MENULIST.addEventListener("click", (event) => {
-          
+
         // })
 
         const listenLoad = async () => {
-          if(horizontalScroll.clientWidth) {
+          if (horizontalScroll.clientWidth) {
             await delay_frame(20)
             gotoIndex(currentIndex)
-            if(!timer) {
+            if (!timer) {
               clearTimeout(timer)
             }
           } else {
@@ -5188,7 +5179,7 @@ const createExtendedDOMResolvers = function (app: App) {
       }
     },
     '[App] Audio': {
-      cond: ({component:c})=> ["textField","textView"].includes(c.type),
+      cond: ({ component: c }) => ["textField", "textView"].includes(c.type),
       resolve({ node, component }) {
         if (!(component.blueprint.audio === false)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
@@ -5201,6 +5192,7 @@ const createExtendedDOMResolvers = function (app: App) {
           img.style.cssText = `
             position: fixed;
             cursor: pointer;
+            z-index: 99999999
           `;
           const recorder = new Recorder({
             bitRate: 128
@@ -5209,40 +5201,40 @@ const createExtendedDOMResolvers = function (app: App) {
           let offsetY = 0;
           let proccess_fun = true;
           let isDragging = false;
-          const device_is_web = (()=>{
+          const device_is_web = (() => {
             try {
               document.createEvent("TouchEvent"); return false;
-            } catch(e) {
-              return true; 
+            } catch (e) {
+              return true;
             }
           })();
-          img.addEventListener(device_is_web?'mousedown':"touchstart",onMouseDown );
-          function onMouseDown(e){
-            device_is_web&&e.preventDefault();
-              offsetX = (e.clientX||e.touches[0].clientX) - img.offsetLeft;
-              offsetY = (e.clientY||e.touches[0].clientY) - img.offsetTop;
-              document.addEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
-              document.addEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+          img.addEventListener(device_is_web ? 'mousedown' : "touchstart", onMouseDown);
+          function onMouseDown(e) {
+            device_is_web && e.preventDefault();
+            offsetX = (e.clientX || e.touches[0].clientX) - img.offsetLeft;
+            offsetY = (e.clientY || e.touches[0].clientY) - img.offsetTop;
+            document.addEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove);
+            document.addEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp);
           }
           function onMouseMove(e) {
             isDragging = true;
-            const newLeft =(e.clientX||e.touches[0].clientX) - offsetX;
-            const newTop =  (e.clientY||e.touches[0].clientY) - offsetY;
+            const newLeft = (e.clientX || e.touches[0].clientX) - offsetX;
+            const newTop = (e.clientY || e.touches[0].clientY) - offsetY;
             const offW = document.documentElement.clientWidth - img.offsetWidth;
             const offH = document.documentElement.clientHeight - img.offsetHeight;
-            if(newLeft<0){
-              img.style.left  = "0"
-            }else if(offW<=newLeft){
-              img.style.left  = offW+"px"
-            }else{
-              img.style.left  = newLeft+"px"
+            if (newLeft < 0) {
+              img.style.left = "0"
+            } else if (offW <= newLeft) {
+              img.style.left = offW + "px"
+            } else {
+              img.style.left = newLeft + "px"
             }
-            if(newTop<0){
-              img.style.top  = "0"
-            }else if(offH<=newTop){
-              img.style.top  = offH+"px"
-            }else{
-              img.style.top  = newTop+"px"
+            if (newTop < 0) {
+              img.style.top = "0"
+            } else if (offH <= newTop) {
+              img.style.top = offH + "px"
+            } else {
+              img.style.top = newTop + "px"
             }
             audioL = img.style.left;
             audioT = img.style.top;
@@ -5250,16 +5242,16 @@ const createExtendedDOMResolvers = function (app: App) {
           function onMouseUp(e) {
             img.removeEventListener('click', stopRecording);
             img.removeEventListener('click', startRecording);
-            if(!isDragging){
-              img.addEventListener('click',proccess_fun?startRecording:stopRecording);
+            if (!isDragging) {
+              img.addEventListener('click', proccess_fun ? startRecording : stopRecording);
             }
             isDragging = false;
-            document.removeEventListener(device_is_web?'mousemove':"touchmove", onMouseMove);
-            document.removeEventListener(device_is_web?'mouseup':"touchend", onMouseUp);
+            document.removeEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove);
+            document.removeEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp);
           }
           function startRecording() {
             recorder.start().then(() => {
-            img.src = `${assetsUrl}audio_loading.svg`
+              img.src = `${assetsUrl}audio_loading.svg`
               img.removeEventListener('click', startRecording);
               proccess_fun = false;
               img.addEventListener('click', stopRecording);
@@ -5279,25 +5271,25 @@ const createExtendedDOMResolvers = function (app: App) {
               img.src = `${assetsUrl}audio_start.svg`;
               let data = new FormData();
               data.append("task", "translate");
-              data.append("audio_file", file, "audio.mp3");              
+              data.append("audio_file", file, "audio.mp3");
               let xhr = new XMLHttpRequest();
               xhr.withCredentials = true;
-              xhr.addEventListener("readystatechange", function() {
-              let val;
-              if(this.readyState === 4) {
+              xhr.addEventListener("readystatechange", function () {
+                let val;
+                if (this.readyState === 4) {
                   app.updateRoot(draft => {
-                    try{
+                    try {
                       val = JSON.parse(this.responseText).text;
-                    }catch{
+                    } catch {
                       val = ""
                     }
-                    set(draft?.[pageName], dataKey,val);
-                })
-                const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
-                node.value = (end_w)? ` ${node.value}${val}`: node.value?`${node.value}.${val}`:`${node.value}${val}`;
-              } 
+                    set(draft?.[pageName], dataKey, val);
+                  })
+                  const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+                  node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
+                }
               });
-              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl||"https://whisper.aitmed.com.cn:9005/asr");
+              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
               xhr.send(data);
               img.removeEventListener('click', stopRecording);
@@ -5306,36 +5298,356 @@ const createExtendedDOMResolvers = function (app: App) {
               console.error(e);
             });
           }
-          const appendEle = (e)=>{
+          const appendEle = (e) => {
             node.parentNode?.appendChild(img);
-            console.log(audioL,audioT)
-            img.style.left= audioL;
-           img.style.top = audioT;
+            console.log(audioL, audioT)
+            img.style.left = audioL;
+            img.style.top = audioT;
           }
-          node.addEventListener("click",appendEle);
-          document.addEventListener(device_is_web?'mousedown':"touchstart",(e)=>{
-            if(node.parentNode?.contains(img)&&!["target_img",node.id].includes(e.target?.id as string)){
+          node.addEventListener("click", appendEle);
+          document.addEventListener(device_is_web ? 'mousedown' : "touchstart", (e) => {
+            if (node.parentNode?.contains(img) && !["target_img", node.id].includes(e.target?.id as string)) {
               // audioR = img.getBoundingClientRect().right +"px";
               // audioT = img.style.top;
               // console.log(audioT,audioR)
-              img.removeEventListener("click",appendEle);
+              img.removeEventListener("click", appendEle);
               recorder.stop();
               img.src = `${assetsUrl}audio_start.svg`
               proccess_fun = true;
               img.removeEventListener('click', stopRecording);
               img.addEventListener('click', startRecording);
-              
+
               node.parentNode?.removeChild(img);
               img.remove()
 
-              
-            }else{
-              if(node.parentNode?.contains(img)&&!device_is_web){
+
+            } else {
+              if (node.parentNode?.contains(img) && !device_is_web) {
                 node.focus();
               }
             }
           })
         } else {
+        }
+      },
+    },
+    '[App] Canvas': {
+      cond: 'imgCanvas',
+      resolve({ node, component }) {
+        if (node) {
+          let pageName = app.currentPage
+          const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || ''
+          const dataOptions = component.get('data-option') as {}
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          const device_is_web = (() => {
+            try {
+              document.createEvent("TouchEvent"); return false;
+            } catch (e) {
+              return true;
+            }
+          })();
+          const [file_name, path] = [dataOptions["fileName"]||"image", dataOptions["imgPath"]];
+          const canvas_box = document.createElement('div')
+          const canvas_con = document.createElement("canvas");
+          const color_picker = document.createElement("input");
+          const line_width_input = document.createElement("input");
+          const clear_btn = document.createElement("button");
+          const undo_btn = document.createElement("button");
+          const redo_btn = document.createElement("button");
+          // const save_btn = document.createElement("button");
+          const btns_container = document.createElement("div");
+          const options_container = document.createElement("div");
+          const ctx = canvas_con.getContext("2d", {
+            willReadFrequently: true,
+          }) as CanvasRenderingContext2D;
+          const image = new Image();
+          image.src = ((path as string).startsWith("blob"))?path:`${assetsUrl}${path}`;
+          
+          let lineWidth: number = 2; // 默认线条粗细为2
+          let drawColor = "#ff0000"; // 默认绘制颜色为红色
+          let drawHistory: ImageData[] = []; // 用于存储绘制历史
+          let redoHistory: ImageData[] = []; // 添加redoHistory数组
+          let flag = true;
+          image.onload = function () {
+            // canvas_con.width = canvas_con.getBoundingClientRect().width;
+            // canvas_con.height = canvas_con.getBoundingClientRect().height;
+            // ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
+            canvas_box.style.cssText = `
+              width: ${node.getBoundingClientRect().width}px;
+              height: ${node.getBoundingClientRect().height - 80}px;
+              display: flex;
+              align-items: center;
+              margin: 10px 0;
+            `
+            
+            if(image.width > image.height) {
+              image.height = (node.getBoundingClientRect().width/image.width) * image.height
+              image.width = node.getBoundingClientRect().width
+            } else {
+              image.width = (node.getBoundingClientRect().height/image.height) * image.width
+              image.height = node.getBoundingClientRect().height - 80; 
+            }
+            // image.width = node.getBoundingClientRect().width
+            // image.height = node.getBoundingClientRect().height - 80;
+            canvas_con.width = image.width;
+            canvas_con.height = image.height;
+            ctx.drawImage(image, 0, 0, image.width, image.height);
+
+            canvas_con.addEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start, false)
+
+          };
+          line_width_input.type = "range";
+          line_width_input.min = "1"
+          line_width_input.max = "15"
+          line_width_input.value = lineWidth + ""
+          color_picker.type = "color";
+          color_picker.value = drawColor
+          clear_btn.textContent = "clear"
+          undo_btn.textContent = "undo"
+          redo_btn.textContent = "redo"
+          // save_btn.textContent = "complete"
+          canvas_con.draggable = false;
+
+          line_width_input.style.cssText = `
+            width: 18%;
+            margin: 0 18%;
+
+          `
+          color_picker.style.cssText = `
+          width: 10%;
+          margin: 0 18%;
+
+
+          `
+          btns_container.style.cssText = `
+            height: auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+          `
+          options_container.style.cssText = `
+            height: auto;
+            width: 100%;
+ 
+          `
+
+          // canvas_con.style.cssText = `
+          //   width: "100%"; 
+          //   height: "100%";
+          //   margin: 10px 0;
+          // `
+          redo_btn.style.cssText = `
+            border: none;
+            background-color: green;
+            color: #fff;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 16px;
+          `
+          undo_btn.style.cssText = `
+          border: none;
+            background-color: blue;
+            color: #fff;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 16px;
+          
+          `
+          clear_btn.style.cssText = `
+            border: none;
+            background-color: red;
+            color: #fff;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 16px;
+          
+          `
+          // save_btn.style.cssText = `
+          //   border: none;
+          //   color: #fff;
+          //   border-radius: 5px;
+          //   padding: 5px 8px;
+          //   font-size: 16px;
+          //   background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
+          // `
+
+          // btns_container.append(clear_btn, undo_btn, redo_btn, save_btn)
+          btns_container.append(clear_btn, undo_btn, redo_btn)
+          options_container.append(color_picker, line_width_input)
+          node.append(btns_container,canvas_box,options_container)
+          canvas_box.append(canvas_con)
+          
+          function getParentsCompute(ele:HTMLElement){
+            let top = ele.offsetTop;
+            const ele_get_top = (ele_p:HTMLElement)=>{
+              top+=ele_p.offsetTop;
+              if(ele_p.offsetParent){
+                ele_get_top(ele_p.offsetParent);
+              }
+            }
+            ele_get_top(ele.offsetParent)
+            return top;
+          }
+          function start(e: TouchEvent) {
+            let touch = e.targetTouches[0];
+            ctx.beginPath();
+            // console.log(getParentsCompute(canvas_con),"kkkkkkkk",touch.clientY,touch.clientY -  (canvas_con.offsetParent?.offsetParent?.offsetTop as number)- (canvas_con.offsetParent?.offsetTop as number)-canvas_con.offsetTop)
+            ctx.moveTo(touch.clientX -canvas_con.offsetLeft ,touch.clientY - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+            // ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.offsetY);
+            canvas_con.addEventListener('touchmove', move, false)
+            canvas_con.addEventListener('touchend', end, false)
+
+          }
+          function move(e) {
+            if (e.targetTouches.length === 1) {
+              e.preventDefault()
+              let touch = e.targetTouches[0];
+              ctx.strokeStyle = drawColor;
+              ctx.lineWidth = lineWidth;
+              //现在的坐标减去原来的坐标
+              ctx.lineTo(touch.clientX - canvas_con.offsetLeft,touch.clientY  - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+              ctx.stroke();
+
+            }
+          }
+          function end(e) {
+            ctx.closePath();
+            // history
+            const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
+            drawHistory.push(imageData);
+            redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+          }
+          let domRect = canvas_con.getBoundingClientRect()
+          function start_web(e: MouseEvent) {
+            flag = false;
+            domRect = canvas_con.getBoundingClientRect()
+            ctx.beginPath();
+            // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
+            // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
+            ctx.moveTo(e.clientX - domRect.left, e.clientY - domRect.top)
+            canvas_con.addEventListener('mousemove', move_web, true)
+            canvas_con.addEventListener('mouseup', end_web, false)
+            canvas_con.addEventListener('mouseleave', end_web)
+          }
+          function move_web(e) {
+            if (flag) {
+              return false;
+            }
+            ctx.strokeStyle = drawColor;
+            ctx.lineWidth = lineWidth;
+            // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
+            // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
+            ctx.lineTo(e.clientX - domRect.left, e.clientY - domRect.top)
+            ctx.stroke();
+
+
+          }
+          function end_web(e) {
+            if(flag) return
+            flag = true;
+            e.stopPropagation();
+            ctx.closePath();
+            // history
+            const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
+            drawHistory.push(imageData);
+            redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+            saveData()
+            // const dataURL = canvas_con.toDataURL();
+            // // let arr = dataURL.split(","),
+            // //   mime = arr[0].match(/:(.*?);/)?.[1],
+            // //   bin_str = atob(arr[1]),
+            // //   index = bin_str.length,
+            // //   u8_arr = new Uint8Array(index);
+            // // while (index--) {
+            // //   u8_arr[index] = bin_str.charCodeAt(index);
+            // // }
+            // app.updateRoot((draft) => {
+            //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+            //   set(draft?.[pageName], dataKey, dataURL)
+            // })
+          }
+          // color
+          color_picker.addEventListener("change", () => {
+            drawColor = color_picker.value;
+          });
+          line_width_input.addEventListener("change", () => {
+            lineWidth = +line_width_input.value;
+          });
+          // clear
+          clear_btn.addEventListener("click", () => {
+            // ctx.drawImage(image, 0, 0, image.width, image.height);
+            ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
+            if(drawHistory.length>0){}
+            ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
+            // drawHistory.push(drawHistory.at(-1) as ImageData); 
+            // = []; // 删除到绘制历史
+            // redoHistory = []; // 删除到已撤销历史
+            saveData()
+          });
+          // undo
+          undo_btn.addEventListener("click", () => {
+            if (drawHistory.length > 0) {
+              const lastDraw = drawHistory.pop() as ImageData; // 移除最后一步绘制历史
+              redoHistory.push(lastDraw); // 添加到已撤销历史
+              // 清除Canvas并恢复上一步绘制历史
+              ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
+              if (drawHistory.length > 0) {
+                ctx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
+              } else {
+                // 如果没有历史记录，则重新绘制原始图片
+                // ctx.drawImage(image, 0, 0, image.width, image.height);
+                ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
+
+              }
+              saveData()
+            }
+          });
+          // redo
+          redo_btn.addEventListener("click", () => {
+            if (redoHistory.length > 0) {
+              const nextDraw = redoHistory.pop() as ImageData; // 取出下一步绘制历史
+              drawHistory.push(nextDraw); // 添加到绘制历史
+              // 清除Canvas并恢复下一步绘制历史
+              ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
+              ctx.putImageData(nextDraw, 0, 0);
+              saveData()
+            }
+          });
+
+          const saveData = () => {
+            const dataURL = canvas_con.toDataURL();
+            const arr = dataURL.split(',') as Array<string>
+            const data = store.level2SDK.utilServices.base64ToBlob(
+              arr[1],
+              arr[0].match(/:(.*?);/)?.[1]
+            )
+            app.updateRoot((draft) => {
+              set(draft?.[pageName], dataKey, data)
+            })
+          }
+
+          // save_btn.addEventListener("click", () => {
+          //   const dataURL = canvas_con.toDataURL();
+          //   let arr = dataURL.split(","),
+          //     mime = arr[0].match(/:(.*?);/)?.[1],
+          //     bin_str = atob(arr[1]),
+          //     index = bin_str.length,
+          //     u8_arr = new Uint8Array(index);
+          //   while (index--) {
+          //     u8_arr[index] = bin_str.charCodeAt(index);
+          //   }
+          //   app.updateRoot((draft) => {
+          //     set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+          //   })
+          //   node.removeChild(btns_container);
+          //   node.removeChild(canvas_con);
+          //   node.removeChild(options_container);
+          //   options_container.remove()
+          //   canvas_con.remove()
+          //   btns_container.remove()
+          // })
         }
       },
     },

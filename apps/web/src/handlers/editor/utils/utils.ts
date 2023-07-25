@@ -53,9 +53,14 @@ const insertNode = ({
                 editor.deleteBackward("word")
                 let html = HTML
                     .replace(/--type--/g, type)
-                    .replace(/--key--/g, value)
+                    // .replace(/--key--/g, value)
                     .replace(/--isInline--/g, `data-key="${ID}"${dataArrayStr}`)
-                editor.dangerouslyInsertHtml(html)
+                let div = document.createElement('div')
+                div.innerHTML = html
+                const span = div.childNodes[0] as HTMLSpanElement
+                span.innerText = value
+                span.setAttribute('data-value', value)
+                editor.dangerouslyInsertHtml(div.innerHTML)
                 editor.select(selection)
             } else {
                 const selectNode = editor.getFragment()
@@ -163,6 +168,10 @@ const editorBlockSet = {
     dateTimeSet: new Set(["Date", "Time", "Date&Time"])
 }
 
+const replaceDoubleQuotes = (str: string) => {
+    return str.replace(/"/g, '\"')
+}
+
 export {
     toReg,
     insertText,
@@ -172,5 +181,6 @@ export {
     getHTMLDataArray,
     reverseEscape,
     editorBlockCss,
-    editorBlockSet
+    editorBlockSet,
+    replaceDoubleQuotes
 }

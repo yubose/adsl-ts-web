@@ -2,7 +2,7 @@ import { IDomEditor, SlateElement } from "@wangeditor/editor";
 import { h, VNode } from "snabbdom";
 import choice from "../utils/choice";
 import { SharpType } from "../utils/config";
-import dateAndTime from "../utils/date&time";
+import dateAndTime from "../utils/dateAndtime";
 import { inputPopUp } from "../utils/popUp";
 import searchPopUp from "../utils/search";
 import { choiceSharpReg, textSharpReg, textSharpSplitReg } from "../utils/textSharp";

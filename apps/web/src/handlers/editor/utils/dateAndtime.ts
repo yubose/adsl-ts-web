@@ -15,8 +15,9 @@ const dateAndTime = ({
 
     const isChange = target instanceof HTMLElement
     let type = `Date`
-    let title = ''
+    let title = 'Date'
     let isRequired = ''
+    let titleIsChange = isChange
     // let currentTime = ''
     if(isChange) {
         type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, "")
@@ -31,7 +32,7 @@ const dateAndTime = ({
 
     const checkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48ZyBkYXRhLW5hbWU9IjIxNzcwIiBmaWxsPSJub25lIj48cGF0aCBkYXRhLW5hbWU9Ijk1NjQiIGQ9Ik0yLjgwNyAxMS40OTRsNi4xMzIgNi4zNTIgMTEuOS0xMi4wNDMiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuOCIvPjxwYXRoIGRhdGEtbmFtZT0iMTk3MjYiIGQ9Ik0wIDBoMjR2MjRIMHoiLz48L2c+PC9zdmc+`
     const time = new Date()
-    const DATE = `${formatNum(time.getDate())}/${formatNum(time.getMonth()+1)}/${time.getFullYear()}`
+    const DATE = `${formatNum(time.getMonth()+1)}/${formatNum(time.getDate())}/${time.getFullYear()}`
     const TIME = `${formatNum(time.getHours() <= 12 ? time.getHours() : time.getHours() - 12)}:${formatNum(time.getMinutes())} ${time.getHours() < 12 ? 'AM' : 'PM'}`
 
     Swal.fire({
@@ -81,6 +82,7 @@ const dateAndTime = ({
                 overflow: auto;
                 cursor: pointer;
                 font-size: 16px;
+                margin-top: 5px;
             ">
                 <div style="
                     height: 40px;
@@ -233,6 +235,9 @@ const dateAndTime = ({
         }
     }
     refreshType()
+
+    titleElement.value = title
+    titleElement.focus()
     if(titleElement.value === '') {
         confirmButton.setAttribute("disabled", "true")
     }
@@ -242,6 +247,10 @@ const dateAndTime = ({
         const selectType = target.getAttribute("alt")
         if(selectType) {
             type = selectType
+            if(!titleIsChange){
+                title = selectType
+                titleElement.value = title
+            }
             refreshType()
         }
     })
@@ -251,6 +260,7 @@ const dateAndTime = ({
             titleElement.style.borderColor = "#ff0000"
             confirmButton.setAttribute("disabled", "true")
         } else {
+            titleIsChange = true
             titleElement.style.borderColor = "#dedede"
             confirmButton.removeAttribute("disabled")
         }
