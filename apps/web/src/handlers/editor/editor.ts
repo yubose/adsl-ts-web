@@ -67,16 +67,26 @@ const editorConfig: Partial<IEditorConfig> = {
                     if(image) {
                         const reader = new FileReader()
                         reader.onload = e => {
-                            const node = {
-                                type: "image",
-                                alt: getUuid(),
-                                src: e.target?.result,
-                                href: '',
-                                children: [
-                                    {text: ''}
-                                ]
+                            const src = e.target?.result as string
+                            const imageObj = new Image()
+                            imageObj.src = src
+                            imageObj.onload = () => {
+                                console.log(imageObj.width)
+                                const node = {
+                                    type: "image",
+                                    alt: getUuid(),
+                                    src: e.target?.result,
+                                    href: 'markeable',
+                                    children: [
+                                        {text: ''}
+                                    ],
+                                    style: {
+                                        width: imageObj.width + 'px',
+                                        height: imageObj.height + 'px'
+                                    }
+                                }
+                                editor.insertNode(node)
                             }
-                            editor.insertNode(node)
                         }
                         reader.readAsDataURL(image)
                     }

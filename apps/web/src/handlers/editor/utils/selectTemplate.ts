@@ -84,18 +84,25 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                     const reader = new FileReader
                     console.log(file)
                     reader.onload = e => {
-                        // console.log(e.target?.result)
-                        const node = {
-                            type: "image",
-                            // alt: file.name,
-                            alt: getUuid(),
-                            src: e.target?.result,
-                            href: '',
-                            children: [
-                                {text: ''}
-                            ]
+                        const src = e.target?.result as string
+                        const imageObj = new Image()
+                        imageObj.src = src
+                        imageObj.onload = () => {
+                            const node = {
+                                type: "image",
+                                alt: getUuid(),
+                                src: e.target?.result,
+                                href: '',
+                                children: [
+                                    {text: ''}
+                                ],
+                                style: {
+                                    width: imageObj.width + 'px',
+                                    height: imageObj.height + 'px'
+                                }
+                            }
+                            editor.insertNode(node)
                         }
-                        editor.insertNode(node)
                     }
                     reader.readAsDataURL(file)
                 }
@@ -113,18 +120,25 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                     const reader = new FileReader
                     console.log(file)
                     reader.onload = e => {
-                        // console.log(e.target?.result)
-                        const node = {
-                            type: "image",
-                            // alt: file.name,
-                            alt: getUuid(),
-                            src: e.target?.result,
-                            href: getUuid(),
-                            children: [
-                                {text: ''}
-                            ]
+                        const src = e.target?.result as string
+                        const imageObj = new Image()
+                        imageObj.src = src
+                        imageObj.onload = () => {
+                            const node = {
+                                type: "image",
+                                alt: getUuid(),
+                                src: e.target?.result,
+                                href: 'markeable',
+                                children: [
+                                    {text: ''}
+                                ],
+                                style: {
+                                    width: imageObj.width + 'px',
+                                    height: imageObj.height + 'px'
+                                }
+                            }
+                            editor.insertNode(node)
                         }
-                        editor.insertNode(node)
                     }
                     reader.readAsDataURL(file)
                 }
