@@ -1,6 +1,7 @@
 import { IDomEditor, SlateTransforms } from "@wangeditor/editor"
 import choice from "./choice"
 import dateAndTime from "./dateAndtime"
+import { deepCopy } from "./deepCopy"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
 import { insertNode } from "./utils"
@@ -33,7 +34,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.focus()
             // @ts-ignore
             editor.select(selection)
-            SlateTransforms.insertNodes(editor, FacilityInfo, {
+            SlateTransforms.insertNodes(editor, deepCopy(FacilityInfo), {
                 voids: true
             })
             editor.insertBreak()
@@ -43,7 +44,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.focus()
             // @ts-ignore
             editor.select(editor.selection)
-            SlateTransforms.insertNodes(editor, PatientInfo, {
+            SlateTransforms.insertNodes(editor, deepCopy(PatientInfo), {
                 voids: true
             })
             editor.insertBreak()
@@ -54,7 +55,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.focus()
             // @ts-ignore
             editor.select(editor.selection)
-            SlateTransforms.insertNodes(editor, ProviderInfo, {
+            SlateTransforms.insertNodes(editor, deepCopy(ProviderInfo), {
                 voids: true
             })
             editor.insertBreak()

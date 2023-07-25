@@ -32,7 +32,7 @@ const dateAndTime = ({
 
     const checkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48ZyBkYXRhLW5hbWU9IjIxNzcwIiBmaWxsPSJub25lIj48cGF0aCBkYXRhLW5hbWU9Ijk1NjQiIGQ9Ik0yLjgwNyAxMS40OTRsNi4xMzIgNi4zNTIgMTEuOS0xMi4wNDMiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuOCIvPjxwYXRoIGRhdGEtbmFtZT0iMTk3MjYiIGQ9Ik0wIDBoMjR2MjRIMHoiLz48L2c+PC9zdmc+`
     const time = new Date()
-    const DATE = `${formatNum(time.getDate())}/${formatNum(time.getMonth()+1)}/${time.getFullYear()}`
+    const DATE = `${formatNum(time.getMonth()+1)}/${formatNum(time.getDate())}/${time.getFullYear()}`
     const TIME = `${formatNum(time.getHours() <= 12 ? time.getHours() : time.getHours() - 12)}:${formatNum(time.getMinutes())} ${time.getHours() < 12 ? 'AM' : 'PM'}`
 
     Swal.fire({
