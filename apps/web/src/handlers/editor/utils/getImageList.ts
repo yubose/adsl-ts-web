@@ -23,12 +23,14 @@ const getImageList = (editor: IDomEditor) => {
             key: image.alt,
             value: image.src
         })
-        if(image.href !== '') {
-            imageOptions[image.alt] = {
-                fileName: "",
-                imgPath: ""
-            }
+        // if(image.href !== '') {
+        imageOptions[image.alt] = {
+            status: false,
+            isReadOnly: image.href === '',
+            fileName: "",
+            imgPath: ""
         }
+        // }
     })
     return {
         imageList,
