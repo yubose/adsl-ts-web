@@ -248,6 +248,17 @@ const styleText = `
     line-height: 1em;
 }
 
+.w-e-select-list {
+    border-bottom: 4px solid #ffffff;
+    max-height: 380px;
+    scrollbar-width: none; /* firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+
+.w-e-select-list::-webkit-scrollbar {
+    display: none;
+}
+
 `
 
 const editorHtml = `

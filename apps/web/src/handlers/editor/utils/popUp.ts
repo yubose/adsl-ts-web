@@ -186,6 +186,8 @@ const inputPopUp = (editor: IDomEditor, type: SharpType, selection, target: HTML
     // isChange && titleList.delete(formatKey(title))
     const titleInput = document.getElementById("w-editor_title") as HTMLInputElement
     const placeholderInput = document.getElementById("w-editor_placeholder") as HTMLTextAreaElement
+
+    titleInput.value = title
     titleInput.focus()
     if(titleInput.value === '') {
         // Swal.disableButtons()

@@ -1,4 +1,4 @@
-import { IToolbarConfig, Boot, IModalMenu, IModuleConf, IDomEditor, SlateTransforms } from "@wangeditor/editor";
+import { IToolbarConfig, Boot, IModuleConf, IDomEditor, DomEditor, SlateElement, SlateTransforms } from "@wangeditor/editor";
 import DefaultButton from "./class/Button/defaultButton";
 import DefaultSelect from "./class/Select/defaultSelect";
 import { inputPopUp } from "./utils/popUp";
@@ -10,6 +10,31 @@ import { AtBlockToHtml, SharpBlockToHtml } from "./node/nodeToHtml";
 import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import selectTemplate from "./utils/selectTemplate";
 
+
+// const input = document.createElement('input')
+// input.type = 'file'
+// input.click()
+// input.onchange = () => {
+//     // console.log(input.files)
+//     if(input.files) {
+//         const file = input.files[0] as File
+//         const reader = new FileReader
+//         reader.onload = e => {
+//             console.log(e.target?.result)
+//             const node = {
+//                 type: "image",
+//                 alt: file.name,
+//                 src: e.target?.result,
+//                 href: '',
+//                 children: [
+//                     {text: ''}
+//                 ]
+//             }
+//             editor.insertNode(node)
+//         }
+//         reader.readAsDataURL(file)
+//     }
+// }
 
 const DynamicFields = new DefaultButton({
     title: "Dynamic Fields",
@@ -30,6 +55,58 @@ const DynamicFieldsConf = {
         return DynamicFields
     }
 }
+
+type ImageElement = SlateElement & {
+    src: string
+    alt: string
+    url: string
+    href: string
+}
+
+function imageIsActive(editor: IDomEditor) {
+    const imageElem = DomEditor.getSelectedNodeByType(editor, 'image') as ImageElement
+    if(imageElem === null) return false
+    return imageElem.href === "markeable"
+}
+
+function imageExec(editor: IDomEditor, value: string | boolean) {
+    const imageElem = DomEditor.getSelectedNodeByType(editor, 'image') as ImageElement
+    if(imageElem === null) return false
+    let node: Partial<ImageElement> = {}
+    if(imageElem.href === "markeable") {
+        node = {
+            href: ""
+        }
+    } else {
+        node = {
+            href: "markeable"
+        }
+    }
+    SlateTransforms.setNodes(
+        editor,
+        node,
+        {
+            at: DomEditor.findPath(editor, imageElem)
+        }
+    )
+}
+
+const imageIsMarkeable = new DefaultButton({
+    title: "imageIsMarkeable",
+    classFunctions: {
+        isActive: imageIsActive,
+        exec: imageExec
+    }
+})
+
+const imageIsMarkeableConf = {
+    key: imageIsMarkeable.title,
+    factory() {
+        return imageIsMarkeable
+    }
+}
+
+
 
 const renderAtBlockConf = {
     type: 'atblock', // 新元素 type ，重要！！！
@@ -70,6 +147,8 @@ const mod = {
 
 Boot.registerMenu(DynamicFieldsConf)
 
+Boot.registerMenu(imageIsMarkeableConf)
+
 Boot.registerModule(mod)
 
 const registerToolbar = () => {
@@ -81,13 +160,16 @@ const registerToolbar = () => {
         width: 100,
         options: [
             {value: "Insert", text: "Insert", styleForRenderMenuList: { display: "none" }},
+            {value: "TextShort", text: `Input Box(Short)`, styleForRenderMenuList: getImageObject('textShort')},
             {value: "TextField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
             {value: "TextView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
             {value: "Choice", text: "Choice", styleForRenderMenuList: getImageObject('choice')},
             {value: "Diagnosis", text: `Diagnosis`, styleForRenderMenuList: getImageObject('diagnosis')},
             {value: "Patient/Guardian Signature", text: `Patient/Guardian Signature`, styleForRenderMenuList: getImageObject('patient/guardian signature')},
             {value: "Provider Signature", text: `Provider Signature`, styleForRenderMenuList: getImageObject('signature')},
-            {value: "Date&Time", text: `Date&Time`, styleForRenderMenuList: getImageObject('dateAndTime')}
+            {value: "Date&Time", text: `Date&Time`, styleForRenderMenuList: getImageObject('dateAndTime')},
+            {value: "Image", text: "Image", styleForRenderMenuList: getImageObject('image')},
+            {value: "Image(Markeable)", text: "Image(Markeable)", styleForRenderMenuList: getImageObject('markeableImage')},
         ],
         classFunctions: {
             exec: (editor: IDomEditor, value: string | boolean) => {
@@ -116,8 +198,7 @@ const registerToolbar = () => {
         title: "info" + random,
         width: 60,
         options: [
-            {value: "Info", 
-            text: "Info", styleForRenderMenuList: { display: "none" }},
+            {value: "Info", text: "Info", styleForRenderMenuList: { display: "none" }},
             {value: "FacilityInfo", text: "FacilityInfo", styleForRenderMenuList: getImageObject('facilityInfo')},
             {value: "PatientInfo", text: "PatientInfo", styleForRenderMenuList: getImageObject('patientInfo')},
             {value: "ProviderInfo", text: "ProviderInfo", styleForRenderMenuList: getImageObject('providerInfo')},

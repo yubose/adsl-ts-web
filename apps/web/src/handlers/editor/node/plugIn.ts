@@ -1,7 +1,8 @@
 import { DomEditor, IDomEditor, SlateElement, SlateTransforms } from "@wangeditor/editor";
+import { insertImage } from "../utils/selectFile";
 
 function withBlock<T extends IDomEditor>(editor: T) {
-    const { isInline, isVoid, apply } = editor
+    const { isInline, isVoid, apply, insertData } = editor
     const newEditor = editor
 
     newEditor.isInline = elem => {
@@ -31,7 +32,18 @@ function withBlock<T extends IDomEditor>(editor: T) {
         apply(operation)
     }
 
-    
+    newEditor.insertData = data => {
+        if(data.items.length > 0) {
+            for(let i = 0; i < data.items.length; i++) {
+                const file = data.items[i].getAsFile()
+                if(file && /image\/.*/.test(file.type)) {
+                    insertImage(newEditor, file)
+                }
+            }
+        } else {
+            insertData(data)
+        }
+    }
 
     return newEditor
 }

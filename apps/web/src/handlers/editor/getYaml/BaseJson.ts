@@ -10,6 +10,14 @@ const BaseJson = {
             value: ''
         }
     },
+    imgCanvas: {
+        option: {
+            id: '',
+            fileName: '',
+            imgPath: ''
+        },
+        dataKey: ``
+    },
     required: new Array<REQUIRED>(),
     components: {
         

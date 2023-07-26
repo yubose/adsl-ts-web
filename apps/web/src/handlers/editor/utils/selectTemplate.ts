@@ -1,9 +1,11 @@
 import { IDomEditor, SlateTransforms } from "@wangeditor/editor"
 import choice from "./choice"
-import dateAndTime from "./date&time"
+import dateAndTime from "./dateAndtime"
+import { deepCopy } from "./deepCopy"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
-import { insertNode } from "./utils"
+import { selectImage } from "./selectFile"
+import { getUuid, insertNode } from "./utils"
 
 const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
     const selection = editor.selection
@@ -39,7 +41,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.focus()
             // @ts-ignore
             editor.select(selection)
-            SlateTransforms.insertNodes(editor, FacilityInfo, {
+            SlateTransforms.insertNodes(editor, deepCopy(FacilityInfo), {
                 voids: true
             })
             editor.insertBreak()
@@ -49,7 +51,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.focus()
             // @ts-ignore
             editor.select(editor.selection)
-            SlateTransforms.insertNodes(editor, PatientInfo, {
+            SlateTransforms.insertNodes(editor, deepCopy(PatientInfo), {
                 voids: true
             })
             editor.insertBreak()
@@ -60,7 +62,7 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             editor.focus()
             // @ts-ignore
             editor.select(editor.selection)
-            SlateTransforms.insertNodes(editor, ProviderInfo, {
+            SlateTransforms.insertNodes(editor, deepCopy(ProviderInfo), {
                 voids: true
             })
             editor.insertBreak()
@@ -71,6 +73,24 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
                 editor,
                 selection
             })
+            break
+        case "Image": 
+            selectImage(editor)
+            break
+        case "Image(Markeable)": 
+            selectImage(editor, true)
+            break
+        case "TextShort":
+            const TextShort = {
+                "type": "atblock",
+                "value": "@Input Box(Short)",
+                "children": [
+                    {
+                        "text": ""
+                    }
+                ]
+            }
+            editor.insertNode(TextShort)
             break
         default:
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
