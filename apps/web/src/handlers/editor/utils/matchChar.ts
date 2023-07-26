@@ -210,6 +210,15 @@ export const matchBlock = (html) => {
         })
     })
 
+    const MarkeableImageReg = /<img src="data:image\/.*;base64,[A-Za-z0-9+/]+" alt="[0-9a-zA-Z]+" data-href="markeable" style="width: [0-9]+(.[0-9]+)?px;height: [0-9]+(.[0-9]+)?px;"\/>/g
+    const markeableImagewords = html.match(MarkeableImageReg)
+    markeableImagewords && markeableImagewords.forEach(item => {
+        html = html.replace(item, `
+            <div style="color: #F8AE29;margin: 15px 0 8px 0;">(Markeable when using the template)</div>
+            ${item}
+        `)
+    })
+
     html = html.replace(/<p><\/p>/g, '')
 
     return html
