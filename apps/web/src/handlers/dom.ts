@@ -5361,6 +5361,7 @@ const createExtendedDOMResolvers = function (app: App) {
           let drawHistory: ImageData[] = []; // 用于存储绘制历史
           let redoHistory: ImageData[] = []; // 添加redoHistory数组
           let flag = true;
+          let move_flag = false;
           image.onload = function () {
             // canvas_con.width = canvas_con.getBoundingClientRect().width;
             // canvas_con.height = canvas_con.getBoundingClientRect().height;
@@ -5399,6 +5400,11 @@ const createExtendedDOMResolvers = function (app: App) {
           clear_btn.src = assetsUrl + "clearEditImgPre.svg";
           undo_btn.src = assetsUrl + "undoEditPre.svg";
           redo_btn.src = assetsUrl + "redoEditPre.svg";
+
+          edit_btn.draggable = false;
+          clear_btn.draggable = false;
+          undo_btn.draggable = false;
+          redo_btn.draggable = false;
           save_btn.textContent = "Confirm"
           canvas_con.draggable = false;
 
@@ -5409,6 +5415,7 @@ const createExtendedDOMResolvers = function (app: App) {
             flex-grow: 0;
           `
           color_picker.style.cssText = `
+
           width: 40px;
           margin-right: 1%;
           flex-grow: 0;
@@ -5448,13 +5455,18 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           redo_btn.style.cssText = `
           cursor: not-allowed;
+          user-select: none;
+
           `
           undo_btn.style.cssText = `
           cursor: not-allowed;
+          user-select: none;
+
           `
           clear_btn.style.cssText = `
             padding: 0 15px;
             border-left: 1px solid #cdcdcd;
+            user-select: none;
             border-right: 1px solid #cdcdcd; 
             font-size: 16px;
             cursor: not-allowed;
@@ -5470,6 +5482,7 @@ const createExtendedDOMResolvers = function (app: App) {
             background-color: #005795;
           `
           edit_btn.style.cssText = `
+          user-select: none;
           cursor: pointer;
           padding: 5px 0;
           height: 2.5vh;
@@ -5497,21 +5510,22 @@ const createExtendedDOMResolvers = function (app: App) {
             canvas_con.removeEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start)
           })
           function getParentsCompute(ele: HTMLElement) {
-            let top = ele.offsetTop;
+            let [left,top] = [ele.offsetLeft,ele.offsetTop];
             const ele_get_top = (ele_p: HTMLElement) => {
               top += ele_p.offsetTop;
+              left += ele_p.offsetLeft;
               if (ele_p.offsetParent) {
                 ele_get_top(ele_p.offsetParent);
               }
             }
             ele_get_top(ele.offsetParent)
-            return top;
+            return {left,top};
           }
           function start(e: TouchEvent) {
             let touch = e.targetTouches[0];
             ctx.beginPath();
             // console.log(getParentsCompute(canvas_con),"kkkkkkkk",touch.clientY,touch.clientY -  (canvas_con.offsetParent?.offsetParent?.offsetTop as number)- (canvas_con.offsetParent?.offsetTop as number)-canvas_con.offsetTop)
-            ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.clientY - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+            ctx.moveTo(touch.clientX - getParentsCompute(canvas_con)["left"] + document.scrollingElement?.scrollLeft, touch.clientY - getParentsCompute(canvas_con)["top"] + document.scrollingElement?.scrollTop);
             // ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.offsetY);
             canvas_con.addEventListener('touchmove', move, false)
             canvas_con.addEventListener('touchend', end, false)
@@ -5524,7 +5538,7 @@ const createExtendedDOMResolvers = function (app: App) {
               ctx.strokeStyle = drawColor;
               ctx.lineWidth = lineWidth;
               //现在的坐标减去原来的坐标
-              ctx.lineTo(touch.clientX - canvas_con.offsetLeft, touch.clientY - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+              ctx.lineTo(touch.clientX - getParentsCompute(canvas_con)["left"] + document.scrollingElement?.scrollLeft, touch.clientY - getParentsCompute(canvas_con)["top"] + document.scrollingElement?.scrollTop);
               ctx.stroke();
 
             }
@@ -5554,6 +5568,7 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               return false;
             }
+            move_flag = true;
             ctx.strokeStyle = drawColor;
             ctx.lineWidth = lineWidth;
             // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
@@ -5567,35 +5582,38 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) return
             flag = true;
             e.stopPropagation();
-            ctx.closePath();
-            // history
-            const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
-            drawHistory.push(imageData);
-            redoHistory = []; // 每次绘制新内容时，清空已撤销历史
-            saveData()
-            // const dataURL = canvas_con.toDataURL();
-            // // let arr = dataURL.split(","),
-            // //   mime = arr[0].match(/:(.*?);/)?.[1],
-            // //   bin_str = atob(arr[1]),
-            // //   index = bin_str.length,
-            // //   u8_arr = new Uint8Array(index);
-            // // while (index--) {
-            // //   u8_arr[index] = bin_str.charCodeAt(index);
-            // // }
-            // app.updateRoot((draft) => {
-            //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
-            //   set(draft?.[pageName], dataKey, dataURL)
-            // })
-          undo_btn.src = assetsUrl + "undoEdit.svg";
-          undo_btn.addEventListener("click", undo_fun);
-          undo_btn.style.cursor = "pointer"
-          redo_btn.src = assetsUrl + "redoEditPre.svg";
-          redo_btn.removeEventListener("click", redo_fun);
-          redo_btn.style.cursor = "not-allowed"
-          clear_btn.src = assetsUrl + "clearEditImg.svg";
-          clear_btn.addEventListener("click", clear_fun);
-          clear_btn.style.cursor = "pointer"
-
+            if(move_flag){
+              ctx.closePath();
+              // history
+              const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
+              drawHistory.push(imageData);
+              redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+              saveData()
+              // const dataURL = canvas_con.toDataURL();
+              // // let arr = dataURL.split(","),
+              // //   mime = arr[0].match(/:(.*?);/)?.[1],
+              // //   bin_str = atob(arr[1]),
+              // //   index = bin_str.length,
+              // //   u8_arr = new Uint8Array(index);
+              // // while (index--) {
+              // //   u8_arr[index] = bin_str.charCodeAt(index);
+              // // }
+              // app.updateRoot((draft) => {
+              //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+              //   set(draft?.[pageName], dataKey, dataURL)
+              // })
+            undo_btn.src = assetsUrl + "undoEdit.svg";
+            undo_btn.addEventListener("click", undo_fun);
+            undo_btn.style.cursor = "pointer"
+            redo_btn.src = assetsUrl + "redoEditPre.svg";
+            redo_btn.removeEventListener("click", redo_fun);
+            redo_btn.style.cursor = "not-allowed"
+            clear_btn.src = assetsUrl + "clearEditImg.svg";
+            clear_btn.addEventListener("click", clear_fun);
+            clear_btn.style.cursor = "pointer"
+            move_flag = false
+            }
+           
           }
           // color
           color_picker.addEventListener("change", () => {
