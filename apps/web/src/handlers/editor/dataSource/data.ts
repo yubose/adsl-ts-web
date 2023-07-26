@@ -115,7 +115,8 @@ const DataSource = new Map([
     ["Facility info", {"Source":"Medical Facility Profile","Expansion":"Medical Facility photo, Name, Address, Email, Website, Main #, Fax #","isSharp":true}],
     ["Diagnosis", {"Source":"--","Expansion":"Diagnosis, Recommend Diagnoses","isSharp":true}],
     // ["Date", {"Source":"undefined","Expansion":"Today Date, Date selection box","isSharp":true}],
-    // ["Time", {"Source":"undefined","Expansion":"Time selection box","isSharp":true}]
+    // ["Time", {"Source":"undefined","Expansion":"Time selection box","isSharp":true}],
+    ["Input Box(Short)", {"Source": "--", "Expansion": "Input Box(Short)","isSharp":false}]
 ])
 
 export default DataSource

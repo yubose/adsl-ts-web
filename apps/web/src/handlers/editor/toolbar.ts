@@ -1,4 +1,4 @@
-import { IToolbarConfig, Boot, IModalMenu, IModuleConf, IDomEditor, SlateTransforms } from "@wangeditor/editor";
+import { IToolbarConfig, Boot, IModuleConf, IDomEditor, DomEditor, SlateElement, SlateTransforms } from "@wangeditor/editor";
 import DefaultButton from "./class/Button/defaultButton";
 import DefaultSelect from "./class/Select/defaultSelect";
 import { inputPopUp } from "./utils/popUp";
@@ -56,6 +56,58 @@ const DynamicFieldsConf = {
     }
 }
 
+type ImageElement = SlateElement & {
+    src: string
+    alt: string
+    url: string
+    href: string
+}
+
+function imageIsActive(editor: IDomEditor) {
+    const imageElem = DomEditor.getSelectedNodeByType(editor, 'image') as ImageElement
+    if(imageElem === null) return false
+    return imageElem.href === "markeable"
+}
+
+function imageExec(editor: IDomEditor, value: string | boolean) {
+    const imageElem = DomEditor.getSelectedNodeByType(editor, 'image') as ImageElement
+    if(imageElem === null) return false
+    let node: Partial<ImageElement> = {}
+    if(imageElem.href === "markeable") {
+        node = {
+            href: ""
+        }
+    } else {
+        node = {
+            href: "markeable"
+        }
+    }
+    SlateTransforms.setNodes(
+        editor,
+        node,
+        {
+            at: DomEditor.findPath(editor, imageElem)
+        }
+    )
+}
+
+const imageIsMarkeable = new DefaultButton({
+    title: "imageIsMarkeable",
+    classFunctions: {
+        isActive: imageIsActive,
+        exec: imageExec
+    }
+})
+
+const imageIsMarkeableConf = {
+    key: imageIsMarkeable.title,
+    factory() {
+        return imageIsMarkeable
+    }
+}
+
+
+
 const renderAtBlockConf = {
     type: 'atblock', // 新元素 type ，重要！！！
     renderElem: renderAtBlock,
@@ -95,6 +147,8 @@ const mod = {
 
 Boot.registerMenu(DynamicFieldsConf)
 
+Boot.registerMenu(imageIsMarkeableConf)
+
 Boot.registerModule(mod)
 
 const registerToolbar = () => {
@@ -106,6 +160,7 @@ const registerToolbar = () => {
         width: 100,
         options: [
             {value: "Insert", text: "Insert", styleForRenderMenuList: { display: "none" }},
+            {value: "TextShort", text: `Input Box(Short)`, styleForRenderMenuList: getImageObject('textShort')},
             {value: "TextField", text: `Input Box(Single Line)`, styleForRenderMenuList: getImageObject('textField')},
             {value: "TextView", text: `Input Box(Mutiline)`, styleForRenderMenuList: getImageObject('textView')},
             {value: "Choice", text: "Choice", styleForRenderMenuList: getImageObject('choice')},
@@ -143,8 +198,7 @@ const registerToolbar = () => {
         title: "info" + random,
         width: 60,
         options: [
-            {value: "Info", 
-            text: "Info", styleForRenderMenuList: { display: "none" }},
+            {value: "Info", text: "Info", styleForRenderMenuList: { display: "none" }},
             {value: "FacilityInfo", text: "FacilityInfo", styleForRenderMenuList: getImageObject('facilityInfo')},
             {value: "PatientInfo", text: "PatientInfo", styleForRenderMenuList: getImageObject('patientInfo')},
             {value: "ProviderInfo", text: "ProviderInfo", styleForRenderMenuList: getImageObject('providerInfo')},

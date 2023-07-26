@@ -6,14 +6,15 @@ import { precacheAndRoute } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import { StaleWhileRevalidate } from 'workbox-strategies'
 
-precacheAndRoute(self.__WB_MANIFEST)
-registerRoute(
-  new RegExp(`/\\.(css|html|yml|mp4|min\\.js)$/`),
-  new StaleWhileRevalidate(),
-)
-registerRoute(({ request }) => {
-  return request.destination === 'script' || request.destination === 'style'
-}, new StaleWhileRevalidate())
+self.__WB_MANIFEST
+// precacheAndRoute(self.__WB_MANIFEST)
+// registerRoute(
+//   new RegExp(`/\\.(css|html|yml|mp4|min\\.js)$/`),
+//   new StaleWhileRevalidate(),
+// )
+// registerRoute(({ request }) => {
+//   return request.destination === 'script' || request.destination === 'style'
+// }, new StaleWhileRevalidate())
 
 importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js')
 importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js')
@@ -41,7 +42,7 @@ messaging.onBackgroundMessage(function (payload) {
     body: notification.body || '',
     icon: 'favicon.ico',
   }
-  self.registration.showNotification(notificationTitle, notificationOptions)
+  // self.registration.showNotification(notificationTitle, notificationOptions)
 })
 
 const style = `color:#C04000;font-weight:500;`
@@ -75,7 +76,7 @@ self.addEventListener('message', function (messageEvent) {
 })
 
 self.addEventListener('fetch', function onFetch(event) {
-  log(`${tag} fetch (${event.request.url})`)
+  // log(`${tag} fetch (${event.request.url})`)
 
   // event.respondWith(
   //   (async () => {

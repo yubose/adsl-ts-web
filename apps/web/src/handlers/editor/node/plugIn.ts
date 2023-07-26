@@ -1,5 +1,5 @@
 import { DomEditor, IDomEditor, SlateElement, SlateTransforms } from "@wangeditor/editor";
-import { getUuid } from "../utils/utils";
+import { insertImage } from "../utils/selectFile";
 
 function withBlock<T extends IDomEditor>(editor: T) {
     const { isInline, isVoid, apply, insertData } = editor
@@ -32,28 +32,18 @@ function withBlock<T extends IDomEditor>(editor: T) {
         apply(operation)
     }
 
-    // newEditor.insertData = data => {
-    //     console.log(newEditor.operations, data.dropEffect, data.items?.[0].getAsFile())
-    //     if(data.items.length > 0) {
-    //         // const image = data.items[0].getAsFile() as File
-    //         // const reader = new FileReader()
-    //         // reader.onload = e => {
-    //         //     const node = {
-    //         //         type: "image",
-    //         //         alt: getUuid(),
-    //         //         src: e.target?.result,
-    //         //         href: '',
-    //         //         children: [
-    //         //             {text: ''}
-    //         //         ]
-    //         //     }
-    //         //     newEditor.insertNode(node)
-    //         // }
-    //         // reader.readAsDataURL(image)
-    //     } else {
-    //         insertData(data)
-    //     }
-    // }
+    newEditor.insertData = data => {
+        if(data.items.length > 0) {
+            for(let i = 0; i < data.items.length; i++) {
+                const file = data.items[i].getAsFile()
+                if(file && /image\/.*/.test(file.type)) {
+                    insertImage(newEditor, file)
+                }
+            }
+        } else {
+            insertData(data)
+        }
+    }
 
     return newEditor
 }
