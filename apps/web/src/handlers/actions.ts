@@ -150,7 +150,8 @@ const createActions = function createActions(app: App) {
                     }
                   }
                 } else {
-                  const isPossiblyAction = 'actionType' in result
+                  const isPossiblyAction = ('actionType' in result) && (result.actionType !== 'builtIn')
+                  
                   const isPossiblyToastMsg = 'message' in result
                   const isPossiblyGoto =
                     'goto' in result || 'destination' in result
@@ -295,11 +296,10 @@ const createActions = function createActions(app: App) {
                   }
                 }
               } else {
-                const isPossiblyAction = 'actionType' in result
+                const isPossiblyAction = ('actionType' in result) && (result.actionType !== 'builtIn')
                 const isPossiblyToastMsg = 'message' in result
                 const isPossiblyGoto =
                   'goto' in result || 'destination' in result
-
                 if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
                   if (isPossiblyGoto) {
                     const destination = result.goto || result.destination || ''
