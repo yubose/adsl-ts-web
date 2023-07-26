@@ -4,6 +4,7 @@ import dateAndTime from "./dateAndtime"
 import { deepCopy } from "./deepCopy"
 import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
 import { inputPopUp } from "./popUp"
+import { selectImage } from "./selectFile"
 import { getUuid, insertNode } from "./utils"
 
 const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
@@ -74,74 +75,22 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
             })
             break
         case "Image": 
-            const input = document.createElement('input')
-            input.type = 'file'
-            input.accept = 'image/*'
-            input.click()
-            input.onchange = () => {
-                // console.log(input.files)
-                if(input.files) {
-                    const file = input.files[0] as File
-                    const reader = new FileReader
-                    reader.onload = e => {
-                        const src = e.target?.result as string
-                        const imageObj = new Image()
-                        imageObj.src = src
-                        imageObj.onload = () => {
-                            const node = {
-                                type: "image",
-                                alt: getUuid(),
-                                src: e.target?.result,
-                                href: '',
-                                children: [
-                                    {text: ''}
-                                ],
-                                style: {
-                                    width: imageObj.width + 'px',
-                                    height: imageObj.height + 'px'
-                                }
-                            }
-                            editor.insertNode(node)
-                        }
-                    }
-                    reader.readAsDataURL(file)
-                }
-            }
+            selectImage(editor)
             break
         case "Image(Markeable)": 
-            const markeableInput = document.createElement('input')
-            markeableInput.type = 'file'
-            markeableInput.accept = 'image/*'
-            markeableInput.click()
-            markeableInput.onchange = () => {
-                // console.log(markeableInput.files)
-                if(markeableInput.files) {
-                    const file = markeableInput.files[0] as File
-                    const reader = new FileReader
-                    reader.onload = e => {
-                        const src = e.target?.result as string
-                        const imageObj = new Image()
-                        imageObj.src = src
-                        imageObj.onload = () => {
-                            const node = {
-                                type: "image",
-                                alt: getUuid(),
-                                src: e.target?.result,
-                                href: 'markeable',
-                                children: [
-                                    {text: ''}
-                                ],
-                                style: {
-                                    width: imageObj.width + 'px',
-                                    height: imageObj.height + 'px'
-                                }
-                            }
-                            editor.insertNode(node)
-                        }
+            selectImage(editor, true)
+            break
+        case "TextShort":
+            const TextShort = {
+                "type": "atblock",
+                "value": "@Input Box(Short)",
+                "children": [
+                    {
+                        "text": ""
                     }
-                    reader.readAsDataURL(file)
-                }
+                ]
             }
+            editor.insertNode(TextShort)
             break
         default:
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})

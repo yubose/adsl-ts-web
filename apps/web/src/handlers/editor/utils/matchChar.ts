@@ -114,18 +114,38 @@ export const matchBlock = (html) => {
     atKeywords && atKeywords.forEach(item => {
         const texts = item.match(/>@[\w '\(\)]+</g)
         const text = texts[0].replace(/[@><]/g, '')
-        if(DataSource.has(text)) 
-            html = html.replace(
-                new RegExp(toReg(item), 'g'),
-                `<span style="
-                    color:#2988e6;
-                    font-weight: bold;
-                    border: thin solid #ccc;
-                    border-radius: 4px;
-                    padding: 0px 4px;
-                    margin: 0px 2px;
-                ">@${text}</span>`
-            )
+        if(DataSource.has(text)) {
+            if(text === "Input Box(Short)") {
+                html = html.replace(
+                    new RegExp(toReg(item), 'g'),
+                    `
+                        <input style="
+                            box-sizing: border-box;
+                            text-indent: 0.8em;
+                            height: 24px;
+                            border-color: rgb(222,222,222);
+                            color: rgb(51,51,51);
+                            outline: none;
+                            border-style: solid;
+                            border-width: thin;
+                            border-radius: 4px;
+                        " readonly />
+                    `
+                )
+            } else {
+                html = html.replace(
+                    new RegExp(toReg(item), 'g'),
+                    `<span style="
+                        color:#2988e6;
+                        font-weight: bold;
+                        border: thin solid #ccc;
+                        border-radius: 4px;
+                        padding: 0px 4px;
+                        margin: 0px 2px;
+                    ">@${text}</span>`
+                )
+            }
+        }
     })
 
     const sharpTextBlockReg = new RegExp(
@@ -210,12 +230,14 @@ export const matchBlock = (html) => {
         })
     })
 
-    const MarkeableImageReg = /<img src="data:image\/.*;base64,[A-Za-z0-9+/]+" alt="[0-9a-zA-Z]+" data-href="markeable" style="width: [0-9]+(.[0-9]+)?px;height: [0-9]+(.[0-9]+)?px;"\/>/g
+    const MarkeableImageReg = /<img src="data:image\/[a-zA-Z]*;base64,[A-Za-z0-9+/=]+" alt="[0-9a-zA-Z]+" data-href="markeable" style="width: [0-9]+(.[0-9]+)?px;height: [0-9]+(.[0-9]+)?px;"\/>/g
     const markeableImagewords = html.match(MarkeableImageReg)
     markeableImagewords && markeableImagewords.forEach(item => {
         html = html.replace(item, `
-            <div style="color: #F8AE29;margin: 15px 0 8px 0;">(Markeable when using the template)</div>
-            ${item}
+            <span style="margin-top: 15px; display: inline-block;">
+                <span style="color: #F8AE29;margin-bottom: 8px;">(Markeable when using the template)</span><br>
+                ${item}
+            </span>
         `)
     })
 
