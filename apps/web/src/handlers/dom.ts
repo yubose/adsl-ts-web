@@ -5335,7 +5335,7 @@ const createExtendedDOMResolvers = function (app: App) {
               return true;
             }
           })();
-          const [file_name, path] = [dataOptions["fileName"] || "image", dataOptions["imgPath"]];
+          const [ path] = ["image", dataOptions["imgPath"]];
           const canvas_box = document.createElement('div')
           const canvas_con = document.createElement("canvas");
           const color_picker = document.createElement("input");
