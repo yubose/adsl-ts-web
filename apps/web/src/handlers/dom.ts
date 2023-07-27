@@ -4589,6 +4589,17 @@ const createExtendedDOMResolvers = function (app: App) {
           e.clipboardData && e.clipboardData.setData('text/plain', JSON.stringify(cutData))
         })
 
+
+        window.addEventListener('resize', () => {
+          app.updateRoot(draft => {
+            set(draft, component.get("data-key"), {
+              title: ' ',
+              html: editor.getHtml(),
+              yaml: getYaml(editor)
+            })
+          })
+        }, true)
+
         // document.getElementById('editor—wrapper')?.addEventListener('')
 
       }
