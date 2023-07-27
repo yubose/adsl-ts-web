@@ -4881,9 +4881,9 @@ const createExtendedDOMResolvers = function (app: App) {
         const getAllWidths = () => {
           if (horizontalScroll.clientWidth) {
             const WIDTH = horizontalScroll.clientWidth
-            const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px") 
-            ? node.style.maxWidth.replace("px", "")
-            : node.style.maxWidth) - 3 * (listStyle.buttonWidth  + listStyle.marginLeft + listStyle.marginRight))
+            const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px")
+              ? node.style.maxWidth.replace("px", "")
+              : node.style.maxWidth) - 3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight))
             const HEIGHT = horizontalScroll.clientHeight
             Items.forEach(item => {
               ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
@@ -5349,46 +5349,79 @@ const createExtendedDOMResolvers = function (app: App) {
               return true;
             }
           })();
-          const [file_name, path] = [dataOptions["fileName"]||"image", dataOptions["imgPath"]];
+          const [file_name, path] = ["image", dataOptions["imgPath"]];
           const canvas_box = document.createElement('div')
           const canvas_con = document.createElement("canvas");
           const color_picker = document.createElement("input");
           const line_width_input = document.createElement("input");
-          const clear_btn = document.createElement("button");
-          const undo_btn = document.createElement("button");
-          const redo_btn = document.createElement("button");
-          // const save_btn = document.createElement("button");
+          const edit_btn = document.createElement("img");
+          const clear_btn = document.createElement("img");
+          const undo_btn = document.createElement("img");
+          const redo_btn = document.createElement("img");
+          const save_btn = document.createElement("button");
           const btns_container = document.createElement("div");
           const options_container = document.createElement("div");
+          const components_img_container = document.createElement("div");
+          const edit_btn_container = document.createElement("div");
+          const left_btn_container = document.createElement("div");
           const ctx = canvas_con.getContext("2d", {
             willReadFrequently: true,
           }) as CanvasRenderingContext2D;
           const image = new Image();
-          image.src = ((path as string).startsWith("blob"))?path:`${assetsUrl}${path}`;
-          
+          image.src = ((path as string).startsWith("blob")) ? path : `${assetsUrl}${path}`;
+
           let lineWidth: number = 2; // 默认线条粗细为2
           let drawColor = "#ff0000"; // 默认绘制颜色为红色
           let drawHistory: ImageData[] = []; // 用于存储绘制历史
           let redoHistory: ImageData[] = []; // 添加redoHistory数组
           let flag = true;
+          let move_flag = false;
           image.onload = function () {
             // canvas_con.width = canvas_con.getBoundingClientRect().width;
             // canvas_con.height = canvas_con.getBoundingClientRect().height;
             // ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
             canvas_box.style.cssText = `
               width: ${node.getBoundingClientRect().width}px;
-              height: ${node.getBoundingClientRect().height - 80}px;
+              height: ${node.getBoundingClientRect().height - 40}px;
               display: flex;
+              justify-content: center;
               align-items: center;
               margin: 10px 0;
+              background-color:  #f4f8fa;
             `
-            
-            if(image.width > image.height) {
-              image.height = (node.getBoundingClientRect().width/image.width) * image.height
+
+            components_img_container.style.cssText = `
+              background-color: #ffffff;
+              width: ${node.getBoundingClientRect().width}px;
+              height: ${node.getBoundingClientRect().height}px;
+            `
+
+            const setWidthFull = () => {
+              image.height = (node.getBoundingClientRect().width / image.width) * image.height
               image.width = node.getBoundingClientRect().width
+            }
+
+            const setHeightFull = () => {
+              image.width = (node.getBoundingClientRect().height / image.height) * image.width
+              image.height = node.getBoundingClientRect().height - 40;
+            }
+
+            if (image.width > image.height) {
+              const compare_height = node.getBoundingClientRect().height - 40
+              // image.height = (node.getBoundingClientRect().width / image.width) * image.height
+              // image.width = node.getBoundingClientRect().width
+              setWidthFull()
+              if(image.height > compare_height) {
+                setHeightFull()
+              }
             } else {
-              image.width = (node.getBoundingClientRect().height/image.height) * image.width
-              image.height = node.getBoundingClientRect().height - 80; 
+              const compare_width = node.getBoundingClientRect().width
+              setHeightFull()
+              if(image.width > compare_width) {
+                setWidthFull()
+              }
+              // image.width = (node.getBoundingClientRect().height / image.height) * image.width
+              // image.height = node.getBoundingClientRect().height - 80;
             }
             // image.width = node.getBoundingClientRect().width
             // image.height = node.getBoundingClientRect().height - 80;
@@ -5396,7 +5429,6 @@ const createExtendedDOMResolvers = function (app: App) {
             canvas_con.height = image.height;
             ctx.drawImage(image, 0, 0, image.width, image.height);
 
-            canvas_con.addEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start, false)
 
           };
           line_width_input.type = "range";
@@ -5405,98 +5437,132 @@ const createExtendedDOMResolvers = function (app: App) {
           line_width_input.value = lineWidth + ""
           color_picker.type = "color";
           color_picker.value = drawColor
-          clear_btn.textContent = "clear"
-          undo_btn.textContent = "undo"
-          redo_btn.textContent = "redo"
-          // save_btn.textContent = "complete"
+          edit_btn.src = assetsUrl + "editImg.svg";
+          clear_btn.src = assetsUrl + "clearEditImgPre.svg";
+          undo_btn.src = assetsUrl + "undoEditPre.svg";
+          redo_btn.src = assetsUrl + "redoEditPre.svg";
+
+          edit_btn.draggable = false;
+          clear_btn.draggable = false;
+          undo_btn.draggable = false;
+          redo_btn.draggable = false;
+          save_btn.textContent = "Confirm"
           canvas_con.draggable = false;
 
           line_width_input.style.cssText = `
-            width: 18%;
-            margin: 0 18%;
-
+            width: 60px;
+            height: 10px;
+            margin-right: 1%;
+            flex-grow: 0;
           `
           color_picker.style.cssText = `
-          width: 10%;
-          margin: 0 18%;
 
+          width: 40px;
+          margin-right: 1%;
+          flex-grow: 0;
 
           `
           btns_container.style.cssText = `
             height: auto;
             width: 100%;
             display: flex;
-            justify-content: space-around;
+            padding-top: 2vh;
+            // padding-bottom: 1vh;
+            justify-content: flex-start;
             align-items: center;
           `
+          edit_btn_container.style.cssText = `
+          height: auto;
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        `
+        left_btn_container.style.cssText = `
+          height: auto;
+          width: ${device_is_web?"40%":"70%"};
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        `
           options_container.style.cssText = `
             height: auto;
             width: 100%;
- 
           `
-
-          // canvas_con.style.cssText = `
-          //   width: "100%"; 
-          //   height: "100%";
-          //   margin: 10px 0;
-          // `
           redo_btn.style.cssText = `
-            border: none;
-            background-color: green;
-            color: #fff;
-            border-radius: 5px;
-            padding: 5px 8px;
-            font-size: 16px;
+          cursor: not-allowed;
+          user-select: none;
+          padding: ${device_is_web?"0":"0 5px"};
+
+
           `
           undo_btn.style.cssText = `
-          border: none;
-            background-color: blue;
-            color: #fff;
-            border-radius: 5px;
-            padding: 5px 8px;
-            font-size: 16px;
-          
+          cursor: not-allowed;
+          user-select: none;
+          padding: ${device_is_web?"0":"0 5px"};
           `
           clear_btn.style.cssText = `
-            border: none;
-            background-color: red;
-            color: #fff;
-            border-radius: 5px;
-            padding: 5px 8px;
-            font-size: 16px;
-          
+            padding: 0 15px;
+            border-left: 1px solid #cdcdcd;
+            user-select: none;
+            border-right: 1px solid #cdcdcd; 
+            cursor: not-allowed;
           `
-          // save_btn.style.cssText = `
-          //   border: none;
-          //   color: #fff;
-          //   border-radius: 5px;
-          //   padding: 5px 8px;
-          //   font-size: 16px;
-          //   background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
-          // `
+          save_btn.style.cssText = `
+            border: none;
+            color: #fff;
+            height: 3.5vh;
+            border-radius: 5px;
+            width: ${device_is_web?"10%":"20%"};
+            padding: ${device_is_web?"5px 8px":"0"};
+            font-size: 1rem;
+            background-color: #005795;
+          `
+          edit_btn.style.cssText = `
+          user-select: none;
+          cursor: pointer;
+          padding: 5px 0;
+          height: 2.5vh;
+          display: block;
 
-          // btns_container.append(clear_btn, undo_btn, redo_btn, save_btn)
-          btns_container.append(clear_btn, undo_btn, redo_btn)
-          options_container.append(color_picker, line_width_input)
-          node.append(btns_container,canvas_box,options_container)
+        `
+          left_btn_container.append(color_picker, line_width_input, clear_btn, undo_btn, redo_btn)
+          edit_btn_container.append(left_btn_container,save_btn)
+          !dataOptions["isReadOnly"] && btns_container.append(edit_btn, edit_btn_container);
           canvas_box.append(canvas_con)
-          
-          function getParentsCompute(ele:HTMLElement){
-            let top = ele.offsetTop;
-            const ele_get_top = (ele_p:HTMLElement)=>{
-              top+=ele_p.offsetTop;
-              if(ele_p.offsetParent){
+          components_img_container.append(canvas_box, btns_container)
+          node.append(components_img_container)
+          edit_btn_container.style.display = "none";
+          edit_btn.addEventListener("click", () => {
+            edit_btn.style.display = "none";
+            edit_btn_container.style.display = "flex";
+            btns_container.style.justifyContent = "flex-start";
+
+            canvas_con.addEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start, false)
+
+          })
+          save_btn.addEventListener("click", () => {
+            edit_btn.style.display = "block";
+            edit_btn_container.style.display = "none";
+            canvas_con.removeEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start)
+          })
+          function getParentsCompute(ele: HTMLElement) {
+            let [left,top] = [ele.offsetLeft,ele.offsetTop];
+            const ele_get_top = (ele_p: HTMLElement) => {
+              top += ele_p.offsetTop;
+              left += ele_p.offsetLeft;
+              if (ele_p.offsetParent) {
                 ele_get_top(ele_p.offsetParent);
               }
             }
             ele_get_top(ele.offsetParent)
-            return top;
+            return {left,top};
           }
           function start(e: TouchEvent) {
             let touch = e.targetTouches[0];
             ctx.beginPath();
             // console.log(getParentsCompute(canvas_con),"kkkkkkkk",touch.clientY,touch.clientY -  (canvas_con.offsetParent?.offsetParent?.offsetTop as number)- (canvas_con.offsetParent?.offsetTop as number)-canvas_con.offsetTop)
-            ctx.moveTo(touch.clientX -canvas_con.offsetLeft ,touch.clientY - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+            ctx.moveTo(touch.clientX - getParentsCompute(canvas_con)["left"] + document.scrollingElement?.scrollLeft, touch.clientY - getParentsCompute(canvas_con)["top"] + document.scrollingElement?.scrollTop);
             // ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.offsetY);
             canvas_con.addEventListener('touchmove', move, false)
             canvas_con.addEventListener('touchend', end, false)
@@ -5509,7 +5575,7 @@ const createExtendedDOMResolvers = function (app: App) {
               ctx.strokeStyle = drawColor;
               ctx.lineWidth = lineWidth;
               //现在的坐标减去原来的坐标
-              ctx.lineTo(touch.clientX - canvas_con.offsetLeft,touch.clientY  - getParentsCompute(canvas_con) + document.scrollingElement?.scrollTop);
+              ctx.lineTo(touch.clientX - getParentsCompute(canvas_con)["left"] + document.scrollingElement?.scrollLeft, touch.clientY - getParentsCompute(canvas_con)["top"] + document.scrollingElement?.scrollTop);
               ctx.stroke();
 
             }
@@ -5519,7 +5585,20 @@ const createExtendedDOMResolvers = function (app: App) {
             // history
             const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
             drawHistory.push(imageData);
+            undo_btn.src = assetsUrl + "undoEdit.svg";
+            
             redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+
+            undo_btn.src = assetsUrl + "undoEdit.svg";
+            undo_btn.addEventListener("click", undo_fun);
+            undo_btn.style.cursor = "pointer"
+            redo_btn.src = assetsUrl + "redoEditPre.svg";
+            redo_btn.removeEventListener("click", redo_fun);
+            redo_btn.style.cursor = "not-allowed"
+            clear_btn.src = assetsUrl + "clearEditImg.svg";
+            clear_btn.addEventListener("click", clear_fun);
+            clear_btn.style.cursor = "pointer"
+            move_flag = false
           }
           let domRect = canvas_con.getBoundingClientRect()
           function start_web(e: MouseEvent) {
@@ -5537,6 +5616,7 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               return false;
             }
+            move_flag = true;
             ctx.strokeStyle = drawColor;
             ctx.lineWidth = lineWidth;
             // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
@@ -5547,28 +5627,41 @@ const createExtendedDOMResolvers = function (app: App) {
 
           }
           function end_web(e) {
-            if(flag) return
+            if (flag) return
             flag = true;
             e.stopPropagation();
-            ctx.closePath();
-            // history
-            const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
-            drawHistory.push(imageData);
-            redoHistory = []; // 每次绘制新内容时，清空已撤销历史
-            saveData()
-            // const dataURL = canvas_con.toDataURL();
-            // // let arr = dataURL.split(","),
-            // //   mime = arr[0].match(/:(.*?);/)?.[1],
-            // //   bin_str = atob(arr[1]),
-            // //   index = bin_str.length,
-            // //   u8_arr = new Uint8Array(index);
-            // // while (index--) {
-            // //   u8_arr[index] = bin_str.charCodeAt(index);
-            // // }
-            // app.updateRoot((draft) => {
-            //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
-            //   set(draft?.[pageName], dataKey, dataURL)
-            // })
+            if(move_flag){
+              ctx.closePath();
+              // history
+              const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
+              drawHistory.push(imageData);
+              redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+              // saveData()
+              // const dataURL = canvas_con.toDataURL();
+              // // let arr = dataURL.split(","),
+              // //   mime = arr[0].match(/:(.*?);/)?.[1],
+              // //   bin_str = atob(arr[1]),
+              // //   index = bin_str.length,
+              // //   u8_arr = new Uint8Array(index);
+              // // while (index--) {
+              // //   u8_arr[index] = bin_str.charCodeAt(index);
+              // // }
+              // app.updateRoot((draft) => {
+              //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+              //   set(draft?.[pageName], dataKey, dataURL)
+              // })
+            undo_btn.src = assetsUrl + "undoEdit.svg";
+            undo_btn.addEventListener("click", undo_fun);
+            undo_btn.style.cursor = "pointer"
+            redo_btn.src = assetsUrl + "redoEditPre.svg";
+            redo_btn.removeEventListener("click", redo_fun);
+            redo_btn.style.cursor = "not-allowed"
+            clear_btn.src = assetsUrl + "clearEditImg.svg";
+            clear_btn.addEventListener("click", clear_fun);
+            clear_btn.style.cursor = "pointer"
+            move_flag = false
+            }
+           
           }
           // color
           color_picker.addEventListener("change", () => {
@@ -5578,21 +5671,34 @@ const createExtendedDOMResolvers = function (app: App) {
             lineWidth = +line_width_input.value;
           });
           // clear
-          clear_btn.addEventListener("click", () => {
+          const clear_fun = () => {
             // ctx.drawImage(image, 0, 0, image.width, image.height);
             ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
-            if(drawHistory.length>0){}
             ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
             // drawHistory.push(drawHistory.at(-1) as ImageData); 
-            // = []; // 删除到绘制历史
-            // redoHistory = []; // 删除到已撤销历史
-            saveData()
-          });
+            redoHistory = []; // 删除到已撤销历史
+            drawHistory = []; //删除到已前进历史
+            redo_btn.src = assetsUrl + "redoEditPre.svg";
+            redo_btn.removeEventListener("click", redo_fun);
+            redo_btn.style.cursor = "not-allowed"
+            undo_btn.src = assetsUrl + "undoEditPre.svg";
+            undo_btn.removeEventListener("click", undo_fun);
+            undo_btn.style.cursor = "not-allowed"
+            clear_btn.src = assetsUrl + "clearEditImgPre.svg";
+            clear_btn.removeEventListener("click", undo_fun);
+            clear_btn.style.cursor = "not-allowed"
+            // saveData()
+          }
+          // clear_btn.addEventListener("click", clear_fun);
           // undo
-          undo_btn.addEventListener("click", () => {
+          const undo_fun  =() => {
             if (drawHistory.length > 0) {
               const lastDraw = drawHistory.pop() as ImageData; // 移除最后一步绘制历史
               redoHistory.push(lastDraw); // 添加到已撤销历史
+              redo_btn.src = assetsUrl + "redoEdit.svg";
+              redo_btn.addEventListener("click", redo_fun);
+              redo_btn.style.cursor = "pointer"
+
               // 清除Canvas并恢复上一步绘制历史
               ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
               if (drawHistory.length > 0) {
@@ -5601,23 +5707,41 @@ const createExtendedDOMResolvers = function (app: App) {
                 // 如果没有历史记录，则重新绘制原始图片
                 // ctx.drawImage(image, 0, 0, image.width, image.height);
                 ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
-
+                undo_btn.src = assetsUrl + "undoEditPre.svg";
+                undo_btn.removeEventListener("click", undo_fun);
+                undo_btn.style.cursor = "not-allowed"
+                clear_btn.src = assetsUrl + "clearEditImgPre.svg";
+                clear_btn.removeEventListener("click", clear_fun);
+                clear_btn.style.cursor = "not-allowed"
               }
-              saveData()
+              // saveData()
             }
-          });
+          }
           // redo
-          redo_btn.addEventListener("click", () => {
+          const redo_fun = () => {
             if (redoHistory.length > 0) {
               const nextDraw = redoHistory.pop() as ImageData; // 取出下一步绘制历史
               drawHistory.push(nextDraw); // 添加到绘制历史
+              undo_btn.src = assetsUrl + "undoEdit.svg";
+              undo_btn.addEventListener("click", undo_fun);
+              undo_btn.style.cursor = "pointer"
+
+              clear_btn.src = assetsUrl + "clearEditImg.svg";
+              clear_btn.addEventListener("click", clear_fun);
+              clear_btn.style.cursor = "pointer"
+
               // 清除Canvas并恢复下一步绘制历史
               ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
               ctx.putImageData(nextDraw, 0, 0);
-              saveData()
-            }
-          });
+              if(redoHistory.length == 0){
+                redo_btn.src = assetsUrl + "redoEditPre.svg";
+                redo_btn.removeEventListener("click", redo_fun);
+                redo_btn.style.cursor = "not-allowed"
 
+              }
+              // saveData()
+            }
+          }
           const saveData = () => {
             const dataURL = canvas_con.toDataURL();
             const arr = dataURL.split(',') as Array<string>
@@ -5628,28 +5752,30 @@ const createExtendedDOMResolvers = function (app: App) {
             app.updateRoot((draft) => {
               set(draft?.[pageName], dataKey, data)
             })
+            dataOptions["status"] = true
           }
 
-          // save_btn.addEventListener("click", () => {
-          //   const dataURL = canvas_con.toDataURL();
-          //   let arr = dataURL.split(","),
-          //     mime = arr[0].match(/:(.*?);/)?.[1],
-          //     bin_str = atob(arr[1]),
-          //     index = bin_str.length,
-          //     u8_arr = new Uint8Array(index);
-          //   while (index--) {
-          //     u8_arr[index] = bin_str.charCodeAt(index);
-          //   }
-          //   app.updateRoot((draft) => {
-          //     set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
-          //   })
-          //   node.removeChild(btns_container);
-          //   node.removeChild(canvas_con);
-          //   node.removeChild(options_container);
-          //   options_container.remove()
-          //   canvas_con.remove()
-          //   btns_container.remove()
-          // })
+          save_btn.addEventListener("click", () => {
+            // const dataURL = canvas_con.toDataURL();
+            // let arr = dataURL.split(","),
+            //   mime = arr[0].match(/:(.*?);/)?.[1],
+            //   bin_str = atob(arr[1]),
+            //   index = bin_str.length,
+            //   u8_arr = new Uint8Array(index);
+            // while (index--) {
+            //   u8_arr[index] = bin_str.charCodeAt(index);
+            // }
+            // app.updateRoot((draft) => {
+            //   set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
+            // })
+            saveData()
+            // node.removeChild(btns_container);
+            // node.removeChild(canvas_con);
+            // node.removeChild(options_container);
+            // options_container.remove()
+            // canvas_con.remove()
+            // btns_container.remove()
+          })
         }
       },
     },
