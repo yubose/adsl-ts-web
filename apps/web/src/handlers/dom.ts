@@ -5335,7 +5335,8 @@ const createExtendedDOMResolvers = function (app: App) {
               return true;
             }
           })();
-          const [ path] = ["image", dataOptions["imgPath"]];
+          const [ path] = [dataOptions["imgPath"]];
+          dataOptions["status"] = false
           const canvas_box = document.createElement('div')
           const canvas_con = document.createElement("canvas");
           const color_picker = document.createElement("input");
@@ -5367,20 +5368,47 @@ const createExtendedDOMResolvers = function (app: App) {
             // canvas_con.height = canvas_con.getBoundingClientRect().height;
             // ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
             canvas_box.style.cssText = `
-              // width: ${node.getBoundingClientRect().width}px;
-              // height: ${node.getBoundingClientRect().height - 80}px;
+              width: ${node.getBoundingClientRect().width}px;
+              height: ${node.getBoundingClientRect().height - 40}px;
               display: flex;
+              justify-content: center;
               align-items: center;
-              // margin: 10px 0;
+              margin: 10px 0;
               background-color:  #f4f8fa;
             `
 
-            if (image.width > image.height) {
+            components_img_container.style.cssText = `
+              background-color: #ffffff;
+              width: ${node.getBoundingClientRect().width}px;
+              height: ${node.getBoundingClientRect().height}px;
+            `
+
+            const setWidthFull = () => {
               image.height = (node.getBoundingClientRect().width / image.width) * image.height
               image.width = node.getBoundingClientRect().width
-            } else {
+            }
+
+            const setHeightFull = () => {
               image.width = (node.getBoundingClientRect().height / image.height) * image.width
-              image.height = node.getBoundingClientRect().height - 80;
+              image.height = node.getBoundingClientRect().height - 40;
+            }
+
+            if (image.width > image.height) {
+              const compare_height = node.getBoundingClientRect().height - 40
+              // image.height = (node.getBoundingClientRect().width / image.width) * image.height
+              // image.width = node.getBoundingClientRect().width
+              setWidthFull()
+              if(image.height > compare_height) {
+                setHeightFull()
+              }
+            } else {
+              const compare_width = node.getBoundingClientRect().width
+              setHeightFull()
+              if(image.width > compare_width) {
+                setWidthFull()
+              }
+              // image.width = (node.getBoundingClientRect().height / image.height) * image.width
+              // image.height = node.getBoundingClientRect().height - 80;
             }
             // image.width = node.getBoundingClientRect().width
             // image.height = node.getBoundingClientRect().height - 80;
@@ -5425,7 +5453,7 @@ const createExtendedDOMResolvers = function (app: App) {
             height: auto;
             width: 100%;
             display: flex;
-            padding-top: 3vh;
+            padding-top: 2vh;
             // padding-bottom: 1vh;
             justify-content: flex-start;
             align-items: center;
@@ -5448,11 +5476,12 @@ const createExtendedDOMResolvers = function (app: App) {
             height: auto;
             width: 100%;
           `
-          components_img_container.style.cssText = `
-            background-color: #fff;
-            width: ${node.getBoundingClientRect().width}px;
-            height: ${node.getBoundingClientRect().height}px;
-          `
+          // console.log("TEST", node.getBoundingClientRect())
+          // components_img_container.style.cssText = `
+          //   background-color: #fff;
+          //   width: ${node.getBoundingClientRect().width}px;
+          //   height: ${node.getBoundingClientRect().height}px;
+          // `
           redo_btn.style.cssText = `
           cursor: not-allowed;
           user-select: none;
@@ -5491,7 +5520,7 @@ const createExtendedDOMResolvers = function (app: App) {
         `
           left_btn_container.append(color_picker, line_width_input, clear_btn, undo_btn, redo_btn)
           edit_btn_container.append(left_btn_container,save_btn)
-          btns_container.append(edit_btn, edit_btn_container);
+          !dataOptions["isReadOnly"] && btns_container.append(edit_btn, edit_btn_container);
           canvas_box.append(canvas_con)
           components_img_container.append(canvas_box, btns_container)
           node.append(components_img_container)
@@ -5588,7 +5617,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
               drawHistory.push(imageData);
               redoHistory = []; // 每次绘制新内容时，清空已撤销历史
-              saveData()
+              // saveData()
               // const dataURL = canvas_con.toDataURL();
               // // let arr = dataURL.split(","),
               // //   mime = arr[0].match(/:(.*?);/)?.[1],
@@ -5639,7 +5668,7 @@ const createExtendedDOMResolvers = function (app: App) {
             clear_btn.src = assetsUrl + "clearEditImgPre.svg";
             clear_btn.removeEventListener("click", undo_fun);
             clear_btn.style.cursor = "not-allowed"
-            saveData()
+            // saveData()
           }
           // clear_btn.addEventListener("click", clear_fun);
           // undo
@@ -5666,7 +5695,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 clear_btn.removeEventListener("click", clear_fun);
                 clear_btn.style.cursor = "not-allowed"
               }
-              saveData()
+              // saveData()
             }
           }
           // redo
@@ -5701,9 +5730,11 @@ const createExtendedDOMResolvers = function (app: App) {
               arr[1],
               arr[0].match(/:(.*?);/)?.[1]
             )
+            console.log(data)
             app.updateRoot((draft) => {
               set(draft?.[pageName], dataKey, data)
             })
+            dataOptions["status"] = true
           }
 
           save_btn.addEventListener("click", () => {
