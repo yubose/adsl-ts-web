@@ -112,16 +112,16 @@ async function initializeApp(
               }
             })
 
-            await listenForWaitingServiceWorker(
-              app.serviceWorkerRegistration,
-              async (reg: ServiceWorkerRegistration) => {
-                await reg.showNotification(
-                  `There is an update available. Would you like to apply the update?`,
-                  { data: { type: 'update-click' } },
-                )
-                // onClick -->   reg.waiting?.postMessage('skipWaiting')
-              },
-            )
+            // await listenForWaitingServiceWorker(
+            //   app.serviceWorkerRegistration,
+            //   async (reg: ServiceWorkerRegistration) => {
+            //     await reg.showNotification(
+            //       `There is an update available. Would you like to apply the update?`,
+            //       { data: { type: 'update-click' } },
+            //     )
+            //     // onClick -->   reg.waiting?.postMessage('skipWaiting')
+            //   },
+            // )
             await notification?.init()
           }
         }
