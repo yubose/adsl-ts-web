@@ -5735,7 +5735,6 @@ const createExtendedDOMResolvers = function (app: App) {
               arr[1],
               arr[0].match(/:(.*?);/)?.[1]
             )
-            console.log(data)
             app.updateRoot((draft) => {
               set(draft?.[pageName], dataKey, data)
             })
