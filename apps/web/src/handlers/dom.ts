@@ -5335,7 +5335,7 @@ const createExtendedDOMResolvers = function (app: App) {
               return true;
             }
           })();
-          const [ path] = ["image", dataOptions["imgPath"]];
+          const [file_name, path] = ["image", dataOptions["imgPath"]];
           const canvas_box = document.createElement('div')
           const canvas_con = document.createElement("canvas");
           const color_picker = document.createElement("input");
@@ -5374,7 +5374,11 @@ const createExtendedDOMResolvers = function (app: App) {
               // margin: 10px 0;
               background-color:  #f4f8fa;
             `
-
+            components_img_container.style.cssText = `
+            background-color: #fff;
+            width: ${node.getBoundingClientRect().width}px;
+            height: ${node.getBoundingClientRect().height}px;
+          `
             if (image.width > image.height) {
               image.height = (node.getBoundingClientRect().width / image.width) * image.height
               image.width = node.getBoundingClientRect().width
@@ -5439,7 +5443,7 @@ const createExtendedDOMResolvers = function (app: App) {
         `
         left_btn_container.style.cssText = `
           height: auto;
-          width: 40%;
+          width: ${device_is_web?"40%":"70%"};
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -5448,27 +5452,23 @@ const createExtendedDOMResolvers = function (app: App) {
             height: auto;
             width: 100%;
           `
-          components_img_container.style.cssText = `
-            background-color: #fff;
-            width: ${node.getBoundingClientRect().width}px;
-            height: ${node.getBoundingClientRect().height}px;
-          `
           redo_btn.style.cssText = `
           cursor: not-allowed;
           user-select: none;
+          padding: ${device_is_web?"0":"0 5px"};
+
 
           `
           undo_btn.style.cssText = `
           cursor: not-allowed;
           user-select: none;
-
+          padding: ${device_is_web?"0":"0 5px"};
           `
           clear_btn.style.cssText = `
             padding: 0 15px;
             border-left: 1px solid #cdcdcd;
             user-select: none;
             border-right: 1px solid #cdcdcd; 
-            font-size: 16px;
             cursor: not-allowed;
           `
           save_btn.style.cssText = `
@@ -5476,9 +5476,9 @@ const createExtendedDOMResolvers = function (app: App) {
             color: #fff;
             height: 3.5vh;
             border-radius: 5px;
-            width: 10%;
-            padding: 5px 8px;
-            font-size: 16px;
+            width: ${device_is_web?"10%":"20%"};
+            padding: ${device_is_web?"5px 8px":"0"};
+            font-size: 1rem;
             background-color: #005795;
           `
           edit_btn.style.cssText = `
@@ -5551,6 +5551,17 @@ const createExtendedDOMResolvers = function (app: App) {
             undo_btn.src = assetsUrl + "undoEdit.svg";
             
             redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+
+            undo_btn.src = assetsUrl + "undoEdit.svg";
+            undo_btn.addEventListener("click", undo_fun);
+            undo_btn.style.cursor = "pointer"
+            redo_btn.src = assetsUrl + "redoEditPre.svg";
+            redo_btn.removeEventListener("click", redo_fun);
+            redo_btn.style.cursor = "not-allowed"
+            clear_btn.src = assetsUrl + "clearEditImg.svg";
+            clear_btn.addEventListener("click", clear_fun);
+            clear_btn.style.cursor = "pointer"
+            move_flag = false
           }
           let domRect = canvas_con.getBoundingClientRect()
           function start_web(e: MouseEvent) {
