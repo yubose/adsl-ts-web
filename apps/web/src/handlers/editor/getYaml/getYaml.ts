@@ -745,66 +745,122 @@ const populateBlock = ({
                     }
                     BaseJsonCopy.formData[obj.alt] = ``
                     if(obj.href !== '') {
+                        // target = {
+                        //     type: "view",
+                        //     style: Object.assign({...imageStyle}, {
+                        //         maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`
+                        //     }),
+                        //     children: [
+                        //         {
+                        //             type: "image",
+                        //             "path=func": "..customEvent.prepareDocToPath",
+                        //             dataKey: 'formData.data.' + obj.alt,
+                        //             viewTag: obj.alt,
+                        //             style: Object.assign({...imageStyle}, {
+                        //                 maxWidth: `100%`,
+                        //                 display: "=..formData.atrribute.is_edit"
+                        //             }),
+                        //             onClick: [
+                        //                 {
+                        //                     emit: {
+                        //                         actions: [
+                        //                             {
+                        //                                 "=.builtIn.object.set": {
+                        //                                     dataIn: {
+                        //                                         object: "=..formData.imgCanvas",
+                        //                                         key: "option",
+                        //                                         value: "=..formData.editableImage." + obj.alt
+                        //                                     }
+                        //                                 }
+                        //                             }
+                        //                         ]
+                        //                     }
+                        //                 },
+                        //                 {
+                        //                     actionType: "builtIn",
+                        //                     funcName: "redraw",
+                        //                     viewTag: "imgCanvasTag"
+                        //                 },
+                        //                 {
+                        //                     actionType: "popUp",
+                        //                     popUpView: "imgCanvasTag"
+                        //                 },
+                        //             ]
+                        //         },
+                        //         {
+                        //             type: "image",
+                        //             "path=func": "..customEvent.prepareDocToPath",
+                        //             dataKey: 'formData.data.' + obj.alt,
+                        //             style: Object.assign({...imageStyle}, {
+                        //                 maxWidth: `100%`,
+                        //                 display: "=..formData.atrribute.is_read"
+                        //             }),
+                        //             onClick: [
+                        //                 {
+                        //                     emit: {
+                        //                         actions: [
+                        //                             {
+                        //                                 "=.builtIn.object.set": {
+                        //                                     dataIn: {
+                        //                                         object: "=..formData.imgCanvas",
+                        //                                         key: "option",
+                        //                                         value: "=..formData.editableImage." + obj.alt
+                        //                                     }
+                        //                                 }
+                        //                             },
+                        //                             {
+                        //                                 "=.builtIn.object.set": {
+                        //                                     dataIn: {
+                        //                                         object: "=..formData.imgCanvas.option",
+                        //                                         key: "isReadOnly",
+                        //                                         value: true
+                        //                                     }
+                        //                                 }
+                        //                             }
+                        //                         ]
+                        //                     }
+                        //                 },
+                        //                 {
+                        //                     actionType: "builtIn",
+                        //                     funcName: "redraw",
+                        //                     viewTag: "imgCanvasTag"
+                        //                 },
+                        //                 {
+                        //                     actionType: "popUp",
+                        //                     popUpView: "imgCanvasTag"
+                        //                 },
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                         target = {
-                            type: "view",
-                            style: Object.assign({...imageStyle}, {
-                                maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`
-                            }),
-                            children: [
+                            type: "image",
+                            "path=func": "..customEvent.prepareDocToPath",
+                            dataKey: 'formData.data.' + obj.alt,
+                            style: Object.assign(
+                                {...imageStyle}, 
+                                {maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`}
+                            ),
+                            onClick: [
                                 {
-                                    type: "image",
-                                    "path=func": "..customEvent.prepareDocToPath",
-                                    dataKey: 'formData.data.' + obj.alt,
-                                    viewTag: obj.alt,
-                                    style: Object.assign({...imageStyle}, {
-                                        maxWidth: `100%`,
-                                        display: "=..formData.atrribute.is_edit"
-                                    }),
-                                    onClick: [
-                                        {
-                                            emit: {
-                                                actions: [
-                                                    {
-                                                        "=.builtIn.object.set": {
-                                                            dataIn: {
-                                                                object: "=..formData.imgCanvas",
-                                                                key: "option",
-                                                                value: "=..formData.editableImage." + obj.alt
-                                                            }
-                                                        }
+                                    emit: {
+                                        actions: [
+                                            {
+                                                "=.builtIn.object.set": {
+                                                    dataIn: {
+                                                        object: "=..formData.imgCanvas",
+                                                        key: "option",
+                                                        value: "=..formData.editableImage." + obj.alt
                                                     }
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            actionType: "builtIn",
-                                            funcName: "redraw",
-                                            viewTag: "imgCanvasTag"
-                                        },
-                                        {
-                                            actionType: "popUp",
-                                            popUpView: "imgCanvasTag"
-                                        },
-                                    ]
-                                },
-                                {
-                                    type: "image",
-                                    "path=func": "..customEvent.prepareDocToPath",
-                                    dataKey: 'formData.data.' + obj.alt,
-                                    style: Object.assign({...imageStyle}, {
-                                        maxWidth: `100%`,
-                                        display: "=..formData.atrribute.is_read"
-                                    }),
-                                    onClick: [
-                                        {
-                                            emit: {
-                                                actions: [
+                                                }
+                                            },
+                                            {
+                                                if: [
                                                     {
-                                                        "=.builtIn.object.set": {
+                                                        "=.builtIn.string.equal": {
                                                             dataIn: {
-                                                                object: "=..formData.imgCanvas",
-                                                                key: "option",
-                                                                value: "=..formData.editableImage." + obj.alt
+                                                                string1: "=..formData.atrribute.is_edit",
+                                                                string2: "none"
                                                             }
                                                         }
                                                     },
@@ -816,21 +872,22 @@ const populateBlock = ({
                                                                 value: true
                                                             }
                                                         }
-                                                    }
+                                                    },
+                                                    "continue"
                                                 ]
                                             }
-                                        },
-                                        {
-                                            actionType: "builtIn",
-                                            funcName: "redraw",
-                                            viewTag: "imgCanvasTag"
-                                        },
-                                        {
-                                            actionType: "popUp",
-                                            popUpView: "imgCanvasTag"
-                                        },
-                                    ]
-                                }
+                                        ]
+                                    }
+                                },
+                                {
+                                    actionType: "builtIn",
+                                    funcName: "redraw",
+                                    viewTag: "imgCanvasTag"
+                                },
+                                {
+                                    actionType: "popUp",
+                                    popUpView: "imgCanvasTag"
+                                },
                             ]
                         }
                     } else {
