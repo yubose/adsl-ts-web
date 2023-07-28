@@ -115,7 +115,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     }
 
     if(remoteParticipants && remoteParticipants.size ==0){
-      app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+      app.meeting.calledOnConnected && app.register.extendVideoFunction('twilioOnPeopleShowRoom')
     }
 
     for (const participant of room.participants.values()) {
