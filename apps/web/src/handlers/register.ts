@@ -11,16 +11,66 @@ import App from '../App'
 import { copyToClipboard } from '../utils/dom'
 import is from '../utils/is'
 import { GlobalRegisterComponent } from '../app/types'
+const registerEvents = {
+  onNewMeetingInvite: 'onNewMeetingInvite',
+  onDisconnect: 'onDisconnect',
+  showExtendView: 'showExtendView',
+  onProviderDisconnect: 'onProviderDisconnect',
+  showExitWarningView: 'showExitWarningView',
+  twilioOnPeopleJoin: 'twilioOnPeopleJoin',
+  codeTask: 'codeTask',
+  twilioOnPeopleShowRoom: 'twilioOnPeopleShowRoom'
+
+}
+interface RegisterHooks {
+  onNewMeetingInvite(onEvent:string): void
+  onDisconnect(onEvent:string): void
+  showExtendView(onEvent:string): void
+  onProviderDisconnect(onEvent:string): void
+  showExitWarningView(onEvent:string): void
+  twilioOnPeopleJoin(onEvent:string): void
+  codeTask(onEvent:string): void
+  twilioOnPeopleShowRoom(onEvent:string): void
+}
+type RegisterHook = keyof RegisterHooks
 
 class createRegisters {
   app: App
   o: Record<string, any>
   registrees: Record<string, any>
-  numberofExtensions: number = 0
-  timePerExtendSeconds: number = 0
-  popUpWaitSeconds: number = 30
-  meetingEndTime: number = 0
+  #numberofExtensions: number = 0
+  #timePerExtendSeconds: number = 0
+  #popUpWaitSeconds: number = 30
+  #meetingEndTime: number = 0
   public timeId: Record<string, any>[] = []
+  hooks = new Map<RegisterHook,RegisterHooks[RegisterHook][]>()
+
+  set numberofExtensions(value:number){
+    this.#numberofExtensions = value
+  }
+  get numberofExtensions(){
+    return this.#numberofExtensions
+  }
+  set popUpWaitSeconds(value:number){
+    this.#popUpWaitSeconds = value
+  }
+  get popUpWaitSeconds(){
+    return this.#popUpWaitSeconds
+  }
+  set timePerExtendSeconds(value:number){
+    this.#timePerExtendSeconds = value
+  }
+  get timePerExtendSeconds(){
+    return this.#timePerExtendSeconds
+  }
+
+  set meetingEndTime(value:number){
+    this.#meetingEndTime = value
+  }
+  get meetingEndTime(){
+    return this.#meetingEndTime
+  }
+
   constructor(app: App) {
     this.app = app
 
@@ -79,83 +129,7 @@ class createRegisters {
       },
     }
 
-    const handleRegister = async (componentObject: GlobalRegisterComponent) => {
-      let actions = componentObject.props.actions
-      try {
-        const component = (await this.app.nui?.resolveComponents(
-          componentObject,
-        )) as NuiComponent.Instance
-        const actionTypeKeys = [
-          'goto',
-          'popUp',
-          'popUpDismiss',
-          'toast',
-          'getLocationAddress',
-          'pageJump',
-          'refresh',
-        ]
-        for (const action of actions) {
-          if (
-            action?.actionType &&
-            actionTypeKeys.includes(action?.actionType)
-          ) {
-            const newAction = createAction({
-              action: action,
-              trigger: 'register',
-            })
-            const type = action?.actionType
-            const actionFn = this.app.root.actions[type]
-            u.isFnc(actionFn) &&
-              (await actionFn?.(
-                newAction,
-                this.app.nui?.getConsumerOptions({
-                  component,
-                  page: this.app.mainPage?.getNuiPage(),
-                }),
-              ))
-          } else if (action?.actionType && action?.actionType == 'builtIn') {
-            // const newAction = createAction({
-            //   action: action,
-            //   trigger: 'register',
-            // })
-            const functName = action.funcName
-            const builtInFn =
-              app.root.builtIn[functName] || app.root.extendedBuiltIn[functName]
-            u.isFnc(builtInFn) &&
-              (await builtInFn?.(
-                action,
-                this.app.nui?.getConsumerOptions({
-                  component,
-                  page: this.app.mainPage?.getNuiPage(),
-                }),
-              ))
-          } else {
-            const emitAction = createAction({
-              action: {
-                emit: {
-                  actions: [action],
-                },
-                actionType: 'register',
-              },
-              trigger: 'register',
-            }) as EmitAction
-            await this.app.actions?.emit
-              .get('register')
-              ?.map((obj: Store.ActionObject) =>
-                obj?.fn?.(
-                  emitAction,
-                  this.app.nui?.getConsumerOptions({
-                    component,
-                    page: this.app.mainPage?.getNuiPage(),
-                  }),
-                ),
-              )
-          }
-        }
-      } catch (error) {
-        log.error(error)
-      }
-    }
+    
 
     this.registrees = {
       async FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
@@ -279,58 +253,130 @@ class createRegisters {
         }
         
       },
-      async onNewMeetingInvite(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'onNewMeetingInvite'
-      },
-      async onDisconnect(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'onDisconnect'
-        if (u.isArr(this.timeId)) {
-          for (let i = 0; i < this.timeId.length; i++) {
-            clearTimeout(this.timeId[i]?.id)
-          }
-        }
-        this.timeId = []
-        await handleRegister(componentObject)
-      },
-      async showExtendView(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'showExtendView'
-        await handleRegister(componentObject)
-      },
-      async onProviderDisconnect(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'onProviderDisconnect'
-        await handleRegister(componentObject)
-      },
-      async showExitWarningView(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'showExitWarningView'
-        await handleRegister(componentObject)
-      },
-      async twilioOnPeopleJoin(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'twilioOnPeopleJoin'
-        await handleRegister(componentObject)
-      },
-      async codeTask(componentObject:GlobalRegisterComponent){
-        componentObject.eventId = 'codeTasks'
-        await handleRegister(componentObject)
-      },
-      async twilioOnPeopleShowRoom(componentObject:GlobalRegisterComponent,options?: Record<string, any>){
-        componentObject.eventId = 'twilioOnPeopleShowRoom'
-        console.log('twilioOnPeopleShowRoom')
-        await handleRegister(componentObject)
-      },
 
 
     }
   }
-  registerHandlers = {
-    onNewDocument() {
-      //
-    },
-    onNewMessage() {
-      //
-    },
-    onNewMeetingInvite() {
-      //
-    },
+
+
+  async handleRegister(componentObject: GlobalRegisterComponent) {
+    let actions = componentObject.props.actions
+    try {
+      const component = (await this.app.nui?.resolveComponents(
+        componentObject,
+      )) as NuiComponent.Instance
+      const actionTypeKeys = [
+        'goto',
+        'popUp',
+        'popUpDismiss',
+        'toast',
+        'getLocationAddress',
+        'pageJump',
+        'refresh',
+      ]
+      for (const action of actions) {
+        if (
+          action?.actionType &&
+          actionTypeKeys.includes(action?.actionType)
+        ) {
+          const newAction = createAction({
+            action: action,
+            trigger: 'register',
+          })
+          const type = action?.actionType
+          const actionFn = this.app.root.actions[type]
+          u.isFnc(actionFn) &&
+            (await actionFn?.(
+              newAction,
+              this.app.nui?.getConsumerOptions({
+                component,
+                page: this.app.mainPage?.getNuiPage(),
+              }),
+            ))
+        } else if (action?.actionType && action?.actionType == 'builtIn') {
+          // const newAction = createAction({
+          //   action: action,
+          //   trigger: 'register',
+          // })
+          const functName = action.funcName
+          const builtInFn =
+            this.app.root.builtIn[functName] || this.app.root.extendedBuiltIn[functName]
+          u.isFnc(builtInFn) &&
+            (await builtInFn?.(
+              action,
+              this.app.nui?.getConsumerOptions({
+                component,
+                page: this.app.mainPage?.getNuiPage(),
+              }),
+            ))
+        } else {
+          const emitAction = createAction({
+            action: {
+              emit: {
+                actions: [action],
+              },
+              actionType: 'register',
+            },
+            trigger: 'register',
+          }) as EmitAction
+          await this.app.actions?.emit
+            .get('register')
+            ?.map((obj: Store.ActionObject) =>
+              obj?.fn?.(
+                emitAction,
+                this.app.nui?.getConsumerOptions({
+                  component,
+                  page: this.app.mainPage?.getNuiPage(),
+                }),
+              ),
+            )
+        }
+      }
+    } catch (error) {
+      log.error(error)
+    }
+  }
+  
+
+  async registerHandlers(){
+    for(let [key,value] of Object.entries(registerEvents)){
+      //@ts-expect-error
+      this.on(value,async()=>{
+        if (this.app.ndom.global.register) {
+          const componentObject = this.app.ndom.global.register.get(value)
+          if (componentObject) {
+            const onEvent = componentObject.props.onEvent as any
+            log.info(`[register] ${onEvent}`)
+            if(onEvent === 'onDisconnect'){
+              if (u.isArr(this.timeId)) {
+                for (let i = 0; i < this.timeId.length; i++) {
+                  clearTimeout(this.timeId[i]?.id)
+                }
+              }      
+            }
+            await this.handleRegister(componentObject)
+          }
+        }
+      })
+    }
+  }
+
+  on<Hook extends RegisterHook>(
+    hook: Hook,
+    fn: RegisterHooks[Hook],
+  ){
+    if (!this.hooks.has(hook)) this.hooks.set(hook, [])
+    if (!this.hooks.get(hook)?.includes?.(fn)) {
+      this.hooks.get(hook)?.push(fn)
+    }
+    return this
+  }
+
+  emit<Hook extends RegisterHook>(
+    hook: Hook,
+    ...args: Parameters<RegisterHooks[Hook]>
+  ) {
+    this.hooks.get(hook)?.forEach?.((fn) => (fn as any)?.(...args))
   }
 
   createNotification() {
@@ -392,42 +438,18 @@ class createRegisters {
   }
 
   extendVideoFunction(onEvent: string) {
-    if (this.app.ndom.global.register) {
-      const componentObject = this.app.ndom.global.register.get(onEvent)
-      if (componentObject) {
-        const onEvent = componentObject.props.onEvent as any
-        console.log(onEvent)
-        ;(this.registrees as any)[onEvent](componentObject)
-      }
-    }
+    // if (this.app.ndom.global.register) {
+    //   const componentObject = this.app.ndom.global.register.get(onEvent)
+    //   if (componentObject) {
+    //     const onEvent = componentObject.props.onEvent as any
+    //     console.log(onEvent)
+    //     ;(this.registrees as any)[onEvent](componentObject)
+    //   }
+    // }
+    //@ts-expect-error
+    this.emit(onEvent)
   }
 
-  setNumberofExtensions(numberofExtensions) {
-    this.numberofExtensions = numberofExtensions as number
-  }
-  getNumberofExtensions() {
-    return this.numberofExtensions
-  }
-
-  setTimePerExtendSeconds(timePerExtendSeconds) {
-    this.timePerExtendSeconds = timePerExtendSeconds
-  }
-  getTimePerExtendSeconds() {
-    return this.timePerExtendSeconds
-  }
-
-  setPopUpWaitSeconds(popUpWaitSeconds) {
-    this.popUpWaitSeconds = popUpWaitSeconds
-  }
-  getPopUpWaitSeconds() {
-    return this.popUpWaitSeconds
-  }
-  setMeetingEndTime(meetingEndTime) {
-    this.meetingEndTime = meetingEndTime
-  }
-  getMeetingEndTime() {
-    return this.meetingEndTime
-  }
 
   setTimeId(key: string, id: unknown) {
     this.timeId.push({

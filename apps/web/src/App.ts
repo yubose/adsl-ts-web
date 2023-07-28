@@ -138,6 +138,7 @@ class App {
     this.#sdkHelpers = getSdkHelpers(this)
     const spinner = new Spinner()
     const registers = new createRegisters(this)
+    registers.registerHandlers()
     this.#spinner = spinner
     this.register = registers
 
@@ -544,10 +545,6 @@ class App {
           this.notification?.on('message', (message) => {
             if (message) {
               const { data } = message
-              const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                (obj) => obj?.eventId === 'onNewEcosDoc',
-              )
-
               if (data?.did) {
                 //  call onNewEcosDoc for now  until we propose a more generic approach
                 const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(

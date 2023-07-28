@@ -1054,11 +1054,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const extendMeeting: Store.BuiltInObject['fn'] =
     async function onExtendMeeting(action, options) {
-      let numberofExtensions = app.register.getNumberofExtensions()
+      let numberofExtensions = app.register.numberofExtensions
       let timePerExtendSeconds = _pick(action, 'timePerExtendSeconds')
-      let oldTimePerExtendSeconds = app.register.getTimePerExtendSeconds()
-      app.register.setTimePerExtendSeconds(timePerExtendSeconds)
-      app.register.setNumberofExtensions(numberofExtensions - 1)
+      let oldTimePerExtendSeconds = app.register.timePerExtendSeconds
+      app.register.timePerExtendSeconds = timePerExtendSeconds
+      app.register.numberofExtensions = numberofExtensions - 1
       const popUpWaitSeconds = 30
       let remainTime = oldTimePerExtendSeconds - popUpWaitSeconds
       log.log(remainTime, numberofExtensions)
@@ -1462,9 +1462,9 @@ export const extendedSdkBuiltIns = {
     let meetingEndTime = action?.meetingEndTime
     let remainTime = meetingEndTime - currentTime - popUpWaitSeconds
     let timePerExtendSeconds = action.timePerExtendSeconds
-    this.register.setNumberofExtensions(numberofExtensions - 1)
-    this.register.setTimePerExtendSeconds(timePerExtendSeconds)
-    this.register.setPopUpWaitSeconds(popUpWaitSeconds)
+    this.register.numberofExtensions = numberofExtensions - 1
+    this.register.timePerExtendSeconds = timePerExtendSeconds
+    this.register.popUpWaitSeconds = popUpWaitSeconds
     if (remainTime > 0 && numberofExtensions > 0) {
       const id = setTimeout(() => {
         this.meeting.room.state === 'connected' &&
@@ -1504,8 +1504,8 @@ export const extendedSdkBuiltIns = {
     const meetingEndTime = action?.meetingEndTime
     const remainTime = meetingEndTime - currentTime - popUpWaitSeconds
     // const remainTime2 = meetingEndTime-currentTime
-    this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    this.register.setMeetingEndTime(meetingEndTime)
+    this.register.popUpWaitSeconds = popUpWaitSeconds
+    this.register.meetingEndTime = meetingEndTime
     if (remainTime > 0) {
       const initAutoDcTime = setTimeout(() => {
         if (this.meeting.room.state === 'connected') {

@@ -958,7 +958,7 @@ const createActions = function createActions(app: App) {
     const dataKey =
       component.get('data-key') || component.blueprint?.dataKey || ''
     const textFunc = component.get('text=func') || ((x: any) => x)
-    const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+    const popUpWaitSeconds = app.register.popUpWaitSeconds
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
     initialSeconds = initialSeconds ? initialSeconds : 30
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
@@ -1121,7 +1121,7 @@ const createActions = function createActions(app: App) {
             const component = app.cache.component.get(node?.id)?.component
             const dataKey =
               component.get('data-key') || component.blueprint?.dataKey || ''
-            const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+            const popUpWaitSeconds = app.register.popUpWaitSeconds
             initialSeconds = get(app.root, dataKey, 30) as number
             initialSeconds =
               initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
