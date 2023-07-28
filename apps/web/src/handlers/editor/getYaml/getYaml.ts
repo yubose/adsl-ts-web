@@ -738,19 +738,28 @@ const populateBlock = ({
                 case "image": 
                     let imageStyle = {}
                     if(obj.style) {
-                        imageStyle = obj.style
+                        imageStyle = {
+                            width: obj.style.width,
+                            height: "auto"
+                        }
                     }
                     BaseJsonCopy.formData[obj.alt] = ``
                     if(obj.href !== '') {
                         target = {
                             type: "view",
+                            style: Object.assign({...imageStyle}, {
+                                maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`
+                            }),
                             children: [
                                 {
                                     type: "image",
                                     "path=func": "..customEvent.prepareDocToPath",
                                     dataKey: 'formData.data.' + obj.alt,
                                     viewTag: obj.alt,
-                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_edit"}),
+                                    style: Object.assign({...imageStyle}, {
+                                        maxWidth: `100%`,
+                                        display: "=..formData.atrribute.is_edit"
+                                    }),
                                     onClick: [
                                         {
                                             emit: {
@@ -782,7 +791,45 @@ const populateBlock = ({
                                     type: "image",
                                     "path=func": "..customEvent.prepareDocToPath",
                                     dataKey: 'formData.data.' + obj.alt,
-                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_read"})
+                                    style: Object.assign({...imageStyle}, {
+                                        maxWidth: `100%`,
+                                        display: "=..formData.atrribute.is_read"
+                                    }),
+                                    onClick: [
+                                        {
+                                            emit: {
+                                                actions: [
+                                                    {
+                                                        "=.builtIn.object.set": {
+                                                            dataIn: {
+                                                                object: "=..formData.imgCanvas",
+                                                                key: "option",
+                                                                value: "=..formData.editableImage." + obj.alt
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "=.builtIn.object.set": {
+                                                            dataIn: {
+                                                                object: "=..formData.imgCanvas.option",
+                                                                key: "isReadOnly",
+                                                                value: true
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            actionType: "builtIn",
+                                            funcName: "redraw",
+                                            viewTag: "imgCanvasTag"
+                                        },
+                                        {
+                                            actionType: "popUp",
+                                            popUpView: "imgCanvasTag"
+                                        },
+                                    ]
                                 }
                             ]
                         }
@@ -791,10 +838,35 @@ const populateBlock = ({
                             type: "image",
                             "path=func": "..customEvent.prepareDocToPath",
                             dataKey: 'formData.data.' + obj.alt,
-                            style: {...imageStyle}
+                            style: {...imageStyle},
+                            onClick: [
+                                {
+                                    emit: {
+                                        actions: [
+                                            {
+                                                "=.builtIn.object.set": {
+                                                    dataIn: {
+                                                        object: "=..formData.imgCanvas",
+                                                        key: "option",
+                                                        value: "=..formData.editableImage." + obj.alt
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    actionType: "builtIn",
+                                    funcName: "redraw",
+                                    viewTag: "imgCanvasTag"
+                                },
+                                {
+                                    actionType: "popUp",
+                                    popUpView: "imgCanvasTag"
+                                },
+                            ]
                         }
                     }
-                    
                     break
                 default: 
                     let paddingTop = '0.005'

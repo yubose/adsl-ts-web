@@ -481,6 +481,7 @@ class App {
 
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       this.#initPage = _page.requesting
+      _page.mounted = false
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {
@@ -527,6 +528,7 @@ class App {
          * Instantiating the SDK this way will soon be @deprecated
          * The new way to be to import { createInstance } from the same file and instantiate it using that function
          */
+        //@ts-expect-error
         if (process.env.NODE_ENV !== 'test') {
           this.use((await import('./app/noodl')).noodl as CADL)
         } else {
@@ -551,7 +553,6 @@ class App {
                 const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
                   (obj) => obj?.eventId === 'onNewEcosDoc',
                 )
-                //@ts-expect-error
                 onNewEcosDocRegisterComponent?.onEvent?.(data.did)
               } else {
                 log.log({ message })
@@ -566,7 +567,6 @@ class App {
               const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
                 (obj) => obj?.eventId === 'onNotificationClicked',
               )
-              //@ts-expect-error
               onNewEcosDocRegisterComponent?.onEvent?.(notificationID)
             }
           })
@@ -1123,8 +1123,6 @@ class App {
         log.debug(`Removing room listeners...`)
         // this.meeting.room?.removeAllListeners?.()
       }
-      //@ts-expect-error
-      page.mounted = false
     }
 
     const onNavigateStale = (args: {
@@ -1266,9 +1264,8 @@ class App {
             pageName: page.page,
           })
         }
+        page.mounted = false
       },0)
-      //@ts-expect-error
-      page.mounted = true
     }
 
     page

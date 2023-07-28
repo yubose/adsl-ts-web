@@ -37,7 +37,7 @@ const editorConfig: Partial<IEditorConfig> = {
         },
         image: {
             menuKeys: [
-                "imageIsMarkeable",
+                "Markeable",
                 "deleteImage"
             ]
         }

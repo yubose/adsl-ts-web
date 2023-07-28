@@ -357,6 +357,11 @@ const editorHtml = `
     color: #ffffff !important;
 }
 
+#preView img {
+    height: auto !important;
+    max-width: 100%;
+}
+
 </style>
 `
 

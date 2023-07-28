@@ -21,6 +21,12 @@ const insertImage = (editor: IDomEditor, file: File, isMarkeable = false) => {
         const imageObj = new Image()
         imageObj.src = src
         imageObj.onload = () => {
+            const editor_container = document.getElementById("editor-container") as HTMLDivElement
+            const maxWidth = 0.8 * editor_container.getBoundingClientRect().width
+            if(imageObj.width > maxWidth) {
+                imageObj.height = (maxWidth / imageObj.width) * imageObj.height
+                imageObj.width = maxWidth
+            }
             const node = {
                 type: "image",
                 alt: getUuid(),
