@@ -31,7 +31,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     function onConnectionChange(participant: RemoteParticipant) {
       log.debug(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
-        // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
         // app.meeting.getMainStreamElement()
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
@@ -111,11 +111,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       // twilioOnNoParticipant
     }else{
       // twilioOnPeopleJoin
-      app.register.extendVideoFunction('twilioOnPeopleJoin')
+      app.meeting.calledOnConnected && app.register.extendVideoFunction('twilioOnPeopleJoin')
     }
 
     if(remoteParticipants && remoteParticipants.size ==0){
-      app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+      app.meeting.calledOnConnected && app.register.extendVideoFunction('twilioOnPeopleShowRoom')
     }
 
     for (const participant of room.participants.values()) {
