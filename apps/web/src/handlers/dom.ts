@@ -4647,6 +4647,11 @@ const createExtendedDOMResolvers = function (app: App) {
               background: #1e90ff !important;
               color: #ffffff !important;
             }
+
+            img {
+              height: auto !important;
+              max-width: 100%;  
+            }
           </style>
         `
         // node.innerHTML = style + matchChar(html)
