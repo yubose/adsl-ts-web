@@ -838,7 +838,10 @@ const populateBlock = ({
                             type: "image",
                             "path=func": "..customEvent.prepareDocToPath",
                             dataKey: 'formData.data.' + obj.alt,
-                            style: {...imageStyle},
+                            style: Object.assign(
+                                {...imageStyle}, 
+                                {maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`}
+                            ),
                             onClick: [
                                 {
                                     emit: {
