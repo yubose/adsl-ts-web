@@ -5360,6 +5360,10 @@ const createExtendedDOMResolvers = function (app: App) {
               return true;
             }
           })();
+          dataOptions["status"] = false
+          app.updateRoot((draft) => {
+            set(draft?.[pageName], dataKey, "")
+          })
           const [file_name, path] = ["image", dataOptions["imgPath"]];
           const canvas_box = document.createElement('div')
           const canvas_con = document.createElement("canvas");

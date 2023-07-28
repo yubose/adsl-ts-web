@@ -782,7 +782,27 @@ const populateBlock = ({
                                     type: "image",
                                     "path=func": "..customEvent.prepareDocToPath",
                                     dataKey: 'formData.data.' + obj.alt,
-                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_read"})
+                                    style: Object.assign({...imageStyle}, {display: "=..formData.atrribute.is_read"}),
+                                    onClick: [
+                                        {
+                                            emit: {
+                                                actions: [
+                                                    {
+                                                        "..formData.imgId@": '=..formData.data.' + obj.alt
+                                                    },
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            actionType: "builtIn",
+                                            funcName: "redraw",
+                                            viewTag: "imgCanvasTag"
+                                        },
+                                        {
+                                            actionType: "popUp",
+                                            popUpView: "imgCanvasTag"
+                                        },
+                                    ]
                                 }
                             ]
                         }
