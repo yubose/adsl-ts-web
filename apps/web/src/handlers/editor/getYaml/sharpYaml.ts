@@ -1674,7 +1674,6 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         style: {
                                             fontSize: "..formData.atrribute.noodl_font.h4",
                                             color: "0x666666",
-                                            marginRight: "10px",
                                             heigth: "auto"
                                         }
                                     },
@@ -1685,6 +1684,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                         style: {
                                             fontSize: "..formData.atrribute.noodl_font.h4",
                                             color: "0x666666",
+                                            marginLeft: "10px",
                                             heigth: "auto"
                                         }
                                     }

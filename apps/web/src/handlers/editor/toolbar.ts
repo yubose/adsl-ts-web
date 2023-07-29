@@ -162,7 +162,7 @@ const registerToolbar = () => {
 
     const templateSelect = new DefaultSelect({
         title: 'template' + random,
-        width: 100,
+        width: 60,
         options: [
             {value: "Insert", text: "Insert", styleForRenderMenuList: { display: "none" }},
             {value: "TextShort", text: `Input Box(Short)`, styleForRenderMenuList: getImageObject('textShort')},
