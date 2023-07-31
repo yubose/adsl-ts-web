@@ -138,7 +138,7 @@ class App {
     this.#sdkHelpers = getSdkHelpers(this)
     const spinner = new Spinner()
     const registers = new createRegisters(this)
-    registers.registerHandlers()
+    registers?.registerHandlers()
     this.#spinner = spinner
     this.register = registers
 
@@ -542,15 +542,20 @@ class App {
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
 
-          this.notification?.on('message', (message) => {
+          this.notification?.on('message', async(message) => {
             if (message) {
               const { data } = message
               if (data?.did) {
                 //  call onNewEcosDoc for now  until we propose a more generic approach
                 const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.eventId === 'onNewEcosDoc',
+                  (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
                 )
-                onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                if(onNewEcosDocRegisterComponent){
+                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                    await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                  onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                }
+                
               } else {
                 log.log({ message })
                 // debugger
@@ -558,13 +563,15 @@ class App {
             }
           })
 
-          this.notification?.on('click', (notificationID) => {
+          this.notification?.on('click', async(notificationID) => {
             if (notificationID) {
               //  call onNewEcosDoc for now  until we propose a more generic approach
-              const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                (obj) => obj?.eventId === 'onNotificationClicked',
+              const onNotificationClickedRegisterComponent = this.globalRegister?.find?.(
+                (obj) => obj?.onEvent === 'onNotificationClicked' || obj?.eventId === 'onNotificationClicked',
               )
-              onNewEcosDocRegisterComponent?.onEvent?.(notificationID)
+              if(!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
+                await this.register.registrees?.['onNotificationClicked'](onNotificationClickedRegisterComponent)
+              onNotificationClickedRegisterComponent?.onEvent?.(notificationID)
             }
           })
         } catch (error) {

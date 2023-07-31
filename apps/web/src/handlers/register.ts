@@ -185,7 +185,7 @@ class createRegisters {
           })
       },
       async onNewEcosDoc(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'onNewEcosDoc'
+        componentObject['eventId']= 'onNewEcosDoc'
 
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
@@ -219,7 +219,7 @@ class createRegisters {
         }
       },
       async onNotificationClicked(componentObject: GlobalRegisterComponent) {
-        componentObject.eventId = 'onNotificationClicked'
+        componentObject['eventId']= 'onNotificationClicked'
         
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
@@ -230,7 +230,7 @@ class createRegisters {
           componentObject,
         )) as NuiComponent.Instance
 
-        componentObject.onEvent = async function onNewEcosDoc(notificationID:number) {
+        componentObject.onEvent = async function onNotificationClicked(notificationID:number) {
           try {
             action.dataKey = { var: notificationID }
             await Promise.all(
