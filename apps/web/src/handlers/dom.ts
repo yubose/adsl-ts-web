@@ -4609,6 +4609,7 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         const html = get(app.root, component.get('data-key'))
         const assetsUrl = app.nui.getAssetsUrl() || ""
+        node.setAttribute("class", "w-e-preView")
         const style = `
           <style>
             p {
@@ -4648,7 +4649,7 @@ const createExtendedDOMResolvers = function (app: App) {
               color: #ffffff !important;
             }
 
-            img {
+            .w-e-preView img {
               height: auto !important;
               max-width: 100%;  
             }
