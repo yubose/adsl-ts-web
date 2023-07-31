@@ -1261,7 +1261,7 @@ class App {
             pageName: page.page,
           })
         }
-        page.mounted = false
+        page.mounted = true
       },0)
     }
 
