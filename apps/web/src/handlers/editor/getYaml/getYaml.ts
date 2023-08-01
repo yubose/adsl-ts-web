@@ -420,7 +420,10 @@ const populateBlock = ({
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                         wordWrap: "break-word",
                                         wordBreak: "break-word",
-                                        whiteSpace: "pre-wrap"
+                                        whiteSpace: "pre-wrap",
+                                        textAlign: {
+                                            x: "center"
+                                        }
                                     }
                                 }
                             ]
@@ -455,7 +458,10 @@ const populateBlock = ({
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                         wordWrap: "break-word",
                                         wordBreak: "break-word",
-                                        whiteSpace: "pre-wrap"
+                                        whiteSpace: "pre-wrap",
+                                        textAlign: {
+                                            x: "center"
+                                        }
                                     }
                                 }
                             ]
