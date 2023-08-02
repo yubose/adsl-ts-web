@@ -273,8 +273,8 @@ function getWebpackConfig(env) {
     plugins: [
       new WorkboxPlugin.InjectManifest({
         swSrc: getFilePath('src/firebase-messaging-sw.ts'),
-        // swDest: mode === 'production'? path.resolve(paths.build, 'firebase-messaging-sw.js'):getFilePath('public/firebase-messaging-sw.js'),
-        swDest: getFilePath('firebase-messaging-sw.js'),
+        swDest: mode === 'production'? path.resolve(paths.build, 'firebase-messaging-sw.js'):getFilePath('public/firebase-messaging-sw.js'),
+        // swDest: getFilePath('firebase-messaging-sw.js'),
         maximumFileSizeToCacheInBytes: 500000000,
         mode: 'production',
         manifestTransforms: [
