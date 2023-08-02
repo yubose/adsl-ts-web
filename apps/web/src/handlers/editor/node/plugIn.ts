@@ -33,11 +33,13 @@ function withBlock<T extends IDomEditor>(editor: T) {
     }
 
     newEditor.insertData = data => {
-        if(data.items.length > 0) {
+        if(data.types[0] === "Files") {
             for(let i = 0; i < data.items.length; i++) {
-                const file = data.items[i].getAsFile()
-                if(file && /image\/.*/.test(file.type)) {
-                    insertImage(newEditor, file)
+                if(/image\/.*/.test(data.items[i].type)) {
+                    const file = data.items[i].getAsFile()
+                    file && insertImage(newEditor, file)
+                } else {
+                    insertData(data)
                 }
             }
         } else {
