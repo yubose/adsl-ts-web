@@ -116,7 +116,18 @@ const DataSource = new Map([
     ["Diagnosis", {"Source":"--","Expansion":"Diagnosis, Recommend Diagnoses","isSharp":true}],
     // ["Date", {"Source":"undefined","Expansion":"Today Date, Date selection box","isSharp":true}],
     // ["Time", {"Source":"undefined","Expansion":"Time selection box","isSharp":true}],
-    ["Input Box(Short)", {"Source": "--", "Expansion": "Input Box(Short)","isSharp":false}]
+    ["Input Box(Short)", {"Source": "--", "Expansion": "Input Box(Short)", "isSharp":false}],
+    ["Patient Social security", {"Source": "Appointment lobby ", "Expansion": "Patient Social security #", "isSharp":false}],
+    ["Payer Address", {"Source": "Financial Responsibility", "Expansion": "Admin: Primary Insurance Payer Address;  patient/provider: Medical Insurance > Claims address; Workers Comp > Claims address", "isSharp":false}],
+    ["Date of injury", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Date of injury; Personal Injury > Date of injury", isSharp: false}],
+    ["Attorney name", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Attorney name; Personal Injury > Attorney name", isSharp: false}],
+    ["Payer phone Number", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > adjusters phone #; Personal Injury > attorney phone", isSharp: false}],
+    ["Payers fax Number", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > adjusters fax #; Personal Injury > attorney fax #", isSharp: false}],
+    ["Adjuster name", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Claims Adjuster", isSharp: false}],
+    ["Adjuster phone Number", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Adjuster Phone #", isSharp: false}],
+    ["Employer name", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employer Name", isSharp: false}],
+    ["Employers address", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employers address", isSharp: false}],
+    ["Employers phone", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employers phone #", isSharp: false}],
 ])
 
 export default DataSource
