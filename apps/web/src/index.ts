@@ -254,6 +254,15 @@ window.addEventListener('beforeunload', async (evt) => {
         y: window.scrollY,
       }),
     )
+    const { globalRegister, ...rest } = app.root.Global
+    localStorage.setItem('Global', JSON.stringify(rest))
+    
+    await navigator.serviceWorker.getRegistrations().then(function(sws) {
+      sws.forEach(function(sw) {
+        sw.unregister()
+      })
+    })
+    
   } else {
     await localForage.removeItem(`__last__`)
   }
