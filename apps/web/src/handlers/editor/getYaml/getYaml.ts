@@ -373,6 +373,7 @@ const populateBlock = ({
                 case "atblock":
                     const KEY = formatKey(obj.value.replace('@', ''))
                     BaseJsonCopy.formData[KEY] = ``
+                    // const textAlign = obj
                     if(KEY === "DateOrDateOfService") {
                         target = {
                             type: "view",
@@ -415,16 +416,13 @@ const populateBlock = ({
                                     type: "label",
                                     text: "--",
                                     dataKey: "formData.data." + id,
-                                    style: {
+                                    style: Object.assign(style, {
                                         display: "..formData.atrribute.is_read",
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                         wordWrap: "break-word",
                                         wordBreak: "break-word",
-                                        whiteSpace: "pre-wrap",
-                                        textAlign: {
-                                            x: "center"
-                                        }
-                                    }
+                                        whiteSpace: "pre-wrap"
+                                    })
                                 }
                             ]
                         }
@@ -453,16 +451,13 @@ const populateBlock = ({
                                     type: "label",
                                     text: "--",
                                     dataKey: "formData.data." + KEY,
-                                    style: {
+                                    style: Object.assign(style, {
                                         display: "..formData.atrribute.is_read",
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                         wordWrap: "break-word",
                                         wordBreak: "break-word",
-                                        whiteSpace: "pre-wrap",
-                                        textAlign: {
-                                            x: "center"
-                                        }
-                                    }
+                                        whiteSpace: "pre-wrap"
+                                    })
                                 }
                             ]
                         }
