@@ -5800,6 +5800,19 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] Progress':{
+      cond: 'progressBar',
+      resolve({ node, component }) {
+        const div = document.createElement('div')
+        const progressColor = component.style.progressColor
+        div.id = 'progressLinear'
+        div.style.height = 'inherit'
+        div.style.background = progressColor
+        div.style.width = `0%`
+        div.style.transition = `width .2s linear`
+        node.appendChild(div)
+      }
+    },
   }
 
   return u
