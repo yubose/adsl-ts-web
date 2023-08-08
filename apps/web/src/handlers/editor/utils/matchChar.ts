@@ -230,7 +230,7 @@ export const matchBlock = (html) => {
         })
     })
 
-    const MarkeableImageReg = /<img src="data:image\/[a-zA-Z]*;base64,[A-Za-z0-9+/=]+" alt="[0-9a-zA-Z]+" data-href="(markeable)?" style="width: [0-9]+(.[0-9]+)?px;height: [0-9]+(.[0-9]+)?px;"\/>/g
+    const MarkeableImageReg = /<img src="data:image\/[a-zA-Z]*;base64,[A-Za-z0-9+/=]+" alt="[0-9a-zA-Z]+" data-href="(markeable)?" style="width: [0-9]+(.[0-9]+)?px;height: [0-9]+(.[0-9]+)?px;"(\/)?>/g
     const markeableImagewords = html.match(MarkeableImageReg)
     markeableImagewords && markeableImagewords.forEach(item => {
         const href = item.match(/data-href="(markeable)?"/)[0].replace(/data-href=/, "").replace(/"/g, '')
@@ -238,7 +238,7 @@ export const matchBlock = (html) => {
         if(href === "markeable")
             html = html.replace(item, `
                 <span style="display: inline-block;max-width: 80%;width: ${width}px;">
-                    <span style="color: #F8AE29;margin-bottom: 8px;">(Markeable when using the template)</span><br>
+                    <span style="color: #F8AE29;margin-bottom: 8px;font-size: 14px;font-weight: normal;white-space: nowrap;">(Markeable when using the template)</span><br>
                     ${item}
                 </span>
             `)
