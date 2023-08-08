@@ -5804,8 +5804,9 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'progressBar',
       resolve({ node, component }) {
         const div = document.createElement('div')
+        const viewTag = component.get('viewTag')
         const progressColor = component.style.progressColor
-        div.id = 'progressLinear'
+        div.id = `${viewTag}-progressLinear`
         div.style.height = 'inherit'
         div.style.background = progressColor
         div.style.width = `0%`
