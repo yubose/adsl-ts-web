@@ -1568,6 +1568,20 @@ const createActions = function createActions(app: App) {
     })
   }
 
+  const setProgress: Store.ActionObject['fn'] = async function onSetProgress(
+    action,
+    options,
+  ) {
+    console.log(`[actions] setProgress`)
+    const value = _pick(action, 'value')
+    const progressBarViewTag = _pick(action, 'progressBarViewTag')
+    const labelViewViewTag = _pick(action, 'labelViewViewTag')
+    const labelView = document.querySelector(`[data-viewtag=${labelViewViewTag}]`) as HTMLElement
+    const progressLinear = document.querySelector(`#${progressBarViewTag}-progressLinear`) as HTMLElement
+    labelView.textContent = `${value}`
+    progressLinear.style.width = `${value}%`
+  }
+
   return {
     anonymous,
     emit,
@@ -1588,6 +1602,7 @@ const createActions = function createActions(app: App) {
     updateObject,
     getLocationAddress,
     updateGlobal,
+    setProgress
   }
 }
 

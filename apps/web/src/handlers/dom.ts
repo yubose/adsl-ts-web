@@ -37,7 +37,7 @@ import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import '../../node_modules/flatpickr/dist/themes/material_blue.css'
 import * as c from '../constants'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, wrap } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
 import { editorHtml, styleText } from './editor/editorHtml'
@@ -5804,8 +5804,9 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'progressBar',
       resolve({ node, component }) {
         const div = document.createElement('div')
+        const viewTag = component.get('viewTag')
         const progressColor = component.style.progressColor
-        div.id = 'progressLinear'
+        div.id = `${viewTag}-progressLinear`
         div.style.height = 'inherit'
         div.style.background = progressColor
         div.style.width = `0%`
@@ -5813,6 +5814,218 @@ const createExtendedDOMResolvers = function (app: App) {
         node.appendChild(div)
       }
     },
+    '[App] Dictation': {
+      cond: 'dictation',
+      resolve({ node, component }) {
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+        let pageName = app.currentPage;
+        const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || '';
+
+        const height = node.clientHeight
+
+        const start_button = document.createElement('div')
+        start_button.style.cssText = `
+          width: 100%;
+          height: 100%;
+          border-radius: ${height}px;
+          background: #2988E6;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: #ffffff;
+          font-weight: 600;
+          cursor: pointer;
+        `
+
+        const recording = document.createElement('div')
+        recording.style.cssText = `
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+        `
+
+        const end_button = document.createElement('div')
+        end_button.style.cssText = `
+          width: 60%;
+          height: 100%;
+          border-radius: ${height}px;
+          background: #2988E6;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: #ffffff;
+          font-weight: 600;
+          cursor: pointer;
+        `
+
+        const audio_start = document.createElement('img')
+        audio_start.src = `${assetsUrl}audio_white.svg`
+        const text_start = document.createElement('div')
+        text_start.style.cssText = `margin-left: 10px`
+        text_start.innerText = `Start Conversation`
+
+        start_button.append(audio_start, text_start)
+
+        const audio_end = document.createElement('img')
+        audio_end.src = `${assetsUrl}audio_orange.svg`
+        const text_end = document.createElement('div')
+        text_end.style.cssText = `margin-left: 10px`
+        text_end.innerText = `End`
+
+        end_button.append(audio_end, text_end)
+
+        let status = 'undefined'
+        const audio_status_box = document.createElement('div')
+        audio_status_box.style.cssText = `
+          width: ${height}px;
+          height: ${height}px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: #2988E6;
+          border-radius: 50%;
+        `
+        const audio_status_img = document.createElement('img')
+        audio_status_img.src = `${assetsUrl}audio_pause.svg`
+
+        audio_status_box.appendChild(audio_status_img)
+
+        recording.append(end_button, audio_status_box)
+
+        node.appendChild(start_button)
+
+        const device_is_web = (() => {
+          try {
+            document.createEvent("TouchEvent"); return false;
+          } catch (e) {
+            return true;
+          }
+        })()
+        // let proccess_fun = true
+        const recorder = new Recorder({
+          bitRate: 128
+        })
+
+        let timestamp = Date.now()
+        let audioTime = 0
+        start_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+          timestamp = Date.now()
+          node.removeChild(start_button)
+          node.appendChild(recording)
+          audio_status_img.src = `${assetsUrl}audio_pause.svg`
+          status = 'recording'
+          startRecording()
+          setTimeout(()=> {
+            // @ts-ignore
+            component.get("startRecord")?.execute()
+          })
+        })
+
+        end_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+          node.removeChild(recording)
+          node.appendChild(start_button)
+          audio_status_img.src = `${assetsUrl}audio_pause.svg`
+          if(status === "recording")
+            audioTime += Date.now() - timestamp
+          status = "end"
+          console.log(audioTime/1000)
+          app.updateRoot(draft => {
+            set(draft?.[pageName], component.get("audioTime"), audioTime/1000);
+            audioTime = 0
+          })
+          stopRecording()
+        })
+
+        audio_status_box.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+          if(status === "recording") {
+            audioTime += Date.now() - timestamp
+            audio_status_img.src = `${assetsUrl}audio_resume.svg`
+            status = "pausing"
+            pauseRecording()
+            setTimeout(()=> {
+              // @ts-ignore
+              component.get("pauseRecord")?.execute()
+            })
+          } else if(status === "pausing") {
+            timestamp = Date.now()
+            audio_status_img.src = `${assetsUrl}audio_pause.svg`
+            status = "recording"
+            resumeRecording()
+            setTimeout(()=> {
+              // @ts-ignore
+              component.get("resumeRecord")?.execute()
+            })
+          }
+        })
+
+        let recordData = []
+        function startRecording() {
+          recorder.start().then(() => {
+            
+          }).catch((e) => {
+            console.error(e);
+          });
+        }
+        function stopRecording() {
+          // proccess_fun = true;
+          recorder.stop().getMp3().then(([buffer, blob]) => {
+            recordData = recordData.concat(buffer)
+            const file = new File(recordData, 'audio.mp3', {
+              type: blob.type,
+              lastModified: Date.now()
+            });
+            let data = new FormData();
+            data.append("task", "translate");
+            data.append("audio_file", file, "audio.mp3");
+            let xhr = new XMLHttpRequest();
+            xhr.withCredentials = true;
+            xhr.addEventListener("readystatechange", function () {
+              let val;
+              if (this.readyState === 4) {
+                app.updateRoot(draft => {
+                  try {
+                    val = JSON.parse(this.responseText).text;
+                  } catch {
+                    val = ""
+                  }
+                  set(draft?.[pageName], dataKey, val);
+                  recordData = []
+                  setTimeout(()=> {
+                    // @ts-ignore
+                    component.get("endRecord")?.execute()
+                  })
+                })
+                // const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+                // node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
+              }
+            });
+            xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
+            xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+            xhr.send(data);
+            // img.removeEventListener('click', stopRecording);
+            // img.addEventListener('click', startRecording);
+          }).catch((e) => {
+            console.error(e);
+          });
+        }
+        function pauseRecording() {
+          recorder.stop().getMp3().then(([buffer, blob]) => {
+            recordData = recordData.concat(buffer)
+          })
+        }
+        function resumeRecording() {
+          recorder.start().then(() => {
+            
+          }).catch((e) => {
+            console.error(e);
+          });
+        }
+
+      }
+    }
   }
 
   return u

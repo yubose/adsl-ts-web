@@ -930,14 +930,14 @@ const populateBlock = ({
                     }
                     break
                 default: 
-                    let paddingTop = '0.005'
-                    if(SkipType.has(obj.type)) paddingTop = "0"
+                    // let paddingTop = '0.005'
+                    // if(SkipType.has(obj.type)) paddingTop = "0"
                     target = {
                         type: typeConfig.get(obj.type),
                         style: {
                             width: "..formData.atrribute.noodl_font.fullWidth",
-                            marginTop: "0.005",
-                            paddingTop: paddingTop,
+                            marginTop: "0.01",
+                            // paddingTop: paddingTop,
                             // height: "..formData.atrribute.noodl_font.lineHeight",
                             display: "flex",
                             alignItems: "..formData.atrribute.alignItems",
