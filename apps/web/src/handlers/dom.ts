@@ -5936,10 +5936,6 @@ const createExtendedDOMResolvers = function (app: App) {
             audioTime = 0
           })
           stopRecording()
-          setTimeout(()=> {
-            // @ts-ignore
-            component.get("endRecord")?.execute()
-          })
         })
 
         audio_status_box.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
@@ -5994,9 +5990,12 @@ const createExtendedDOMResolvers = function (app: App) {
                   } catch {
                     val = ""
                   }
-                  console.log(val)
                   set(draft?.[pageName], dataKey, val);
                   recordData = []
+                  setTimeout(()=> {
+                    // @ts-ignore
+                    component.get("endRecord")?.execute()
+                  })
                 })
                 // const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
                 // node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
