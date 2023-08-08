@@ -5908,7 +5908,10 @@ const createExtendedDOMResolvers = function (app: App) {
           bitRate: 128
         })
 
+        let timestamp = Date.now()
+        let audioTime = 0
         start_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+          timestamp = Date.now()
           node.removeChild(start_button)
           node.appendChild(recording)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
@@ -5924,7 +5927,14 @@ const createExtendedDOMResolvers = function (app: App) {
           node.removeChild(recording)
           node.appendChild(start_button)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
+          if(status === "recording")
+            audioTime += Date.now() - timestamp
           status = "end"
+          console.log(audioTime/1000)
+          app.updateRoot(draft => {
+            set(draft?.[pageName], component.get("audioTime"), audioTime/1000);
+            audioTime = 0
+          })
           stopRecording()
           setTimeout(()=> {
             // @ts-ignore
@@ -5934,6 +5944,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         audio_status_box.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
           if(status === "recording") {
+            audioTime += Date.now() - timestamp
             audio_status_img.src = `${assetsUrl}audio_resume.svg`
             status = "pausing"
             pauseRecording()
@@ -5942,6 +5953,7 @@ const createExtendedDOMResolvers = function (app: App) {
               component.get("pauseRecord")?.execute()
             })
           } else if(status === "pausing") {
+            timestamp = Date.now()
             audio_status_img.src = `${assetsUrl}audio_pause.svg`
             status = "recording"
             resumeRecording()
