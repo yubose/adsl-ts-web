@@ -5822,7 +5822,30 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || '';
 
-        const height = node.clientHeight
+        let height = 50
+        let root = document.getElementById("root") as HTMLDivElement
+
+        let timer
+        const calculateHeight = () => {
+          if (node.clientHeight) {
+            root = document.getElementById("root") as HTMLDivElement
+            height = 0.05 * root.clientHeight
+            if (!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(calculateHeight, 0)
+          }
+        }
+        calculateHeight()
+
+        const audio_box = document.createElement('div')
+        audio_box.style.cssText = `
+          width: 50%;
+          height: ${height}px;
+          margin: auto;
+        `
+        node.append(audio_box)
 
         const start_button = document.createElement('div')
         start_button.style.cssText = `
@@ -5895,7 +5918,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         recording.append(end_button, audio_status_box)
 
-        node.appendChild(start_button)
+        audio_box.appendChild(start_button)
 
         const device_is_web = (() => {
           try {
@@ -5913,8 +5936,8 @@ const createExtendedDOMResolvers = function (app: App) {
         let audioTime = 0
         start_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
           timestamp = Date.now()
-          node.removeChild(start_button)
-          node.appendChild(recording)
+          audio_box.removeChild(start_button)
+          audio_box.appendChild(recording)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           status = 'recording'
           startRecording()
@@ -5925,8 +5948,12 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         end_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
-          node.removeChild(recording)
-          node.appendChild(start_button)
+          setTimeout(()=> {
+            // @ts-ignore
+            component.get("finishRecord")?.execute()
+          })
+          audio_box.removeChild(recording)
+          audio_box.appendChild(start_button)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           if(status === "recording")
             audioTime += Date.now() - timestamp
