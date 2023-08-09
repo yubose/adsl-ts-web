@@ -5825,9 +5825,11 @@ const createExtendedDOMResolvers = function (app: App) {
         const height = node.clientHeight
 
         const audio_box = document.createElement('div')
+        const root = document.getElementById("root") as HTMLDivElement
+        console.log("TEST", root)
         audio_box.style.cssText = `
           width: 50%;
-          height: 100%;
+          height: calc(0.05 * ${root.clientHeight}px);
           margin: auto;
         `
         node.append(audio_box)
