@@ -5822,14 +5822,27 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || '';
 
-        const height = node.clientHeight
+        let height = 50
+        let root = document.getElementById("root") as HTMLDivElement
+
+        let timer
+        const calculateHeight = () => {
+          if (node.clientHeight) {
+            root = document.getElementById("root") as HTMLDivElement
+            height = 0.05 * root.clientHeight
+            if (!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(calculateHeight, 0)
+          }
+        }
+        calculateHeight()
 
         const audio_box = document.createElement('div')
-        const root = document.getElementById("root") as HTMLDivElement
-        console.log("TEST", root)
         audio_box.style.cssText = `
           width: 50%;
-          height: calc(0.05 * ${root.clientHeight}px);
+          height: ${height}px;
           margin: auto;
         `
         node.append(audio_box)
