@@ -976,7 +976,6 @@ const populateBlock = ({
             }
         } else {
             if(obj.text === '') return {}
-            console.log(obj.text, style)
             target = {
                 type: "label",
                 text: obj.text,

@@ -1,7 +1,7 @@
 import { IDomEditor, SlateElement, SlateLocation, SlatePoint, SlateRange } from "@wangeditor/editor"
 import { DATA } from "./editorChoiceMap"
 import formatKey from "./format"
-import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
+import { choiceArrayStrReg, textSharpSplitChar, textSharpSplitReg } from "./textSharp"
 
 const toReg = (str: string): string => {
     return str.replace(/[.\\[\]{}()|^$?*+]/g, "\\$&")
@@ -138,11 +138,13 @@ const getUuid = () => {
 }
 
 const getHTMLDataArray = (str: string) => {
-    let dom = document.createElement("div")
-    dom.innerHTML = str
-    const target = dom.childNodes[0] as HTMLElement
-    const dataArray = target.getAttribute("data-array")
-    return dataArray ? dataArray : ""
+    // let dom = document.createElement("div")
+    const arr = str.match(choiceArrayStrReg)
+    return arr ? arr[0] : ""
+    // dom.innerHTML = str
+    // const target = dom.childNodes[0] as HTMLElement
+    // const dataArray = target.getAttribute("data-array")
+    // return dataArray ? dataArray : ""
 }
 
 const Escape = new Map([

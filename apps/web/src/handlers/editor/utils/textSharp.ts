@@ -8,4 +8,5 @@ export const choiceSharpReg = /#[\w *\&]+\|-\|((?!\|-\|).)+\|-\|/
 export const choiceSharpRegStr = `#[\\w *\\&]+\\|\\-\\|((?!\\|\\-\\|).)+\\|\\-\\|`
 export const choiceSharpGetReg = />#[\w *\&]+\|-\|((?!\|-\|).)+\|-\|</g
 export const choiceArrayStr = `\\|\\-\\|(((?!\\|\\-\\|).)*\\|\\-\\|[a-z]*\\|\\-\\|)+`
+export const choiceArrayStrReg = /\|\-\|(((?!\|\-\|).)*\|\-\|[a-z]*\|\-\|)+/g
 export const doubleSplit = /\|-\|\|-\|/
