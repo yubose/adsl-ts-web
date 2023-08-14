@@ -5953,7 +5953,7 @@ const createExtendedDOMResolvers = function (app: App) {
             component.get("finishRecord")?.execute()
           })
           audio_box.removeChild(recording)
-          audio_box.appendChild(start_button)
+          // audio_box.appendChild(start_button)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           if(status === "recording")
             audioTime += Date.now() - timestamp
