@@ -545,24 +545,28 @@ class App {
           onInitNotification && (await onInitNotification?.(this.#notification))
 
           this.notification?.on('message', async(message) => {
-            if (message) {
-              const { data } = message
-              if (data?.did) {
-                //  call onNewEcosDoc for now  until we propose a more generic approach
-                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                )
-                if(onNewEcosDocRegisterComponent){
-                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                    await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                  onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+            const href = window.location.href
+            if(/(aitmed|127.0.0.1|localhost)/i.test(href)){
+              if (message) {
+                const { data } = message
+                if (data?.did) {
+                  //  call onNewEcosDoc for now  until we propose a more generic approach
+                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+                  )
+                  if(onNewEcosDocRegisterComponent){
+                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                    onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                  }
+                  
+                } else {
+                  log.log({ message })
+                  // debugger
                 }
-                
-              } else {
-                log.log({ message })
-                // debugger
               }
             }
+            
           })
 
           this.notification?.on('click', async(notificationID) => {
