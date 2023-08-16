@@ -181,6 +181,7 @@ export {
     insertNode,
     getUuid,
     getHTMLDataArray,
+    Escape,
     reverseEscape,
     editorBlockCss,
     editorBlockSet,
