@@ -3024,7 +3024,7 @@ const createExtendedDOMResolvers = function (app: App) {
         component.on('timer:ref', (timer) => {
           component.on('timer:interval', (value) => {
             app.updateRoot((draft) => {
-              const seconds = get(draft, dataKey, 0)
+              const seconds = get(draft, dataKey) ? get(draft, dataKey) : 0
               set(draft, dataKey, seconds + 1)
               const updatedSecs = get(draft, dataKey)
               if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
