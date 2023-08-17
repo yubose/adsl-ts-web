@@ -186,7 +186,7 @@
   "dependencies": {
     "html5-qrcode": "^2.2.1",
     "noodl-types": "^1.0.267",
-    "noodl-ui": "^0.1.1152",
+    "noodl-ui": "^0.1.1153",
     "sweetalert2": "^11.7.6"
   }
 }
