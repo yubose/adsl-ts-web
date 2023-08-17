@@ -483,6 +483,8 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       this.#initPage = _page.requesting
       _page.mounted = false
+      const { globalRegister, ...rest } = this.root.Global
+      localStorage.setItem('Global', JSON.stringify(rest))
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {
