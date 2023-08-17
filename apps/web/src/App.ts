@@ -483,8 +483,6 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       this.#initPage = _page.requesting
       _page.mounted = false
-      const { globalRegister, ...rest } = this.root.Global
-      localStorage.setItem('Global', JSON.stringify(rest))
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {
@@ -546,7 +544,8 @@ class App {
 
           this.notification?.on('message', async(message) => {
             const href = window.location.href
-            if(/(aitmed|127.0.0.1|localhost)/i.test(href)){
+            const origin = message['origin']
+            if(href.indexOf(origin) !== -1){
               if (message) {
                 const { data } = message
                 if (data?.did) {
