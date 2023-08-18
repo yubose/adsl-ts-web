@@ -416,7 +416,7 @@ const populateBlock = ({
                                     type: "label",
                                     text: "--",
                                     dataKey: "formData.data." + id,
-                                    style: Object.assign(style, {
+                                    style: Object.assign(deepCopy(style), {
                                         display: "..formData.atrribute.is_read",
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                         wordWrap: "break-word",
@@ -451,7 +451,7 @@ const populateBlock = ({
                                     type: "label",
                                     text: "--",
                                     dataKey: "formData.data." + KEY,
-                                    style: Object.assign(style, {
+                                    style: Object.assign(deepCopy(style), {
                                         display: "..formData.atrribute.is_read",
                                         lineHeight: "..formData.atrribute.noodl_font.lineHeight",
                                         wordWrap: "break-word",
@@ -840,7 +840,8 @@ const populateBlock = ({
                             dataKey: 'formData.data.' + obj.alt,
                             style: Object.assign(
                                 {...imageStyle}, 
-                                {maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`}
+                                {maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`},
+                                {pageBreakInside: "avoid"}
                             ),
                             onClick: [
                                 {
@@ -898,7 +899,8 @@ const populateBlock = ({
                             dataKey: 'formData.data.' + obj.alt,
                             style: Object.assign(
                                 {...imageStyle}, 
-                                {maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`}
+                                {maxWidth: `..formData.atrribute.noodl_font.imageMaxWidth`},
+                                {pageBreakInside: "avoid"}
                             ),
                             onClick: [
                                 {

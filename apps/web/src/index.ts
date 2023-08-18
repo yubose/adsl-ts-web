@@ -153,6 +153,12 @@ window.addEventListener('load', async (e) => {
   }
 
   try {
+    await navigator.serviceWorker.getRegistrations().then(function(sws) {
+      sws.forEach(function(sw) {
+        sw.unregister()
+      })
+    })
+
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO
     window.ac = []
@@ -254,14 +260,6 @@ window.addEventListener('beforeunload', async (evt) => {
         y: window.scrollY,
       }),
     )
-    const { globalRegister, ...rest } = app.root.Global
-    localStorage.setItem('Global', JSON.stringify(rest))
-    
-    await navigator.serviceWorker.getRegistrations().then(function(sws) {
-      sws.forEach(function(sw) {
-        sw.unregister()
-      })
-    })
     
   } else {
     await localForage.removeItem(`__last__`)

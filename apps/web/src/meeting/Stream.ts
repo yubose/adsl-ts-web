@@ -450,7 +450,7 @@ class MeetingStream {
         }else if(track.kind === 'video'){
           cameraOn ? track?.['enable']?.() : track?.['disable']?.()
           if(attachee){
-            cameraOn? attachee.style.display = 'block':attachee.style.display = 'none'
+            (cameraOn || track.isEnabled) ? attachee.style.display = 'block':attachee.style.display = 'none'
           }
           
         }

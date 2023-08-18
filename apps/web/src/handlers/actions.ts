@@ -1578,7 +1578,7 @@ const createActions = function createActions(app: App) {
     const labelViewViewTag = _pick(action, 'labelViewViewTag')
     const labelView = document.querySelector(`[data-viewtag=${labelViewViewTag}]`) as HTMLElement
     const progressLinear = document.querySelector(`#${progressBarViewTag}-progressLinear`) as HTMLElement
-    labelView.textContent = `${value}`
+    labelView.textContent = `${value}%`
     progressLinear.style.width = `${value}%`
   }
 

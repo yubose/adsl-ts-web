@@ -521,9 +521,10 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             {
                                                 type: "image",
                                                 style: {
-                                                    display: "block",
+                                                    // display: "block",
                                                     width: "..formData.atrribute.noodl_font.choice.checkbox.width",
-                                                    height: "calc(100%)",
+                                                    // height: "..formData.atrribute.noodl_font.choice.checkbox.width",
+                                                    // height: "calc(100%)",
                                                     marginTop: "0.005"
                                                 },
                                                 path: {
@@ -633,6 +634,7 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                 type: "image",
                                                 style: {
                                                     width: "..formData.atrribute.noodl_font.choice.checkbox.width",
+                                                    // height: "..formData.atrribute.noodl_font.choice.checkbox.width",
                                                     marginTop: "0.002"
                                                 },
                                                 path: {

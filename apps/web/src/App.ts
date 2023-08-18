@@ -483,8 +483,6 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       this.#initPage = _page.requesting
       _page.mounted = false
-      const { globalRegister, ...rest } = this.root.Global
-      localStorage.setItem('Global', JSON.stringify(rest))
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {
@@ -545,24 +543,29 @@ class App {
           onInitNotification && (await onInitNotification?.(this.#notification))
 
           this.notification?.on('message', async(message) => {
-            if (message) {
-              const { data } = message
-              if (data?.did) {
-                //  call onNewEcosDoc for now  until we propose a more generic approach
-                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                )
-                if(onNewEcosDocRegisterComponent){
-                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                    await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                  onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+            const href = window.location.href
+            const origin = message['origin']
+            if(href.indexOf(origin) !== -1){
+              if (message) {
+                const { data } = message
+                if (data?.did) {
+                  //  call onNewEcosDoc for now  until we propose a more generic approach
+                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+                  )
+                  if(onNewEcosDocRegisterComponent){
+                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                    onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                  }
+                  
+                } else {
+                  log.log({ message })
+                  // debugger
                 }
-                
-              } else {
-                log.log({ message })
-                // debugger
               }
             }
+            
           })
 
           this.notification?.on('click', async(notificationID) => {

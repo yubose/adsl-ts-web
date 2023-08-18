@@ -3050,7 +3050,7 @@ const createExtendedDOMResolvers = function (app: App) {
         component.on('timer:ref', (timer) => {
           component.on('timer:interval', (value) => {
             app.updateRoot((draft) => {
-              const seconds = get(draft, dataKey, 0)
+              const seconds = get(draft, dataKey) ? get(draft, dataKey) : 0
               set(draft, dataKey, seconds + 1)
               const updatedSecs = get(draft, dataKey)
               if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
@@ -3937,8 +3937,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   if (c.pageName === currentPage) {
                     isExtend = true
                   }
-                  if (c.childList instanceof Array) {
-                    c.childList.forEach((item) => {
+                  if (c.children instanceof Array) {
+                    c.children.forEach((item) => {
                       childMap.set(item, c.pageName + '|' + child.pageName)
                     })
                   }
@@ -3949,8 +3949,25 @@ const createExtendedDOMResolvers = function (app: App) {
                     level: c.level,
                     background: c.backgroundColor.replace('0x', '#'),
                     hasChildren: false,
+                    withDot: c.childList instanceof Array
                   })
                   extendMap.set(c.pageName, child.pageName)
+                  if(c.childList instanceof Array) {
+                    c.childList.forEach(list => {
+                      if (list.pageName === currentPage) {
+                        isExtend = true
+                      }
+                      children.push({
+                        isIcon: false,
+                        title: list.title,
+                        pageName: list.pageName,
+                        level: list.level,
+                        background: list.backgroundColor.replace('0x', '#'),
+                        hasChildren: false,
+                        hasDot: true
+                      })
+                    })
+                  }
                 }
                 hasChildren = true
               }
@@ -4013,6 +4030,8 @@ const createExtendedDOMResolvers = function (app: App) {
             background?: string
             isExtend?: boolean
             children?: Array<LIOpts>
+            hasDot?: boolean
+            withDot?: boolean
           }
 
           class ul {
@@ -4042,7 +4061,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 opts,
               ).dom
               // if(opts.level === 2)
-              if (!opts.hasChildren) divDom.id = `_${opts.pageName}_`
+              if (!opts.hasChildren && !opts.withDot) divDom.id = `_${opts.pageName}_`
               this.dom.appendChild(divDom)
               if (opts.hasChildren) {
                 let level2UlCss = {}
@@ -4117,7 +4136,13 @@ const createExtendedDOMResolvers = function (app: App) {
                   )
                 }
                 let label = document.createElement('div')
-                label.innerHTML = opts.title as string
+                label.innerHTML = 
+                  opts.hasDot ? 
+                  `<svg style='margin-right: 5px;' xmlns="http://www.w3.org/2000/svg" width="5" height="5" viewBox="0 0 5 5">
+                    <circle id="椭圆_1105" data-name="椭圆 1105" cx="2.5" cy="2.5" r="2.5" fill="#fff"/>
+                  </svg>
+                  ${opts.title}` : 
+                  opts.title as string
                 label.style.cssText = toStr(title1Css)
                 label.setAttribute('title-value', `${opts.pageName}`)
                 this.dom.appendChild(label)
@@ -5848,12 +5873,27 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || '';
 
-        const height = node.clientHeight
+        let height = 50
+        let root = document.getElementById("root") as HTMLDivElement
+
+        let timer
+        const calculateHeight = () => {
+          if (node.clientHeight) {
+            root = document.getElementById("root") as HTMLDivElement
+            height = 0.05 * root.clientHeight
+            if (!timer) {
+              clearTimeout(timer)
+            }
+          } else {
+            timer = setTimeout(calculateHeight, 0)
+          }
+        }
+        calculateHeight()
 
         const audio_box = document.createElement('div')
         audio_box.style.cssText = `
           width: 50%;
-          height: 100%;
+          height: ${height}px;
           margin: auto;
         `
         node.append(audio_box)
@@ -5964,7 +6004,7 @@ const createExtendedDOMResolvers = function (app: App) {
             component.get("finishRecord")?.execute()
           })
           audio_box.removeChild(recording)
-          audio_box.appendChild(start_button)
+          // audio_box.appendChild(start_button)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           if(status === "recording")
             audioTime += Date.now() - timestamp
