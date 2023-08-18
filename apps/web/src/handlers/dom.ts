@@ -2835,6 +2835,32 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] strictNumber textField': {
+      cond: 'textField',
+      resolve({ node, component }) {
+        if (component.contentType === 'strictNumber') {
+
+          const dataKey =
+          component.get('data-key') || component.blueprint?.dataKey || '';
+          let pageName = app.currentPage
+
+          node.addEventListener('input', function(event) {
+            const inputValue = event.target.value;
+
+            // 使用正则表达式匹配非数字字符
+            const numericOnly = inputValue.replace(/\D/g, '');
+        
+            // 更新输入框的值为仅包含数字的字符串
+            event.target.value = numericOnly;
+            // 将光标位置设置为文本的长度
+            app.updateRoot((draft) => {
+              set(draft?.[pageName], dataKey, numericOnly)
+            })
+        });
+        
+        } 
+      }
+    },
     '[App] strictLength textField': {
       cond: 'textField',
       resolve({ node, component }) {
@@ -2905,7 +2931,7 @@ const createExtendedDOMResolvers = function (app: App) {
             attributeFilter: ['style']
           })
 
-        } else {
+        } else if(component.contentType!=='strictNumber') {
           const contentType = component?.contentType || ''
           // Default === 'text'
           node.setAttribute(
