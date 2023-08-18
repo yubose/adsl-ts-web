@@ -544,8 +544,7 @@ class App {
 
           this.notification?.on('message', async(message) => {
             const href = window.location.href
-            const origin = message['origin']
-            if(href.indexOf(origin) !== -1){
+            if(/(aitmed|127.0.0.1|localhost)/i.test(href)){
               if (message) {
                 const { data } = message
                 if (data?.did) {
