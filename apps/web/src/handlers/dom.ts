@@ -2821,7 +2821,7 @@ const createExtendedDOMResolvers = function (app: App) {
               clearTimeout(timer)
             })
           }
-        } else {
+        } else if(component.contentType!=='strictNumber'){
           const contentType = component?.contentType || ''
           // Default === 'text'
           node.setAttribute(
