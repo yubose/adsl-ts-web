@@ -579,7 +579,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       let id = ''
       let isSamePage = false
       let duration = 350
-
+      if (_pick(action, 'blank') && _pick(action, 'goto')) {
+        app.disableSpinner()
+        options?.ref?.abort() as any
+        let a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = _pick(action, 'goto')
+        a.target = '_blank'
+        a.click()
+        a = null as any
+        return
+      }
+      
       if (u.isStr(action)) {
         destinationParam = action
       } else if (isAction(action)) {
@@ -614,17 +625,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'dataIn' in action && _pick(action, 'dataIn')
         }
       }
-      if (_pick(action, 'blank') && _pick(action, 'goto')) {
-        app.disableSpinner()
-        options?.ref?.abort() as any
-        let a = document.createElement('a')
-        a.style.display = 'none'
-        a.href = _pick(action, 'goto')
-        a.target = '_blank'
-        a.click()
-        a = null as any
-        return
-      }
+      
       // @ts-expect-error
       destProps = app.parse.destination(
         is.pageComponentUrl(destinationParam)
