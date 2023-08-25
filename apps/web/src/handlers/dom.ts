@@ -5330,43 +5330,103 @@ const createExtendedDOMResolvers = function (app: App) {
               console.error(e);
             });
           }
+          // function stopRecording() {
+          //   img.removeEventListener('click', stopRecording);
+          //   proccess_fun = true;
+          //   recorder.stop().getMp3().then(([buffer, blob]) => {
+          //     const file = new File(buffer, 'audio.mp3', {
+          //       type: blob.type,
+          //       lastModified: Date.now()
+          //     });
+          //     img.src = `${assetsUrl}audio_start.svg`;
+          //     let data = new FormData();
+          //     data.append("task", "translate");
+          //     data.append("audio_file", file, "audio.mp3");
+          //     let xhr = new XMLHttpRequest();
+          //     xhr.withCredentials = true;
+          //     xhr.addEventListener("readystatechange", function () {
+          //       let val;
+          //       if (this.readyState === 4) {
+          //         app.updateRoot(draft => {
+          //           try {
+          //             val = JSON.parse(this.responseText).text;
+          //           } catch {
+          //             val = ""
+          //           }
+          //           set(draft?.[pageName], dataKey, val);
+          //         })
+          //         const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+          //         node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
+          //       }
+          //     });
+          //     xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
+          //     xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+          //     xhr.send(data);
+          //     img.removeEventListener('click', stopRecording);
+          //     img.addEventListener('click', startRecording);
+          //   }).catch((e) => {
+          //     console.error(e);
+          //   });
+          // }
           function stopRecording() {
             img.removeEventListener('click', stopRecording);
             proccess_fun = true;
-            recorder.stop().getMp3().then(([buffer, blob]) => {
-              const file = new File(buffer, 'audio.mp3', {
-                type: blob.type,
-                lastModified: Date.now()
-              });
+            recorder.stop().getMp3().then(async ([buffer, blob]) => {
+              // console.log(recorder,recorder.stop())
+              // const file = new File(buffer, 'audio.mp3', {
+              //   type: blob.type,
+              //   lastModified: Date.now()
+              // });
+              // const audi = document.createElement("audio");
+              // audi.src = URL.createObjectURL(file);
+              // document.body.append(audi)
               img.src = `${assetsUrl}audio_start.svg`;
-              let data = new FormData();
-              data.append("task", "translate");
-              data.append("audio_file", file, "audio.mp3");
-              let xhr = new XMLHttpRequest();
-              xhr.withCredentials = true;
-              xhr.addEventListener("readystatechange", function () {
-                let val;
-                if (this.readyState === 4) {
-                  app.updateRoot(draft => {
-                    try {
-                      val = JSON.parse(this.responseText).text;
-                    } catch {
-                      val = ""
+              // const data_i = await fetch("ihaveadream.mp3").then(res=>res.blob());
+              // const data_i = await fetch("122.mp3").then(res=>res.arrayBuffer());
+              const chun_size_sample_rates = 16000*20; 
+              const chunks:Blob[] = [];
+              // let audio_e = new Audio(URL.createObjectURL(file))
+              // audio_e.addEventListener("loadeddata",(e)=>{
+              //   console.log(audio_e.duration,"mmmmmm")
+              //   console.log(blob)
+
+              // })
+
+              for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
+                const chunk = blob.slice(i, i + chun_size_sample_rates);
+                chunks.push(chunk);
+              }
+              console.log(chunks)
+              const chunks_map = chunks.map((v)=>new Promise((res,rej)=>{
+                  let xhr = new XMLHttpRequest();
+                  xhr.withCredentials = true;
+                  xhr.addEventListener("readystatechange", function () {
+                    if (this.readyState === 4) {
+                      res(JSON.parse(this.response))
                     }
-                    set(draft?.[pageName], dataKey, val);
-                  })
+                  });
+                    // xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "http://8.140.148.116:9000/asr");
+                    // xhr.open("POST", "http://8.140.148.116:9000/asr");
+                    xhr.open("POST", "http://ecosapip1.aitmed.us:9004/asr?task=translate&language=en");
+                    xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+                    let data = new FormData();
+                    data.append("task", "translate");
+                    data.append("audio_file", v, "audio.mp3");
+                    xhr.send(data);
+                })
+              )
+             const val = (await Promise.all(chunks_map)).map(v =>(v?.text as string).replace(/\n/g, "")).join('');
+             app.updateRoot(draft => {
+              set(draft?.[pageName], dataKey, val);
                   const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
                   node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
-                }
-              });
-              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
-              xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
-              xhr.send(data);
+            })
               img.removeEventListener('click', stopRecording);
               img.addEventListener('click', startRecording);
             }).catch((e) => {
               console.error(e);
             });
+          
           }
           const appendEle = (e) => {
             node.parentNode?.appendChild(img);
