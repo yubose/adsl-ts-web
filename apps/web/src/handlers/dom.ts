@@ -5396,7 +5396,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 const chunk = blob.slice(i, i + chun_size_sample_rates);
                 chunks.push(chunk);
               }
-              console.log(chunks)
               const chunks_map = chunks.map((v)=>new Promise((res,rej)=>{
                   let xhr = new XMLHttpRequest();
                   xhr.withCredentials = true;
