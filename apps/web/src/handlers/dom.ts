@@ -5404,9 +5404,9 @@ const createExtendedDOMResolvers = function (app: App) {
                       res(JSON.parse(this.response))
                     }
                   });
-                    // xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "http://8.140.148.116:9000/asr");
+                    xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "http://ecosapip1.aitmed.us:9004/asr?task=translate&language=en");
                     // xhr.open("POST", "http://8.140.148.116:9000/asr");
-                    xhr.open("POST", "http://ecosapip1.aitmed.us:9004/asr?task=translate&language=en");
+                    // xhr.open("POST", "http://ecosapip1.aitmed.us:9004/asr?task=translate&language=en");
                     xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
                     let data = new FormData();
                     data.append("task", "translate");
