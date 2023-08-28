@@ -6057,11 +6057,36 @@ const createExtendedDOMResolvers = function (app: App) {
           })
         })
 
-        end_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+        const isInterrupt = component.get("isInterrupt")
+        const arr = isInterrupt.split('.')
+        const key = arr.pop()
+        let target = app.root?.[pageName]
+        arr.forEach(str => {
+          target = target?.[str]
+        })
+        let t = target[key]
+        Object.defineProperty(target, key, {
+          get: function reactiveGetter() {
+            return t
+          },
+          set: function reactiveSetter(v) {
+            console.log("newVal", v)
+            t = v
+            if(!t) {
+              translate()
+            }
+          }
+        })
+        const translate = () => {
           setTimeout(()=> {
             // @ts-ignore
             component.get("finishRecord")?.execute()
           })
+          stopRecording()
+        }
+
+        end_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+          
           audio_box.removeChild(recording)
           // audio_box.appendChild(start_button)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
@@ -6069,11 +6094,14 @@ const createExtendedDOMResolvers = function (app: App) {
             audioTime += Date.now() - timestamp
           status = "end"
           console.log(audioTime/1000)
-          app.updateRoot(draft => {
-            set(draft?.[pageName], component.get("audioTime"), audioTime/1000);
-            audioTime = 0
-          })
-          stopRecording()
+          if(audioTime/1000 < 20){
+            // @ts-ignore
+            component.get("beforeFinish")?.execute()
+            pauseRecording()
+          } else {
+            translate()
+          }
+          
         })
 
         audio_status_box.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
@@ -6108,40 +6136,58 @@ const createExtendedDOMResolvers = function (app: App) {
         }
         function stopRecording() {
           // proccess_fun = true;
-          recorder.stop().getMp3().then(([buffer, blob]) => {
-            recordData = recordData.concat(buffer)
-            const file = new File(recordData, 'audio.mp3', {
-              type: blob.type,
-              lastModified: Date.now()
-            });
-            let data = new FormData();
-            data.append("task", "translate");
-            data.append("audio_file", file, "audio.mp3");
-            let xhr = new XMLHttpRequest();
-            xhr.withCredentials = true;
-            xhr.addEventListener("readystatechange", function () {
-              let val;
-              if (this.readyState === 4) {
-                app.updateRoot(draft => {
-                  try {
-                    val = JSON.parse(this.responseText).text;
-                  } catch {
-                    val = ""
-                  }
-                  set(draft?.[pageName], dataKey, val);
+          recorder.stop().getMp3().then(async ([buffer, blob]) => {
+            let val;
+            try {
+              recordData = recordData.concat(buffer)
+              const file = new File(recordData, 'audio.mp3', {
+                type: blob.type,
+                lastModified: Date.now()
+              })
+              const base64 = await store.level2SDK.utilServices.blobToBase64(file)
+              const BlobFile = await store.level2SDK.utilServices.base64ToBlob(base64, blob.type)
+              console.log(base64, BlobFile)
+              app.updateRoot(draft => {
+                set(
+                  draft?.[pageName],
+                  component.get("audioFile"), 
+                  BlobFile
+                )
+              })
+              let data = new FormData();
+              data.append("task", "translate");
+              data.append("audio_file", file, "audio.mp3");
+              let xhr = new XMLHttpRequest();
+              xhr.withCredentials = true;
+              xhr.addEventListener("readystatechange", function () {
+                if (this.readyState === 4) {
+                  val = JSON.parse(this.responseText).text;
+                  app.updateRoot(draft => {
+                    set(draft?.[pageName], dataKey, val);
+                  })
                   recordData = []
                   setTimeout(()=> {
                     // @ts-ignore
                     component.get("endRecord")?.execute()
                   })
-                })
-                // const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
-                // node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
-              }
-            });
-            xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
-            xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
-            xhr.send(data);
+                  // const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
+                  // node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
+                }
+              });
+              xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
+              xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
+              xhr.send(data);
+            } catch (error) {
+              val = ""
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey, val);
+              })
+              recordData = []
+              setTimeout(()=> {
+                // @ts-ignore
+                component.get("errorRecord")?.execute()
+              })
+            }
             // img.removeEventListener('click', stopRecording);
             // img.addEventListener('click', startRecording);
           }).catch((e) => {
