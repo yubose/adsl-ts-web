@@ -6227,6 +6227,10 @@ const createExtendedDOMResolvers = function (app: App) {
           });
         }
 
+        app.mainPage.once(eventId.page.on.ON_DOM_CLEANUP, () => {
+          recorder.stop()
+        })
+
       }
     }
   }
