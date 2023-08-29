@@ -6037,6 +6037,7 @@ const createExtendedDOMResolvers = function (app: App) {
             return true;
           }
         })()
+
         // let proccess_fun = true
         const recorder = new Recorder({
           bitRate: 128
@@ -6126,7 +6127,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         })
 
-        let recordData = []
+        let recordData = new Array<Int8Array>()
         function startRecording() {
           recorder.start().then(() => {
             
@@ -6135,25 +6136,27 @@ const createExtendedDOMResolvers = function (app: App) {
           });
         }
         function stopRecording() {
-          // proccess_fun = true;
-          recorder.stop().getMp3().then(async ([buffer, blob]) => {
-            let val;
-            try {
+          let val;
+          try {
+            recorder.stop().getMp3().then(async ([buffer, blob]) => {
               recordData = recordData.concat(buffer)
               const file = new File(recordData, 'audio.mp3', {
                 type: blob.type,
                 lastModified: Date.now()
               })
-              const base64 = await store.level2SDK.utilServices.blobToBase64(file)
-              const BlobFile = await store.level2SDK.utilServices.base64ToBlob(base64, blob.type)
-              console.log(base64, BlobFile)
-              app.updateRoot(draft => {
-                set(
-                  draft?.[pageName],
-                  component.get("audioFile"), 
-                  BlobFile
-                )
+              let length = 0
+              recordData.forEach(record => {
+                length += record.byteLength
               })
+              const blobArray = new Int8Array(length)
+              recordData.forEach((record, index) => {
+                blobArray.set(record, index > 0 ? recordData[index-1].byteLength : 0)
+              })
+              const blobFile = new Blob([blobArray], { type: blob.type })
+              app.updateRoot(draft => {
+                set(draft?.[pageName], component.get("audioFile"), blobFile);
+              })
+              
               let data = new FormData();
               data.append("task", "translate");
               data.append("audio_file", file, "audio.mp3");
@@ -6177,22 +6180,21 @@ const createExtendedDOMResolvers = function (app: App) {
               xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
               xhr.send(data);
-            } catch (error) {
-              val = ""
-              app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey, val);
-              })
-              recordData = []
-              setTimeout(()=> {
-                // @ts-ignore
-                component.get("errorRecord")?.execute()
-              })
-            }
-            // img.removeEventListener('click', stopRecording);
-            // img.addEventListener('click', startRecording);
-          }).catch((e) => {
-            console.error(e);
-          });
+            
+              // img.removeEventListener('click', stopRecording);
+              // img.addEventListener('click', startRecording);
+            })
+          } catch (error) {
+            val = ""
+            app.updateRoot(draft => {
+              set(draft?.[pageName], dataKey, val);
+            })
+            recordData = []
+            setTimeout(()=> {
+              // @ts-ignore
+              component.get("errorRecord")?.execute()
+            })
+          }
         }
         function pauseRecording() {
           recorder.stop().getMp3().then(([buffer, blob]) => {
