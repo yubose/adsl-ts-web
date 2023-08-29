@@ -6059,25 +6059,28 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         const isInterrupt = component.get("isInterrupt")
-        const arr = isInterrupt.split('.')
-        const key = arr.pop()
-        let target = app.root?.[pageName]
-        arr.forEach(str => {
-          target = target?.[str]
-        })
-        let t = target[key]
-        Object.defineProperty(target, key, {
-          get: function reactiveGetter() {
-            return t
-          },
-          set: function reactiveSetter(v) {
-            console.log("newVal", v)
-            t = v
-            if(!t) {
-              translate()
+        if(isInterrupt && isInterrupt !== "") {
+          const arr = isInterrupt.split('.')
+          const key = arr.pop()
+          let target = app.root?.[pageName]
+          arr.forEach(str => {
+            target = target?.[str]
+          })
+          let t = target[key]
+          Object.defineProperty(target, key, {
+            get: function reactiveGetter() {
+              return t
+            },
+            set: function reactiveSetter(v) {
+              console.log("newVal", v)
+              t = v
+              if(t === "false") {
+                translate()
+              }
             }
-          }
-        })
+          })
+        }
+        
         const translate = () => {
           setTimeout(()=> {
             // @ts-ignore
@@ -6095,14 +6098,17 @@ const createExtendedDOMResolvers = function (app: App) {
             audioTime += Date.now() - timestamp
           status = "end"
           console.log(audioTime/1000)
-          if(audioTime/1000 < 20){
-            // @ts-ignore
-            component.get("beforeFinish")?.execute()
-            pauseRecording()
+          if(component.get("beforeFinish")) {
+            if(audioTime/1000 < 20){
+              // @ts-ignore
+              component.get("beforeFinish")?.execute()
+              pauseRecording()
+            } else {
+              translate()
+            }
           } else {
             translate()
           }
-          
         })
 
         audio_status_box.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
@@ -6177,12 +6183,24 @@ const createExtendedDOMResolvers = function (app: App) {
                   // node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
                 }
               });
+              xhr.addEventListener("error", () => {
+                val = ""
+                app.updateRoot(draft => {
+                  set(draft?.[pageName], dataKey, val);
+                })
+                recordData = []
+                setTimeout(()=> {
+                  // @ts-ignore
+                  component.get("errorRecord")?.execute()
+                })
+              })
               xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
               xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
               xhr.send(data);
             
               // img.removeEventListener('click', stopRecording);
               // img.addEventListener('click', startRecording);
+            
             })
           } catch (error) {
             val = ""
