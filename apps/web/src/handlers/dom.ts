@@ -3665,6 +3665,7 @@ const createExtendedDOMResolvers = function (app: App) {
               // textContent.innerHTML = Msg.message.info
               textContent.innerHTML = messageInfo
               textContent.style.cssText = `
+                max-width: 100%;
                 width: fit-content;
                 border-radius: 8px;
                 line-height: 21px;
@@ -3742,8 +3743,12 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 
           private createChatNodeAvatar(isOwner: boolean, Msg: any): HTMLElement {
+            let data = Msg.name.data
+            if (typeof data == 'string') {
+              data = JSON.parse(data)
+            }
             let domNodeAvatar = document.createElement('img')
-            const avatarId = Msg.name.data?.avatar
+            const avatarId = data?.avatar
             // console.log("AVATAR", avatarId)
             domNodeAvatar.src = `${assetsUrl}patientImage.svg`
             if(avatarId) {
