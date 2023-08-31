@@ -3591,6 +3591,7 @@ const createExtendedDOMResolvers = function (app: App) {
           private pdfCss: PdfCss
           private boxCss: BoxCss
           constructor(dataSource: Array<any>) {
+            // dataSource = removeRepeat(dataSource)
             this.dataSource = dataSource
             this.chatBox = document.createElement('div')
             this.pdfCss = {
@@ -3611,11 +3612,10 @@ const createExtendedDOMResolvers = function (app: App) {
 
           private setBox() {
             this.chatBox.style.cssText = `
-              position: absolute;
+              position: relative;
               width: ${this.boxCss.width};
               height: ${this.boxCss.height};
               overflow: auto;
-              background-color: #f2f2f2;
             `
           }
 
@@ -3643,6 +3643,7 @@ const createExtendedDOMResolvers = function (app: App) {
               ;[domNode, domNodeContent, chatBackground, color] = this.judgeIsOwner(
                 domNode,
                 this.IsOwner(Msg.bsig),
+                Msg,
               )
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
@@ -3665,7 +3666,8 @@ const createExtendedDOMResolvers = function (app: App) {
               textContent.innerHTML = messageInfo
               textContent.style.cssText = `
                 width: fit-content;
-                border-radius: 10px;
+                border-radius: 8px;
+                line-height: 21px;
                 padding: 8px 15px 6px 12px;
                 background-color: ${chatBackground};
                 color: ${color};
@@ -3684,6 +3686,7 @@ const createExtendedDOMResolvers = function (app: App) {
               ;[domNode, domNodeContent] = this.judgeIsOwner(
                 domNode,
                 this.IsOwner(Msg.bsig),
+                Msg
               )
             let pdfInfo = this.judgePdfIsOwner(
               domNodeContent,
@@ -3706,7 +3709,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 domNode = this.createPdfNode(Msg)
                 return domNode
               default:
-                return new HTMLElement()
+                return document.createElement("div")
             }
           }
 
@@ -3738,9 +3741,17 @@ const createExtendedDOMResolvers = function (app: App) {
             return domNodeContent
           }
 
-          private createChatNodeAvatar(isOwner: boolean): HTMLElement {
+          private createChatNodeAvatar(isOwner: boolean, Msg: any): HTMLElement {
             let domNodeAvatar = document.createElement('img')
+            const avatarId = Msg.name.data?.avatar
+            // console.log("AVATAR", avatarId)
             domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            if(avatarId) {
+              app.root.builtIn.utils.prepareDocToPath(avatarId).then((value) => {
+                domNodeAvatar.setAttribute("src", value.url)
+              })
+            }
+            
             let ML = ''
             let MR = ''
             if(isOwner) {
@@ -3767,9 +3778,10 @@ const createExtendedDOMResolvers = function (app: App) {
           private judgeIsOwner(
             domNode: HTMLElement,
             isOwner: boolean,
+            Msg: any,
           ): [HTMLElement, HTMLElement, string, string] {
             let domNodeContent = this.createChatNodeContent(isOwner)
-            let domNodeAvatar = this.createChatNodeAvatar(isOwner)
+            let domNodeAvatar = this.createChatNodeAvatar(isOwner, Msg)
             let chatBackground = '#FFFFFF'
             let color = '#000000'
             if (isOwner) {
@@ -3834,9 +3846,10 @@ const createExtendedDOMResolvers = function (app: App) {
         const scrollH = component.get('data-value') || '' || 'dataKey'
         const liveChatObject = new liveChat(component.get('listObject'))
         let liveChatBox = liveChatObject.dom()
-        node.innerHTML = liveChatBox.innerHTML
+        node.innerHTML = ""
+        node.append(liveChatBox)
+        // node.innerHTML = liveChatBox.innerHTML
         node.setAttribute("class", "scroll-view")
-        // node.appendChild(liveChatBox)
         setTimeout(() => {
           node.scrollTop =
             scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
