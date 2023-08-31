@@ -3573,6 +3573,8 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
+
+        const assetsUrl = app.nui.getAssetsUrl() || ""
         interface PdfCss {
           pdfContentWidth: number
           pdfContentHeight: number
@@ -3621,35 +3623,58 @@ const createExtendedDOMResolvers = function (app: App) {
             return this.chatBox
           }
 
+          private caculateTime(timestamp: number) {
+            const date = new Date(timestamp*1000)
+            const time = ''
+            let hour: string|number = date.getHours()
+            let minute: string|number = date.getMinutes()
+            const AP = hour > 12 ? "PM" : "AM"
+            hour = hour > 12 ? `${hour - 12}` : `${hour}`
+            minute = minute < 10 ? `0${minute}` : `${minute}`
+            return `${hour}:${minute} ${AP}`
+          }
+
           private createTextNode(Msg: any): HTMLElement {
+            
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
             let chatBackground: string
-              ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+            let color: string
+              ;[domNode, domNodeContent, chatBackground, color] = this.judgeIsOwner(
                 domNode,
                 this.IsOwner(Msg.bsig),
               )
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
-            let data = Msg.name.data
-            if (typeof data == 'string') {
-              data = JSON.parse(data)
-            }
-            let messageInfo = data.text.replace(urlRegex, (url) => {
-              return `<a href = "${url}">${url}</a>`
-            })
-            let textContent = document.createElement('div')
-            // textContent.innerHTML = Msg.message.info
-            textContent.innerHTML = messageInfo
-            textContent.style.cssText = `
-                margin-top: 10px;
+            try {
+              let data = Msg.name.data
+              if (typeof data == 'string') {
+                data = JSON.parse(data)
+              }
+              let messageInfo = data.text.replace(urlRegex, (url) => {
+                return `<a href = "${url}">${url}</a>`
+              })
+              let timeContent = document.createElement("div")
+              timeContent.innerText = this.caculateTime(Msg.ctime)
+              timeContent.style.cssText = `
+                color: #999999;
+              `
+              let textContent = document.createElement('div')
+              // textContent.innerHTML = Msg.message.info
+              textContent.innerHTML = messageInfo
+              textContent.style.cssText = `
+                width: fit-content;
                 border-radius: 10px;
-                padding: 5px 7.5px 5px 7.5px;
+                padding: 8px 15px 6px 12px;
                 background-color: ${chatBackground};
+                color: ${color};
                 word-wrap: break-word;
-            `
-            domNodeContent.appendChild(textContent)
+              `
+              domNodeContent.append(timeContent, textContent)
+            } catch (error) {
+              
+            }
             return domNode
           }
 
@@ -3696,24 +3721,40 @@ const createExtendedDOMResolvers = function (app: App) {
             return domNode
           }
 
-          private createChatNodeContent(): HTMLElement {
+          private createChatNodeContent(isOwner: boolean): HTMLElement {
             let domNodeContent = document.createElement('div')
             domNodeContent.style.cssText = `
                 max-width: 60%;
                 width: auto;
                 height: auto;
             `
+            if(isOwner) {
+              domNodeContent.style.cssText += `
+                display: flex;
+                flex-direction: column;
+                align-items: end;
+              `
+            }
             return domNodeContent
           }
 
-          private createChatNodeAvatar(): HTMLElement {
+          private createChatNodeAvatar(isOwner: boolean): HTMLElement {
             let domNodeAvatar = document.createElement('img')
-            domNodeAvatar.src = './assert/avatar.png'
+            domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            let ML = ''
+            let MR = ''
+            if(isOwner) {
+              ML = '12px'
+              MR = '15px'
+            } else {
+              ML = "15px"
+              MR = "12px"
+            }
             domNodeAvatar.style.cssText = `
                 width: 50px;
                 height: 50px;
                 border-radius: 5px;
-                margin: auto 10px auto 10px;
+                margin: 0 ${MR} 0 ${ML};
             `
             return domNodeAvatar
           }
@@ -3726,22 +3767,25 @@ const createExtendedDOMResolvers = function (app: App) {
           private judgeIsOwner(
             domNode: HTMLElement,
             isOwner: boolean,
-          ): [HTMLElement, HTMLElement, string] {
-            let domNodeContent = this.createChatNodeContent()
-            let domNodeAvatar = this.createChatNodeAvatar()
+          ): [HTMLElement, HTMLElement, string, string] {
+            let domNodeContent = this.createChatNodeContent(isOwner)
+            let domNodeAvatar = this.createChatNodeAvatar(isOwner)
             let chatBackground = '#FFFFFF'
+            let color = '#000000'
             if (isOwner) {
               domNode.style.justifyContent = 'end'
               domNode.appendChild(domNodeContent)
               domNode.appendChild(domNodeAvatar)
-              chatBackground = '#A9EA7A'
+              chatBackground = '#2988E6'
+              color = "#ffffff"
             } else {
               domNode.style.justifyContent = 'start'
               domNode.appendChild(domNodeAvatar)
               domNode.appendChild(domNodeContent)
-              chatBackground = '#FFFFFF'
+              chatBackground = '#F0F2F4'
+              color = "#333333"
             }
-            return [domNode, domNodeContent, chatBackground]
+            return [domNode, domNodeContent, chatBackground, color]
           }
 
           private judgePdfIsOwner(
@@ -3791,6 +3835,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const liveChatObject = new liveChat(component.get('listObject'))
         let liveChatBox = liveChatObject.dom()
         node.innerHTML = liveChatBox.innerHTML
+        node.setAttribute("class", "scroll-view")
         // node.appendChild(liveChatBox)
         setTimeout(() => {
           node.scrollTop =
