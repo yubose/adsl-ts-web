@@ -3654,7 +3654,17 @@ const createExtendedDOMResolvers = function (app: App) {
                 data = JSON.parse(data)
               }
               let messageInfo = data.text.replace(urlRegex, (url) => {
-                return `<a href = "${url}">${url}</a>`
+                // return `<a href="${url}" target="_blank">${url}</a>`
+                return `<a style="
+                  text-decoration: underline;
+                  color: rgb(0, 0, 238);
+                " onclick="(()=>{
+                  if(/(https?|ftp|file|http):\\/\\//.test('${url}')) {
+                    window.open('${url}')
+                  } else {
+                    window.open('http://${url}')
+                  }
+                })()">${url}</a>`
               })
               let timeContent = document.createElement("div")
               timeContent.innerText = this.caculateTime(Msg.ctime)
