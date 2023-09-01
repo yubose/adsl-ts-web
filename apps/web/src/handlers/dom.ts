@@ -3751,7 +3751,12 @@ const createExtendedDOMResolvers = function (app: App) {
             let domNodeAvatar = document.createElement('img')
             const avatarId = data?.avatar
             // console.log("AVATAR", avatarId)
-            domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            if(data?.capacity === "provider") 
+              domNodeAvatar.src = `${assetsUrl}providerImage.svg`
+            else if(data?.capacity === "patient")
+              domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            else 
+              domNodeAvatar.src = `${assetsUrl}patientImage.svg`
             if(avatarId) {
               app.root.builtIn.utils.prepareDocToPath(avatarId).then((value) => {
                 domNodeAvatar.setAttribute("src", value.url)
