@@ -3673,6 +3673,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 background-color: ${chatBackground};
                 color: ${color};
                 word-wrap: break-word;
+                white-space: pre-wrap;
               `
               domNodeContent.append(timeContent, textContent)
             } catch (error) {
