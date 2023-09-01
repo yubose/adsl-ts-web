@@ -3653,7 +3653,8 @@ const createExtendedDOMResolvers = function (app: App) {
               if (typeof data == 'string') {
                 data = JSON.parse(data)
               }
-              let messageInfo = data.text.replace(urlRegex, (url) => {
+              const xss_remove = data.text.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g, '')
+              let messageInfo = xss_remove.replace(urlRegex, (url) => {
                 // return `<a href="${url}" target="_blank">${url}</a>`
                 return `<a style="
                   text-decoration: underline;
