@@ -239,3 +239,51 @@ textarea::-webkit-scrollbar{
 img:not([src]) {
   opacity: 0;
 }
+.search-contrainer {
+  box-sizing: border-box;
+  border: 1.5px solid rgb(41, 136, 230);
+  padding-left: 5%;
+  padding-right: 5%;
+  width: 92%;
+  border-radius: 4px;
+  vertical-align: middle;
+  position: absolute;
+  outline: none;
+  height: auto;
+}
+
+.search-searchImage {
+    width: 4%;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    outline: none;
+    object-fit: contain;
+    margin-top: 0px;
+}
+
+.search-searchCancelImage {
+    width: 4%;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    object-fit: contain;
+    margin-top: 0px;
+    visibility: hidden;
+}
+
+.search-searchInput{
+    border: none;
+    display: inline-block;
+    vertical-align: middle;
+    padding-left: 3%;
+    height: 100%;
+    box-sizing: border-box;
+    width: 92%;
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    margin-top: 0px;
+}

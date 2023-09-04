@@ -153,11 +153,13 @@ window.addEventListener('load', async (e) => {
   }
 
   try {
-    await navigator.serviceWorker.getRegistrations().then(function(sws) {
-      sws.forEach(function(sw) {
-        sw.unregister()
+    if('serviceWorker' in navigator){
+      await navigator.serviceWorker.getRegistrations().then(function(sws) {
+        sws.forEach(function(sw) {
+          sw.unregister()
+        })
       })
-    })
+    }
 
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO

@@ -6232,7 +6232,98 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
       }
-    }
+    },
+    '[App] Search':{
+      cond: ({ component: c }) => c.contentType === 'search',
+      resolve({ node, component, page }) {
+        if(node){
+          const isdeleteAble = component.get('isdeleteAble')
+          const inputlimit = component.get('inputlimit') ? component.get('inputlimit') : 3
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          const fragment = document.createDocumentFragment()
+          const iteratorVar = findIteratorVar(component)
+          const dataKey = component.get('searchDataKey') || component.blueprint?.searchDataKey || ''
+          const searchImagePath = component.get('searchImagePath') || component.blueprint?.searchImagePath || ''
+          const deleteImagePath = component.get('deleteImagePath') || component.blueprint?.deleteImagePath || ''
+
+          const searchImage = document.createElement('img')
+          searchImage.className = 'search-searchImage'
+          searchImagePath ?
+                searchImage.setAttribute('src',`${assetsUrl}${searchImagePath}`):
+                searchImage.setAttribute('src',`${assetsUrl}searchGray.svg`)
+
+          const searchInput = document.createElement('input')
+          searchInput.placeholder = `${inputlimit} characters minimum`
+          searchInput.className = 'search-searchInput'
+
+          fragment.appendChild(searchImage)
+          fragment.appendChild(searchInput)
+
+          if(isdeleteAble){
+            const searchCancelImage = document.createElement('img')
+            searchCancelImage.className = 'search-searchCancelImage'
+            deleteImagePath ? 
+                      searchCancelImage.setAttribute('src',`${assetsUrl}${deleteImagePath}`):
+                      searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
+            fragment.appendChild(searchCancelImage)
+
+            searchInput.addEventListener('input',async function(){
+              if(this.value && this.value.length>0){
+                searchCancelImage.style.visibility = 'visible'
+                if(this.value.length >= inputlimit){
+                  await component.get('onInput')?.execute()
+                }
+              }else{
+                searchCancelImage.style.visibility = 'hidden'
+              }
+            })
+            if(dataKey){
+              component.remove('data-key')
+              component.remove('data-value')
+              const executeFunc = getOnChange({
+                component,
+                dataKey,
+                evtName: 'onInput',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              const listener = addListener(searchInput, 'input', executeFunc)
+              component.addEventListeners(listener)
+            }
+
+            searchCancelImage.addEventListener('click',async function(){
+              await component.get('deleteCallBack')?.execute()
+            })
+          }
+          node.className = 'search-contrainer'
+          node.append(fragment)
+        }
+      }
+    },
+    '[App] OpenApp':{
+      cond: ({ component: c }) => c.contentType === 'openApp',
+      resolve({ node, component }) {
+        if(node){
+          const fragment = document.createDocumentFragment()
+          const androidLink = component.get('androidLink')
+          const iframe = document.createElement('iframe')
+          iframe.style.cssText = `
+                    display: none;
+                    border: 0px;
+                    width: 0px;
+                    height: 0px;
+                  `
+          iframe.src = androidLink
+          fragment.appendChild(iframe)
+          document.body.appendChild(fragment)
+          console.log('test99',androidLink)
+          node.addEventListener('click',()=>{
+            window.location.href = androidLink
+          })
+        }
+      }
+    },
   }
 
   return u
