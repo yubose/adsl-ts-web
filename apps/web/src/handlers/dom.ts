@@ -6305,22 +6305,41 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: ({ component: c }) => c.contentType === 'openApp',
       resolve({ node, component }) {
         if(node){
-          const fragment = document.createDocumentFragment()
+          // const fragment = document.createDocumentFragment()
           const androidLink = component.get('androidLink')
-          const iframe = document.createElement('iframe')
-          iframe.style.cssText = `
-                    display: none;
-                    border: 0px;
-                    width: 0px;
-                    height: 0px;
-                  `
-          iframe.src = androidLink
-          fragment.appendChild(iframe)
-          document.body.appendChild(fragment)
-          console.log('test99',androidLink)
-          node.addEventListener('click',()=>{
-            window.location.href = androidLink
-          })
+          const storeLink = component.get('storeLink')
+          let timer
+          if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) {
+            //ios
+            if(androidLink){
+              setTimeout(()=>{
+                window.location.href = androidLink
+              },500)
+          
+              node.addEventListener('click',()=>{
+                window.location.href = androidLink
+                clearTimeout(timer)
+                if(storeLink){
+                  timer = setTimeout(()=>{
+                    window.location.href = storeLink
+                  },2000)
+                }
+                
+              })
+            }
+            
+            document.addEventListener('visibilitychange',()=>{
+              //@ts-expect-error
+              if (document?.hidden || document?.webkitHidden) {
+                clearTimeout(timer)
+              }
+            })
+
+          } else {
+            //pc
+            node.style.visibility = 'hidden'
+          }
+          
         }
       }
     },
