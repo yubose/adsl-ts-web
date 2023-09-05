@@ -6245,6 +6245,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const dataKey = component.get('searchDataKey') || component.blueprint?.searchDataKey || ''
           const searchImagePath = component.get('searchImagePath') || component.blueprint?.searchImagePath || ''
           const deleteImagePath = component.get('deleteImagePath') || component.blueprint?.deleteImagePath || ''
+          const placeholder = component.get('placeholder') || component.blueprint?.placeholder || ''
 
           const searchImage = document.createElement('img')
           searchImage.className = 'search-searchImage'
@@ -6253,7 +6254,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 searchImage.setAttribute('src',`${assetsUrl}searchGray.svg`)
 
           const searchInput = document.createElement('input')
-          searchInput.placeholder = `${inputlimit} characters minimum`
+          searchInput.placeholder = placeholder
           searchInput.className = 'search-searchInput'
 
           fragment.appendChild(searchImage)
