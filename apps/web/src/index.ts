@@ -153,7 +153,7 @@ window.addEventListener('load', async (e) => {
   }
 
   try {
-    if('serviceWorker' in navigator){
+    if('serviceWorker' in navigator && !localStorage.getItem('esk')){
       await navigator.serviceWorker.getRegistrations().then(function(sws) {
         sws.forEach(function(sw) {
           sw.unregister()
@@ -249,6 +249,10 @@ window.addEventListener('load', async (e) => {
 })
 
 window.addEventListener('beforeunload', async (evt) => {
+  if(localStorage.getItem('esk')){
+    const { globalRegister, ...rest } = window.app.root.Global
+    localStorage.setItem('Global', JSON.stringify(rest))
+  }
   const html = document.getElementById('root')?.innerHTML || ''
   if (html) {
     await localForage.setItem(
