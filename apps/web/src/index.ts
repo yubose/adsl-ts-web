@@ -15,6 +15,7 @@ import '../node_modules/cropperjs/dist/cropper.min.css'
 import './spinner/three-dots.css'
 import './styles.css'
 import lf from './utils/lf'
+import * as buffer from "buffer"
 
 let app: App
 let localForage = lf
@@ -150,6 +151,14 @@ window.addEventListener('load', async (e) => {
     log.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
   } else {
     log.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
+  }
+
+  // 兼容Buffer
+  if (typeof (window as any).global === "undefined"){  
+    (window as any).global = window;
+  }
+  if (typeof (window as any).Buffer === "undefined") { 
+    (window as any).Buffer = buffer.Buffer;
   }
 
   try {
