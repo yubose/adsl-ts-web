@@ -67,6 +67,112 @@ function addListener(node: NDOMElement, event: string, callback: any) {
   }
 }
 const createExtendedDOMResolvers = function (app: App) {
+  const getNodeOnChange = function _getNodeOnChangeFn(args: {
+    component: NuiComponent.Instance
+    dataKey: string
+    node: NDOMElement
+    evtName: string
+    iteratorVar: string
+    page: ComponentPage | NDOMPage
+    initialCapital?: boolean
+  }) {
+    let {
+      component,
+      dataKey,
+      node,
+      evtName,
+      iteratorVar = '',
+      page,
+      initialCapital,
+    } = args
+    let pageName = page.page
+
+    async function onChange(event: Event) {
+      pageName !== page.page && (pageName = page.page)
+
+      let value = (event.target as any)?.value || ''
+
+      if (iteratorVar) {
+        const dataObject = findListDataObject(component)
+        if (initialCapital) {
+          value = value.slice(0, 1).toUpperCase() + value.slice(1)
+            ; (node as HTMLInputElement).value = value
+        }
+        if (dataObject) {
+          set(
+            dataObject,
+            excludeIteratorVar(dataKey, iteratorVar) as string,
+            value,
+          )
+          node.dataset.value = value
+        } else {
+          log.error(
+            `A ${component.type} component from a "${evtName}" handler tried ` +
+            `to update its value but a dataObject was not found`,
+            { component, dataKey, pageName },
+          )
+        }
+        // TODO - Come back to this to provide more robust functionality
+      } else {
+        if (dataKey) {
+          app.updateRoot((draft) => {
+            if (!has(draft?.[pageName], dataKey)) {
+              const paths = dataKey.split('.')
+              const property = paths.length ? paths[paths.length - 1] : ''
+              let warningMsg = 'Warning: The'
+              warningMsg += property ? ` property "${property}" in the ` : ' '
+              warningMsg += `dataKey path "${dataKey}" did not exist `
+              warningMsg += `in the local root object. `
+              warningMsg += `If this is intended then ignore this message.`
+              // log.orange(warningMsg, { component, dataKey, pageName, value })
+            }
+
+            if (initialCapital) {
+              value = value.slice(0, 1).toUpperCase() + value.slice(1)
+                ; (node as HTMLInputElement).value = value
+            }
+
+            if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('Global.', '')
+              set(draft?.['Global'], newDataKey, value)
+            } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('BaseBLEData.', '')
+              set(draft?.['BaseBLEData'], newDataKey, value)
+            } else {
+              set(draft?.[pageName], dataKey, value)
+            }
+            node.dataset.value = value
+
+            /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
+            if (/settings/i.test(pageName)) {
+              if (node.dataset?.name === 'code') {
+                const pathToTage = 'verificationCode.response.edge.tage'
+                if (has(app.root?.[pageName], pathToTage)) {
+                  app.updateRoot(`${pageName}.${pathToTage}`, value)
+                }
+              }
+            }
+
+            if (!iteratorVar) {
+              u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
+                (node) => {
+                  // Since select elements have options as children, we should not edit by innerHTML or we would have to unnecessarily re-render the nodes
+                  if (node && node.tagName !== 'SELECT') {
+                    if (isTextFieldLike(node)) node.dataset.value = value
+                    else node.innerHTML = `${value || ''}`
+                  }
+                },
+              )
+            }
+          })
+        }
+      }
+    }
+
+    return onChange
+  }
   /**
    * Creates an onChange function which should be used as a handler on the
    * addEventListener of a DOM element. This is the first thing that happens
@@ -6293,7 +6399,7 @@ const createExtendedDOMResolvers = function (app: App) {
               component.get("errorRecord")?.execute()
             })
           }
-        }
+        } 
         function pauseRecording() {
           recorder.stop().getMp3().then(([buffer, blob]) => {
             recordData = recordData.concat(buffer)
@@ -6347,7 +6453,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       searchCancelImage.setAttribute('src',`${assetsUrl}${deleteImagePath}`):
                       searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
             fragment.appendChild(searchCancelImage)
-
             searchInput.addEventListener('input',async function(){
               if(this.value && this.value.length>0){
                 searchCancelImage.style.visibility = 'visible'
@@ -6359,16 +6464,15 @@ const createExtendedDOMResolvers = function (app: App) {
               }
             })
             if(dataKey){
-              component.remove('data-key')
-              component.remove('data-value')
-              const executeFunc = getOnChange({
+              const executeFunc = getNodeOnChange({
                 component,
                 dataKey,
                 evtName: 'onInput',
-                node: node as NDOMElement,
+                node: searchInput as NDOMElement,
                 iteratorVar,
                 page,
               })
+              // searchInput.addEventListener('input',executeFunc)
               const listener = addListener(searchInput, 'input', executeFunc)
               component.addEventListeners(listener)
             }

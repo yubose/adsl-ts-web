@@ -199,19 +199,64 @@ class createRegisters {
         componentObject.onEvent = async function onNewEcosDoc(did: string) {
           try {
             action.dataKey = { var: did }
-            await Promise.all(
+            const options = app.nui?.getConsumerOptions({
+              component,
+              page: app.mainPage?.getNuiPage(),
+            })
+            const result = await Promise.all(
               app.actions?.emit
                 .get('register')
                 ?.map((obj: Store.ActionObject) =>
                   obj?.fn?.(
                     action,
-                    app.nui?.getConsumerOptions({
-                      component,
-                      page: app.mainPage?.getNuiPage(),
-                    }),
+                    options,
                   ),
                 ) || [],
             )
+            if (result) {
+
+              const results = u.array(result)
+              while (results.length) {
+                let result = results.pop()
+                while (u.isArr(result)) {
+                  results.push(...result)
+                  result = results.pop()
+                }
+                
+                const action = result
+                try {
+                  const actionTypeKeys = [
+                    'goto',
+                    'popUp',
+                    'popUpDismiss',
+                    'toast',
+                    'getLocationAddress',
+                    'pageJump',
+                    'refresh',
+                  ]
+                  if (
+                    action?.['actionType'] &&
+                    actionTypeKeys.includes(action?.['actionType'])
+                  ) {
+                    const newAction = createAction({
+                      action: action,
+                      trigger: 'register',
+                    })
+                    const type = action?.['actionType']
+                    const actionFn = app.root.actions[type]
+                    u.isFnc(actionFn) &&
+                      (await actionFn?.(
+                        newAction,
+                        options
+                      ))
+                  }
+                  
+                } catch (error) {
+                  log.error(error)
+                }
+               
+              }
+            }
             return did
           } catch (error) {
             log.error(error)
