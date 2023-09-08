@@ -3837,7 +3837,7 @@ const createExtendedDOMResolvers = function (app: App) {
             domNode.style.cssText = `
               width: 100%;
               height: auto;
-              margin: 10px 0px 10px 0px;
+              margin: 18px 0px 18px 0px;
               display: flex;
             `
             return domNode
