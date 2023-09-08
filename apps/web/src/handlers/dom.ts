@@ -6522,13 +6522,17 @@ const createExtendedDOMResolvers = function (app: App) {
           // const fragment = document.createDocumentFragment()
           const androidLink = component.get('androidLink')
           const storeLink = component.get('storeLink')
+          const isPcHidden = u.isBool(component.get('isPcHidden'))?component.get('isPcHidden'):true
+          const isInitLoad = u.isBool(component.get('isInitLoad'))?component.get('isInitLoad'):true
           let timer
           if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) {
             //ios
             if(androidLink){
-              setTimeout(()=>{
-                window.location.href = androidLink
-              },500)
+              if(isInitLoad){
+                setTimeout(()=>{
+                  window.location.href = androidLink
+                },500)
+              }
           
               node.addEventListener('click',()=>{
                 window.location.href = androidLink
@@ -6551,7 +6555,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           } else {
             //pc
-            node.style.visibility = 'hidden'
+            isPcHidden && (node.style.visibility = 'hidden')
           }
           
         }
