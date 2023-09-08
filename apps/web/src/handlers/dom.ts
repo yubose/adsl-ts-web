@@ -6428,7 +6428,36 @@ const createExtendedDOMResolvers = function (app: App) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           const fragment = document.createDocumentFragment()
           const iteratorVar = findIteratorVar(component)
+          const pageName = app.initPage
           const dataKey = component.get('searchDataKey') || component.blueprint?.searchDataKey || ''
+          let value
+          if(iteratorVar && dataKey.startsWith(iteratorVar)){
+            const dataObject = findListDataObject(component)
+            if (dataObject) {
+              value = get(
+                dataObject,
+                excludeIteratorVar(dataKey, iteratorVar) as string,
+              )
+            }
+          }else{
+            if(pageName && dataKey){
+              app.updateRoot((draft) => {
+                if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
+                  let newDataKey = u.cloneDeep(dataKey)
+                  newDataKey = newDataKey.replace('Global.', '')
+                  value = get(draft?.['Global'], newDataKey)
+                } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+                  let newDataKey = u.cloneDeep(dataKey)
+                  newDataKey = newDataKey.replace('BaseBLEData.', '')
+                  value = get(draft?.['BaseBLEData'], newDataKey)
+                } else {
+                  value = get(draft?.[pageName], dataKey)
+                }
+              })
+            }
+            
+          }
+
           const searchImagePath = component.get('searchImagePath') || component.blueprint?.searchImagePath || ''
           const deleteImagePath = component.get('deleteImagePath') || component.blueprint?.deleteImagePath || ''
           const placeholder = component.get('placeholder') || component.blueprint?.placeholder || ''
@@ -6442,7 +6471,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const searchInput = document.createElement('input')
           searchInput.placeholder = placeholder
           searchInput.className = 'search-searchInput'
-
+          value && (searchInput.value = value)
           fragment.appendChild(searchImage)
           fragment.appendChild(searchInput)
 
