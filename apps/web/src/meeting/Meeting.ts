@@ -187,7 +187,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         // Unpublish local tracks
         _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
         _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
-        _room?.disconnect?.()
+        // _room?.disconnect?.()
         o.streams.reset()
         _calledOnConnected = false
       }
