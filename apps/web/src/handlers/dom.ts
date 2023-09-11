@@ -5548,7 +5548,6 @@ const createExtendedDOMResolvers = function (app: App) {
                     if (this.readyState === 4) {
                       res(JSON.parse(this.response))
                     }
-                    
                   });
                     xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "http://8.140.148.116:9006/upload/");
                     let data = new FormData();
@@ -5564,9 +5563,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   xhr.withCredentials = true;
                   xhr.addEventListener("readystatechange", function () {
                     if (this.readyState === 4) {
-                      console.log(this.response)
                       try{
-                        res(JSON.parse(this.response).transcription)
+                        res(JSON.parse(this.response))
                       }catch(e){
                         console.error(`Unable to parse returned data`)
                       }
@@ -5577,15 +5575,11 @@ const createExtendedDOMResolvers = function (app: App) {
                     xhr.open("POST","http://8.140.148.116:9006/success/");
                     let data = new FormData();
                     data.append("code", `${rand}`);
-                    console.log(`${chunks.length}`)
-
                     data.append("size", `${chunks.length}`);
-
                     xhr.send(data);
                 })
               }
              const val = (await _upload_respose())?.transcription;
-             console.log(val)
              app.updateRoot(draft => {
               set(draft?.[pageName], dataKey, val);
                   const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
@@ -5600,7 +5594,6 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           const appendEle = (e) => {
             node.parentNode?.appendChild(img);
-            console.log(audioL, audioT)
             img.style.left = audioL;
             img.style.top = audioT;
           }
