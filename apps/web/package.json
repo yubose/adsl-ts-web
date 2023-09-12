@@ -1,7 +1,7 @@
 {
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.4.120",
+    "@aitmed/cadl": "^1.4.121",
     "@aitmed/ecos-lvl2-sdk": "^1.4.248",
     "@atslotus/keypress": "^1.0.6",
     "@emotion/css": "^11.9.0",
@@ -13,6 +13,7 @@
     "@wangeditor/editor": "^5.1.23",
     "axios": "^0.21.1",
     "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
     "cropperjs": "^1.5.12",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.21.2",
@@ -40,7 +41,7 @@
     "sql.js": "^1.6.2",
     "sweetalert2": "^11.7.12",
     "tippy.js": "^6.3.1",
-    "url": "^0.11.2",
+    "url": "^0.11.1",
     "util": "^0.12.3",
     "vercel-toast": "^1.6.1",
     "xlsx": "^0.18.5"
@@ -161,5 +162,5 @@
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts --watch-files ../../aitmed-noodl-lib/noodl-ui/dist/**/*",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
-  "version": "1.0.82"
+  "version": "1.0.85"
 }
