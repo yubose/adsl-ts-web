@@ -396,7 +396,7 @@ const createActions = function createActions(app: App) {
         },
       )
 
-      if (options?.component?.blueprint["dataOption"]["blank"] && u.isStr(goto)) {
+      if (options?.component?.blueprint?.["dataOption"]?.["blank"] && u.isStr(goto)) {
         app.disableSpinner()
         options.ref?.abort() as any
         let a = document.createElement('a')
