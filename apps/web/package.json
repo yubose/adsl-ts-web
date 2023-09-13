@@ -1,8 +1,8 @@
 {
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.4.113-3",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.247",
+    "@aitmed/cadl": "^1.4.123",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.249",
     "@atslotus/keypress": "^1.0.6",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
@@ -13,6 +13,7 @@
     "@wangeditor/editor": "^5.1.23",
     "axios": "^0.21.1",
     "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
     "cropperjs": "^1.5.12",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.21.2",
@@ -30,8 +31,8 @@
     "mic-recorder-to-mp3": "^2.2.2",
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
-    "noodl-types": "^1.0.267",
-    "noodl-ui": "^0.1.1155",
+    "noodl-types": "^1.0.270",
+    "noodl-ui": "^0.1.1159",
     "noodl-utils": "^0.0.134",
     "noodl-yaml": "^0.0.12",
     "papaparse": "^5.4.1",
@@ -40,6 +41,7 @@
     "sql.js": "^1.6.2",
     "sweetalert2": "^11.7.12",
     "tippy.js": "^6.3.1",
+    "url": "^0.11.1",
     "util": "^0.12.3",
     "vercel-toast": "^1.6.1",
     "xlsx": "^0.18.5"

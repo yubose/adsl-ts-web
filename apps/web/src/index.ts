@@ -15,6 +15,7 @@ import '../node_modules/cropperjs/dist/cropper.min.css'
 import './spinner/three-dots.css'
 import './styles.css'
 import lf from './utils/lf'
+import * as buffer from "buffer"
 
 let app: App
 let localForage = lf
@@ -152,12 +153,22 @@ window.addEventListener('load', async (e) => {
     log.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
   }
 
+  // 兼容Buffer
+  if (typeof (window as any).global === "undefined"){  
+    (window as any).global = window;
+  }
+  if (typeof (window as any).Buffer === "undefined") { 
+    (window as any).Buffer = buffer.Buffer;
+  }
+
   try {
-    await navigator.serviceWorker.getRegistrations().then(function(sws) {
-      sws.forEach(function(sw) {
-        sw.unregister()
+    if('serviceWorker' in navigator && !localStorage.getItem('esk')){
+      await navigator.serviceWorker.getRegistrations().then(function(sws) {
+        sws.forEach(function(sw) {
+          sw.unregister()
+        })
       })
-    })
+    }
 
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO
@@ -247,6 +258,10 @@ window.addEventListener('load', async (e) => {
 })
 
 window.addEventListener('beforeunload', async (evt) => {
+  if(localStorage.getItem('esk')){
+    const { globalRegister, ...rest } = window.app.root.Global
+    localStorage.setItem('Global', JSON.stringify(rest))
+  }
   const html = document.getElementById('root')?.innerHTML || ''
   if (html) {
     await localForage.setItem(

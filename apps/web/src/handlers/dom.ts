@@ -67,6 +67,112 @@ function addListener(node: NDOMElement, event: string, callback: any) {
   }
 }
 const createExtendedDOMResolvers = function (app: App) {
+  const getNodeOnChange = function _getNodeOnChangeFn(args: {
+    component: NuiComponent.Instance
+    dataKey: string
+    node: NDOMElement
+    evtName: string
+    iteratorVar: string
+    page: ComponentPage | NDOMPage
+    initialCapital?: boolean
+  }) {
+    let {
+      component,
+      dataKey,
+      node,
+      evtName,
+      iteratorVar = '',
+      page,
+      initialCapital,
+    } = args
+    let pageName = page.page
+
+    async function onChange(event: Event) {
+      pageName !== page.page && (pageName = page.page)
+
+      let value = (event.target as any)?.value || ''
+
+      if (iteratorVar) {
+        const dataObject = findListDataObject(component)
+        if (initialCapital) {
+          value = value.slice(0, 1).toUpperCase() + value.slice(1)
+            ; (node as HTMLInputElement).value = value
+        }
+        if (dataObject) {
+          set(
+            dataObject,
+            excludeIteratorVar(dataKey, iteratorVar) as string,
+            value,
+          )
+          node.dataset.value = value
+        } else {
+          log.error(
+            `A ${component.type} component from a "${evtName}" handler tried ` +
+            `to update its value but a dataObject was not found`,
+            { component, dataKey, pageName },
+          )
+        }
+        // TODO - Come back to this to provide more robust functionality
+      } else {
+        if (dataKey) {
+          app.updateRoot((draft) => {
+            if (!has(draft?.[pageName], dataKey)) {
+              const paths = dataKey.split('.')
+              const property = paths.length ? paths[paths.length - 1] : ''
+              let warningMsg = 'Warning: The'
+              warningMsg += property ? ` property "${property}" in the ` : ' '
+              warningMsg += `dataKey path "${dataKey}" did not exist `
+              warningMsg += `in the local root object. `
+              warningMsg += `If this is intended then ignore this message.`
+              // log.orange(warningMsg, { component, dataKey, pageName, value })
+            }
+
+            if (initialCapital) {
+              value = value.slice(0, 1).toUpperCase() + value.slice(1)
+                ; (node as HTMLInputElement).value = value
+            }
+
+            if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('Global.', '')
+              set(draft?.['Global'], newDataKey, value)
+            } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+              let newDataKey = u.cloneDeep(dataKey)
+              newDataKey = newDataKey.replace('BaseBLEData.', '')
+              set(draft?.['BaseBLEData'], newDataKey, value)
+            } else {
+              set(draft?.[pageName], dataKey, value)
+            }
+            node.dataset.value = value
+
+            /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
+            if (/settings/i.test(pageName)) {
+              if (node.dataset?.name === 'code') {
+                const pathToTage = 'verificationCode.response.edge.tage'
+                if (has(app.root?.[pageName], pathToTage)) {
+                  app.updateRoot(`${pageName}.${pathToTage}`, value)
+                }
+              }
+            }
+
+            if (!iteratorVar) {
+              u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
+                (node) => {
+                  // Since select elements have options as children, we should not edit by innerHTML or we would have to unnecessarily re-render the nodes
+                  if (node && node.tagName !== 'SELECT') {
+                    if (isTextFieldLike(node)) node.dataset.value = value
+                    else node.innerHTML = `${value || ''}`
+                  }
+                },
+              )
+            }
+          })
+        }
+      }
+    }
+
+    return onChange
+  }
   /**
    * Creates an onChange function which should be used as a handler on the
    * addEventListener of a DOM element. This is the first thing that happens
@@ -3573,6 +3679,8 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
+
+        const assetsUrl = app.nui.getAssetsUrl() || ""
         interface PdfCss {
           pdfContentWidth: number
           pdfContentHeight: number
@@ -3589,6 +3697,7 @@ const createExtendedDOMResolvers = function (app: App) {
           private pdfCss: PdfCss
           private boxCss: BoxCss
           constructor(dataSource: Array<any>) {
+            // dataSource = removeRepeat(dataSource)
             this.dataSource = dataSource
             this.chatBox = document.createElement('div')
             this.pdfCss = {
@@ -3609,11 +3718,10 @@ const createExtendedDOMResolvers = function (app: App) {
 
           private setBox() {
             this.chatBox.style.cssText = `
-              position: absolute;
+              position: relative;
               width: ${this.boxCss.width};
               height: ${this.boxCss.height};
               overflow: auto;
-              background-color: #f2f2f2;
             `
           }
 
@@ -3621,35 +3729,73 @@ const createExtendedDOMResolvers = function (app: App) {
             return this.chatBox
           }
 
+          private caculateTime(timestamp: number) {
+            const date = new Date(timestamp*1000)
+            const time = ''
+            let hour: string|number = date.getHours()
+            let minute: string|number = date.getMinutes()
+            const AP = hour > 12 ? "PM" : "AM"
+            hour = hour > 12 ? `${hour - 12}` : `${hour}`
+            minute = minute < 10 ? `0${minute}` : `${minute}`
+            return `${hour}:${minute} ${AP}`
+          }
+
           private createTextNode(Msg: any): HTMLElement {
+            
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
             let chatBackground: string
-              ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+            let color: string
+              ;[domNode, domNodeContent, chatBackground, color] = this.judgeIsOwner(
                 domNode,
                 this.IsOwner(Msg.bsig),
+                Msg,
               )
             const urlRegex =
-              /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
+              /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;/]*[-A-Z0-9+&@#%=~_|/])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
-            let data = Msg.name.data
-            if (typeof data == 'string') {
-              data = JSON.parse(data)
-            }
-            let messageInfo = data.text.replace(urlRegex, (url) => {
-              return `<a href = "${url}">${url}</a>`
-            })
-            let textContent = document.createElement('div')
-            // textContent.innerHTML = Msg.message.info
-            textContent.innerHTML = messageInfo
-            textContent.style.cssText = `
-                margin-top: 10px;
-                border-radius: 10px;
-                padding: 5px 7.5px 5px 7.5px;
+            try {
+              let data = Msg.name.data
+              if (typeof data == 'string') {
+                data = JSON.parse(data)
+              }
+              const xss_remove = data.text.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g, '')
+              let messageInfo = xss_remove.replace(urlRegex, (url) => {
+                // return `<a href="${url}" target="_blank">${url}</a>`
+                return `<a style="
+                  text-decoration: underline;
+                  color: rgb(0, 0, 238);
+                " onclick="(()=>{
+                  if(/(https?|ftp|file|http):\\/\\//.test('${url}')) {
+                    window.open('${url}')
+                  } else {
+                    window.open('http://${url}')
+                  }
+                })()">${url}</a>`
+              })
+              let timeContent = document.createElement("div")
+              timeContent.innerText = this.caculateTime(Msg.ctime)
+              timeContent.style.cssText = `
+                color: #999999;
+              `
+              let textContent = document.createElement('div')
+              // textContent.innerHTML = Msg.message.info
+              textContent.innerHTML = messageInfo
+              textContent.style.cssText = `
+                max-width: 100%;
+                width: fit-content;
+                border-radius: 8px;
+                line-height: 21px;
+                padding: 8px 15px 6px 12px;
                 background-color: ${chatBackground};
+                color: ${color};
                 word-wrap: break-word;
-            `
-            domNodeContent.appendChild(textContent)
+                white-space: pre-wrap;
+              `
+              domNodeContent.append(timeContent, textContent)
+            } catch (error) {
+              
+            }
             return domNode
           }
 
@@ -3659,6 +3805,7 @@ const createExtendedDOMResolvers = function (app: App) {
               ;[domNode, domNodeContent] = this.judgeIsOwner(
                 domNode,
                 this.IsOwner(Msg.bsig),
+                Msg
               )
             let pdfInfo = this.judgePdfIsOwner(
               domNodeContent,
@@ -3681,7 +3828,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 domNode = this.createPdfNode(Msg)
                 return domNode
               default:
-                return new HTMLElement()
+                return document.createElement("div")
             }
           }
 
@@ -3690,30 +3837,63 @@ const createExtendedDOMResolvers = function (app: App) {
             domNode.style.cssText = `
               width: 100%;
               height: auto;
-              margin: 10px 0px 10px 0px;
+              margin: 18px 0px 18px 0px;
               display: flex;
             `
             return domNode
           }
 
-          private createChatNodeContent(): HTMLElement {
+          private createChatNodeContent(isOwner: boolean): HTMLElement {
             let domNodeContent = document.createElement('div')
             domNodeContent.style.cssText = `
                 max-width: 60%;
                 width: auto;
                 height: auto;
             `
+            if(isOwner) {
+              domNodeContent.style.cssText += `
+                display: flex;
+                flex-direction: column;
+                align-items: end;
+              `
+            }
             return domNodeContent
           }
 
-          private createChatNodeAvatar(): HTMLElement {
+          private createChatNodeAvatar(isOwner: boolean, Msg: any): HTMLElement {
+            let data = Msg.name.data
+            if (typeof data == 'string') {
+              data = JSON.parse(data)
+            }
             let domNodeAvatar = document.createElement('img')
-            domNodeAvatar.src = './assert/avatar.png'
+            const avatarId = data?.avatar
+            // console.log("AVATAR", avatarId)
+            if(data?.capacity === "provider") 
+              domNodeAvatar.src = `${assetsUrl}providerImage.svg`
+            else if(data?.capacity === "patient")
+              domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            else 
+              domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            if(avatarId) {
+              app.root.builtIn.utils.prepareDocToPath(avatarId).then((value) => {
+                domNodeAvatar.setAttribute("src", value.url)
+              })
+            }
+            
+            let ML = ''
+            let MR = ''
+            if(isOwner) {
+              ML = '12px'
+              MR = '15px'
+            } else {
+              ML = "15px"
+              MR = "12px"
+            }
             domNodeAvatar.style.cssText = `
                 width: 50px;
                 height: 50px;
                 border-radius: 5px;
-                margin: auto 10px auto 10px;
+                margin: 0 ${MR} 0 ${ML};
             `
             return domNodeAvatar
           }
@@ -3726,22 +3906,26 @@ const createExtendedDOMResolvers = function (app: App) {
           private judgeIsOwner(
             domNode: HTMLElement,
             isOwner: boolean,
-          ): [HTMLElement, HTMLElement, string] {
-            let domNodeContent = this.createChatNodeContent()
-            let domNodeAvatar = this.createChatNodeAvatar()
+            Msg: any,
+          ): [HTMLElement, HTMLElement, string, string] {
+            let domNodeContent = this.createChatNodeContent(isOwner)
+            let domNodeAvatar = this.createChatNodeAvatar(isOwner, Msg)
             let chatBackground = '#FFFFFF'
+            let color = '#000000'
             if (isOwner) {
               domNode.style.justifyContent = 'end'
               domNode.appendChild(domNodeContent)
               domNode.appendChild(domNodeAvatar)
-              chatBackground = '#A9EA7A'
+              chatBackground = '#2988E6'
+              color = "#ffffff"
             } else {
               domNode.style.justifyContent = 'start'
               domNode.appendChild(domNodeAvatar)
               domNode.appendChild(domNodeContent)
-              chatBackground = '#FFFFFF'
+              chatBackground = '#F0F2F4'
+              color = "#333333"
             }
-            return [domNode, domNodeContent, chatBackground]
+            return [domNode, domNodeContent, chatBackground, color]
           }
 
           private judgePdfIsOwner(
@@ -3790,8 +3974,10 @@ const createExtendedDOMResolvers = function (app: App) {
         const scrollH = component.get('data-value') || '' || 'dataKey'
         const liveChatObject = new liveChat(component.get('listObject'))
         let liveChatBox = liveChatObject.dom()
-        node.innerHTML = liveChatBox.innerHTML
-        // node.appendChild(liveChatBox)
+        node.innerHTML = ""
+        node.append(liveChatBox)
+        // node.innerHTML = liveChatBox.innerHTML
+        node.setAttribute("class", "scroll-view")
         setTimeout(() => {
           node.scrollTop =
             scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
@@ -6213,7 +6399,7 @@ const createExtendedDOMResolvers = function (app: App) {
               component.get("errorRecord")?.execute()
             })
           }
-        }
+        } 
         function pauseRecording() {
           recorder.stop().getMp3().then(([buffer, blob]) => {
             recordData = recordData.concat(buffer)
@@ -6232,7 +6418,150 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
       }
-    }
+    },
+    '[App] Search':{
+      cond: ({ component: c }) => c.contentType === 'search',
+      resolve({ node, component, page }) {
+        if(node){
+          const isdeleteAble = component.get('isdeleteAble')
+          const inputlimit = component.get('inputlimit') ? component.get('inputlimit') : 3
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          const fragment = document.createDocumentFragment()
+          const iteratorVar = findIteratorVar(component)
+          const pageName = app.initPage
+          const dataKey = component.get('searchDataKey') || component.blueprint?.searchDataKey || ''
+          let value
+          if(iteratorVar && dataKey.startsWith(iteratorVar)){
+            const dataObject = findListDataObject(component)
+            if (dataObject) {
+              value = get(
+                dataObject,
+                excludeIteratorVar(dataKey, iteratorVar) as string,
+              )
+            }
+          }else{
+            if(pageName && dataKey){
+              app.updateRoot((draft) => {
+                if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
+                  let newDataKey = u.cloneDeep(dataKey)
+                  newDataKey = newDataKey.replace('Global.', '')
+                  value = get(draft?.['Global'], newDataKey)
+                } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+                  let newDataKey = u.cloneDeep(dataKey)
+                  newDataKey = newDataKey.replace('BaseBLEData.', '')
+                  value = get(draft?.['BaseBLEData'], newDataKey)
+                } else {
+                  value = get(draft?.[pageName], dataKey)
+                }
+              })
+            }
+            
+          }
+
+          const searchImagePath = component.get('searchImagePath') || component.blueprint?.searchImagePath || ''
+          const deleteImagePath = component.get('deleteImagePath') || component.blueprint?.deleteImagePath || ''
+          const placeholder = component.get('placeholder') || component.blueprint?.placeholder || ''
+
+          const searchImage = document.createElement('img')
+          searchImage.className = 'search-searchImage'
+          searchImagePath ?
+                searchImage.setAttribute('src',`${assetsUrl}${searchImagePath}`):
+                searchImage.setAttribute('src',`${assetsUrl}searchGray.svg`)
+
+          const searchInput = document.createElement('input')
+          searchInput.placeholder = placeholder
+          searchInput.className = 'search-searchInput'
+          value && (searchInput.value = value)
+          fragment.appendChild(searchImage)
+          fragment.appendChild(searchInput)
+
+          if(isdeleteAble){
+            const searchCancelImage = document.createElement('img')
+            searchCancelImage.className = 'search-searchCancelImage'
+            deleteImagePath ? 
+                      searchCancelImage.setAttribute('src',`${assetsUrl}${deleteImagePath}`):
+                      searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
+            fragment.appendChild(searchCancelImage)
+            searchInput.addEventListener('input',async function(){
+              if(this.value && this.value.length>0){
+                searchCancelImage.style.visibility = 'visible'
+                if(this.value.length >= inputlimit){
+                  await component.get('onInput')?.execute()
+                }
+              }else{
+                await component.get('onInput')?.execute()
+                searchCancelImage.style.visibility = 'hidden'
+              }
+            })
+            if(dataKey){
+              const executeFunc = getNodeOnChange({
+                component,
+                dataKey,
+                evtName: 'onInput',
+                node: searchInput as NDOMElement,
+                iteratorVar,
+                page,
+              })
+              // searchInput.addEventListener('input',executeFunc)
+              const listener = addListener(searchInput, 'input', executeFunc)
+              component.addEventListeners(listener)
+            }
+
+            searchCancelImage.addEventListener('click',async function(){
+              await component.get('deleteCallBack')?.execute()
+            })
+          }
+          node.className = 'search-contrainer'
+          node.append(fragment)
+        }
+      }
+    },
+    '[App] OpenApp':{
+      cond: ({ component: c }) => c.contentType === 'openApp',
+      resolve({ node, component }) {
+        if(node){
+          // const fragment = document.createDocumentFragment()
+          const androidLink = component.get('androidLink')
+          const storeLink = component.get('storeLink')
+          const isPcHidden = u.isBool(component.get('isPcHidden'))?component.get('isPcHidden'):true
+          const isInitLoad = u.isBool(component.get('isInitLoad'))?component.get('isInitLoad'):true
+          let timer
+          if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) {
+            //ios
+            if(androidLink){
+              if(isInitLoad){
+                setTimeout(()=>{
+                  window.location.href = androidLink
+                },500)
+              }
+          
+              node.addEventListener('click',()=>{
+                window.location.href = androidLink
+                clearTimeout(timer)
+                if(storeLink){
+                  timer = setTimeout(()=>{
+                    window.location.href = storeLink
+                  },2000)
+                }
+                
+              })
+            }
+            
+            document.addEventListener('visibilitychange',()=>{
+              //@ts-expect-error
+              if (document?.hidden || document?.webkitHidden) {
+                clearTimeout(timer)
+              }
+            })
+
+          } else {
+            //pc
+            isPcHidden && (node.style.visibility = 'hidden')
+          }
+          
+        }
+      }
+    },
   }
 
   return u

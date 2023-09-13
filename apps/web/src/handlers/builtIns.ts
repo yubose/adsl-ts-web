@@ -324,6 +324,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
+      const selfStream = app.meeting.selfStream.getElement()
+      const parent = selfStream?.parentElement
+      const cloneNode = selfStream?.cloneNode()  
+
+      if(parent){
+        parent.replaceChild(cloneNode,selfStream)
+        parent.style.visibility = 'hidden'
+      }
+      
       app.meeting.room?.removeAllListeners?.()
       app.meeting.leave()
       app.meeting.room?.disconnect?.()
