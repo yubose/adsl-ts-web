@@ -6467,6 +6467,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   await component.get('onInput')?.execute()
                 }
               }else{
+                await component.get('onInput')?.execute()
                 searchCancelImage.style.visibility = 'hidden'
               }
             })
