@@ -6452,7 +6452,20 @@ const createExtendedDOMResolvers = function (app: App) {
           value && (searchInput.value = value)
           fragment.appendChild(searchImage)
           fragment.appendChild(searchInput)
-
+          if(dataKey){
+            const executeFunc = getNodeOnChange({
+              component,
+              dataKey,
+              evtName: 'onInput',
+              node: searchInput as NDOMElement,
+              iteratorVar,
+              page,
+            })
+            // searchInput.addEventListener('input',executeFunc)
+            const listener = addListener(searchInput, 'input', executeFunc)
+            component.addEventListeners(listener)
+          }
+          
           if(isdeleteAble){
             const searchCancelImage = document.createElement('img')
             searchCancelImage.className = 'search-searchCancelImage'
@@ -6461,28 +6474,17 @@ const createExtendedDOMResolvers = function (app: App) {
                       searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
             fragment.appendChild(searchCancelImage)
             searchInput.addEventListener('input',async function(){
+              console.log('test99',this.value)
               if(this.value && this.value.length>0){
                 searchCancelImage.style.visibility = 'visible'
                 if(this.value.length >= inputlimit){
                   await component.get('onInput')?.execute()
                 }
               }else{
+                await component.get('onInput')?.execute()
                 searchCancelImage.style.visibility = 'hidden'
               }
             })
-            if(dataKey){
-              const executeFunc = getNodeOnChange({
-                component,
-                dataKey,
-                evtName: 'onInput',
-                node: searchInput as NDOMElement,
-                iteratorVar,
-                page,
-              })
-              // searchInput.addEventListener('input',executeFunc)
-              const listener = addListener(searchInput, 'input', executeFunc)
-              component.addEventListeners(listener)
-            }
 
             searchCancelImage.addEventListener('click',async function(){
               await component.get('deleteCallBack')?.execute()

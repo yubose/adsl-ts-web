@@ -4,7 +4,7 @@ import type * as jss from 'jsstore'
 import log from './log'
 import { asHtmlElement, findByViewTag } from 'noodl-ui'
 import { toast } from './utils/dom'
-import { isChrome } from './utils/common'
+import { isChrome,notifyMe } from './utils/common'
 import App from './App'
 import { getWindowDebugUtils } from './utils/windowDebugUtils'
 import { __NOODL_SEARCH_CLIENT__ } from './constants'
@@ -169,6 +169,11 @@ window.addEventListener('load', async (e) => {
         })
       })
     }
+
+    if(!localStorage.getItem('esk')){
+      await notifyMe()
+    }
+    
 
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO
