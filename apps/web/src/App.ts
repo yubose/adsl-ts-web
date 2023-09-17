@@ -384,7 +384,7 @@ class App {
         for (let i = 1; i < nameParts.length; i++) {
           const partItem = nameParts[i]
           const parts = partItem.split('=')
-          params[parts[0]] = parts[1]
+          params[parts[0]] = partItem.slice(parts[0].length+1)
         }
       }
       return params
