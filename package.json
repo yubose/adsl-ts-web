@@ -12,6 +12,7 @@
     "bootstrap": "lerna bootstrap --hoist --force-local",
     "build": "node scripts/web --build --stable",
     "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
+    "build:deploy:chinaServerWin": "npm run build:test && bash deployCnServerByWin.sh",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
     "build:deploy:stable": "npm run build:test && npm run deploy:stable",
     "build:deploy:test": "npm run build:test && npm run deploy:test",
