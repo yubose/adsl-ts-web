@@ -8,6 +8,7 @@ html {
   -webkit-text-size-adjust: none !important;
   /* -ms-touch-action: none !important; */
   /* touch-action: none !important; Prevents user scaling */
+  font-size: 62.5%;
 }
 
 input::-ms-clear,
@@ -242,20 +243,17 @@ img:not([src]) {
 .search-contrainer {
   box-sizing: border-box;
   border: 1.5px solid rgb(41, 136, 230);
-  padding-left: 5%;
-  padding-right: 5%;
-  width: 92%;
+  padding:0 12px;
   border-radius: 4px;
   vertical-align: middle;
   position: absolute;
   outline: none;
   height: auto;
+  display: flex;
 }
 
 .search-searchImage {
-    width: 4%;
-    display: inline-block;
-    vertical-align: middle;
+    max-width: 16px;
     position: relative;
     outline: none;
     object-fit: contain;
@@ -263,9 +261,7 @@ img:not([src]) {
 }
 
 .search-searchCancelImage {
-    width: 4%;
-    display: inline-block;
-    vertical-align: middle;
+    max-width: 16px;
     cursor: pointer;
     position: relative;
     outline: none;
@@ -278,12 +274,11 @@ img:not([src]) {
     border: none;
     display: inline-block;
     vertical-align: middle;
-    padding-left: 3%;
-    height: 100%;
+    padding-left: 12px;
     box-sizing: border-box;
-    width: 92%;
     cursor: pointer;
     position: relative;
     outline: none;
     margin-top: 0px;
+    flex: 1;
 }
