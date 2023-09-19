@@ -5523,7 +5523,7 @@ const createExtendedDOMResolvers = function (app: App) {
               img.src = `${assetsUrl}audio_start.svg`;
               const chun_size_sample_rates = 16000*20; 
               const chunks:any[] = [];
-              if(blob.size>52){
+              if(blob.size>5242880){
                 for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
                   const chunk = blob.slice(i, i + chun_size_sample_rates);
                   const mp3Header = new Uint8Array([
@@ -5535,7 +5535,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
               }else{
                 chunks.push(blob)
-
               }
                 const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
               const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
