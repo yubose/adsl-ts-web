@@ -245,40 +245,33 @@ img:not([src]) {
   border: 1.5px solid rgb(41, 136, 230);
   padding:0 12px;
   border-radius: 4px;
-  vertical-align: middle;
   position: absolute;
   outline: none;
   height: auto;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .search-searchImage {
     max-width: 16px;
-    position: relative;
     outline: none;
     object-fit: contain;
-    margin-top: 0px;
 }
 
 .search-searchCancelImage {
     max-width: 16px;
     cursor: pointer;
-    position: relative;
     outline: none;
     object-fit: contain;
-    margin-top: 0px;
     visibility: hidden;
 }
 
 .search-searchInput{
     border: none;
-    display: inline-block;
-    vertical-align: middle;
     padding-left: 12px;
     box-sizing: border-box;
     cursor: pointer;
-    position: relative;
     outline: none;
-    margin-top: 0px;
     flex: 1;
 }
