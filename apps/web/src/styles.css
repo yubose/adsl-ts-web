@@ -274,4 +274,5 @@ img:not([src]) {
     cursor: pointer;
     outline: none;
     flex: 1;
+    font-size: inherit;
 }
