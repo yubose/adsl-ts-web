@@ -5524,7 +5524,9 @@ const createExtendedDOMResolvers = function (app: App) {
               img.src = `${assetsUrl}audio_start.svg`;
               const chun_size_sample_rates = 16000*20; 
               const chunks:any[] = [];
-              if(blob.size>5242880){
+              const size_ws = blob.size>=5242880;
+              let audio_url = 'http://8.140.148.116:9006/upload/';
+              if(size_ws){
                 for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
                   const chunk = blob.slice(i, i + chun_size_sample_rates);
                   const mp3Header = new Uint8Array([
@@ -5536,6 +5538,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
               }else{
                 chunks.push(blob)
+                audio_url = 'http://8.140.148.116:9006/smallUpload/'
               }
                 const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
               const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
@@ -5547,14 +5550,13 @@ const createExtendedDOMResolvers = function (app: App) {
                       res(JSON.parse(this.response))
                     }
                   });
-                    xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "http://8.140.148.116:9006/upload/");
+                    xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || audio_url);
                     let data = new FormData();
                     data.append("audio", v, "123.mp3");
-                    data.append("code", `${rand}-${i+1}`);
+                    size_ws&&data.append("code", `${rand}-${i+1}`);
                     xhr.send(data);
                 })
               )
-              await Promise.all(chunks_map);
               const _upload_respose =  ():Promise<any>=>{
                 return new Promise((res,rej)=>{
                   let xhr = new XMLHttpRequest();
@@ -5577,7 +5579,8 @@ const createExtendedDOMResolvers = function (app: App) {
                     xhr.send(data);
                 })
               }
-             const val = (await _upload_respose())?.transcription;
+              const text = await Promise.all(chunks_map);
+              let val = size_ws?(await _upload_respose())?.transcription:text[0]?.message
              app.updateRoot(draft => {
               set(draft?.[pageName], dataKey, val);
                   const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
@@ -5592,7 +5595,6 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           const appendEle = (e) => {
             node.parentNode?.appendChild(img);
-            console.log(audioL, audioT)
             img.style.left = audioL;
             img.style.top = audioT;
           }
