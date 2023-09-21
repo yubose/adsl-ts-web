@@ -16,6 +16,7 @@ import './spinner/three-dots.css'
 import './styles.css'
 import lf from './utils/lf'
 import * as buffer from "buffer"
+import RingTong from './utils/RingTong'
 
 let app: App
 let localForage = lf
@@ -212,9 +213,11 @@ window.addEventListener('load', async (e) => {
       }
     })
 
+    const ringTong = new RingTong()
     Object.defineProperties(window, {
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
+      ringTong: { configurable: true, get: () => ringTong }
     })
 
     window.addEventListener('popstate', createOnPopState(app))
