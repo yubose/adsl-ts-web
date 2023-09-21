@@ -370,6 +370,10 @@ function getWebpackConfig(env) {
             from: getFilePath('public/sql-wasm.wasm'),
             to: path.resolve(paths.build, 'sql-wasm.wasm'),
           },
+          {
+            from: getFilePath('public/ring.mp3'),
+            to: path.resolve(paths.build, 'ring.mp3'),
+          },
         ],
       }),
       // new TerserPlugin({

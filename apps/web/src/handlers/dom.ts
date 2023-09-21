@@ -3791,6 +3791,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 color: ${color};
                 word-wrap: break-word;
                 white-space: pre-wrap;
+                font-size: 14px;
               `
               domNodeContent.append(timeContent, textContent)
             } catch (error) {

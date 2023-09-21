@@ -826,7 +826,16 @@ const createActions = function createActions(app: App) {
           const fileFormat = _pick(action, 'fileFormat')
           const shearState = _pick(action, 'shearState')
           let fileRell: File | undefined
-
+          console.log(documentType,downloadStatus)
+          if (documentType && downloadStatus) {
+            console.log(9999999)
+            const status = (documentType as string[])?.some(
+              (item) => item === files?.[0]?.['type'].split('/')[1],
+            )
+            ac.data.set(downloadStatus, status)
+            app.updateRoot(downloadStatus, status)
+            if(!status)return
+          }
           if (shearState) {
             const hreFile = await getBlob(files?.[0], action, options)
             fileRell = new File(
@@ -839,13 +848,7 @@ const createActions = function createActions(app: App) {
           }
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
-            if (documentType && downloadStatus) {
-              const status = (documentType as string[])?.some(
-                (item) => item === files?.[0]?.['type'].split('/')[1],
-              )
-              ac.data.set(downloadStatus, status)
-              app.updateRoot(downloadStatus, status)
-            }
+            
             if (fileType) {
               log.error('files')
               log.error(files)

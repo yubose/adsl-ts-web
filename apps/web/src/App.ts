@@ -1276,6 +1276,11 @@ class App {
             pageName: page.page,
           })
         }
+        if(this.initPage === 'RingToneCallPage'){
+          window['ringTong']?.play?.()  
+        }else{
+          window['ringTong']?.stop?.()  
+        }
         page.mounted = true
       },0)
     }
