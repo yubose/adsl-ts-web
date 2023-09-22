@@ -226,7 +226,6 @@ class createRegisters {
                 const action = result
                 try {
                   const actionTypeKeys = [
-                    'goto',
                     'popUp',
                     'popUpDismiss',
                     'toast',
@@ -249,6 +248,10 @@ class createRegisters {
                         newAction,
                         options
                       ))
+                  }else if(action?.['goto']){
+                    const fn = app.root.builtIn.goto
+                    await fn?.(action['goto'])
+                    break
                   }
                   
                 } catch (error) {
