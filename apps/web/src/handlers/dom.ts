@@ -5525,7 +5525,8 @@ const createExtendedDOMResolvers = function (app: App) {
               const chun_size_sample_rates = 16000*20; 
               const chunks:any[] = [];
               const size_ws = blob.size>=5242880;
-              let audio_url = 'http://8.140.148.116:9006/upload/';
+              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+              let audio_url = `${baseUrl}/upload/`;
               if(size_ws){
                 for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
                   const chunk = blob.slice(i, i + chun_size_sample_rates);
@@ -5538,7 +5539,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
               }else{
                 chunks.push(blob)
-                audio_url = 'http://8.140.148.116:9006/smallUpload/'
+                audio_url =  `${baseUrl}/smallUpload/`
               }
                 const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
               const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
@@ -5547,10 +5548,11 @@ const createExtendedDOMResolvers = function (app: App) {
                   xhr.withCredentials = true;
                   xhr.addEventListener("readystatechange", function () {
                     if (this.readyState === 4) {
+                      console.log(this.response)
                       res(JSON.parse(this.response))
                     }
                   });
-                    xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || audio_url);
+                    xhr.open("POST",audio_url);
                     let data = new FormData();
                     data.append("audio", v, "123.mp3");
                     size_ws&&data.append("code", `${rand}-${i+1}`);
@@ -5572,7 +5574,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       new Error("request Failed")
                     }
                   });
-                    xhr.open("POST","http://8.140.148.116:9006/success/");
+                    xhr.open("POST",`${baseUrl}/success/`);
                     let data = new FormData();
                     data.append("code", `${rand}`);
                     data.append("size", `${chunks.length}`);
@@ -5580,7 +5582,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
               }
               const text = await Promise.all(chunks_map);
-              let val = size_ws?(await _upload_respose())?.transcription:text[0]?.message
+              let val = size_ws?(await _upload_respose())?.text:text[0]?.text
              app.updateRoot(draft => {
               set(draft?.[pageName], dataKey, val);
                   const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
