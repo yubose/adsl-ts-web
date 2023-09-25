@@ -6195,20 +6195,20 @@ const createExtendedDOMResolvers = function (app: App) {
         audio_status_box.appendChild(audio_status_img)
         recording.append(end_button, audio_status_box)
         audio_box.appendChild(start_button)
-        const device_is_web = (() => {
-          try {
-            document.createEvent("TouchEvent"); return false;
-          } catch (e) {
-            return true;
-          }
-        })()
+        // const device_is_web = (() => {
+        //   try {
+        //     document.createEvent("TouchEvent"); return false;
+        //   } catch (e) {
+        //     return true;
+        //   }
+        // })()
         const recorder = new Recorder({
           bitRate: 128
         })
 
         let timestamp = Date.now()
         let audioTime = 0
-        start_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+        start_button.addEventListener("click", () => {
           timestamp = Date.now()
           audio_box.removeChild(start_button)
           audio_box.appendChild(recording)
@@ -6252,7 +6252,7 @@ const createExtendedDOMResolvers = function (app: App) {
           stopRecording()
         }
 
-        end_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+        end_button.addEventListener("click", () => {
           
           audio_box.removeChild(recording)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
@@ -6272,7 +6272,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         })
 
-        audio_status_box.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
+        audio_status_box.addEventListener("click", () => {
           if(status === "recording") {
             audioTime += Date.now() - timestamp
             audio_status_img.src = `${assetsUrl}audio_resume.svg`
@@ -6315,7 +6315,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   ]);
                   // const blobFile = await fetch("Dr.Bhalla-22-原始录音.m4a").then(async res=>new Blob([await res.blob()],{type: "audio/mp3"}))
                   const blobFile = new Blob(recordData, { type: "audio/mp3" })
-                  const chun_size_sample_rates = 16000*20; 
+                  const chun_size_sample_rates = 16000*20*5; 
                   const chunks:any[] = [];
                   const size_ws = blobFile.size>=5242880;
                   app.updateRoot(draft => {
