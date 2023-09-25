@@ -185,7 +185,6 @@ export function throwError(err?: any) {
 }
 
 export async function notifyMe() {
-  console.log('test99',Notification.permission)
   if (!('Notification' in window)) {
     toast('Browser cannot support notifications', { type: 'default' })
   } else if (Notification.permission === "granted") {
