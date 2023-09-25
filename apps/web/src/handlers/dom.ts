@@ -5548,7 +5548,6 @@ const createExtendedDOMResolvers = function (app: App) {
                   xhr.withCredentials = true;
                   xhr.addEventListener("readystatechange", function () {
                     if (this.readyState === 4) {
-                      console.log(this.response)
                       res(JSON.parse(this.response))
                     }
                   });
@@ -5603,9 +5602,6 @@ const createExtendedDOMResolvers = function (app: App) {
           node.addEventListener("click", appendEle);
           document.addEventListener(device_is_web ? 'mousedown' : "touchstart", (e) => {
             if (node.parentNode?.contains(img) && !["target_img", node.id].includes(e.target?.id as string)) {
-              // audioR = img.getBoundingClientRect().right +"px";
-              // audioT = img.style.top;
-              // console.log(audioT,audioR)
               img.removeEventListener("click", appendEle);
               recorder.stop();
               img.src = `${assetsUrl}audio_start.svg`
@@ -5615,8 +5611,6 @@ const createExtendedDOMResolvers = function (app: App) {
 
               node.parentNode?.removeChild(img);
               img.remove()
-
-
             } else {
               if (node.parentNode?.contains(img) && !device_is_web) {
                 node.focus();
@@ -6190,13 +6184,9 @@ const createExtendedDOMResolvers = function (app: App) {
         `
         const audio_status_img = document.createElement('img')
         audio_status_img.src = `${assetsUrl}audio_pause.svg`
-
         audio_status_box.appendChild(audio_status_img)
-
         recording.append(end_button, audio_status_box)
-
         audio_box.appendChild(start_button)
-
         const device_is_web = (() => {
           try {
             document.createEvent("TouchEvent"); return false;
@@ -6204,8 +6194,6 @@ const createExtendedDOMResolvers = function (app: App) {
             return true;
           }
         })()
-
-        // let proccess_fun = true
         const recorder = new Recorder({
           bitRate: 128
         })
@@ -6239,7 +6227,6 @@ const createExtendedDOMResolvers = function (app: App) {
               return t
             },
             set: function reactiveSetter(v) {
-              // console.log("newVal", v)
               t = v
               if(t === "false") {
                 translate()
@@ -6253,18 +6240,17 @@ const createExtendedDOMResolvers = function (app: App) {
             // @ts-ignore
             component.get("finishRecord")?.execute()
           })
+          
           stopRecording()
         }
 
         end_button.addEventListener(device_is_web ? 'mousedown' : "touchstart", () => {
           
           audio_box.removeChild(recording)
-          // audio_box.appendChild(start_button)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           if(status === "recording")
             audioTime += Date.now() - timestamp
-          status = "end"
-          // console.log(audioTime/1000)
+            status = "end"
           if(component.get("beforeFinish")) {
             if(audioTime/1000 < 20){
               // @ts-ignore
@@ -6311,134 +6297,88 @@ const createExtendedDOMResolvers = function (app: App) {
         function stopRecording() {
           let val;
           try {
-            (async () => {
-              // recordData = recordData.concat(buffer)
-              // const file = new File(recordData, 'audio.mp3', {
-              //   type: blob.type,
-              //   lastModified: Date.now()
-              // })
-              // let length = 0
-              // recordData.forEach(record => {
-              //   length += record.byteLength
-              // })
-              // const blobArray = new Int8Array(length)
-              // recordData.forEach((record, index) => {
-              //   blobArray.set(record, index > 0 ? recordData[index-1].byteLength : 0)
-              // })
-              const mp3Header = new Uint8Array([
-                0x49, 0x44, 0x33, 0x03,
-                0x00, 0x00, 0x00, 0x00
-              ]);
-              // const blobFile = await fetch("Dr.Bhalla-22-原始录音.m4a").then(async res=>new Blob([await res.blob()],{type: "audio/mp3"}))
-              const blobFile = new Blob(recordData, { type: "audio/mp3" })
-              const chun_size_sample_rates = 16000*20; 
-              const chunks:any[] = [];
-              const size_ws = blobFile.size>=5242880;
-              app.updateRoot(draft => {
-                set(draft?.[pageName], component.get("audioFile"), blobFile);
-              })
-              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
-              let audio_url = `${baseUrl}/upload/`;
-              if(size_ws){
-                for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
-                  const chunk = blobFile.slice(i, i + chun_size_sample_rates);
-                  
-                  const combinedBlob = new Blob([mp3Header, chunk], { type: 'audio/mp3' });
-                  chunks.push(combinedBlob)
-                }
-              }else{
-                chunks.push(blobFile)
-                audio_url =  `${baseUrl}/smallUpload/`
-              }
-              const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
-              const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
-                  let xhr = new XMLHttpRequest();
-                  xhr.withCredentials = true;
-                  xhr.addEventListener("readystatechange", function () {
-                    if (this.readyState === 4) {
-                      // console.log(this.response)
-                      res(JSON.parse(this.response))
-                    }
-                  });
-                    xhr.open("POST",audio_url);
-                    let data = new FormData();
-                    data.append("audio", v, "123.mp3");
-                    size_ws&&data.append("code", `${rand}-${i+1}`);
-                    xhr.send(data);
-                })
-              
-              )
-              const _upload_respose =  ():Promise<any>=>{
-                return new Promise((res,rej)=>{
-                  let xhr = new XMLHttpRequest();
-                  xhr.withCredentials = true;
-                  xhr.addEventListener("readystatechange", function () {
-                    if (this.readyState === 4) {
-                      try{
-                        res(JSON.parse(this.response))
-                      }catch(e){
-                        console.error(`Unable to parse returned data`)
-                      }
-                    }else{
-                      new Error("request Failed")
-                    }
-                  });
-                    xhr.open("POST",`${baseUrl}/success/`);
-                    let data = new FormData();
-                    data.append("code", `${rand}`);
-                    data.append("size", `${chunks.length}`);
-                    xhr.send(data);
-                })
-              }
-                const text = await Promise.all(chunks_map);
-                let val = size_ws?(await _upload_respose())?.text:text[0]?.text;
+              pauseRecording();
+              setTimeout(()=> {
+                // @ts-ignore
+                (async () => {
+                  const mp3Header = new Uint8Array([
+                    0x49, 0x44, 0x33, 0x03,
+                    0x00, 0x00, 0x00, 0x00
+                  ]);
+                  // const blobFile = await fetch("Dr.Bhalla-22-原始录音.m4a").then(async res=>new Blob([await res.blob()],{type: "audio/mp3"}))
+                  const blobFile = new Blob(recordData, { type: "audio/mp3" })
+                  const chun_size_sample_rates = 16000*20; 
+                  const chunks:any[] = [];
+                  const size_ws = blobFile.size>=5242880;
                   app.updateRoot(draft => {
-                    set(draft?.[pageName], dataKey, val);
+                    set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
-                  recordData = []
-                  setTimeout(()=> {
-                    // @ts-ignore
-                    component.get("endRecord")?.execute()
-                  })
-              // let data = new FormData();
-              // data.append("task", "translate");
-              // data.append("audio_file", file, "audio.mp3");
-              // let xhr = new XMLHttpRequest();
-              // xhr.withCredentials = true;
-              // xhr.addEventListener("readystatechange", function () {
-              //   if (this.readyState === 4) {
-              //     val = JSON.parse(this.responseText).text;
-              //     app.updateRoot(draft => {
-              //       set(draft?.[pageName], dataKey, val);
-              //     })
-              //     recordData = []
-              //     setTimeout(()=> {
-              //       // @ts-ignore
-              //       component.get("endRecord")?.execute()
-              //     })
-              //     // const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
-              //     // node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
-              //   }
-              // });
-              // xhr.addEventListener("error", () => {
-              //   val = ""
-              //   app.updateRoot(draft => {
-              //     set(draft?.[pageName], dataKey, val);
-              //   })
-              //   recordData = []
-              //   setTimeout(()=> {
-              //     // @ts-ignore
-              //     component.get("errorRecord")?.execute()
-              //   })
-              // })
-              // xhr.open("POST", JSON.parse(localStorage.getItem("config") as string).whisperUrl || "https://whisper.aitmed.com.cn:9005/asr");
-              // xhr.setRequestHeader("Authorization", "Bearer cjkdl0asdf91sccc");
-              // xhr.send(data);
+                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+                  let audio_url = `${baseUrl}/upload/`;
+                  if(size_ws){
+                    for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
+                      const chunk = blobFile.slice(i, i + chun_size_sample_rates);
+                      
+                      const combinedBlob = new Blob([mp3Header, chunk], { type: 'audio/mp3' });
+                      chunks.push(combinedBlob)
+                    }
+                  }else{
+                    chunks.push(blobFile)
+                    audio_url =  `${baseUrl}/smallUpload/`
+                  }
+                  const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
+                  const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
+                      let xhr = new XMLHttpRequest();
+                      xhr.withCredentials = true;
+                      xhr.addEventListener("readystatechange", function () {
+                        if (this.readyState === 4) {
+                          res(JSON.parse(this.response))
+                        }
+                      });
+                        xhr.open("POST",audio_url);
+                        let data = new FormData();
+                        data.append("audio", v, "123.mp3");
+                        size_ws&&data.append("code", `${rand}-${i+1}`);
+                        xhr.send(data);
+                    })
+                  
+                  )
+                  const _upload_respose =  ():Promise<any>=>{
+                    return new Promise((res,rej)=>{
+                      let xhr = new XMLHttpRequest();
+                      xhr.withCredentials = true;
+                      xhr.addEventListener("readystatechange", function () {
+                        if (this.readyState === 4) {
+                          try{
+                            res(JSON.parse(this.response))
+                          }catch(e){
+                            console.error(`Unable to parse returned data`)
+                          }
+                        }else{
+                          new Error("request Failed")
+                        }
+                      });
+                        xhr.open("POST",`${baseUrl}/success/`);
+                        let data = new FormData();
+                        data.append("code", `${rand}`);
+                        data.append("size", `${chunks.length}`);
+                        xhr.send(data);
+                    })
+                  }
+                    const text = await Promise.all(chunks_map);
+                    let val = size_ws?(await _upload_respose())?.text:text[0]?.text;
+                      app.updateRoot(draft => {
+                        set(draft?.[pageName], dataKey, val);
+                      })
+                      recordData = []
+                      setTimeout(()=> {
+                        // @ts-ignore
+                        component.get("endRecord")?.execute()
+                      })
+                
+                })();
+              })
             
-              // img.removeEventListener('click', stopRecording);
-              // img.addEventListener('click', startRecording);
-            
-            })();
           } catch (error) {
             val = ""
             app.updateRoot(draft => {
