@@ -6082,7 +6082,9 @@ const createExtendedDOMResolvers = function (app: App) {
         div.style.background = progressColor
         div.style.width = `0%`
         div.style.transition = `width .2s linear`
+        div.style.borderRadius = `4px 0px 0px 4px`
         node.appendChild(div)
+        node.style.borderRadius = `4px`
       }
     },
     '[App] Dictation': {
