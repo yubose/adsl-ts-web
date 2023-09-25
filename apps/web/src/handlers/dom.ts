@@ -6156,13 +6156,17 @@ const createExtendedDOMResolvers = function (app: App) {
           font-weight: 600;
           cursor: pointer;
         `
-
+        
         const audio_start = document.createElement('img')
         audio_start.src = `${assetsUrl}audio_white.svg`
         const text_start = document.createElement('div')
         text_start.style.cssText = `margin-left: 10px`
         text_start.innerText = `Start Conversation`
-
+        text_start.style.cssText = `
+          font-size: 16px;
+          margin-left: 6px;
+        
+        `
         start_button.append(audio_start, text_start)
 
         const audio_end = document.createElement('img')
@@ -6170,7 +6174,11 @@ const createExtendedDOMResolvers = function (app: App) {
         const text_end = document.createElement('div')
         text_end.style.cssText = `margin-left: 10px`
         text_end.innerText = `End`
-
+        text_end.style.cssText = `
+        font-size: 16px;
+        margin-left: 6px;
+      
+      `
         end_button.append(audio_end, text_end)
 
         let status = 'undefined'
