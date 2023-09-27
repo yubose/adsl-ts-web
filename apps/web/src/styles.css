@@ -8,7 +8,7 @@ html {
   -webkit-text-size-adjust: none !important;
   /* -ms-touch-action: none !important; */
   /* touch-action: none !important; Prevents user scaling */
-  font-size: 62.5%;
+  /* font-size: 62.5%; */
 }
 
 input::-ms-clear,
