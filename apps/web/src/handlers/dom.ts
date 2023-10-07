@@ -5581,11 +5581,21 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
               }
               const text = await Promise.all(chunks_map);
+
+              console.log()
+
               let val = size_ws?(await _upload_respose())?.text:text[0]?.text
              app.updateRoot(draft => {
               set(draft?.[pageName], dataKey, val);
                   const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
-                  node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
+                  const end_p = node.selectionEnd;
+                  const currentValue = node.value;
+                  if(end_p!==currentValue.length){
+                    node.value = currentValue.slice(0, end_p) + val + currentValue.slice(end_p);
+                    node.setSelectionRange(val.length+end_p, val.length+end_p)
+                  }else{
+                    node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
+                  }
             })
               img.removeEventListener('click', stopRecording);
               img.addEventListener('click', startRecording);
