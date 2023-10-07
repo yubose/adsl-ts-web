@@ -23,6 +23,8 @@ const DataSource = new Map([
     ["Payer ID", {"Source":"Financial Responsibility","Expansion":"Primary Insurance Payer ID","isSharp":false}],
     ["Payer Address", {"Source":"Financial Responsibility","Expansion":"Primary Insurance Payer Address","isSharp":false}],
     ["Insurance Type", {"Source":"Financial Responsibility","Expansion":"Insurance Type, Primary Insurance Insurance Type","isSharp":false}],
+    ["Insurance Company Name", {"Source": "Financial Responsibility", "Expansion": "Medical Insurance > Insurance Company Name; Workers Comp > Insurance Company Name(Claims Administrator); Personal injury > Primary Insurance Company Name", "isSharp": false}],
+    ["Secondary Insurance Company Name", {"Source": "Financial Responsibility", "Expansion": "Medical Insurance > Secondary Insurance Company Name；Personal injury > Secondary Insurance Company Name", "isSharp": false}],
     ["Insured ID Number", {"Source":"Financial Responsibility","Expansion":"Insured ID #, Claim #(Workers Comp)","isSharp":false}],
     ["Health Plan ID", {"Source":"Financial Responsibility","Expansion":"Insured ID #, Claim #(Workers Comp)","isSharp":false}],
     ["Insured Name", {"Source":"Financial Responsibility","Expansion":"Relationship To Patient->name, Payer Name(Workers Comp)","isSharp":false}],
