@@ -1276,7 +1276,7 @@ class App {
             pageName: page.page,
           })
         }
-        if(this.initPage === 'RingToneCallPage'){
+        if(this.initPage && ['RingToneCallPage','RingTonePage'].includes(this.initPage)){
           window['ringTong']?.play?.()  
         }else{
           window['ringTong']?.stop?.()  
