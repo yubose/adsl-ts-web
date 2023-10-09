@@ -1551,7 +1551,7 @@ const createActions = function createActions(app: App) {
             const place_name = res['data']['features'][0]['place_name']
             let dataObject = isRootDataKey(dataKey)
               ? app.root
-              : app.root?.[pickNUIPageFromOptions(options)?.page || '']
+              : app.root?.[app.initPage || '']
             if (place_name) {
               set(dataObject, dataKey, place_name)
             }
