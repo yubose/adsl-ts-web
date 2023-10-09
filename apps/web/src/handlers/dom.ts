@@ -6578,11 +6578,6 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: ({ component: c }) => c.contentType === 'creditCard',
       async resolve({ node, component }) {
         if(node){
-          console.log('%c node',"background: red;color: #fff;font-size:2em",{node},node.id );
-          console.log('%c component',"background: red;color: #fff;font-size:2em",component);
-          const pageName = app.initPage
-          const dataKey =
-          component.get('data-key') || component.blueprint?.dataKey || ''
           const appId = 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg' //'{YOUR_SANDBOX_APPLICATION_ID}';
           const locationId = 'L3P65NPGFEZVP' //'{YOUR_SANDBOX_LOCATION_ID}';
           async function initializeCard (payments) {
@@ -6597,12 +6592,10 @@ const createExtendedDOMResolvers = function (app: App) {
           let card;
           try {
             card = await initializeCard(payments);
-            if (pageName && dataKey) {
-              app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey, card);
-              }) 
-            }
-            console.log('%c dataKey',"background: red;color: #fff;font-size:2em",dataKey);
+            // app['card'] = card
+            Object.defineProperties(app, {
+              paymentMethod: { configurable: true, get: () => card },
+            })
           } catch (e) {
             console.error('Initializing Card failed', e);
             return;
