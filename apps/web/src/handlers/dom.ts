@@ -6578,8 +6578,10 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: ({ component: c }) => c.contentType === 'creditCard',
       async resolve({ node, component }) {
         if(node){
+          console.log('node',node,node.id)
           const appId = 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg' //'{YOUR_SANDBOX_APPLICATION_ID}';
           const locationId = 'L3P65NPGFEZVP' //'{YOUR_SANDBOX_LOCATION_ID}';
+          
           async function initializeCard (payments) {
             const card = await payments.card();
             await card.attach(`#${node.id}`);
@@ -6591,11 +6593,12 @@ const createExtendedDOMResolvers = function (app: App) {
           const payments = window.Square.payments(appId, locationId);
           let card;
           try {
-            card = await initializeCard(payments);
-            // app['card'] = card
-            Object.defineProperties(app, {
-              paymentMethod: { configurable: true, get: () => card },
-            })
+            setTimeout(async()=>{
+              card = await initializeCard(payments);
+              Object.defineProperties(app, {
+                paymentMethod: { configurable: true, get: () => card },
+              })
+            },0)
           } catch (e) {
             console.error('Initializing Card failed', e);
             return;

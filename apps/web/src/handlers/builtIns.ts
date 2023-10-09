@@ -1544,20 +1544,8 @@ export const extendedSdkBuiltIns = {
     if(paymentMethod){
       const tokenResult = await paymentMethod.tokenize();
       return tokenResult
-      // if (tokenResult.status === 'OK') {
-      //   return tokenResult
-      // } else {
-      //   let errorMessage = `Tokenization failed-status: ${tokenResult.status}`;
-      //   if (tokenResult.errors) {
-      //     errorMessage += ` and errors: ${JSON.stringify(
-      //       tokenResult.errors
-      //     )}`;
-      //   }
-      //   throw new Error(errorMessage);
-      // }
     }
-    return
-    
+    return  
   }
 }
 
