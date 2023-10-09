@@ -6574,6 +6574,42 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       }
     },
+    '[App CreditCard]': {
+      cond: ({ component: c }) => c.contentType === 'creditCard',
+      async resolve({ node, component }) {
+        if(node){
+          console.log('%c node',"background: red;color: #fff;font-size:2em",{node},node.id );
+          console.log('%c component',"background: red;color: #fff;font-size:2em",component);
+          const pageName = app.initPage
+          const dataKey =
+          component.get('data-key') || component.blueprint?.dataKey || ''
+          const appId = 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg' //'{YOUR_SANDBOX_APPLICATION_ID}';
+          const locationId = 'L3P65NPGFEZVP' //'{YOUR_SANDBOX_LOCATION_ID}';
+          async function initializeCard (payments) {
+            const card = await payments.card();
+            await card.attach(`#${node.id}`);
+            return card;
+          }
+          if (!window.Square) {
+            throw new Error('Square.js failed to load properly');
+          }
+          const payments = window.Square.payments(appId, locationId);
+          let card;
+          try {
+            card = await initializeCard(payments);
+            if (pageName && dataKey) {
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey, card);
+              }) 
+            }
+            console.log('%c dataKey',"background: red;color: #fff;font-size:2em",dataKey);
+          } catch (e) {
+            console.error('Initializing Card failed', e);
+            return;
+          }
+        }
+      }
+    }
   }
 
   return u

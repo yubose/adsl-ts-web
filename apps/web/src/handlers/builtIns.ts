@@ -1537,6 +1537,43 @@ export const extendedSdkBuiltIns = {
       // )
     }
   },
+  async handlePaymentMethodSubmission(this: App,{card}: {card: any }){
+    console.log('%c token',"background: red;color: #fff;font-size:2em",111111);
+    async function tokenize (paymentMethod) {
+      const tokenResult = await paymentMethod.tokenize();
+      if (tokenResult.status === 'OK') {
+        return tokenResult.token;
+      } else {
+        let errorMessage = `Tokenization failed-status: ${tokenResult.status}`;
+        if (tokenResult.errors) {
+          errorMessage += ` and errors: ${JSON.stringify(
+            tokenResult.errors
+          )}`;
+        }
+        throw new Error(errorMessage);
+      }
+    }
+    const token = await tokenize(card);
+
+
+    // try {
+    //   // disable the submit button as we await tokenization and make a
+    //   // payment request.
+    //   // cardButton.disabled = true;
+    //   const token = await tokenize(card);
+
+
+    //   return token
+    //   // const paymentResults = await createPayment(token);
+    //   // displayPaymentResults('SUCCESS');
+
+    //   // console.debug('Payment Success', paymentResults);
+    // } catch (e: any) {
+    //   // cardButton.disabled = false;
+    //   // displayPaymentResults('FAILURE');
+    //   console.error(e.message);
+    // }
+  }
 }
 
 export default createBuiltInActions

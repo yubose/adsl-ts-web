@@ -182,7 +182,7 @@ function getWebpackConfig(env) {
         'aitmed.io',
       ],
       compress: true,
-
+      https: true,
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',

@@ -99,7 +99,8 @@ declare global {
     nui: typeof nui
     ndom: NDOM
     streams: any
-    cp: Function
+    cp: Function,
+    Square: any
   }
 
   export interface Performance {
