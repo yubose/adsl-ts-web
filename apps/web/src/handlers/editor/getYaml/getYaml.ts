@@ -689,7 +689,7 @@ const populateBlock = ({
                                                 minWidth: '..formData.atrribute.noodl_font.tableMinWidth',
                                                 width: `calc(100%)`,
                                                 minHeight: "..formData.atrribute.noodl_font.lineHeight",
-                                                height: "calc(100%)",
+                                                // height: "calc(100%)",
                                                 fontSize: "..formData.atrribute.noodl_font.text",
                                                 border: "none",
                                                 textAlign,
