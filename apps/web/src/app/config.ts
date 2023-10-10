@@ -38,3 +38,9 @@ export const firebase = {
     appId: '1:121837683309:web:d8f3b3733a65a6fb5f3564',
   },
 } as const
+
+
+export const Square = {
+  appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
+  locationId: 'L3P65NPGFEZVP'
+}

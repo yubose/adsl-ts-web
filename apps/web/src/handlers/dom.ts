@@ -53,6 +53,7 @@ import registerToolbar, { DynamicFields } from './editor/toolbar'
 import Recorder from 'mic-recorder-to-mp3'
 import { editorBlockCss } from './editor/utils/utils'
 import { store } from '@aitmed/cadl'
+import { Square } from '../app/config'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -6576,12 +6577,9 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App CreditCard]': {
       cond: ({ component: c }) => c.contentType === 'creditCard',
-      async resolve({ node, component }) {
+      resolve({ node, component }) {
         if(node){
-          console.log('node',node,node.id)
-          const appId = 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg' //'{YOUR_SANDBOX_APPLICATION_ID}';
-          const locationId = 'L3P65NPGFEZVP' //'{YOUR_SANDBOX_LOCATION_ID}';
-          
+          const { appId,locationId } = Square
           async function initializeCard (payments) {
             const card = await payments.card();
             await card.attach(`#${node.id}`);
@@ -6591,10 +6589,9 @@ const createExtendedDOMResolvers = function (app: App) {
             throw new Error('Square.js failed to load properly');
           }
           const payments = window.Square.payments(appId, locationId);
-          let card;
           try {
-            setTimeout(async()=>{
-              card = await initializeCard(payments);
+            setTimeout(async ()=>{
+              const card = await initializeCard(payments);
               Object.defineProperties(app, {
                 paymentMethod: { configurable: true, get: () => card },
               })
