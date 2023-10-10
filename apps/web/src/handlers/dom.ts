@@ -6575,7 +6575,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       }
     },
-    '[App CreditCard]': {
+    '[App] CreditCard': {
       cond: ({ component: c }) => c.contentType === 'creditCard',
       resolve({ node, component }) {
         if(node){
