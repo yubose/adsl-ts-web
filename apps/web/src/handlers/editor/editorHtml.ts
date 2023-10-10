@@ -158,6 +158,16 @@ const styleText = `
     align-items: center;
     padding-left: 20px;
     text-align: start;
+    overflow: hidden;
+}
+
+.w-e_search-display .title .text {
+    letter-spacing: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 #w-e_search-title .title {
@@ -170,6 +180,7 @@ const styleText = `
 
 .w-e_search-display .title1 {
     width: ${searchResValueRatio}%;
+    padding-right: 10px;
 }
 
 .w-e_search-item:hover {

@@ -162,8 +162,12 @@ const search = (value: string) => {
             // `)
             obj[key] = `
                 <div class="w-e_search-item" data-key="${key}" data-source="${value.Source}" data-issharp=${value.isSharp}>
-                    <div class="title title0">${key}</div>
-                    <div class="title title1">${value.Expansion}</div>
+                    <div class="title title0">
+                        <p class="text">${key}</p>
+                    </div>
+                    <div class="title title1">
+                        <p class="text">${value.Expansion}</p>
+                    </div>
                 </div>
             `
         }
