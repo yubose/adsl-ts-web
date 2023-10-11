@@ -76,6 +76,7 @@ const createActions = function createActions(app: App) {
           options: ConsumerOptions,
         ) {
           try {
+            app.root.options = options
             !app.getState().spinner.active && app.enableSpinner()
             const emitParams = {
               actions: _pick(action, 'actions'),
@@ -234,6 +235,7 @@ const createActions = function createActions(app: App) {
     options.ref?.clear('timeout')
 
     try {
+      app.root.options = options
       let object = _pick(action, 'object') as
         | IfObject
         | ((...args: any[]) => any)
