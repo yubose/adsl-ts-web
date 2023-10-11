@@ -66,6 +66,9 @@ export function getSdkHelpers(app: App) {
     get show() {
       return app.builtIns.get('show')?.find(Boolean)?.fn
     },
+    get toast() {
+      return app.builtIns.get('toast')?.find(Boolean)?.fn
+    },
     get redraw() {
       return app.builtIns.get('redraw')?.find(Boolean)?.fn
     },

@@ -59,6 +59,7 @@ import * as c from '../constants'
 import axios from 'axios'
 import isLocalReference from 'noodl-types/dist/utils/isLocalReference'
 import isRootReference from 'noodl-types/dist/utils/isRootReference'
+import { createToast, destroyAllToasts } from '../utils/chatToast'
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
@@ -1164,7 +1165,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
   }
-  const countDown = async function onCountDown(options: {
+  const countDown = async function onCountDown(actions,options: {
     viewTag: string
     timeFormat: string
     time: number | string
@@ -1193,6 +1194,60 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }, 1000)
     return
   }
+  const toast = async function onToast(
+    action,
+    options
+  ){
+    const components = options.components
+    const container =  document.createElement("div")
+    container.id = 'toast-innerHTML'
+    if(u.isArr(components) && app.initPage){
+      const page = app.mainPage.getNuiPage()
+      for(let i=0;i<components.length;i++){
+        const component = components[i]
+        const obj = await app.noodl.replaceEvalObject({
+          pageName: app.initPage,
+          cadlObject: component,
+          dispatch: app.noodl.dispatch
+        })
+        let newComponent = app.nui.createComponent(
+          obj,
+          page
+        )
+        newComponent = await app.nui.resolveComponents?.({
+          callback: options?.callback,
+          components: newComponent,
+          page,
+          context:{},
+          on: {},
+        })
+        await app.ndom.draw(newComponent, container, app.mainPage, {
+          ...options,
+          on: options?.on,
+          context:{},
+          nodeIndex: i,
+        })
+      }
+    }
+
+    const left = options.left ? options.left : 0
+    const top = options.top ? options.top : 0
+    //@ts-expect-error
+    const newTop = app.nui?.getSize?.(`${1-parseFloat(top)}`,'height')
+    //@ts-expect-error
+    const newLeft = app.nui?.getSize?.(left,'width')
+    createToast(container, {
+      timeout: 2000,
+      groupId: 'chat-toast-contrainer',
+      groupStyle:  {
+        bottom: `${newTop}`,
+        left: `${newLeft}`
+      }
+    })
+    container.addEventListener('click',()=>{
+      destroyAllToasts()
+    })
+  }
   const builtIns = {
     checkField,
     disconnectMeeting,
@@ -1218,6 +1273,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     getViewTagValue,
     countDown,
     switchCamera,
+    toast,
   }
 
   /** Shared common logic for both lock/logout logic */
