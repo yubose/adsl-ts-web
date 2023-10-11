@@ -72,6 +72,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   } as const
 
   async function onConnected(room: Meeting['room']) {
+    //Prevents events from being listened to multiple times and causing lag
+    room.removeAllListeners('participantConnected')
+    room.removeAllListeners('participantDisconnected')
+    room.removeAllListeners('participantReconnecting')
+    room.removeAllListeners('participantReconnected')
     room.on('participantConnected', onRoomEvent.participantConnected)
     room.on('participantDisconnected', onRoomEvent.participantDisconnected)
     room.on('participantReconnecting', onRoomEvent.participantReconnecting)
