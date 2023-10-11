@@ -234,6 +234,7 @@ const createActions = function createActions(app: App) {
     options.ref?.clear('timeout')
 
     try {
+      app.root.options = options
       let object = _pick(action, 'object') as
         | IfObject
         | ((...args: any[]) => any)

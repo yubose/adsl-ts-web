@@ -34,6 +34,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging()
 
 // const handler = messaging.onBackgroundMessage(function (payload) {
+// messaging.onBackgroundMessage(function (payload) {
 //   console.log('[serviceWorker.js] Received background message ', payload)
 //   // payload.from example --> "669708592038"
 //   const { collapseKey, data, from, notification = {} } = payload
