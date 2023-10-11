@@ -32,7 +32,7 @@
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.270",
-    "noodl-ui": "^0.1.1165",
+    "noodl-ui": "^0.1.1164",
     "noodl-utils": "^0.0.134",
     "noodl-yaml": "^0.0.12",
     "papaparse": "^5.4.1",
