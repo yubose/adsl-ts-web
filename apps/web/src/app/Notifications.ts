@@ -108,9 +108,7 @@ class AppNotification {
     return token
   }
   async deleteToken(){
-    if (this.supported) {
       await this.messaging?.deleteToken()
-    }
   }
 
   emit<Hook extends AppNotificationHook>(
