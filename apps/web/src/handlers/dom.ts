@@ -53,6 +53,7 @@ import registerToolbar, { DynamicFields } from './editor/toolbar'
 import Recorder from 'mic-recorder-to-mp3'
 import { editorBlockCss } from './editor/utils/utils'
 import { store } from '@aitmed/cadl'
+import { Square } from '../app/config'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -6579,6 +6580,34 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       }
     },
+    '[App] CreditCard': {
+      cond: ({ component: c }) => c.contentType === 'creditCard',
+      resolve({ node, component }) {
+        if(node){
+          const { appId,locationId } = Square
+          async function initializeCard (payments) {
+            const card = await payments.card();
+            await card.attach(`#${node.id}`);
+            return card;
+          }
+          if (!window.Square) {
+            throw new Error('Square.js failed to load properly');
+          }
+          const payments = window.Square.payments(appId, locationId);
+          try {
+            setTimeout(async ()=>{
+              const card = await initializeCard(payments);
+              Object.defineProperties(app, {
+                paymentMethod: { configurable: true, get: () => card },
+              })
+            },0)
+          } catch (e) {
+            console.error('Initializing Card failed', e);
+            return;
+          }
+        }
+      }
+    }
   }
 
   return u

@@ -326,6 +326,9 @@ export function getSdkHelpers(app: App) {
         throw error instanceof Error ? error : new Error(String(error))
       }
     },
+    get handlePaymentMethodSubmission() {
+      return extendedSdkBuiltIns.handlePaymentMethodSubmission.bind(app)
+    },
   }
 
   return {

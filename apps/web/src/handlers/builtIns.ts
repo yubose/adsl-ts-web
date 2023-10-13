@@ -1593,6 +1593,16 @@ export const extendedSdkBuiltIns = {
       // )
     }
   },
+  async handlePaymentMethodSubmission(
+    this: App,
+  ){
+    const paymentMethod = this['paymentMethod']
+    if(paymentMethod){
+      const tokenResult = await paymentMethod.tokenize();
+      return tokenResult
+    }
+    return  
+  }
 }
 
 export default createBuiltInActions
