@@ -30,6 +30,9 @@ export class Spinner {
 
   constructor(opts?: Record<string, any>) {
     this.opts = { ...defaults, ...opts }
+    if(opts?.containerWidth){
+      this.opts.left = `${opts.containerWidth/2}px`
+    }
   }
 
   /**

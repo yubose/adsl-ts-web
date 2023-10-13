@@ -487,3 +487,20 @@ export function traverseDFS<R = any>(
 
   return results
 }
+
+export async function notifyMe() {
+  if (!('Notification' in window)) {
+    toast('Browser cannot support notifications', { type: 'default' })
+  } else if (Notification.permission === "granted") {
+    return true
+  } else if (['denied','default'].includes(Notification.permission)) {
+    setTimeout(async()=>{
+      await Notification.requestPermission().then((permission) => {
+      if (permission === "granted") return true
+      else{
+        toast('The notification permission was not granted and blocked instead!', { type: 'default' })
+      }
+    })},1000)
+  }
+  return false
+}
