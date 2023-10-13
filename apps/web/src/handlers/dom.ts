@@ -6220,6 +6220,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let timestamp = Date.now()
         let audioTime = 0
+        let complete = false
         start_button.addEventListener("click", () => {
           timestamp = Date.now()
           audio_box.removeChild(start_button)
@@ -6227,6 +6228,9 @@ const createExtendedDOMResolvers = function (app: App) {
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           status = 'recording'
           startRecording()
+          setTimeout(()=> {
+            complete = true
+          })
           setTimeout(()=> {
             // @ts-ignore
             component.get("startRecord")?.execute()
@@ -6282,6 +6286,7 @@ const createExtendedDOMResolvers = function (app: App) {
           } else {
             translate()
           }
+          complete = false
         })
 
         audio_status_box.addEventListener("click", () => {
