@@ -76,6 +76,7 @@ const createActions = function createActions(app: App) {
           options: ConsumerOptions,
         ) {
           try {
+            app.root.options = options
             !app.getState().spinner.active && app.enableSpinner()
             const emitParams = {
               actions: _pick(action, 'actions'),
@@ -722,9 +723,9 @@ const createActions = function createActions(app: App) {
       rootDom.appendChild(divRootDom)
       img.src = URL.createObjectURL(file as Blob) as string
       cropper = new Cropper(img, {
-        viewMode: 2, // 只能在裁剪的图片范围内移动
+        viewMode: 1, // 只能在裁剪的图片范围内移动
         dragMode: 'move', // 画布和图片都可以移动
-        aspectRatio: 1, // 裁剪区默认正方形
+        // aspectRatio: 1, // 裁剪区默认正方形
         autoCropArea: 1, // 自动调整裁剪图片
         zoomOnWheel: true,
         scalable: true,
