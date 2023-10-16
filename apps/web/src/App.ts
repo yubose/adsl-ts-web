@@ -49,6 +49,7 @@ import { isUnitTestEnv, sortByPriority } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
 import axios from 'axios'
+import debounce from 'lodash/debounce'
 
 class App {
   #state: t.AppState = {
@@ -1101,6 +1102,11 @@ class App {
           viewport.width = window.innerWidth
           viewport.height = window.innerHeight
         }
+        this.#spinner = new Spinner({
+          containerWidth: viewport.width,
+          containerHeight: viewport.height,
+          ...this.spinner.opts
+        })
         
       } else {
         viewport.width = w
@@ -1111,22 +1117,23 @@ class App {
     initMinMax()
     refreshWidthAndHeight()
 
-    viewport.onResize = async (args) => {
-      log.debug('Resizing')
-      if (
-        args.width !== args.previousWidth ||
-        args.height !== args.previousHeight
-      ) {
-        // if (this.currentPage === 'VideoChat') return
-        this.aspectRatio = aspectRatio
-        refreshWidthAndHeight()
-        document.body.style.width = `${args.width}px`
-        document.body.style.height = `${args.height}px`
-        this.mainPage.node.style.width = `${args.width}px`
-        this.mainPage.node.style.height = `${args.height}px`
-        await this.render(this.mainPage)
-      }
-    }
+    viewport.onResize = debounce(async (args) => {
+        log.debug('Resizing')
+        if (
+          args.width !== args.previousWidth ||
+          args.height !== args.previousHeight
+        ) {
+          // if (this.currentPage === 'VideoChat') return
+          this.aspectRatio = aspectRatio
+          refreshWidthAndHeight()
+          document.body.style.width = `${args.width}px`
+          document.body.style.height = `${args.height}px`
+          this.mainPage.node.style.width = `${args.width}px`
+          this.mainPage.node.style.height = `${args.height}px`
+          await this.render(this.mainPage)
+        }
+      
+    },300)
   }
 
   observePages(page: NDOMPage) {

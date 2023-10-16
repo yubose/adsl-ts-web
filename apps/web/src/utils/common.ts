@@ -6,7 +6,6 @@ import { NUIAction, NUIActionObjectInput, NuiComponent, Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
 import { ActionMetadata } from '../app/types'
 import log from '../log'
-import { toast } from './dom'
 
 export function getActionMetadata<PKey extends string = string>(
   action: nt.ActionObject | NUIAction | undefined,
@@ -182,21 +181,4 @@ export function throwError(err?: any) {
     throw new Error(String(err))
   }
   throw new Error('Error occurred')
-}
-
-export async function notifyMe() {
-  if (!('Notification' in window)) {
-    toast('Browser cannot support notifications', { type: 'default' })
-  } else if (Notification.permission === "granted") {
-    return true
-  } else if (['denied','default'].includes(Notification.permission)) {
-    setTimeout(async()=>{
-      await Notification.requestPermission().then((permission) => {
-      if (permission === "granted") return true
-      else{
-        toast('The notification permission was not granted and blocked instead!', { type: 'default' })
-      }
-    })},1000)
-  }
-  return false
 }

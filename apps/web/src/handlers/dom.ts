@@ -4157,6 +4157,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         hasChildren: false,
                         hasDot: true
                       })
+                      extendMap.set(list.pageName, child.pageName)
                     })
                   }
                 }
