@@ -3206,6 +3206,7 @@ const createExtendedDOMResolvers = function (app: App) {
             childStyle?: {
               width?: number | string
               height?: number | string
+              objectFit?:  string
             }
             loop?: boolean
           }
@@ -3243,6 +3244,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 img.src = dataValue[index]?.['path']
                 img.style.width = option.childStyle?.width + ''
                 img.style.height = option.childStyle?.height + ''
+                img.style.objectFit = option.childStyle?.objectFit + ''
                 // img.style.cursor = "pointer" ;
                 liDom.appendChild(img)
                 listDom.appendChild(liDom)
@@ -3263,6 +3265,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 img.src = dataValue[index] as string
                 img.style.width = option.childStyle?.width + ''
                 img.style.height = option.childStyle?.height + ''
+                img.style.objectFit = option.childStyle?.objectFit + ''
                 // img.style.cursor = "pointer" ;
                 liDom.appendChild(img)
                 listDom.appendChild(liDom)
@@ -3315,7 +3318,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // 垂直或水平切换选项
             // direction: 'horizontal',
             // 循环模式选项
-            loop: option.loop,
+            // loop: option.loop,
             // 自动切换选项
             autoplay: option.autoplay && {
               // delay: 2000,
