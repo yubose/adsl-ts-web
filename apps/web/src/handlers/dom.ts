@@ -5558,7 +5558,11 @@ const createExtendedDOMResolvers = function (app: App) {
                   });
                     xhr.open("POST",audio_url);
                     let data = new FormData();
+                    
                     data.append("audio", v, "123.mp3");
+                    // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getltem('user_vid'),"mmmmmmmmm")
+                    // data.append("appointmentid",app.root.Global?.["roomInfo"]?.["edge"]?.["id"]);
+                    // data.append("providerld", localStorage.getltem('user_vid'));
                     size_ws&&data.append("code", `${rand}-${i+1}`);
                     xhr.send(data);
                 })
@@ -6368,6 +6372,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         xhr.open("POST",audio_url);
                         let data = new FormData();
                         data.append("audio", v, "123.mp3");
+                        console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
+                        data.append("appointmentid",app.root.Global?.["roomInfo"]?.["edge"]?.["id"]);
+                        data.append("providerld", localStorage.getItem('user_vid') as string);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
                     })
