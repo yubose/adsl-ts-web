@@ -6373,8 +6373,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         let data = new FormData();
                         data.append("audio", v, "123.mp3");
                         console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
-                        data.append("appointmentid",app.root.Global?.["roomInfo"]?.["edge"]?.["id"]);
-                        data.append("providerld", localStorage.getItem('user_vid') as string);
+                        data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
                     })
