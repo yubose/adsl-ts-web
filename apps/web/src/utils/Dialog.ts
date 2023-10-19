@@ -36,7 +36,11 @@ export default class SelfDialog{
 
         this.css(dialog_container, {
             'width': '30%',
-            'margin': '15vh auto',
+            'max-width': "600px",
+            'position': 'relative',
+            'top': '40%',
+            'left': '50%',
+            'transform': 'translate(-50%, -50%)',
             'background': '#ffffff',
             'box-shadow': '0px 12px 32px 4px rgba(0, 0, 0, .04), 0px 8px 20px rgba(0, 0, 0, .08)',
             'box-sizing': 'border-box',
@@ -49,7 +53,7 @@ export default class SelfDialog{
         })
 
         this.css(dialog_header_span, {
-            'font-size': '18px',
+            'font-size': '24px',
             'line-height': '24px',
             'color': '#000000',
             'box-sizing': 'border-box'
@@ -61,8 +65,8 @@ export default class SelfDialog{
         })
 
         this.css(dialog_body_span, {
-            'font-size': '14px',
-            'line-height': '24px',
+            'font-size': '18px',
+            'line-height': '30px',
             'color': '#606266',
             'box-sizing': 'border-box'
         })
