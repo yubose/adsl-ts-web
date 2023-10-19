@@ -50,6 +50,7 @@ import * as c from './constants'
 import * as t from './app/types'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
+import SelfDialog from './utils/Dialog'
 
 class App {
   #state: t.AppState = {
@@ -587,6 +588,25 @@ class App {
           log.error(error instanceof Error ? error : new Error(String(error)))
         }
       }
+
+      const host = 'http://worldtimeapi.org/api/ip'
+      fetch(host).then((response)=>response.json()).then((data) => {
+        const selfDialog = new SelfDialog()
+        const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
+        if(data['unixtime'] && Math.abs(data['unixtime'] - currentClientUnixTime)>4*60){
+          selfDialog.insert(
+            `Sorry, You computer's local time is not accurate, please correct and click refresh button to refresh the page.`,
+            {
+              confirmButtonCallback: ()=>{
+                window.location.reload()
+                selfDialog.destroy()
+              },
+              confirmButtonText: 'Refresh'
+            }
+          )
+        }
+        
+      })
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()
