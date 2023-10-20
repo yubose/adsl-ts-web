@@ -3822,6 +3822,49 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             return domNode
           }
+          private createImageNode(Msg:any):HTMLElement{
+            let domNode = this.createChatNode()
+            let domNodeContent: HTMLElement
+            let chatBackground: string
+            let color: string
+              ;[domNode, domNodeContent, chatBackground, color] = this.judgeIsOwner(
+                domNode,
+                this.IsOwner(Msg.bsig),
+                Msg,
+              )
+
+            let timeContent = document.createElement("div")
+            timeContent.innerText = this.caculateTime(Msg.ctime || Msg?.name?.data?.time)
+            timeContent.style.cssText = `
+              color: #999999;
+            `
+            const imageData = Msg?.name?.data
+            const id = Msg?.id
+            const func = app.root.builtIn.utils.prepareDocToPath
+            const image = document.createElement('img')
+            image.style.cssText = `
+              max-width: 100%;
+              width: fit-content;
+              border-radius: 8px;
+              line-height: 21px;
+              padding: 8px 15px 6px 12px;
+              word-wrap: break-word;
+              white-space: pre-wrap;
+              font-size: 14px;
+            `
+            console.log('test9',Msg)
+            if(id){
+              func(id).then(res=>{
+                image.src = res?.url
+              })
+            }else if(imageData instanceof Blob){
+              func(imageData).then(res=>{
+                image.src = res?.url
+              })
+            }
+            domNodeContent.append(timeContent,image)
+            return domNode
+          }
 
           private judgeType(Msg: any): HTMLElement {
             let domNode: HTMLElement
@@ -3831,6 +3874,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 return domNode
               case 'pdfMessage':
                 domNode = this.createPdfNode(Msg)
+                return domNode
+              case 'imageMessage':
+                domNode = this.createImageNode(Msg)
                 return domNode
               default:
                 return document.createElement("div")
