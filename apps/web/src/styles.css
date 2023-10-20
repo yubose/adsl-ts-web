@@ -53,6 +53,10 @@ button {
   cursor: pointer;
 }
 
+.label {
+  white-space: pre-wrap;
+}
+
 button:hover {
   opacity: 0.8;
 }

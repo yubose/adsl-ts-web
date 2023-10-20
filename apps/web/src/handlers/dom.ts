@@ -3206,6 +3206,7 @@ const createExtendedDOMResolvers = function (app: App) {
             childStyle?: {
               width?: number | string
               height?: number | string
+              objectFit?:  string
             }
             loop?: boolean
           }
@@ -3243,6 +3244,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 img.src = dataValue[index]?.['path']
                 img.style.width = option.childStyle?.width + ''
                 img.style.height = option.childStyle?.height + ''
+                img.style.objectFit = option.childStyle?.objectFit + ''
                 // img.style.cursor = "pointer" ;
                 liDom.appendChild(img)
                 listDom.appendChild(liDom)
@@ -3263,6 +3265,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 img.src = dataValue[index] as string
                 img.style.width = option.childStyle?.width + ''
                 img.style.height = option.childStyle?.height + ''
+                img.style.objectFit = option.childStyle?.objectFit + ''
                 // img.style.cursor = "pointer" ;
                 liDom.appendChild(img)
                 listDom.appendChild(liDom)
@@ -3315,7 +3318,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // 垂直或水平切换选项
             // direction: 'horizontal',
             // 循环模式选项
-            loop: option.loop,
+            // loop: option.loop,
             // 自动切换选项
             autoplay: option.autoplay && {
               // delay: 2000,
@@ -4200,6 +4203,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         hasChildren: false,
                         hasDot: true
                       })
+                      extendMap.set(list.pageName, child.pageName)
                     })
                   }
                 }
@@ -5600,7 +5604,11 @@ const createExtendedDOMResolvers = function (app: App) {
                   });
                     xhr.open("POST",audio_url);
                     let data = new FormData();
+                    
                     data.append("audio", v, "123.mp3");
+                    // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getltem('user_vid'),"mmmmmmmmm")
+                    // data.append("appointmentid",app.root.Global?.["roomInfo"]?.["edge"]?.["id"]);
+                    // data.append("providerld", localStorage.getltem('user_vid'));
                     size_ws&&data.append("code", `${rand}-${i+1}`);
                     xhr.send(data);
                 })
@@ -6410,6 +6418,10 @@ const createExtendedDOMResolvers = function (app: App) {
                         xhr.open("POST",audio_url);
                         let data = new FormData();
                         data.append("audio", v, "123.mp3");
+                        console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
+                        data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
                     })
