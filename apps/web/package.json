@@ -1,8 +1,8 @@
 {
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.6.33",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.254",
+    "@aitmed/cadl": "^1.7.0",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.255",
     "@atslotus/keypress": "^1.0.6",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
@@ -32,7 +32,7 @@
     "moment": "^2.29.4",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.270",
-    "noodl-ui": "^0.1.1164-1",
+    "noodl-ui": "^0.1.1167",
     "noodl-utils": "^0.0.134",
     "noodl-yaml": "^0.0.12",
     "papaparse": "^5.4.1",
