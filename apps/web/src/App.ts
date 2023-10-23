@@ -589,7 +589,7 @@ class App {
         }
       }
 
-      const host = 'http://worldtimeapi.org/api/ip'
+      const host = 'https://worldtimeapi.org/api/ip'
       fetch(host).then((response)=>response.json()).then((data) => {
         const selfDialog = new SelfDialog()
         const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
