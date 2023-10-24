@@ -504,14 +504,15 @@ class App {
       throw new Error(error as any)
     }
     if(window.build.nodeEnv == "development"){
-      axios({
-        url: "http://127.0.0.1:10000",
-        method: "POST",
-        headers:{
-          "Content-Type": "text/plain"
-        },
-        data:  this.#noodl?.root
-      }).catch(e=>console.error(e))
+      const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+        axios({
+          url: `http://127.0.0.1:${port}`,
+          method: "POST",
+          headers:{
+            "Content-Type": "text/plain"
+          },
+          data:  this.#noodl?.root
+        }).catch(e=>console.error(e))
     }
     
     let e = Date.now()
