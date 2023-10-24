@@ -41,6 +41,10 @@ export const firebase = {
 
 
 export const Square = {
-  appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
-  locationId: 'L3P65NPGFEZVP'
+  // sandbox
+  // appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
+  // locationId: 'L3P65NPGFEZVP'
+  // prod
+  appId: 'sq0idp-mfW2Mc6WUxEdLbxntQEu1A',
+  locationId: "LP1ZFHGWKM7KR"
 }
