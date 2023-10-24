@@ -208,6 +208,11 @@ const createExtendedDOMResolvers = function (app: App) {
       pageName !== page.page && (pageName = page.page)
 
       let value = (event.target as any)?.value || ''
+      if(component.contentType == "strictNumber"){
+        const numericOnly = value.replace(/\D/g, '');
+        value = numericOnly;
+        (event.target as any).value = numericOnly
+      }
       if (component?.has('richtext')) value = (event.target as any)?.textContent || ''
 
       if (iteratorVar) {
@@ -2942,32 +2947,11 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
-    '[App] strictNumber textField': {
-      cond: 'textField',
-      resolve({ node, component }) {
-        if (component.contentType === 'strictNumber') {
-
-          const dataKey =
-          component.get('data-key') || component.blueprint?.dataKey || '';
-          let pageName = app.currentPage
-
-          node.addEventListener('input', function(event) {
-            const inputValue = event.target.value;
-
-            // 使用正则表达式匹配非数字字符
-            const numericOnly = inputValue.replace(/\D/g, '');
-        
-            // 更新输入框的值为仅包含数字的字符串
-            event.target.value = numericOnly;
-            // 将光标位置设置为文本的长度
-            app.updateRoot((draft) => {
-              set(draft?.[pageName], dataKey, numericOnly)
-            })
-        });
-        
-        } 
-      }
-    },
+    // '[App] strictNumber textField': {
+    //   cond: 'textField',
+    //   resolve({ node, component }) {
+    //   }
+    // },
     '[App] strictLength textField': {
       cond: 'textField',
       resolve({ node, component }) {
