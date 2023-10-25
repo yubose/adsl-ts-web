@@ -3667,7 +3667,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
-
+        
         const assetsUrl = app.nui.getAssetsUrl() || ""
         interface PdfCss {
           pdfContentWidth: number
@@ -3684,10 +3684,8 @@ const createExtendedDOMResolvers = function (app: App) {
           private dataSource: Array<any>
           private pdfCss: PdfCss
           private boxCss: BoxCss
-          constructor(dataSource: Array<any>) {
+          constructor(dataSource: Array<any>,options?: optionsObj) {
             // dataSource = removeRepeat(dataSource)
-            this.dataSource = dataSource
-            this.chatBox = document.createElement('div')
             this.pdfCss = {
               pdfContentWidth: 200,
               pdfContentHeight: 60,
@@ -3698,10 +3696,17 @@ const createExtendedDOMResolvers = function (app: App) {
               width: node.style.width,
               height: node.style.height,
             }
+            this.dataSource = dataSource
+
+            this.chatBox = document.createElement('div')
+            this.chatBox.id = 'chatBox'
+            
             this.setBox()
             for (let i = 0; i < this.dataSource.length; i++) {
-              this.chatBox.appendChild(this.judgeType(this.dataSource[i]))
+              const isLast = (i === this.dataSource.length-1)
+              this.chatBox.appendChild(this.judgeType(this.dataSource[i],isLast))
             }
+            
           }
 
           private setBox() {
@@ -3806,7 +3811,7 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             return domNode
           }
-          private createImageNode(Msg:any):HTMLElement{
+          private createImageNode(Msg:any,isLast:boolean):HTMLElement{
             let domNode = this.createChatNode()
             let domNodeContent: HTMLElement
             let chatBackground: string
@@ -3816,13 +3821,17 @@ const createExtendedDOMResolvers = function (app: App) {
                 this.IsOwner(Msg.bsig),
                 Msg,
               )
-
             let timeContent = document.createElement("div")
-            timeContent.innerText = this.caculateTime(Msg.ctime || Msg?.name?.data?.time)
+            timeContent.innerText = this.caculateTime(Msg.ctime || Msg?.name?.chatData?.time)
             timeContent.style.cssText = `
               color: #999999;
             `
-            const imageData = Msg?.name?.data
+            const imageContainer = document.createElement('div')
+            imageContainer.style.cssText = `
+              width: 100%;
+              position: relative;
+            `
+            const imageData = Msg.tage === 2 ? Msg?.name?.chatData.localData:Msg?.name?.data
             const id = Msg?.id
             const func = app.root.builtIn.utils.prepareDocToPath
             const image = document.createElement('img')
@@ -3836,21 +3845,37 @@ const createExtendedDOMResolvers = function (app: App) {
               white-space: pre-wrap;
               font-size: 14px;
             `
-            console.log('test9',Msg)
             if(id){
-              func(id).then(res=>{
-                image.src = res?.url
-              })
-            }else if(imageData instanceof Blob){
-              func(imageData).then(res=>{
-                image.src = res?.url
+              if(imageData instanceof Blob){
+                func(id,imageData).then(res=>{
+                  res?.url && (image.src = res?.url)
+                })
+              }else if(u.isStr(imageData) && imageData.length > 32768){
+                func(id,Msg?.name).then(res=>{
+                  res?.url && (image.src = res?.url)
+                })
+              }else{
+                func(id).then(res=>{
+                  res?.url && (image.src = res?.url)
+                })
+              }
+              
+            }else if(!id && imageData instanceof Blob){
+              func(id,imageData).then(res=>{
+                res?.url && (image.src = res?.url)
               })
             }
-            domNodeContent.append(timeContent,image)
+            imageContainer.appendChild(image)
+            if(isLast){
+              const fragment = app.uploadProgress.generateProgress(id)
+              fragment.childNodes[0].style.visibility = 'hidden'
+              imageContainer.appendChild(fragment)
+            }
+            domNodeContent.append(timeContent,imageContainer)
             return domNode
           }
 
-          private judgeType(Msg: any): HTMLElement {
+          private judgeType(Msg: any,isLast:boolean): HTMLElement {
             let domNode: HTMLElement
             switch (Msg.name.title) {
               case 'textMessage':
@@ -3860,7 +3885,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 domNode = this.createPdfNode(Msg)
                 return domNode
               case 'imageMessage':
-                domNode = this.createImageNode(Msg)
+                domNode = this.createImageNode(Msg,isLast)
                 return domNode
               default:
                 return document.createElement("div")
@@ -3897,7 +3922,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           private createChatNodeAvatar(isOwner: boolean, Msg: any): HTMLElement {
             let data = Msg.name.data
-            if (typeof data == 'string') {
+            if (typeof data == 'string' && Msg.name.title !== 'imageMessage') {
               data = JSON.parse(data)
             }
             let domNodeAvatar = document.createElement('img')
@@ -3933,9 +3958,9 @@ const createExtendedDOMResolvers = function (app: App) {
             return domNodeAvatar
           }
 
-          private IsOwner(ovid: string): boolean {
+          private IsOwner(ovid: string|null): boolean {
             let judgeOvid = localStorage.getItem('user_vid')
-            return ovid === judgeOvid
+            return ovid === judgeOvid || !ovid
           }
 
           private judgeIsOwner(
