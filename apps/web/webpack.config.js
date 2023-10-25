@@ -49,8 +49,8 @@ const settings = y.parse(readFile(getFilePath('../../settings.yml')))
 function getWebpackConfig(env) {
   let ecosEnv = env.ECOS_ENV || process.env.ECOS_ENV
   let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
+  let plateformEnv = env.PLATEFORM_ENV || process.env.PLATEFORM_ENV
   let mode = nodeEnv !== 'production' ? 'development' : 'production'
-
   if (!ecosEnv) {
     let msg =
       `You did not provide the ecos environment.  ` +
@@ -325,6 +325,7 @@ function getWebpackConfig(env) {
         // src/app/noodl.ts to point to the public.aitmed.com host
         ECOS_ENV: ecosEnv,
         NODE_ENV: mode,
+        PLATEFORM_ENV: plateformEnv,
         USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
         ...(!u.isUnd(env.DEPLOYING)
           ? {

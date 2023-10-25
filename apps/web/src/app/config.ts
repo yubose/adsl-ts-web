@@ -40,11 +40,32 @@ export const firebase = {
 } as const
 
 
-export const Square = {
-  // sandbox
-  // appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
-  // locationId: 'L3P65NPGFEZVP'
-  // prod
-  appId: 'sq0idp-mfW2Mc6WUxEdLbxntQEu1A',
-  locationId: "LP1ZFHGWKM7KR"
+let _square
+switch (process.env.PLATEFORM_ENV) {
+  case 'com':
+    _square = {
+      appId: 'sq0idp-mfW2Mc6WUxEdLbxntQEu1A',
+      locationId: 'LP1ZFHGWKM7KR'
+    }
+    break;
+  case 'd':
+    _square = {
+      appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
+      locationId: 'L3P65NPGFEZVP'
+    }
+    break;
+  case 'cn':
+    _square = {
+      appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
+      locationId: 'L3P65NPGFEZVP'
+    }
+    break;
+
+  default:
+    _square = {
+      appId: 'sandbox-sq0idb-CirdOVOXW8NUECTbqI1Bbg',
+      locationId: 'L3P65NPGFEZVP'
+    }
+    break;
 }
+export const Square = _square
