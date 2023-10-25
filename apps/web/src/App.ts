@@ -51,7 +51,7 @@ import * as t from './app/types'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
 import SelfDialog from './utils/Dialog'
-
+import UploadProgress from './utils/UploadProgress'
 class App {
   #state: t.AppState = {
     actionEvents: [],
@@ -92,6 +92,7 @@ class App {
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
   #piBackgroundWorker: Worker | null = null
+  #uploadProgress: UploadProgress
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NDOM['page']
@@ -143,6 +144,7 @@ class App {
     registers?.registerHandlers()
     this.#spinner = spinner
     this.register = registers
+    this.#uploadProgress = new UploadProgress()
 
     noodl && this.use(noodl)
     this.#parser = new nu.Parser()
@@ -217,6 +219,9 @@ class App {
 
   get spinner() {
     return this.#spinner
+  }
+  get uploadProgress() {
+    return this.#uploadProgress
   }
 
   get pendingPage() {
