@@ -380,6 +380,10 @@ function getWebpackConfig(env) {
             from: getFilePath('public/ring.mp3'),
             to: path.resolve(paths.build, 'ring.mp3'),
           },
+          {
+            from: getFilePath('public/chatDefaultImage.svg'),
+            to: path.resolve(paths.build, 'chatDefaultImage.svg'),
+          },
         ],
       }),
       // new TerserPlugin({

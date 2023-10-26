@@ -85,7 +85,7 @@ export default class UploadProgress{
                 mask.style.visibility = 'visible'
             }
             this.setPercent(circleFront,progress)
-            if(progress >= 100){
+            if(progress === 101){
                 mask.parentElement.removeChild(mask)
                 // mask.remove()
             }
