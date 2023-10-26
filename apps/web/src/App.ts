@@ -503,8 +503,9 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    if(window.build.nodeEnv == "development"){
-      const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+    if(process.env.NODE_ENV === "development"){
+      try{
+        const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
         axios({
           url: `http://127.0.0.1:${port}`,
           method: "POST",
@@ -512,7 +513,10 @@ class App {
             "Content-Type": "text/plain"
           },
           data:  this.#noodl?.root
-        }).catch(e=>console.error(e))
+        })
+      }catch(error){
+        console.error(error)
+      }   
     }
     
     let e = Date.now()
