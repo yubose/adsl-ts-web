@@ -37,7 +37,7 @@ import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import '../../node_modules/flatpickr/dist/themes/material_blue.css'
 import * as c from '../constants'
-import { cloneDeep, wrap } from 'lodash'
+import { cloneDeep, debounce, wrap } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
 import { editorHtml, styleText } from './editor/editorHtml'
@@ -3679,12 +3679,16 @@ const createExtendedDOMResolvers = function (app: App) {
           width: string
           height: string
         }
+        const scrollChange = debounce((node,scrollH)=>{
+          node.scrollTop =
+            scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
+        },100)
         class liveChat {
           protected chatBox: HTMLElement
           private dataSource: Array<any>
           private pdfCss: PdfCss
           private boxCss: BoxCss
-          constructor(dataSource: Array<any>,options?: optionsObj) {
+          constructor(dataSource: Array<any>) {
             // dataSource = removeRepeat(dataSource)
             this.pdfCss = {
               pdfContentWidth: 200,
@@ -3835,8 +3839,10 @@ const createExtendedDOMResolvers = function (app: App) {
             const id = Msg?.id
             const func = app.root.builtIn.utils.prepareDocToPath
             const image = document.createElement('img')
+            image.src = './chatDefaultImage.svg'
             image.style.cssText = `
               max-width: 100%;
+              max-height: 23vh;
               width: fit-content;
               border-radius: 8px;
               line-height: 21px;
@@ -3848,27 +3854,40 @@ const createExtendedDOMResolvers = function (app: App) {
             if(id){
               if(imageData instanceof Blob){
                 func(id,imageData).then(res=>{
-                  res?.url && (image.src = res?.url)
+                  if(res){
+                    res?.url && (image.src = res?.url)
+                    scrollChange(node,scrollH)
+                  }
                 })
               }else if(u.isStr(imageData) && imageData.length > 32768){
                 func(id,Msg?.name).then(res=>{
-                  res?.url && (image.src = res?.url)
+                  if(res){
+                    res?.url && (image.src = res?.url)
+                    scrollChange(node,scrollH)
+                  }
                 })
               }else{
                 func(id).then(res=>{
-                  res?.url && (image.src = res?.url)
+                  if(res){
+                    res?.url && (image.src = res?.url)
+                    scrollChange(node,scrollH)
+                  }
                 })
               }
               
             }else if(!id && imageData instanceof Blob){
               func(id,imageData).then(res=>{
-                res?.url && (image.src = res?.url)
+                if(res){
+                  res?.url && (image.src = res?.url)
+                  scrollChange(node,scrollH)
+                }
               })
             }
             imageContainer.appendChild(image)
-            if(isLast){
+            if(isLast && Msg.tage === 2){
               const fragment = app.uploadProgress.generateProgress(id)
-              fragment.childNodes[0].style.visibility = 'hidden'
+              //@ts-expect-error
+              fragment.childNodes[0].style.visibility = 'visibility'
               imageContainer.appendChild(fragment)
             }
             domNodeContent.append(timeContent,imageContainer)
@@ -4038,10 +4057,8 @@ const createExtendedDOMResolvers = function (app: App) {
         node.append(liveChatBox)
         // node.innerHTML = liveChatBox.innerHTML
         node.setAttribute("class", "scroll-view")
-        setTimeout(() => {
-          node.scrollTop =
-            scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
-        }, 0)
+        scrollChange(node,scrollH)
+        
       },
     },
     '[App] navBar': {
