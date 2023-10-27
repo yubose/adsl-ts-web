@@ -1,4 +1,5 @@
 import log from '../log'
+import * as u from '@jsmanifest/utils'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
@@ -14,7 +15,6 @@ import {
   RoomParticipantTrackPublication,
   StreamType,
 } from '../app/types'
-import { resolveAssetUrl } from 'noodl-ui'
 
 class MeetingStream {
   #id = getRandomKey()
@@ -444,7 +444,9 @@ class MeetingStream {
 
       const page = window.app.initPage
       if(window.app.root?.[page]){
-        const {cameraOn,micOn} = window.app.root?.[page]
+        let  {cameraOn,micOn} = window.app.root?.[page]
+        cameraOn = u.isStr(cameraOn)?cameraOn === 'true'?true:false:cameraOn
+        micOn = u.isStr(micOn)?micOn === 'true'?true:false:micOn
         if(track.kind === 'audio'){
           micOn ? track?.['enable']?.() : track?.['disable']?.()
         }else if(track.kind === 'video'){
