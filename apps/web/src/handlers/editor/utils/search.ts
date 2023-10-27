@@ -107,10 +107,16 @@ const searchPopUp = ({
         content.innerHTML = res;
     })
     content.addEventListener("click", (event) => {
-        // @ts-ignore
-        const key = event.target.parentElement.dataset["key"]
-        // @ts-ignore
-        const isSharp = event.target.parentElement.dataset["issharp"]
+        let key = ''
+        let isSharp = ''
+        const target = event.target as HTMLElement
+        if(target.tagName === "div") {
+            key = target.parentElement?.dataset["key"] as string
+            isSharp = target.parentElement?.dataset["issharp"] as string
+        } else {
+            key = target.parentElement?.parentElement?.dataset["key"] as string
+            isSharp = target.parentElement?.parentElement?.dataset["issharp"] as string
+        }
         if(key) {
             Swal.close()
             try {

@@ -508,8 +508,9 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    if(window.build.nodeEnv == "development"){
-      const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+    if(process.env.NODE_ENV === "development"){
+      try{
+        const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
         axios({
           url: `http://127.0.0.1:${port}`,
           method: "POST",
@@ -517,7 +518,10 @@ class App {
             "Content-Type": "text/plain"
           },
           data:  this.#noodl?.root
-        }).catch(e=>console.error(e))
+        })
+      }catch(error){
+        console.error(error)
+      }   
     }
     
     let e = Date.now()
@@ -595,7 +599,7 @@ class App {
         }
       }
 
-      const host = 'http://worldtimeapi.org/api/ip'
+      const host = 'https://worldtimeapi.org/api/ip'
       fetch(host).then((response)=>response.json()).then((data) => {
         const selfDialog = new SelfDialog()
         const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
