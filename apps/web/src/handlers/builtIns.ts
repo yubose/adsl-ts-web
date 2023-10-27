@@ -1463,9 +1463,10 @@ export const extendedSdkBuiltIns = {
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
         const page = this.initPage?this.initPage:'VideoChat'
-        const { cameraOn, micOn } = this.root?.[page] || {}
+        let { cameraOn, micOn } = this.root?.[page] || {}
         const { localParticipant } = newRoom
-
+        cameraOn = u.isStr(cameraOn)? cameraOn==='true'?true :false :cameraOn
+        micOn = u.isStr(micOn)? micOn==='true'?true :false :micOn
         const toggle =
           (state: 'disable' | 'enable') =>
           (
