@@ -503,7 +503,7 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    if(process.env.NODE_ENV === "development"){
+    if([window.build.nodeEnv,window.build.build_web].includes("development")){
       try{
         const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
         axios({

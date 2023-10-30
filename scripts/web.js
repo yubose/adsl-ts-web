@@ -66,7 +66,9 @@ if (cli.flags.deploy) {
 
   if (cli.flags.build) {
     cmd += 'NODE_ENV=production '
-
+    if(cli.flags.web){
+      cmd += 'BUILD_WEBAPP=dev '
+    }
     if (cli.flags.test) {
       env.ECOS_ENV = 'test'
       cmd += 'ECOS_ENV=test '

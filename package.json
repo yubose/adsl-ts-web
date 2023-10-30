@@ -24,6 +24,7 @@
     "build:test:cn": "node scripts/web --build --test --cn",
     "build:test:d": "node scripts/web --build --test --d",
     "build:test:com": "node scripts/web --build --test --com",
+    "build:webapp": "node scripts/web --build --web",
     "deploy:noodltest": "bash s3Deploy.sh output/apps/web cadltest.aitmed.com",
     "deploy:stable": "bash s3Deploy.sh output/apps/web",
     "deploy:test": "bash s3Deploy.sh output/apps/web devtest.aitmed.com",

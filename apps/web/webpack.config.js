@@ -51,6 +51,10 @@ function getWebpackConfig(env) {
   let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
   let plateformEnv = env.PLATEFORM_ENV || process.env.PLATEFORM_ENV
   let mode = nodeEnv !== 'production' ? 'development' : 'production'
+  let webappEnv = env.BUILD_WEBAPP || process.env.BUILD_WEBAPP
+  let build_web = webappEnv == 'dev' ? 'development' : 'production'
+
+
   if (!ecosEnv) {
     let msg =
       `You did not provide the ecos environment.  ` +
@@ -312,6 +316,7 @@ function getWebpackConfig(env) {
           version: buildVersion,
           ecosEnv: ecosEnv,
           nodeEnv: mode,
+          build_web: build_web,
           packages: {
             '@aitmed/cadl': version.lvl3,
             '@aitmed/ecos-lvl2-sdk': version.lvl2,
