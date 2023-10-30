@@ -44,7 +44,7 @@ const insertNode = ({
             if(choiceArray) {
                 choiceStr += textSharpSplitChar
                 choiceArray.forEach(item => {
-                    choiceStr += `${item.title.replace(/[<>"]/g, function(c){return Escape.get(c) as string})}${textSharpSplitChar}${item.check}${textSharpSplitChar}`
+                    choiceStr += `${item.title}${textSharpSplitChar}${item.check}${textSharpSplitChar}`
                 })
             }
             dataArrayStr = dataArrayStr.replace(/--REPLACE--/, choiceStr)
@@ -138,27 +138,48 @@ const getUuid = () => {
 }
 
 const getHTMLDataArray = (str: string) => {
-    // let dom = document.createElement("div")
-    const arr = str.match(choiceArrayStrReg)
-    return arr ? arr[0] : ""
-    // dom.innerHTML = str
-    // const target = dom.childNodes[0] as HTMLElement
-    // const dataArray = target.getAttribute("data-array")
-    // return dataArray ? dataArray : ""
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(str, 'text/html')
+    const target = doc.querySelector('span') 
+    const dataArray = target?.getAttribute("data-array")
+    console.log(target)
+    return dataArray ? decode(dataArray) : ""
+}
+
+const encode = (str: string) => {
+    return str.replace(/[&<>"']/g, (match: string) => {
+        if(Escape.has(match)) {
+            return Escape.get(match) as string
+        } else {
+            return ""
+        }
+    })
+}
+
+const decode = (str: string) => {
+    return str.replace(/&amp;|&lt;|&gt;|&quot;|&#39;/g, (match: string) => {
+        if(reverseEscape.has(match)) {
+            return reverseEscape.get(match) as string
+        } else {
+            return ""
+        }
+    })
 }
 
 const Escape = new Map([
     ['<', '&lt;'],
     ['>', '&gt;'],
     ['&', '&amp;'],
-    ['"', '&quot;']
+    ['"', '&quot;'],
+    ["'", '&#39;']
 ])
 
 const reverseEscape = new Map([
     ['&lt;', '<'],
     ['&gt;', '>'],
     ['&amp;', '&'],
-    ['&quot;', '"']
+    ['&quot;', '"'],
+    ["&#39;", "'"]
 ])
 
 const editorBlockCss = {
@@ -185,5 +206,7 @@ export {
     reverseEscape,
     editorBlockCss,
     editorBlockSet,
-    replaceDoubleQuotes
+    replaceDoubleQuotes,
+    encode,
+    decode
 }

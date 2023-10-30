@@ -154,7 +154,6 @@ export const matchBlock = (html) => {
         .replace(/--key--/g, textSharpRegStr)
         .replace(/--isInline--/g, `data-key="[a-zA-Z0-9]+"`), 'g')
     const sharpTextKeywords = html.match(sharpTextBlockReg)
-    // console.log(sharpTextKeywords)
     sharpTextKeywords && sharpTextKeywords.forEach(item => {
         const texts = item.match(textSharpGetReg)
         // const text = texts[0].replace(/[#><]/g, '')
