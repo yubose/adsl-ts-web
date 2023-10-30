@@ -922,15 +922,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             context: ctx,
           },{focus})
           if(window.build.nodeEnv == "development"){
-          const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
-            axios({
-              url: `http://127.0.0.1:${port}`,
-              method: "POST",
-              headers:{
-                "Content-Type": "text/plain"
-              },
-              data:  app.root
-            }).catch(e=>console.error(e))
+            try{
+                const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+                axios({
+                  url: `http://127.0.0.1:${port}`,
+                  method: "POST",
+                  headers:{
+                    "Content-Type": "text/plain"
+                  },
+                  data:  app.root
+                }).catch(e=>console.error(e))
+              }catch(error){
+                console.log(error)
+              }
           }
           // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
           //   context: ctx,
