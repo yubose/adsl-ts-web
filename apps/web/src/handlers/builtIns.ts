@@ -936,11 +936,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               console.error(e)
             }
             }
-          
-          // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
-          //   context: ctx,
-          // })
-          // return redrawed
         }
       }
 

@@ -3,7 +3,7 @@ var __webpack_exports__ = {};
 /*!**************************************!*\
   !*** ./src/firebase-messaging-sw.ts ***!
   \**************************************/
-[{'revision':'dee107431beb917d0542db961a461956','url':'index.html'},{'revision':'0a819bdcc8dcf0e910b3b640f1fdfb74','url':'jsstoreWorker.min.js'},{'revision':'0d8ca98e5bc77c35824e8cfe496051ea','url':'main.js'},{'revision':'78c679a626cc1e8d58eab65b240d0288','url':'piBackgroundWorker.js'},{'revision':'85541ab24eaf9c46891b8f04d5e0d454','url':'ring.mp3'},{'revision':'e96391fc594b5869546a3cdac4e76b10','url':'sql-wasm.wasm'},{'revision':'e466ade97aef828315fe9f884ed5381b','url':'src_app_noodl_ts.js'},{'revision':'2dcf3d09e7e7d5fce72d752e0d70e1ef','url':'src_app_trackers_ts.js'},{'revision':'915c2cdd602fd9f4cd2570389ee80387','url':'src_handlers_history_ts.js'},{'revision':'153a023e623862a77c62475680a02987','url':'vendors-node_modules_canvg_lib_index_es_js.js'},{'revision':'7cb6d10a0b71f21e483ccda4411e7c57','url':'vendors-node_modules_dompurify_dist_purify_js.js'},{'revision':'f5c62ec0214a98474528632531f97503','url':'vendors-node_modules_html2canvas_dist_html2canvas_js.js'},{'revision':'9cf6816eac9158d52f7819df64929482','url':'vendors-node_modules_noodl-yaml_dist_index_js.js'}];
+[{'revision':'67b962817f114316b208d37108a2ef22','url':'index.html'},{'revision':'8550fd991599f216807d23f0f0a1b2e9','url':'jsstoreWorker.min.js'},{'revision':null,'url':'main.b76449b1df64a8b48856.hot-update.js'},{'revision':null,'url':'main.b76449b1df64a8b48856.hot-update.json'},{'revision':'55796cace06ab2ffa9896cdf4dc4a275','url':'main.js'},{'revision':'442619bc185244b7677841358cb771a6','url':'piBackgroundWorker.js'},{'revision':'85541ab24eaf9c46891b8f04d5e0d454','url':'ring.mp3'},{'revision':'e96391fc594b5869546a3cdac4e76b10','url':'sql-wasm.wasm'},{'revision':'8ddcd8c44fa147dad733a479dd5aabd5','url':'src_app_noodl_ts.js'},{'revision':'091407e34d2879b8e4792c9f6f732b3e','url':'src_app_trackers_ts.js'},{'revision':'b25e5d007d799fa2805af9c79c139169','url':'src_handlers_history_ts.js'},{'revision':'ee953cbf27920500a585c5cfe2fc19e6','url':'vendors-node_modules_canvg_lib_index_es_js.js'},{'revision':'63d86412ee1b58f5ea95bed50653d4d3','url':'vendors-node_modules_dompurify_dist_purify_js.js'},{'revision':'f5c62ec0214a98474528632531f97503','url':'vendors-node_modules_html2canvas_dist_html2canvas_js.js'},{'revision':'9cf6816eac9158d52f7819df64929482','url':'vendors-node_modules_noodl-yaml_dist_index_js.js'}];
 importScripts("https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js");
 firebase.initializeApp({
@@ -16,15 +16,6 @@ firebase.initializeApp({
   appId: "1:121837683309:web:c74076cea3ba35c35f3564"
 });
 const messaging = firebase.messaging();
-messaging.onBackgroundMessage(function(payload) {
-  console.log("[serviceWorker.js] Received background message ", payload);
-  const { collapseKey, data, from, notification = {} } = payload;
-  const notificationTitle = notification.title || "";
-  const notificationOptions = {
-    body: notification.body || "",
-    icon: "favicon.ico"
-  };
-});
 const style = `color:#C04000;font-weight:500;`;
 const tag = `%c[serviceWorker]`;
 const log = console.log;

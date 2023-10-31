@@ -2,7 +2,7 @@ import { IDomEditor } from "@wangeditor/editor"
 import Swal from "sweetalert2"
 import { DATA } from "./editorChoiceMap"
 import { textSharpSplitChar, textSharpSplitReg } from "./textSharp"
-import { Escape, getUuid, insertNode, reverseEscape } from "./utils"
+import { getUuid, insertNode } from "./utils"
 
 const downSvg = `url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIyMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBkYXRhLW5hbWU9Ikljb24gaW9uaWMtaW9zLWFycm93LWRvd24iIGQ9Ik05LjYxNSAxMS40MThsNC44NDItNC43MjZhLjkyOC45MjggMCAwIDEgMS4yOTMgMCAuODg0Ljg4NCAwIDAgMSAwIDEuMjY0bC01LjQ4NyA1LjM1NGEuOTMuOTMgMCAwIDEtMS4yNjIuMDI2TDMuNDc2IDcuOTZhLjg4Mi44ODIgMCAwIDEgMC0xLjI2NC45MjguOTI4IDAgMCAxIDEuMjkzIDB6IiBmaWxsPSIjNGI0YjRiIi8+PHBhdGggZGF0YS1uYW1lPSIyMjk2OSIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjk5OSIgZD0iTTAgMGgyMHYyMEgweiIvPjwvc3ZnPg==)`
 const upSvg = `url(data:image/svg+xml;base64,PHN2ZyBkYXRhLW5hbWU9IjIyMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBkYXRhLW5hbWU9Ikljb24gaW9uaWMtaW9zLWFycm93LWRvd24iIGQ9Ik05LjYxNSA4LjU4M2w0Ljg0MiA0LjcyNmEuOTI4LjkyOCAwIDAgMCAxLjI5MyAwIC44ODQuODg0IDAgMCAwIDAtMS4yNjRsLTUuNDg3LTUuMzU0YS45My45MyAwIDAgMC0xLjI2Mi0uMDI2TDMuNDc2IDEyLjA0YS44ODIuODgyIDAgMCAwIDAgMS4yNjQuOTI4LjkyOCAwIDAgMCAxLjI5MyAweiIgZmlsbD0iIzRiNGI0YiIvPjxwYXRoIGRhdGEtbmFtZT0iMjI5NjkiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii45OTkiIGQ9Ik0wIDBoMjB2MjBIMHoiLz48L3N2Zz4=)`
@@ -26,7 +26,7 @@ const choice = ({
     let choiceDataArray = new Array<DATA>()
     let inputBoxes = new Array<HTMLInputElement>()
     if(isChange) {
-        title = target.innerText.split(textSharpSplitReg)[1].replace(/&lt;|&gt;|&quot;/g, function(c){return reverseEscape.get(c) as string});
+        title = target.innerText.split(textSharpSplitReg)[1];
         isRequired = target.innerText.split(textSharpSplitReg)[0].includes("*") ? "checked" : "";
         type = target.innerText.split(textSharpSplitReg)[0].replace(/[#*]/g, "")
         const dataArray = target.getAttribute("data-array")
@@ -204,7 +204,7 @@ const choice = ({
             if(hasValue) {
                 const repetitionSet = getRepetition()
                 if(repetitionSet.size === 0) {
-                    let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value.replace(/[<>"]/g, function(c){return Escape.get(c) as string})
+                    let title = (<HTMLInputElement>document.getElementById("w-editor_title")).value
                     let choiceType = (<HTMLInputElement>document.getElementById("w-e_choiceType")).innerText
                     let required = (<HTMLInputElement>document.getElementById("w-editor_require")).checked
                     if(title !== '') {
@@ -246,7 +246,6 @@ const choice = ({
             let s = ``
             const str = res.value?.required ? '*' : ''
             const value = res.value
-            console.log("VALUE", value)
             s = `#${value?.choiceType}${str}${textSharpSplitChar}${value?.title}${textSharpSplitChar}`
             insertNode({editor, type: "sharpblock", value: s, selection, choiceArray: choiceDataArray, isChange})
         }
