@@ -142,7 +142,6 @@ const getHTMLDataArray = (str: string) => {
     const doc = parser.parseFromString(str, 'text/html')
     const target = doc.querySelector('span') 
     const dataArray = target?.getAttribute("data-array")
-    console.log(target)
     return dataArray ? decode(dataArray) : ""
 }
 
