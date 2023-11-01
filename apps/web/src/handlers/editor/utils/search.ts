@@ -110,7 +110,7 @@ const searchPopUp = ({
         let key = ''
         let isSharp = ''
         const target = event.target as HTMLElement
-        if(target.tagName === "div") {
+        if(target.tagName === "DIV") {
             key = target.parentElement?.dataset["key"] as string
             isSharp = target.parentElement?.dataset["issharp"] as string
         } else {
