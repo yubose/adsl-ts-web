@@ -2,7 +2,7 @@ import { IDomEditor, SlateTransforms } from "@wangeditor/editor"
 import choice from "./choice"
 import dateAndTime from "./dateAndtime"
 import { deepCopy } from "./deepCopy"
-import { FacilityInfo, PatientInfo, ProviderInfo } from "./info"
+import { FacilityInfo, PatientInfo, ProviderInfo, ProviderSignature } from "./info"
 import { inputPopUp } from "./popUp"
 import { selectImage } from "./selectFile"
 import { getUuid, insertNode } from "./utils"
@@ -23,6 +23,10 @@ const selectTemplate = (editor: IDomEditor, value: string | boolean) => {
         //     break
         case "Provider Signature":
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})
+            SlateTransforms.insertNodes(editor, ProviderSignature, {
+                voids: true
+            })
+            editor.insertBreak()
             break
         case "Patient/Guardian Signature":
             insertNode({editor, type: "sharpblock", value: `#${value}`, selection})

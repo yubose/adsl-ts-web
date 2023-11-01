@@ -130,6 +130,12 @@ const DataSource = new Map([
     ["Employer Name", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employer Name", isSharp: false}],
     ["Employers Address", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employers address", isSharp: false}],
     ["Employers Phone", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employers phone #", isSharp: false}],
+    ["Signers Name", {"Source": "", "Expansion": "", isSharp: false}],
+    ["Signers Specialty", {"Source": "", "Expansion": "", isSharp: false}],
+    ["Signers LIC Number", {"Source": "", "Expansion": "", isSharp: false}],
+    ["Signers NPI Number", {"Source": "", "Expansion": "", isSharp: false}],
+    ["Signers DEA Number", {"Source": "", "Expansion": "", isSharp: false}],
+    ["Signers Email", {"Source": "", "Expansion": "", isSharp: false}]
 ])
 
 export default DataSource
