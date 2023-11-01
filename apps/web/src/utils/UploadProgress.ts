@@ -28,8 +28,8 @@ export default class UploadProgress{
         circleProgress.style.cssText = `
             display: flex;
             margin: auto;
-            width: 20%;
-            height: 20%;
+            width: 40px;
+            height: 40px;
         `
         const center = Math.ceil(circleProgress.offsetWidth/2)?Math.ceil(circleProgress.offsetWidth/2):20
         const svgNS = 'http://www.w3.org/2000/svg'
