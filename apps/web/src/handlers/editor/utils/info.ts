@@ -461,7 +461,7 @@ const ProviderSignature = [
             { "text": "Fax #:  " },
             {
                 "type": "atblock",
-                "value": "@Facility Fax Number",
+                "value": "@Fax Number",
                 "children": [
                     { "text": "" }
                 ]
@@ -475,7 +475,7 @@ const ProviderSignature = [
             { "text": "Main #:  " },
             {
                 "type": "atblock",
-                "value": "@Main Number",
+                "value": "@Facility Main Number",
                 "children": [
                     { "text": "" }
                 ]
@@ -489,7 +489,7 @@ const ProviderSignature = [
             { "text": "Address:  " },
             {
                 "type": "atblock",
-                "value": "@Facility Address",
+                "value": "@Facility Address info",
                 "children": [
                     { "text": "" }
                 ]
