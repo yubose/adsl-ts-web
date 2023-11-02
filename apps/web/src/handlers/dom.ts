@@ -3688,7 +3688,7 @@ const createExtendedDOMResolvers = function (app: App) {
           private dataSource: Array<any>
           private pdfCss: PdfCss
           private boxCss: BoxCss
-          constructor(dataSource: Array<any>) {
+          constructor(dataSource: Array<any>,options?: optionsObj) {
             // dataSource = removeRepeat(dataSource)
             this.pdfCss = {
               pdfContentWidth: 200,
@@ -3708,7 +3708,11 @@ const createExtendedDOMResolvers = function (app: App) {
             this.setBox()
             for (let i = 0; i < this.dataSource.length; i++) {
               const isLast = (i === this.dataSource.length-1)
-              this.chatBox.appendChild(this.judgeType(this.dataSource[i],isLast))
+              const itemData = this.dataSource[i]
+              if(itemData?.name?.title){
+                this.chatBox.appendChild(this.judgeType(itemData,isLast))
+              }
+              
             }
             
           }
@@ -3844,12 +3848,12 @@ const createExtendedDOMResolvers = function (app: App) {
               max-width: 100%;
               max-height: 23vh;
               width: fit-content;
-              border-radius: 8px;
               line-height: 21px;
               padding: 8px 15px 6px 12px;
               word-wrap: break-word;
               white-space: pre-wrap;
               font-size: 14px;
+              padding: 0;
             `
             if(id){
               if(imageData instanceof Blob){
@@ -3890,6 +3894,15 @@ const createExtendedDOMResolvers = function (app: App) {
               fragment.childNodes[0].style.visibility = 'visibility'
               imageContainer.appendChild(fragment)
             }
+            imageContainer.addEventListener('click',()=>{
+              const imageClicks = component.get("imageClick")
+              imageClicks.queue.forEach(imageClick=>{
+                if(imageClick?.dataKey){
+                  imageClick.dataKey = {var: Msg}
+                }
+              })
+              imageClicks?.execute()
+            })
             domNodeContent.append(timeContent,imageContainer)
             return domNode
           }
