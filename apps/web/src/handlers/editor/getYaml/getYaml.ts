@@ -524,17 +524,6 @@ const populateBlock = ({
                     } else if(obj.value === "#Provider Signature") {
                         const text = obj.value.replace(/#/, '')
                         BaseJsonCopy.formData["signatureId"] = ''
-                        BaseJsonCopy.formData["providerSignature"] = {
-                            SignersName: "",
-                            SignersSpecialty: "",
-                            SignersLICNumber: "",
-                            SignersNPINumber: "",
-                            SignersDEANumber: "",
-                            SignersEmail: "",
-                            FacilityFaxNumber: "",
-                            MainNumber: "",
-                            FacilityAddress: ""
-                        }
                         target = sharpYaml({
                             type: text,
                             config: {}
