@@ -5635,6 +5635,13 @@ const createExtendedDOMResolvers = function (app: App) {
                   }else{
                     node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
                   }
+                  if(val){
+                    node.dispatchEvent(new Event('input', {
+                      bubbles: false, 
+                      cancelable: false, 
+                      composed: false 
+                    }));
+                  }
             })
               img.removeEventListener('click', stopRecording);
               img.addEventListener('click', startRecording);
@@ -6437,6 +6444,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     let val = size_ws?(await _upload_respose())?.text:text[0]?.text;
                       app.updateRoot(draft => {
                         set(draft?.[pageName], dataKey, val);
+                        // if(val){
+                        //   node.dispatchEvent(new Event('input', {
+                        //     bubbles: false, 
+                        //     cancelable: false, 
+                        //     composed: false 
+                        //   }));
+                        // }
                       })
                       recordData = []
                       setTimeout(()=> {
