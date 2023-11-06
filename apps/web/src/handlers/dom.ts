@@ -1652,6 +1652,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         _instance: { range: { start: any; end: any } }
                       }
                     }) => {
+                      let t_time = new Date(
+                        info.event._instance.range.start,
+                      );
                       tippy(info.el, {
                         content:
                           '<div >\
@@ -1667,10 +1670,8 @@ const createExtendedDOMResolvers = function (app: App) {
                           '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
-                            new Date(
-                              info.event._instance.range.start,
-                            ).getTime() +
-                            new Date().getTimezoneOffset() * 60 * 1000,
+                            t_time.getTime() +
+                            t_time.getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '<div  style="padding-top:3px">Duration：' +
