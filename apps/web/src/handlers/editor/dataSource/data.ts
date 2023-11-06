@@ -1,6 +1,6 @@
 const DataSource = new Map([
     ["Patient Name", {"Source":"Appointment lobby","Expansion":"Patient Name: First Name or Middle Name or Last Name","isSharp":false}],
-    ["Patient User Name", {"Source": "Appointment lobby","Expansion":"Patient User Name","isSharp":false}],
+    // ["Patient User Name", {"Source": "Appointment lobby","Expansion":"Patient User Name","isSharp":false}],
     ["Patient DOB", {"Source":"Appointment lobby ","Expansion":"Patient Date of Birth","isSharp":false}],
     ["Patient Age", {"Source":"Appointment lobby ","Expansion":"Year(Now)-Patient Date of Birth","isSharp":false}],
     ["Patient SEX", {"Source":"Appointment lobby ","Expansion":"Patient Gender","isSharp":false}],
@@ -45,7 +45,7 @@ const DataSource = new Map([
     ["Subscriber Information", {"Source":"Financial Responsibility","Expansion":"Patient Name, Patient Address","isSharp":false}],
     ["Occupation", {"Source":"Fin. Resp Form -> Worker Comp","Expansion":"Occupation","isSharp":false}],
     ["Provider Name", {"Source":"Provider Profile","Expansion":"Chief Provider Name:First Name, Middle Name, Last Name, Title/Training","isSharp":false}],
-    ["Provider User Name", {"Source":"Provider Profile","Expansion":"Chief Provider User Name","isSharp":false}],
+    // ["Provider User Name", {"Source":"Provider Profile","Expansion":"Chief Provider User Name","isSharp":false}],
     ["Provider Email", {"Source":"Provider Profile","Expansion":"Chief Provider Email","isSharp":false}],
     ["Specialty", {"Source":"Provider Profile","Expansion":"Chief Provider Specialty","isSharp":false}],
     ["Provider Gender", {"Source":"Provider Profile","Expansion":"Chief Provider Gender","isSharp":false}],
