@@ -3688,7 +3688,7 @@ const createExtendedDOMResolvers = function (app: App) {
           private dataSource: Array<any>
           private pdfCss: PdfCss
           private boxCss: BoxCss
-          constructor(dataSource: Array<any>,options?: optionsObj) {
+          constructor(dataSource: Array<any>) {
             // dataSource = removeRepeat(dataSource)
             this.pdfCss = {
               pdfContentWidth: 200,
@@ -3857,6 +3857,7 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             if(id){
               if(imageData instanceof Blob){
+                const func = app.root.builtIn.utils.prepareChatDocToPath
                 func(id,imageData).then(res=>{
                   if(res){
                     res?.url && (image.src = res?.url)
@@ -3958,7 +3959,10 @@ const createExtendedDOMResolvers = function (app: App) {
               data = JSON.parse(data)
             }
             let domNodeAvatar = document.createElement('img')
-            const avatarId = data?.avatar
+            let avatarId = data?.avatar
+            if(Msg.name.title === 'imageMessage'){
+              avatarId = Msg.name.chatData.avatar
+            }
             // console.log("AVATAR", avatarId)
             if(data?.capacity === "provider") 
               domNodeAvatar.src = `${assetsUrl}providerImage.svg`

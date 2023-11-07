@@ -302,6 +302,13 @@ function getWebpackConfig(env) {
         ],
         mode: 'production',
       }),
+      new WorkboxPlugin.InjectManifest({
+        swSrc: getFilePath('src/image-load-sw.ts'),
+        swDest: mode === 'production'? path.resolve(paths.build, 'image-load-sw.js'):getFilePath('public/image-load-sw.js'),
+        // swDest: getFilePath('firebase-messaging-sw.js'),
+        maximumFileSizeToCacheInBytes: 500000000,
+        mode: 'production',
+      }),
       new webpack.ProvidePlugin({ process: 'process' }),
       new CircularDependencyPlugin({
         exclude: /node_modules/,

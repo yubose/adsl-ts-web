@@ -1319,6 +1319,7 @@ class App {
           window['ringTong']?.stop?.()  
         }
         page.mounted = true
+        this.disableSpinner()
       },0)
     }
 
