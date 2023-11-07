@@ -1,6 +1,6 @@
 const DataSource = new Map([
     ["Patient Name", {"Source":"Appointment lobby","Expansion":"Patient Name: First Name or Middle Name or Last Name","isSharp":false}],
-    ["Patient User Name", {"Source": "Appointment lobby","Expansion":"Patient User Name","isSharp":false}],
+    // ["Patient User Name", {"Source": "Appointment lobby","Expansion":"Patient User Name","isSharp":false}],
     ["Patient DOB", {"Source":"Appointment lobby ","Expansion":"Patient Date of Birth","isSharp":false}],
     ["Patient Age", {"Source":"Appointment lobby ","Expansion":"Year(Now)-Patient Date of Birth","isSharp":false}],
     ["Patient SEX", {"Source":"Appointment lobby ","Expansion":"Patient Gender","isSharp":false}],
@@ -45,7 +45,7 @@ const DataSource = new Map([
     ["Subscriber Information", {"Source":"Financial Responsibility","Expansion":"Patient Name, Patient Address","isSharp":false}],
     ["Occupation", {"Source":"Fin. Resp Form -> Worker Comp","Expansion":"Occupation","isSharp":false}],
     ["Provider Name", {"Source":"Provider Profile","Expansion":"Chief Provider Name:First Name, Middle Name, Last Name, Title/Training","isSharp":false}],
-    ["Provider User Name", {"Source":"Provider Profile","Expansion":"Chief Provider User Name","isSharp":false}],
+    // ["Provider User Name", {"Source":"Provider Profile","Expansion":"Chief Provider User Name","isSharp":false}],
     ["Provider Email", {"Source":"Provider Profile","Expansion":"Chief Provider Email","isSharp":false}],
     ["Specialty", {"Source":"Provider Profile","Expansion":"Chief Provider Specialty","isSharp":false}],
     ["Provider Gender", {"Source":"Provider Profile","Expansion":"Chief Provider Gender","isSharp":false}],
@@ -130,6 +130,15 @@ const DataSource = new Map([
     ["Employer Name", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employer Name", isSharp: false}],
     ["Employers Address", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employers address", isSharp: false}],
     ["Employers Phone", {"Source": "Financial Responsibility", "Expansion": "Workers Comp > Employers phone #", isSharp: false}],
+    ["Signers Name", {"Source": "", "Expansion": "Signers Name", isSharp: false}],
+    ["Signers Specialty", {"Source": "", "Expansion": "Signers Specialty", isSharp: false}],
+    ["Signers LIC Number", {"Source": "", "Expansion": "Signers LIC Number", isSharp: false}],
+    ["Signers NPI Number", {"Source": "", "Expansion": "Signers NPI Number", isSharp: false}],
+    ["Signers DEA Number", {"Source": "", "Expansion": "igners DEA Number", isSharp: false}],
+    ["Signers Email", {"Source": "", "Expansion": "Signers Email", isSharp: false}],
+    ["Fax Number", {"Source": "", "Expansion": "Facility Fax # (Not Editable)", isSharp: false}],
+    ["Facility Main Number", {"Source": "", "Expansion": "Facility Main # (Not Editable)", isSharp: false}],
+    ["Facility Address info", {"Source": "", "Expansion": "Facility Address (Not Editable)", isSharp: false}]
 ])
 
 export default DataSource

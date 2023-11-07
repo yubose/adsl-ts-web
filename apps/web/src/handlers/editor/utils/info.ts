@@ -370,8 +370,138 @@ const ProviderInfo = [
     }
 ]
 
+const ProviderSignature = [
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "" },
+            {
+                "type": "atblock",
+                "value": "@Signers Name",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "" },
+            {
+                "type": "atblock",
+                "value": "@Signers Specialty",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "LIC #: " },
+            {
+                "type": "atblock",
+                "value": "@Signers LIC Number",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "NPI #:  " },
+            {
+                "type": "atblock",
+                "value": "@Signers NPI Number",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "DEA #:  " },
+            {
+                "type": "atblock",
+                "value": "@Signers DEA Number",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "Email:  " },
+            {
+                "type": "atblock",
+                "value": "@Signers Email",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "Fax #:  " },
+            {
+                "type": "atblock",
+                "value": "@Fax Number",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "Main #:  " },
+            {
+                "type": "atblock",
+                "value": "@Facility Main Number",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    },
+    {
+        "type": "paragraph",
+        "children": [
+            { "text": "Address:  " },
+            {
+                "type": "atblock",
+                "value": "@Facility Address info",
+                "children": [
+                    { "text": "" }
+                ]
+            },
+            { "text": "" }
+        ]
+    }
+]
+
 export {
     FacilityInfo,
     PatientInfo,
-    ProviderInfo
+    ProviderInfo,
+    ProviderSignature
 }

@@ -158,7 +158,7 @@ const sharpHtml = (opts: SharpOption) => {
                         justify-content: flex-start;
                     ">X</div>
                 </div>
-                <div>
+                <!-- <div>
                     <div style="
                         color: #2988E6;
                         font-weight: bold;
@@ -279,7 +279,7 @@ const sharpHtml = (opts: SharpOption) => {
                             font-weight: 700;
                         ">@Facility Address</span>
                     <div>
-                </div>
+                </div> -->
                 `
             )
         case "Patient/Guardian Signature":

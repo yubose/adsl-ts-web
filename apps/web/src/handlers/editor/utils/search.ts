@@ -147,7 +147,6 @@ const searchPopUp = ({
             } catch (error) {
                 console.log(error)
             }
-            
         }
     })
 }
