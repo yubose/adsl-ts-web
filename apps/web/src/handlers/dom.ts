@@ -3727,6 +3727,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             // this.dataSource = this.dataSource.concat(data)
             // console.log('test8',this.dataSource)
+            node.scrollTop = node.scrollHeight
           }
           
 
@@ -3944,7 +3945,6 @@ const createExtendedDOMResolvers = function (app: App) {
               })
             }
             const listener = this.addListener(image,'load',(e)=>{
-              e.preventDefault()
               scrollChange(node,scrollH)
             })
             this._events.push(listener)
@@ -4144,16 +4144,16 @@ const createExtendedDOMResolvers = function (app: App) {
           const isPull = oldData[0]['id'] === newData[0]['id']?false:true
           if(isPull){
             //perform onPull
-            const latestData = newData.splice(0,newDataLen-oldDataLen)
+            const latestData = newData.slice(0,newDataLen-oldDataLen)
             globalListChat.addOldChat(latestData)
             // globalListChat.dataSource = u.cloneDeep(newData)
-            globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
+            globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
           }else{
             //perform upload
-            const latestData = newData.splice(oldDataLen)
+            const latestData = newData.slice(oldDataLen)
             globalListChat.addNewChat(latestData)
             // globalListChat.dataSource = u.cloneDeep(newData)
-            globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
+            globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
           }
           
         }else{
@@ -4165,7 +4165,7 @@ const createExtendedDOMResolvers = function (app: App) {
           // node.innerHTML = liveChatBox.innerHTML
           node.setAttribute("class", "scroll-view")
           scrollChange(node,scrollH)
-          node.addEventListener('scroll',(e)=>{
+          node.addEventListener('wheel',(e)=>{
             liveChatObject.removeListener()
           })
         }
