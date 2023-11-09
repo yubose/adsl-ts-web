@@ -3682,12 +3682,13 @@ const createExtendedDOMResolvers = function (app: App) {
         const scrollChange = debounce((node,scrollH)=>{
           node.scrollTop =
             scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
-        },100)
+        },200)
         class liveChat {
           protected chatBox: HTMLElement
-          private dataSource: Array<any>
+          public dataSource: Array<any>
           private pdfCss: PdfCss
           private boxCss: BoxCss
+          private _events: any[]
           constructor(dataSource: Array<any>) {
             // dataSource = removeRepeat(dataSource)
             this.pdfCss = {
@@ -3704,6 +3705,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             this.chatBox = document.createElement('div')
             this.chatBox.id = 'chatBox'
+            this._events = []
             
             this.setBox()
             for (let i = 0; i < this.dataSource.length; i++) {
@@ -3711,10 +3713,36 @@ const createExtendedDOMResolvers = function (app: App) {
               const itemData = this.dataSource[i]
               if(itemData?.name?.title){
                 this.chatBox.appendChild(this.judgeType(itemData,isLast))
-              }
-              
+              }   
             }
-            
+          }
+
+          public addNewChat(data: Array<any>){
+            for (let i = 0; i < data.length; i++) {
+              const isLast = (i === data.length-1)
+              const itemData = data[i]
+              if(itemData?.name?.title){
+                this.chatBox.appendChild(this.judgeType(itemData,isLast))
+              }   
+            }
+            // this.dataSource = this.dataSource.concat(data)
+            // console.log('test8',this.dataSource)
+          }
+          
+
+          public addOldChat(data: Array<any>){
+            const oldHeight = node.scrollHeight
+            for (let i = data.length-1; i >=0; i--) {
+              const isLast = false
+              const itemData = data[i]
+              if(itemData?.name?.title){
+                this.chatBox.insertBefore(this.judgeType(itemData,isLast),this.chatBox.firstChild)
+              }   
+            }
+            node.scrollTop = node.scrollHeight - oldHeight
+
+            // this.dataSource = data.concat(this.dataSource)
+            // console.log('test8',this.dataSource)
           }
 
           private setBox() {
@@ -3723,6 +3751,7 @@ const createExtendedDOMResolvers = function (app: App) {
               width: ${this.boxCss.width};
               height: ${this.boxCss.height};
               overflow: auto;
+              scroll-behavior: smooth;
             `
           }
 
@@ -3741,9 +3770,10 @@ const createExtendedDOMResolvers = function (app: App) {
             return `${hour}:${minute} ${AP}`
           }
 
-          private createTextNode(Msg: any): HTMLElement {
-            
+          private createTextNode(Msg: any): DocumentFragment {
+            const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
+            fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
             let chatBackground: string
             let color: string
@@ -3798,11 +3828,13 @@ const createExtendedDOMResolvers = function (app: App) {
             } catch (error) {
               
             }
-            return domNode
+            return fragment
           }
 
-          private createPdfNode(Msg: any): HTMLElement {
+          private createPdfNode(Msg: any): DocumentFragment {
+            const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
+            fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
               ;[domNode, domNodeContent] = this.judgeIsOwner(
                 domNode,
@@ -3817,10 +3849,33 @@ const createExtendedDOMResolvers = function (app: App) {
                 <div>${Msg.name.data.text}</div>
                 <div style='font-size: 12pxcolor: grey;'>${Msg.name.data.text}</div>
             `
-            return domNode
+            return fragment
           }
-          private createImageNode(Msg:any,isLast:boolean):HTMLElement{
+          private addListener(node: HTMLElement, event: string, callback: any) {
+            node.addEventListener(event, callback)
+            return {
+              event,
+              callback: ()=>{
+                node.removeEventListener(event,callback)
+              }
+            }
+          }
+
+          public removeListener(){
+            if(u.isArr(this._events)){
+              for(let i=0;i<this._events.length;i++){
+                const item = this._events[i]
+                if(u.isFnc(item.callback)){
+                  item.callback?.()
+                }
+              }
+              this._events = []
+            }
+          }
+          private createImageNode(Msg:any,isLast:boolean): DocumentFragment{
+            const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
+            fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
             let chatBackground: string
             let color: string
@@ -3844,6 +3899,8 @@ const createExtendedDOMResolvers = function (app: App) {
             const func = app.root.builtIn.utils.prepareDocToPath
             const image = document.createElement('img')
             image.src = './chatDefaultImage.svg'
+            image.loading = 'lazy'
+            image.decoding = 'async'
             image.style.cssText = `
               max-width: 100%;
               max-height: 23vh;
@@ -3854,6 +3911,8 @@ const createExtendedDOMResolvers = function (app: App) {
               white-space: pre-wrap;
               font-size: 14px;
               padding: 0;
+              border-radius: 4px;
+              border: 1px solid #DEDEDE;
             `
             if(id){
               if(imageData instanceof Blob){
@@ -3861,21 +3920,18 @@ const createExtendedDOMResolvers = function (app: App) {
                 func(id,imageData).then(res=>{
                   if(res){
                     res?.url && (image.src = res?.url)
-                    scrollChange(node,scrollH)
                   }
                 })
               }else if(u.isStr(imageData) && imageData.length > 32768){
                 func(id,Msg?.name).then(res=>{
                   if(res){
                     res?.url && (image.src = res?.url)
-                    scrollChange(node,scrollH)
                   }
                 })
               }else{
                 func(id).then(res=>{
                   if(res){
                     res?.url && (image.src = res?.url)
-                    scrollChange(node,scrollH)
                   }
                 })
               }
@@ -3884,10 +3940,14 @@ const createExtendedDOMResolvers = function (app: App) {
               func(id,imageData).then(res=>{
                 if(res){
                   res?.url && (image.src = res?.url)
-                  scrollChange(node,scrollH)
                 }
               })
             }
+            const listener = this.addListener(image,'load',(e)=>{
+              e.preventDefault()
+              scrollChange(node,scrollH)
+            })
+            this._events.push(listener)
             imageContainer.appendChild(image)
             if(isLast && Msg.tage === 2){
               const fragment = app.uploadProgress.generateProgress(id)
@@ -3897,19 +3957,22 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             imageContainer.addEventListener('click',()=>{
               const imageClicks = component.get("imageClick")
-              imageClicks.queue.forEach(imageClick=>{
-                if(imageClick?.dataKey){
-                  imageClick.dataKey = {var: Msg}
-                }
-              })
-              imageClicks?.execute()
+              if(imageClicks){
+                imageClicks?.queue.forEach(imageClick=>{
+                  if(imageClick?.dataKey){
+                    imageClick.dataKey = {var: Msg}
+                  }
+                })
+                imageClicks?.execute?.()
+              }
+ 
             })
             domNodeContent.append(timeContent,imageContainer)
-            return domNode
+            return fragment
           }
 
-          private judgeType(Msg: any,isLast:boolean): HTMLElement {
-            let domNode: HTMLElement
+          private judgeType(Msg: any,isLast:boolean): DocumentFragment | HTMLElement {
+            let domNode: DocumentFragment | HTMLElement
             switch (Msg.name.title) {
               case 'textMessage':
                 domNode = this.createTextNode(Msg)
@@ -4066,15 +4129,47 @@ const createExtendedDOMResolvers = function (app: App) {
             return pdfInfo
           }
         }
-        // const scrollH = component
+
+        const data = component.get('listObject')
         const scrollH = component.get('data-value') || '' || 'dataKey'
-        const liveChatObject = new liveChat(component.get('listObject'))
-        let liveChatBox = liveChatObject.dom()
-        node.innerHTML = ""
-        node.append(liveChatBox)
-        // node.innerHTML = liveChatBox.innerHTML
-        node.setAttribute("class", "scroll-view")
-        scrollChange(node,scrollH)
+        // const scrollH = component
+        const globalListChat = store.globalListChat
+        if(globalListChat){
+          const oldData = globalListChat.dataSource
+          const newData = data
+          if(!u.isArr(oldData) || !u.isArr(newData)) return
+          const oldDataLen = oldData.length
+          const newDataLen = newData.length
+          if(oldDataLen === newDataLen) return
+          const isPull = oldData[0]['id'] === newData[0]['id']?false:true
+          if(isPull){
+            //perform onPull
+            const latestData = newData.splice(0,newDataLen-oldDataLen)
+            globalListChat.addOldChat(latestData)
+            // globalListChat.dataSource = u.cloneDeep(newData)
+            globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
+          }else{
+            //perform upload
+            const latestData = newData.splice(oldDataLen)
+            globalListChat.addNewChat(latestData)
+            // globalListChat.dataSource = u.cloneDeep(newData)
+            globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
+          }
+          
+        }else{
+          const liveChatObject = new liveChat(u.cloneDeep(data))
+          store.globalListChat = liveChatObject
+          let liveChatBox = liveChatObject.dom()
+          node.innerHTML = ""
+          node.append(liveChatBox)
+          // node.innerHTML = liveChatBox.innerHTML
+          node.setAttribute("class", "scroll-view")
+          scrollChange(node,scrollH)
+          node.addEventListener('scroll',(e)=>{
+            liveChatObject.removeListener()
+          })
+        }
+        
         
       },
     },
