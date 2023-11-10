@@ -1149,6 +1149,7 @@ class App {
 
     viewport.onResize = debounce(async (args) => {
         log.debug('Resizing')
+        if(this.mainPage.page === 'ChatMessage') return
         if (
           args.width !== args.previousWidth ||
           args.height !== args.previousHeight
