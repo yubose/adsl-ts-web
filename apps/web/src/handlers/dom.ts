@@ -1652,6 +1652,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         _instance: { range: { start: any; end: any } }
                       }
                     }) => {
+                      let t_time = new Date(
+                        info.event._instance.range.start,
+                      );
                       tippy(info.el, {
                         content:
                           '<div >\
@@ -1667,10 +1670,8 @@ const createExtendedDOMResolvers = function (app: App) {
                           '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
-                            new Date(
-                              info.event._instance.range.start,
-                            ).getTime() +
-                            new Date().getTimezoneOffset() * 60 * 1000,
+                            t_time.getTime() +
+                            t_time.getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '<div  style="padding-top:3px">Duration：' +
@@ -5789,6 +5790,13 @@ const createExtendedDOMResolvers = function (app: App) {
                   }else{
                     node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
                   }
+                  if(val){
+                    node.dispatchEvent(new Event('input', {
+                      bubbles: false, 
+                      cancelable: false, 
+                      composed: false 
+                    }));
+                  }
             })
               img.removeEventListener('click', stopRecording);
               img.addEventListener('click', startRecording);
@@ -6591,6 +6599,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     let val = size_ws?(await _upload_respose())?.text:text[0]?.text;
                       app.updateRoot(draft => {
                         set(draft?.[pageName], dataKey, val);
+                        // if(val){
+                        //   node.dispatchEvent(new Event('input', {
+                        //     bubbles: false, 
+                        //     cancelable: false, 
+                        //     composed: false 
+                        //   }));
+                        // }
                       })
                       recordData = []
                       setTimeout(()=> {
