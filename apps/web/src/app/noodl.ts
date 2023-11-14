@@ -23,6 +23,7 @@ export const lvl3Options = {
     // (ex: npm run start:test -- --env APP=admind3)
     // if (process.env.LOCAL_CONFIG_URL) return process.env.LOCAL_CONFIG_URL
     // This will be returned (normal use) if NOT using -- env APP=<config name>
+    // test
     const port = 3000
     // return '../superadmin/config/superadmin.yml'
     // return safeDeployUrl
