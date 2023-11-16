@@ -292,12 +292,14 @@ export function isVisible(node: HTMLElement | null) {
  */
 export function openFileSelector(
   inputNode?: HTMLInputElement,
+  accept?: string | null,
 ): Promise<FileSelectorResult> {
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
   return new Promise((resolve) => {
     const input = inputNode || document.createElement('input')
     hide(input)
     input.type = 'file'
+    if(accept) input.accept = accept
     input.onclick = function onFileInputClick(event) {
       document.body.onfocus = () => {
         document.body.onfocus = null

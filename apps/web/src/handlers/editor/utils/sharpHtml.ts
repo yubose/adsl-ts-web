@@ -158,6 +158,128 @@ const sharpHtml = (opts: SharpOption) => {
                         justify-content: flex-start;
                     ">X</div>
                 </div>
+                <!-- <div>
+                    <div style="
+                        color: #2988E6;
+                        font-weight: bold;
+                        height: 24px;
+                        line-height: 24px;
+                    ">@Signers Name</div>
+                    <div style="
+                        color: #2988E6;
+                        font-size: 11.5px;
+                        line-height: 21px;
+                        margin-top: 1px;
+                        height: 21px;
+                        font-weight: 700;
+                    ">@Signers Specialty<div>
+
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        LIC #: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Signers LIC Number</span>
+                    <div>
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        NPI #: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Signers NPI Number</span>
+                    <div>
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        DEA #: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Signers DEA Number</span>
+                    <div>
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        Eamil: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Signers Email</span>
+                    <div>
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        Fax #: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Facility Fax Number</span>
+                    <div>
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        Main #: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Main Number</span>
+                    <div>
+                    <div style="
+                        font-size: 10.6px;
+                        color: #333333;
+                        margin-top: 1px;
+                        line-height: 21px;
+                        height: 21px;
+                        font-weight: normal;
+                    ">
+                        Address: <span style="
+                            color: #2988E6;
+                            margin-left: 7.83px;
+                            font-size: 11.5px;
+                            font-weight: 700;
+                        ">@Facility Address</span>
+                    <div>
+                </div> -->
                 `
             )
         case "Patient/Guardian Signature":

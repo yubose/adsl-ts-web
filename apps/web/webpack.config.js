@@ -49,7 +49,11 @@ const settings = y.parse(readFile(getFilePath('../../settings.yml')))
 function getWebpackConfig(env) {
   let ecosEnv = env.ECOS_ENV || process.env.ECOS_ENV
   let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
+  let plateformEnv = env.PLATEFORM_ENV || process.env.PLATEFORM_ENV
   let mode = nodeEnv !== 'production' ? 'development' : 'production'
+  let webappEnv = env.BUILD_WEBAPP || process.env.BUILD_WEBAPP
+  let build_web = webappEnv == 'dev' ? 'development' : 'production'
+
 
   if (!ecosEnv) {
     let msg =
@@ -298,6 +302,13 @@ function getWebpackConfig(env) {
         ],
         mode: 'production',
       }),
+      new WorkboxPlugin.InjectManifest({
+        swSrc: getFilePath('src/image-load-sw.ts'),
+        swDest: mode === 'production'? path.resolve(paths.build, 'image-load-sw.js'):getFilePath('public/image-load-sw.js'),
+        // swDest: getFilePath('firebase-messaging-sw.js'),
+        maximumFileSizeToCacheInBytes: 500000000,
+        mode: 'production',
+      }),
       new webpack.ProvidePlugin({ process: 'process' }),
       new CircularDependencyPlugin({
         exclude: /node_modules/,
@@ -312,6 +323,7 @@ function getWebpackConfig(env) {
           version: buildVersion,
           ecosEnv: ecosEnv,
           nodeEnv: mode,
+          build_web: build_web,
           packages: {
             '@aitmed/cadl': version.lvl3,
             '@aitmed/ecos-lvl2-sdk': version.lvl2,
@@ -325,6 +337,7 @@ function getWebpackConfig(env) {
         // src/app/noodl.ts to point to the public.aitmed.com host
         ECOS_ENV: ecosEnv,
         NODE_ENV: mode,
+        PLATEFORM_ENV: plateformEnv,
         USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
         ...(!u.isUnd(env.DEPLOYING)
           ? {
@@ -373,6 +386,10 @@ function getWebpackConfig(env) {
           {
             from: getFilePath('public/ring.mp3'),
             to: path.resolve(paths.build, 'ring.mp3'),
+          },
+          {
+            from: getFilePath('public/chatDefaultImage.svg'),
+            to: path.resolve(paths.build, 'chatDefaultImage.svg'),
           },
         ],
       }),

@@ -347,6 +347,13 @@ const fixJson = (json, BaseJsonCopy) => {
 //     return target
 // }
 
+const no_input_block = new Set([
+    "DateOrDateOfService", "SignersName", "SignersSpecialty",
+    "SignersLicNumber", "SignersNpiNumber", "SignersDeaNumber",
+    "SignersEmail", "FaxNumber", "FacilityMainNumber", 
+    "FacilityAddressInfo"
+])
+
 const populateBlock = ({
     obj, 
     BaseJsonCopy, 
@@ -374,7 +381,7 @@ const populateBlock = ({
                     const KEY = formatKey(obj.value.replace('@', ''))
                     BaseJsonCopy.formData[KEY] = ``
                     // const textAlign = obj
-                    if(KEY === "DateOrDateOfService") {
+                    if(no_input_block.has(KEY)) {
                         target = {
                             type: "view",
                             children: [

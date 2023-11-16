@@ -814,7 +814,8 @@ const createActions = function createActions(app: App) {
     // true?function hh(){}:
     async function getInjectBlob(action, options) {
       options.ref?.clear('timeout')
-      const result = await openFileSelector()
+      const accept = _pick(action, 'accept')
+      const result = await openFileSelector(undefined,accept)
       switch (result.status) {
         case 'selected':
           const { files } = result

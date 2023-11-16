@@ -204,9 +204,9 @@ const registerToolbar = () => {
         width: 60,
         options: [
             {value: "Info", text: "Info", styleForRenderMenuList: { display: "none" }},
-            {value: "FacilityInfo", text: "FacilityInfo", styleForRenderMenuList: getImageObject('facilityInfo')},
-            {value: "PatientInfo", text: "PatientInfo", styleForRenderMenuList: getImageObject('patientInfo')},
-            {value: "ProviderInfo", text: "ProviderInfo", styleForRenderMenuList: getImageObject('providerInfo')},
+            {value: "FacilityInfo", text: "Facility Info", styleForRenderMenuList: getImageObject('facilityInfo')},
+            {value: "PatientInfo", text: "Patient Info", styleForRenderMenuList: getImageObject('patientInfo')},
+            {value: "ProviderInfo", text: "Chief Provider Info", styleForRenderMenuList: getImageObject('providerInfo')},
         ],
         classFunctions: {
             exec: (editor: IDomEditor, value: string | boolean) => {

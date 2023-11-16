@@ -37,7 +37,7 @@ import flatpickr from 'flatpickr'
 // import "../../node_modules/flatpickr/dist/flatpickr.min.css"
 import '../../node_modules/flatpickr/dist/themes/material_blue.css'
 import * as c from '../constants'
-import { cloneDeep, wrap } from 'lodash'
+import { cloneDeep, debounce, wrap } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
 import { editorHtml, styleText } from './editor/editorHtml'
@@ -3668,7 +3668,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
-
+        
         const assetsUrl = app.nui.getAssetsUrl() || ""
         interface PdfCss {
           pdfContentWidth: number
@@ -3680,15 +3680,18 @@ const createExtendedDOMResolvers = function (app: App) {
           width: string
           height: string
         }
+        const scrollChange = debounce((node,scrollH)=>{
+          node.scrollTop =
+            scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
+        },200)
         class liveChat {
           protected chatBox: HTMLElement
-          private dataSource: Array<any>
+          public dataSource: Array<any>
           private pdfCss: PdfCss
           private boxCss: BoxCss
+          private _events: any[]
           constructor(dataSource: Array<any>) {
             // dataSource = removeRepeat(dataSource)
-            this.dataSource = dataSource
-            this.chatBox = document.createElement('div')
             this.pdfCss = {
               pdfContentWidth: 200,
               pdfContentHeight: 60,
@@ -3699,10 +3702,49 @@ const createExtendedDOMResolvers = function (app: App) {
               width: node.style.width,
               height: node.style.height,
             }
+            this.dataSource = dataSource
+
+            this.chatBox = document.createElement('div')
+            this.chatBox.id = 'chatBox'
+            this._events = []
+            
             this.setBox()
             for (let i = 0; i < this.dataSource.length; i++) {
-              this.chatBox.appendChild(this.judgeType(this.dataSource[i]))
+              const isLast = (i === this.dataSource.length-1)
+              const itemData = this.dataSource[i]
+              if(itemData?.name?.title){
+                this.chatBox.appendChild(this.judgeType(itemData,isLast))
+              }   
             }
+          }
+
+          public addNewChat(data: Array<any>){
+            for (let i = 0; i < data.length; i++) {
+              const isLast = (i === data.length-1)
+              const itemData = data[i]
+              if(itemData?.name?.title){
+                this.chatBox.appendChild(this.judgeType(itemData,isLast))
+              }   
+            }
+            // this.dataSource = this.dataSource.concat(data)
+            // console.log('test8',this.dataSource)
+            node.scrollTop = node.scrollHeight
+          }
+          
+
+          public addOldChat(data: Array<any>){
+            const oldHeight = node.scrollHeight
+            for (let i = data.length-1; i >=0; i--) {
+              const isLast = false
+              const itemData = data[i]
+              if(itemData?.name?.title){
+                this.chatBox.insertBefore(this.judgeType(itemData,isLast),this.chatBox.firstChild)
+              }   
+            }
+            node.scrollTop = node.scrollHeight - oldHeight
+
+            // this.dataSource = data.concat(this.dataSource)
+            // console.log('test8',this.dataSource)
           }
 
           private setBox() {
@@ -3711,6 +3753,7 @@ const createExtendedDOMResolvers = function (app: App) {
               width: ${this.boxCss.width};
               height: ${this.boxCss.height};
               overflow: auto;
+              scroll-behavior: smooth;
             `
           }
 
@@ -3729,9 +3772,10 @@ const createExtendedDOMResolvers = function (app: App) {
             return `${hour}:${minute} ${AP}`
           }
 
-          private createTextNode(Msg: any): HTMLElement {
-            
+          private createTextNode(Msg: any): DocumentFragment {
+            const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
+            fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
             let chatBackground: string
             let color: string
@@ -3786,11 +3830,13 @@ const createExtendedDOMResolvers = function (app: App) {
             } catch (error) {
               
             }
-            return domNode
+            return fragment
           }
 
-          private createPdfNode(Msg: any): HTMLElement {
+          private createPdfNode(Msg: any): DocumentFragment {
+            const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
+            fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
               ;[domNode, domNodeContent] = this.judgeIsOwner(
                 domNode,
@@ -3805,10 +3851,33 @@ const createExtendedDOMResolvers = function (app: App) {
                 <div>${Msg.name.data.text}</div>
                 <div style='font-size: 12pxcolor: grey;'>${Msg.name.data.text}</div>
             `
-            return domNode
+            return fragment
           }
-          private createImageNode(Msg:any):HTMLElement{
+          private addListener(node: HTMLElement, event: string, callback: any) {
+            node.addEventListener(event, callback)
+            return {
+              event,
+              callback: ()=>{
+                node.removeEventListener(event,callback)
+              }
+            }
+          }
+
+          public removeListener(){
+            if(u.isArr(this._events)){
+              for(let i=0;i<this._events.length;i++){
+                const item = this._events[i]
+                if(u.isFnc(item.callback)){
+                  item.callback?.()
+                }
+              }
+              this._events = []
+            }
+          }
+          private createImageNode(Msg:any,isLast:boolean): DocumentFragment{
+            const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
+            fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
             let chatBackground: string
             let color: string
@@ -3817,42 +3886,94 @@ const createExtendedDOMResolvers = function (app: App) {
                 this.IsOwner(Msg.bsig),
                 Msg,
               )
-
             let timeContent = document.createElement("div")
-            timeContent.innerText = this.caculateTime(Msg.ctime || Msg?.name?.data?.time)
+            timeContent.innerText = this.caculateTime(Msg.ctime || Msg?.name?.chatData?.time)
             timeContent.style.cssText = `
               color: #999999;
             `
-            const imageData = Msg?.name?.data
+            const imageContainer = document.createElement('div')
+            imageContainer.style.cssText = `
+              width: 100%;
+              position: relative;
+            `
+            const imageData = Msg.tage === 2 ? Msg?.name?.chatData.localData:Msg?.name?.data
             const id = Msg?.id
             const func = app.root.builtIn.utils.prepareDocToPath
             const image = document.createElement('img')
+            image.src = './chatDefaultImage.svg'
+            image.loading = 'lazy'
+            image.decoding = 'async'
             image.style.cssText = `
               max-width: 100%;
+              max-height: 23vh;
               width: fit-content;
-              border-radius: 8px;
               line-height: 21px;
               padding: 8px 15px 6px 12px;
               word-wrap: break-word;
               white-space: pre-wrap;
               font-size: 14px;
+              padding: 0;
+              border-radius: 4px;
+              border: 1px solid #DEDEDE;
             `
-            console.log('test9',Msg)
             if(id){
-              func(id).then(res=>{
-                image.src = res?.url
-              })
-            }else if(imageData instanceof Blob){
-              func(imageData).then(res=>{
-                image.src = res?.url
+              if(imageData instanceof Blob){
+                const func = app.root.builtIn.utils.prepareChatDocToPath
+                func(id,imageData).then(res=>{
+                  if(res){
+                    res?.url && (image.src = res?.url)
+                  }
+                })
+              }else if(u.isStr(imageData) && imageData.length > 32768){
+                func(id,Msg?.name).then(res=>{
+                  if(res){
+                    res?.url && (image.src = res?.url)
+                  }
+                })
+              }else{
+                func(id).then(res=>{
+                  if(res){
+                    res?.url && (image.src = res?.url)
+                  }
+                })
+              }
+              
+            }else if(!id && imageData instanceof Blob){
+              func(id,imageData).then(res=>{
+                if(res){
+                  res?.url && (image.src = res?.url)
+                }
               })
             }
-            domNodeContent.append(timeContent,image)
-            return domNode
+            const listener = this.addListener(image,'load',(e)=>{
+              scrollChange(node,scrollH)
+            })
+            this._events.push(listener)
+            imageContainer.appendChild(image)
+            if(isLast && Msg.tage === 2){
+              const fragment = app.uploadProgress.generateProgress(id)
+              //@ts-expect-error
+              fragment.childNodes[0].style.visibility = 'visibility'
+              imageContainer.appendChild(fragment)
+            }
+            imageContainer.addEventListener('click',()=>{
+              const imageClicks = component.get("imageClick")
+              if(imageClicks){
+                imageClicks?.queue.forEach(imageClick=>{
+                  if(imageClick?.dataKey){
+                    imageClick.dataKey = {var: Msg}
+                  }
+                })
+                imageClicks?.execute?.()
+              }
+ 
+            })
+            domNodeContent.append(timeContent,imageContainer)
+            return fragment
           }
 
-          private judgeType(Msg: any): HTMLElement {
-            let domNode: HTMLElement
+          private judgeType(Msg: any,isLast:boolean): DocumentFragment | HTMLElement {
+            let domNode: DocumentFragment | HTMLElement
             switch (Msg.name.title) {
               case 'textMessage':
                 domNode = this.createTextNode(Msg)
@@ -3861,7 +3982,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 domNode = this.createPdfNode(Msg)
                 return domNode
               case 'imageMessage':
-                domNode = this.createImageNode(Msg)
+                domNode = this.createImageNode(Msg,isLast)
                 return domNode
               default:
                 return document.createElement("div")
@@ -3898,11 +4019,14 @@ const createExtendedDOMResolvers = function (app: App) {
 
           private createChatNodeAvatar(isOwner: boolean, Msg: any): HTMLElement {
             let data = Msg.name.data
-            if (typeof data == 'string') {
+            if (typeof data == 'string' && Msg.name.title !== 'imageMessage') {
               data = JSON.parse(data)
             }
             let domNodeAvatar = document.createElement('img')
-            const avatarId = data?.avatar
+            let avatarId = data?.avatar
+            if(Msg.name.title === 'imageMessage'){
+              avatarId = Msg.name.chatData.avatar
+            }
             // console.log("AVATAR", avatarId)
             if(data?.capacity === "provider") 
               domNodeAvatar.src = `${assetsUrl}providerImage.svg`
@@ -3934,9 +4058,9 @@ const createExtendedDOMResolvers = function (app: App) {
             return domNodeAvatar
           }
 
-          private IsOwner(ovid: string): boolean {
+          private IsOwner(ovid: string|null): boolean {
             let judgeOvid = localStorage.getItem('user_vid')
-            return ovid === judgeOvid
+            return ovid === judgeOvid || !ovid
           }
 
           private judgeIsOwner(
@@ -4006,18 +4130,48 @@ const createExtendedDOMResolvers = function (app: App) {
             return pdfInfo
           }
         }
-        // const scrollH = component
+
+        const data = component.get('listObject')
         const scrollH = component.get('data-value') || '' || 'dataKey'
-        const liveChatObject = new liveChat(component.get('listObject'))
-        let liveChatBox = liveChatObject.dom()
-        node.innerHTML = ""
-        node.append(liveChatBox)
-        // node.innerHTML = liveChatBox.innerHTML
-        node.setAttribute("class", "scroll-view")
-        setTimeout(() => {
-          node.scrollTop =
-            scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
-        }, 0)
+        // const scrollH = component
+        const globalListChat = store.globalListChat
+        if(globalListChat){
+          const oldData = globalListChat.dataSource
+          const newData = data
+          if(!u.isArr(oldData) || !u.isArr(newData)) return
+          const oldDataLen = oldData.length
+          const newDataLen = newData.length
+          if(oldDataLen === newDataLen) return
+          const isPull = oldData[0]['id'] === newData[0]['id']?false:true
+          if(isPull){
+            //perform onPull
+            const latestData = newData.slice(0,newDataLen-oldDataLen)
+            globalListChat.addOldChat(latestData)
+            // globalListChat.dataSource = u.cloneDeep(newData)
+            globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
+          }else{
+            //perform upload
+            const latestData = newData.slice(oldDataLen)
+            globalListChat.addNewChat(latestData)
+            // globalListChat.dataSource = u.cloneDeep(newData)
+            globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
+          }
+          
+        }else{
+          const liveChatObject = new liveChat(u.cloneDeep(data))
+          store.globalListChat = liveChatObject
+          let liveChatBox = liveChatObject.dom()
+          node.innerHTML = ""
+          node.append(liveChatBox)
+          // node.innerHTML = liveChatBox.innerHTML
+          node.setAttribute("class", "scroll-view")
+          scrollChange(node,scrollH)
+          node.addEventListener('wheel',(e)=>{
+            liveChatObject.removeListener()
+          })
+        }
+        
+        
       },
     },
     '[App] navBar': {

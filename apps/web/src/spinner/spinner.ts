@@ -73,6 +73,8 @@ export class Spinner {
       }
       if (this.el.parentNode) {
         this.el.parentNode.removeChild(this.el)
+      }else{
+        this.el.remove()
       }
       this.el = undefined
     }

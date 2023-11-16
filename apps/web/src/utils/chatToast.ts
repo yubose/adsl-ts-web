@@ -222,6 +222,7 @@ function sortToast(): void {
         el.style.setProperty('--index', `${sortIndex}`)
         el.style.setProperty('--height', `${height}px`)
         el.style.setProperty('--front-height', `${heights[0]}px`)
+        el.style.setProperty('left', `0px`)
 
         if (sortIndex > 1 && sortIndex < 3) {
             const hoverOffsetY = heights

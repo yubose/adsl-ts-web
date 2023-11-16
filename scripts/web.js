@@ -26,7 +26,16 @@ const execOptions = {
 }
 
 let cmd = ''
-
+let plateform
+if(cli.flags.com){
+  plateform = 'com'
+}else if(cli.flags.d){
+  plateform = 'd'
+}else if(cli.flags.cn){
+  plateform = 'cn'
+}else{
+  plateform = 'cn'
+}
 if (cli.flags.deploy) {
   let isStable = true
 
@@ -57,7 +66,9 @@ if (cli.flags.deploy) {
 
   if (cli.flags.build) {
     cmd += 'NODE_ENV=production '
-
+    if(cli.flags.web){
+      cmd += 'BUILD_WEBAPP=dev '
+    }
     if (cli.flags.test) {
       env.ECOS_ENV = 'test'
       cmd += 'ECOS_ENV=test '
@@ -66,6 +77,8 @@ if (cli.flags.deploy) {
       env.ECOS_ENV = 'stable'
       cmd += 'ECOS_ENV=stable '
     }
+    cmd += `PLATEFORM_ENV=${plateform} `
+    env.PLATEFORM_ENV = plateform
 
     cmd += 'npx webpack --mode=production'
   } else if (cli.flags.start) {
@@ -81,6 +94,8 @@ if (cli.flags.deploy) {
       env.ECOS_ENV = 'test'
       cmd += 'ECOS_ENV=test '
     }
+    cmd += `PLATEFORM_ENV=${plateform} `
+    env.PLATEFORM_ENV = plateform
 
     cmd += 'npm run start '
 

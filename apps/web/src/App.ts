@@ -51,7 +51,7 @@ import * as t from './app/types'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
 import SelfDialog from './utils/Dialog'
-
+import UploadProgress from './utils/UploadProgress'
 class App {
   #state: t.AppState = {
     actionEvents: [],
@@ -92,6 +92,7 @@ class App {
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
   #piBackgroundWorker: Worker | null = null
+  #uploadProgress: UploadProgress
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NDOM['page']
@@ -143,6 +144,7 @@ class App {
     registers?.registerHandlers()
     this.#spinner = spinner
     this.register = registers
+    this.#uploadProgress = new UploadProgress()
 
     noodl && this.use(noodl)
     this.#parser = new nu.Parser()
@@ -217,6 +219,9 @@ class App {
 
   get spinner() {
     return this.#spinner
+  }
+  get uploadProgress() {
+    return this.#uploadProgress
   }
 
   get pendingPage() {
@@ -503,15 +508,20 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    if(window.build.nodeEnv == "development"){
-      axios({
-        url: "http://127.0.0.1:10000",
-        method: "POST",
-        headers:{
-          "Content-Type": "text/plain"
-        },
-        data:  this.#noodl?.root
-      }).catch(e=>console.error(e))
+    if([window.build.nodeEnv,window.build.build_web].includes("development")){
+      try{
+        const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+        axios({
+          url: `http://127.0.0.1:${port}`,
+          method: "POST",
+          headers:{
+            "Content-Type": "text/plain"
+          },
+          data:  this.#noodl?.root
+        })
+      }catch(error){
+        console.error(error)
+      }   
     }
     
     let e = Date.now()
@@ -1139,6 +1149,7 @@ class App {
 
     viewport.onResize = debounce(async (args) => {
         log.debug('Resizing')
+        if(this.mainPage.page === 'ChatMessage') return
         if (
           args.width !== args.previousWidth ||
           args.height !== args.previousHeight
@@ -1309,6 +1320,7 @@ class App {
           window['ringTong']?.stop?.()  
         }
         page.mounted = true
+        this.disableSpinner()
       },0)
     }
 
