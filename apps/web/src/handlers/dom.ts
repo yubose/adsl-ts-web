@@ -4142,19 +4142,27 @@ const createExtendedDOMResolvers = function (app: App) {
           const oldDataLen = oldData.length
           const newDataLen = newData.length
           if(oldDataLen === newDataLen) return
-          const isPull = oldData[0]['id'] === newData[0]['id']?false:true
-          if(isPull){
-            //perform onPull
-            const latestData = newData.slice(0,newDataLen-oldDataLen)
-            globalListChat.addOldChat(latestData)
-            // globalListChat.dataSource = u.cloneDeep(newData)
-            globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
-          }else{
+          if(oldDataLen === 0){
             //perform upload
             const latestData = newData.slice(oldDataLen)
             globalListChat.addNewChat(latestData)
             // globalListChat.dataSource = u.cloneDeep(newData)
             globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
+          }else{
+            const isPull = oldData[0]['id'] === newData[0]['id']?false:true
+            if(isPull){
+              //perform onPull
+              const latestData = newData.slice(0,newDataLen-oldDataLen)
+              globalListChat.addOldChat(latestData)
+              // globalListChat.dataSource = u.cloneDeep(newData)
+              globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
+            }else{
+              //perform upload
+              const latestData = newData.slice(oldDataLen)
+              globalListChat.addNewChat(latestData)
+              // globalListChat.dataSource = u.cloneDeep(newData)
+              globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
+            }
           }
           
         }else{
