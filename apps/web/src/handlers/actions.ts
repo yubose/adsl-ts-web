@@ -1308,6 +1308,7 @@ const createActions = function createActions(app: App) {
                 width: 8vw;
                 top: 8vh;
                 left: 30px;
+                z-index: 10000;
                 `;
                 contanierDivImg?.append(butCancel)
                 // let res = document.getElementById("qr-shaded-region") as HTMLElement;
