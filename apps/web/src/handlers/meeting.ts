@@ -77,6 +77,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     room.removeAllListeners('participantDisconnected')
     room.removeAllListeners('participantReconnecting')
     room.removeAllListeners('participantReconnected')
+    room.removeAllListeners('disconnected')
+    room.removeAllListeners('recordingStarted')
+    room.removeAllListeners('recordingStopped')
     room.on('participantConnected', onRoomEvent.participantConnected)
     room.on('participantDisconnected', onRoomEvent.participantDisconnected)
     room.on('participantReconnecting', onRoomEvent.participantReconnecting)
@@ -101,6 +104,14 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       room.removeAllListeners('participantReconnecting')
       room.removeAllListeners('participantReconnected')
     })
+    room.on('recordingStarted',()=>{
+      app.register.emit('recordingStarted')
+    })
+
+    room.on('recordingStopped',()=>{
+      app.register.emit('recordingStopped')
+    })
+
     /* -------------------------------------------------------
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
