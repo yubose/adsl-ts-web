@@ -1149,7 +1149,6 @@ class App {
 
     viewport.onResize = debounce(async (args) => {
         log.debug('Resizing')
-        if(this.mainPage.page === 'ChatMessage') return
         if (
           args.width !== args.previousWidth ||
           args.height !== args.previousHeight
@@ -1161,6 +1160,7 @@ class App {
           document.body.style.height = `${args.height}px`
           this.mainPage.node.style.width = `${args.width}px`
           this.mainPage.node.style.height = `${args.height}px`
+          if(this.mainPage.page === 'ChatMessage') return
           await this.render(this.mainPage)
         }
       
