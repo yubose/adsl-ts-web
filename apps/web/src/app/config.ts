@@ -68,10 +68,4 @@ switch (process.env.PLATEFORM_ENV) {
     }
     break;
 }
-
-_square = {
-  appId: 'sq0idp-mfW2Mc6WUxEdLbxntQEu1A',
-  locationId: 'LP1ZFHGWKM7KR'
-}
-
 export const Square = _square
