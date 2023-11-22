@@ -329,6 +329,15 @@ export function getSdkHelpers(app: App) {
     get handlePaymentMethodSubmission() {
       return extendedSdkBuiltIns.handlePaymentMethodSubmission.bind(app)
     },
+    get popUp() {
+      return extendedSdkBuiltIns.popUp.bind(app)
+    },
+    get popUpDismiss() {
+      return extendedSdkBuiltIns.popUpDismiss.bind(app)
+    },
+    get continueGoto() {
+      return extendedSdkBuiltIns.continueGoto.bind(app)
+    },
   }
 
   return {

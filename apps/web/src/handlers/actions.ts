@@ -29,6 +29,8 @@ import {
   Store,
   triggers,
   NuiComponent,
+  isNDOMPage,
+  eventId,
 } from 'noodl-ui'
 import SignaturePad from 'signature_pad'
 import {
@@ -48,7 +50,7 @@ import {
 } from '../utils/dom'
 import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
-import { pickActionKey, pickHasActionKey } from '../utils/common'
+import { hasAbortPopup, pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
 import * as c from '../constants'
 import Cropper from 'cropperjs'
@@ -397,7 +399,7 @@ const createActions = function createActions(app: App) {
           detail: goto && u.isStr(goto) ? { destination: goto } : undefined,
         },
       )
-
+      let isRunLeave:boolean = true
       if (options?.component?.blueprint?.["dataOption"]?.["blank"] && u.isStr(goto)) {
         app.disableSpinner()
         options.ref?.abort() as any
@@ -483,6 +485,7 @@ const createActions = function createActions(app: App) {
         const dataIn = goto.dataIn
         'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
         'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
+        'isRunLeave' in dataIn && (pageModifiers.isRunLeave = dataIn.isRunLeave)
       }
 
       if (id) {
@@ -531,7 +534,16 @@ const createActions = function createActions(app: App) {
           )
         }
       }
-
+      if(isNDOMPage(ndomPage) && isRunLeave){
+        const results = await ndomPage.emitAsync(eventId.page.on.ON_NAVIGATE_START,ndomPage)
+        if (!destinationParam.startsWith('http')) {
+          localStorage.setItem('continueGoto',destination)
+        }else{
+          localStorage.setItem('continueGoto',destinationParam)
+        }
+        
+        if(u.isArr(results) && hasAbortPopup(results)) return    
+      }
       if (!destinationParam.startsWith('http')) {
         // Avoids letting page components (lower level components) from mutating the tab's url
         if (ndomPage === app.mainPage) {
@@ -560,6 +572,7 @@ const createActions = function createActions(app: App) {
         isSamePage,
         pageModifiers,
         updatedQueryString: ndomPage?.pageUrl,
+        isRunLeave
       })
       if (!isSamePage) {
         if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
