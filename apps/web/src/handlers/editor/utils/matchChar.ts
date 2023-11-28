@@ -4,7 +4,7 @@ import infoTemplate from "../dataSource/infoTemplate"
 import { SharpType } from "./config"
 import sharpHtml from "./sharpHtml"
 import { textSharpRegStr, textSharpGetReg, textSharpSplitRegG, choiceSharpRegStr, choiceSharpGetReg, choiceArrayStr } from "./textSharp"
-import { toReg } from "./utils"
+import { decode, toReg } from "./utils"
 
 // const atReg = /@\[[\w '\(\)]+\]/g
 // const sharpReg = /#\[[\w]+\]/g
@@ -103,6 +103,7 @@ import { toReg } from "./utils"
 // const sharpBlockReg = /<button is-sharp>#[\w*]+:[^:]+:[^:]+<\/button>/g
 
 export const matchBlock = (html) => {
+    html = decode(html)
     const REG = `<span data-w-e-type="--type--" data-w-e-is-void(="")? --isInline-- data-value="--key--">--key--<\/span>`
 
     const atBlockReg = new RegExp(
