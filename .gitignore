@@ -21,3 +21,4 @@ apps/web/public/search
 apps/web/public/testpage
 .idea/*
 deployProd.sh
+apps/web/truthPort.json
