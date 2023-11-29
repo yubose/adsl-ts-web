@@ -1189,7 +1189,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
   }
-  const countDown = async function onCountDown(actions,options: {
+  const countDown = async function onCountDown(options: {
     viewTag: string
     timeFormat: string
     time: number | string
