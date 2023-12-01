@@ -3368,7 +3368,6 @@ const createExtendedDOMResolvers = function (app: App) {
               })
             }
           }
-
           if (option.navigation) {
             node.addEventListener('mouseenter', () => {
               prevBtn.style.opacity = '1'
@@ -3382,6 +3381,53 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
         }
       },
+    },
+    '[App] audioView': {
+      cond: "audioView",
+      resolve({ node, component }) {
+        if (node) {
+          const dataValue = component.get('data-value');
+          const dataOptions = component.get('data-option');
+            // let pageName = app.currentPage
+            const element_audio = document.createElement("audio");
+            const element_btn = document.createElement("button");
+            const element_div = document.createElement("div");
+            element_div.style.cssText = `
+                  display: flex;
+                  justify-content: space-around;
+                  align-items: center;
+                  background-color: #F0F2F4;
+                  border-radius: 8;
+                  height: inherit;
+                  width: 100%;
+            `;
+            element_btn.style.cssText = `
+              border: 1px solid #30b354;
+              border-radius: 20px;
+              padding: 10px;
+              color: #30b354;
+              font-size: large;
+              font-weight: 600;
+            `;
+            element_audio.id = "audio_c";
+            element_audio.style.cssText = `
+              width: 100%;
+            `
+            element_audio.src = "ring.mp3"
+            element_audio.controls = true;
+            element_btn.textContent = "Generate"
+            element_div.append(element_audio);
+            element_div.append(element_btn);
+            element_btn.addEventListener("click",(e)=>{
+                set(dataOptions,"selectDoc",dataValue)
+                set(dataOptions,"transcriptionContent",dataOptions.selectDoc.name.data.transaction)
+               component.get("onGenerateClick")?.["actions"].shift()
+                // @ts-ignore
+                component.get("onGenerateClick")?.execute()
+            })
+          node.append(element_div);
+        }
+      }
     },
     '[App] Checkbox': {
       cond: 'checkbox',
