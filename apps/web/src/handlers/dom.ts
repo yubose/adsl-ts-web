@@ -3392,6 +3392,8 @@ const createExtendedDOMResolvers = function (app: App) {
             const element_audio = document.createElement("audio");
             const element_btn = document.createElement("button");
             const element_div = document.createElement("div");
+            const element_time = document.createElement("div");
+            const element_time_audio = document.createElement("div");
             element_div.style.cssText = `
                   display: flex;
                   justify-content: space-around;
@@ -3405,26 +3407,50 @@ const createExtendedDOMResolvers = function (app: App) {
               border: 1px solid #30b354;
               border-radius: 20px;
               padding: 10px;
+              // width: 15vw;
               color: #30b354;
-              font-size: large;
+              font-size: 15px;
               font-weight: 600;
             `;
             element_audio.id = "audio_c";
             element_audio.style.cssText = `
               width: 100%;
-            `
-            element_audio.src = "ring.mp3"
+              height: 35px;
+            `;
+            element_time_audio.style.cssText = `
+                  display: flex;
+                  justify-content: flex-start;
+                  width: 100%;
+                  flex-wrap: wrap;
+                  align-items: center;
+            `;
+            element_time.style.cssText = `
+              margin-left: 20px;
+
+            `;
+            element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
+            // element_audio.src = "ring.mp3"
+            const data = JSON.parse(dataValue["name"]["data"]);
+            element_audio.src = data["audioUrl"];
             element_audio.controls = true;
             element_btn.textContent = "Generate"
-            element_div.append(element_audio);
+            element_time_audio.append(element_time)
+            element_time_audio.append(element_audio)
+            element_div.append(element_time_audio);
             element_div.append(element_btn);
+              // component.get("onGenerateClick")?.["actions"].shift()
+
             element_btn.addEventListener("click",(e)=>{
+
                 set(dataOptions,"selectDoc",dataValue)
-                set(dataOptions,"transcriptionContent",dataOptions.selectDoc.name.data.transaction)
-               component.get("onGenerateClick")?.["actions"].shift()
-                // @ts-ignore
-                component.get("onGenerateClick")?.execute()
-            })
+                set(dataOptions,"transcriptionContent",data["transaction"])
+                setTimeout(()=>{
+                  // @ts-ignore
+                  component.get("onGenerateClick")?.execute()
+                },100)
+               
+              })
+            
           node.append(element_div);
         }
       }
@@ -6589,7 +6615,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   const blobFile = new Blob(recordData, { type: "audio/mp3" })
                   const chun_size_sample_rates = 16000*20*5; 
                   const chunks:any[] = [];
-                  const size_ws = blobFile.size>=5242880;
+                  const             size_ws = blobFile.size>=5242880;
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
@@ -6609,6 +6635,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
+                      setTimeout(()=>{
+                        const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
+                        // unsubscribe.aud = controller;
+                        console.log(unsubscribe,99999)
+                          unsubscribe.addEventListener("click",(e)=>{
+                            console.log(888888)
+                              xhr.abort()
+                            })
+                      },1000)
                       xhr.withCredentials = true;
                       xhr.addEventListener("readystatechange", function () {
                         if (this.readyState === 4) {
@@ -6618,18 +6653,29 @@ const createExtendedDOMResolvers = function (app: App) {
                         xhr.open("POST",audio_url);
                         let data = new FormData();
                         data.append("audio", v, "123.mp3");
-                        console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
+                        // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
                         data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
+                        
                     })
                   
                   )
                   const _upload_respose =  ():Promise<any>=>{
                     return new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
+                      setTimeout(()=>{
+                        const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
+                        // unsubscribe.aud = controller;
+                        console.log(unsubscribe,99999)
+                          unsubscribe.addEventListener("click",(e)=>{
+                            console.log(888888)
+                              xhr.abort()
+                            })
+                      },1000)
+                        
                       xhr.withCredentials = true;
                       xhr.addEventListener("readystatechange", function () {
                         if (this.readyState === 4) {
@@ -6646,6 +6692,8 @@ const createExtendedDOMResolvers = function (app: App) {
                         let data = new FormData();
                         data.append("code", `${rand}`);
                         data.append("size", `${chunks.length}`);
+                        // const controller = new AbortController();
+                        
                         xhr.send(data);
                     })
                   }
