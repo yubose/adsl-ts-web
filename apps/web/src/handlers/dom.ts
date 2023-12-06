@@ -3430,14 +3430,15 @@ const createExtendedDOMResolvers = function (app: App) {
             `;
             element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
             // element_audio.src = "ring.mp3"
-            const data = JSON.parse(dataValue["name"]["data"]);
-            element_audio.src = data["audioUrl"];
-            element_audio.controls = true;
+            const data = JSON.parse(dataValue["name"]["data"])
+            const url = data["audioUrl"].split('?')[0]
+            element_audio.src = url
+            element_audio.controls = true
             element_btn.textContent = "Generate"
             element_time_audio.append(element_time)
             element_time_audio.append(element_audio)
-            element_div.append(element_time_audio);
-            element_div.append(element_btn);
+            element_div.append(element_time_audio)
+            element_div.append(element_btn)
               // component.get("onGenerateClick")?.["actions"].shift()
 
             element_btn.addEventListener("click",(e)=>{
@@ -3451,7 +3452,7 @@ const createExtendedDOMResolvers = function (app: App) {
                
               })
             
-          node.append(element_div);
+          node.append(element_div)
         }
       }
     },
