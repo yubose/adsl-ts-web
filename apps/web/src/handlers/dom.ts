@@ -3386,11 +3386,17 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: "audioView",
       resolve({ node, component }) {
         if (node) {
+          const assetsUrl = app.nui.getAssetsUrl() || ''
           const dataValue = component.get('data-value');
           const dataOptions = component.get('data-option');
             // let pageName = app.currentPage
             const element_audio = document.createElement("audio");
+            const element_text = document.createElement("div");
+            const element_text_img = document.createElement("img");
+            const element_text_text = document.createElement("div")
             const element_btn = document.createElement("button");
+            const element_img_div = document.createElement("div")
+            const element_img = document.createElement("img")
             const element_div = document.createElement("div");
             const element_time = document.createElement("div");
             const element_time_audio = document.createElement("div");
@@ -3417,6 +3423,13 @@ const createExtendedDOMResolvers = function (app: App) {
               width: 100%;
               height: 35px;
             `;
+            element_img_div.style.cssText = `
+              display: flex;
+              width: 25px;
+              height: 25px;
+              margin: 0px 10px 0px 0px;
+              cursor: pointer;
+            `;
             element_time_audio.style.cssText = `
                   display: flex;
                   justify-content: flex-start;
@@ -3426,23 +3439,79 @@ const createExtendedDOMResolvers = function (app: App) {
             `;
             element_time.style.cssText = `
               margin-left: 20px;
-
             `;
+            element_text.style.cssText =`
+              width: 100%;
+              height: 35px;
+              padding: 0px 10px 0px 20px;
+              display: flex;
+            `;
+            element_text_img.style.cssText =`
+              margin-top: 12px;
+              height: 17px;
+            `;
+            element_text_text.style.cssText =`
+              height: 35px;
+              line-height: 35px;
+              padding: 0px 10px;
+              width: 200px;
+              overflow:hidden;
+              text-overflow:ellipsis;
+              white-space:nowrap;
+            `;
+            element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
             element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
             // element_audio.src = "ring.mp3"
-            const data = JSON.parse(dataValue["name"]["data"])
-            const url = data["audioUrl"].split('?')[0]
-            element_audio.src = url
-            element_audio.controls = true
+            let data = ""
+            if (dataValue["name"]["type"] === 545281) {
+              data = JSON.parse(dataValue["name"]["data"])
+              const url = data["audioUrl"].split('?')[0]
+              element_audio.src = url
+              element_audio.controls = true
+            }
+            
             element_btn.textContent = "Generate"
+            element_img_div.append(element_img)
             element_time_audio.append(element_time)
-            element_time_audio.append(element_audio)
-            element_div.append(element_time_audio)
+            if (dataValue["type"] === 545281) {
+              data = JSON.parse(dataValue["name"]["data"])
+              const url = data["audioUrl"].split('?')[0]
+              element_audio.src = url
+              element_audio.controls = true
+              element_time_audio.append(element_audio)
+              element_div.append(element_time_audio)
+            } else if (dataValue["type"] === 540161) {
+              data = dataValue["name"]["data"]["transaction"]
+              element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
+              element_text_text.innerHTML = data;
+              element_text.append(element_text_img);
+              element_text.append(element_text_text);
+              element_time_audio.append(element_text)
+              element_div.append(element_time_audio)
+            }
+            
+            // 增加transcription的按钮
+            element_div.append(element_img_div)
             element_div.append(element_btn)
               // component.get("onGenerateClick")?.["actions"].shift()
-
+            if (dataValue["type"] === 545281) {
+              element_img_div.addEventListener("click",(e)=>{
+                setTimeout(()=>{
+                  // @ts-ignore
+                  component.get("onVoiceClick")?.execute()
+                })
+              },{once: true})
+            }else if (dataValue["type"] === 540161) { 
+              element_img_div.addEventListener("click",(e)=>{
+                setTimeout(()=>{
+                  // @ts-ignore
+                  component.get("onTextClick")?.execute()
+                })
+              },{once: true})
+            }
+            
+            
             element_btn.addEventListener("click",(e)=>{
-
                 set(dataOptions,"selectDoc",dataValue)
                 set(dataOptions,"transcriptionContent",data["transaction"])
                 setTimeout(()=>{
@@ -6640,10 +6709,13 @@ const createExtendedDOMResolvers = function (app: App) {
                         const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
                         // unsubscribe.aud = controller;
                         console.log(unsubscribe,99999)
+                        if(unsubscribe) {
                           unsubscribe.addEventListener("click",(e)=>{
                             console.log(888888)
                               xhr.abort()
                             })
+                        }
+                          
                       },1000)
                       xhr.withCredentials = true;
                       xhr.addEventListener("readystatechange", function () {
@@ -6655,7 +6727,12 @@ const createExtendedDOMResolvers = function (app: App) {
                         let data = new FormData();
                         data.append("audio", v, "123.mp3");
                         // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
-                        data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
+                          data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        } else {
+                          data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                        }
+                        
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
@@ -6671,10 +6748,12 @@ const createExtendedDOMResolvers = function (app: App) {
                         const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
                         // unsubscribe.aud = controller;
                         console.log(unsubscribe,99999)
+                        if(unsubscribe) {
                           unsubscribe.addEventListener("click",(e)=>{
                             console.log(888888)
                               xhr.abort()
                             })
+                        }
                       },1000)
                         
                       xhr.withCredentials = true;
