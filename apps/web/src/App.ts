@@ -560,27 +560,44 @@ class App {
           onInitNotification && (await onInitNotification?.(this.#notification))
 
           this.notification?.on('message', async(message) => {
-            const href = window.location.href
-            if(/(aitmed|127.0.0.1|localhost)/i.test(href)){
-              if (message) {
-                const { data } = message
-                if (data?.did) {
-                  //  call onNewEcosDoc for now  until we propose a more generic approach
-                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                  )
-                  if(onNewEcosDocRegisterComponent){
-                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                    onNewEcosDocRegisterComponent?.onEvent?.(data.did)
-                  }
-                  
-                } else {
-                  log.log({ message })
-                  // debugger
+            if (message) {
+              const { data } = message
+              if (data?.did) {
+                //  call onNewEcosDoc for now  until we propose a more generic approach
+                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                  (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+                )
+                if(onNewEcosDocRegisterComponent){
+                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                    await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                  onNewEcosDocRegisterComponent?.onEvent?.(data.did)
                 }
+                
+              } else {
+                log.log({ message })
+                const { data } = message
+                const notificationTitle = data.title || ''
+                const notificationOptions = {
+                  body: data.body || '',
+                  icon: 'favicon.ico',
+                }
+                const timestap = new Date().getTime()
+                const notification = new Notification(notificationTitle,notificationOptions)  
+                this.root.NotificationMap.notificationDoc = {
+                  name:{
+                    data: '',
+                    notification: data
+                  },
+                  timestap
+                }
+                notification.addEventListener('click', () => {
+                  //@ts-expect-error
+                  this.#notification?.emit('click', 'notificationDoc')
+                })
+                // debugger
               }
             }
+          
             
           })
 
