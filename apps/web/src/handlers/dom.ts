@@ -6522,7 +6522,7 @@ const createExtendedDOMResolvers = function (app: App) {
         audio_start.src = `${assetsUrl}audio_white.svg`
         const text_start = document.createElement('div')
         text_start.style.cssText = `margin-left: 10px`
-        text_start.innerText = `Start Conversation`
+        text_start.innerText = `Start`
         text_start.style.cssText = `
           font-size: 16px;
           margin-left: 6px;
