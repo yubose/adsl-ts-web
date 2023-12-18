@@ -44,8 +44,8 @@
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.7.24",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.256",
+    "@aitmed/cadl": "^1.7.38",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.258",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
@@ -192,7 +192,7 @@
   "dependencies": {
     "html5-qrcode": "^2.2.1",
     "noodl-types": "^1.0.275",
-    "noodl-ui": "^0.1.1179",
+    "noodl-ui": "^0.1.1181",
     "sweetalert2": "^11.7.6"
   }
 }
