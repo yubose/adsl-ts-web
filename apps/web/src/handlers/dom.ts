@@ -3413,7 +3413,6 @@ const createExtendedDOMResolvers = function (app: App) {
               border: 1px solid #30b354;
               border-radius: 20px;
               padding: 10px;
-              // width: 15vw;
               color: #30b354;
               font-size: 15px;
               font-weight: 600;
@@ -3442,22 +3441,30 @@ const createExtendedDOMResolvers = function (app: App) {
             `;
             element_text.style.cssText =`
               width: 100%;
-              height: 35px;
-              padding: 0px 10px 0px 20px;
+              // height: 35px;
+              // padding: 0px 10px 0px 20px;
+              justify-content: flex-start;
+              flex-wrap: nowrap;
+              align-items: center;
               display: flex;
+              // padding-left: 20px;
             `;
             element_text_img.style.cssText =`
-              margin-top: 12px;
-              height: 17px;
+              // margin-top: 12px;
+              // height: 17px;
+              margin-left: 20px;
+              // flex-gro: 1
+              width: 10%;
             `;
             element_text_text.style.cssText =`
               height: 35px;
               line-height: 35px;
               padding: 0px 10px;
-              width: 200px;
+              max-width: 80%;
+              // flex-gro: 8;
               overflow:hidden;
               text-overflow:ellipsis;
-              white-space:nowrap;
+              // white-space:nowrap;
             `;
             element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
             element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
