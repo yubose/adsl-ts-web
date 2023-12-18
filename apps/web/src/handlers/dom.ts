@@ -3383,152 +3383,169 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] audioView': {
-      cond: "audioView",
+      cond: 'audioView',
       resolve({ node, component }) {
         if (node) {
+          const fragment = document.createDocumentFragment()
           const assetsUrl = app.nui.getAssetsUrl() || ''
           const dataValue = component.get('data-value');
           const dataOptions = component.get('data-option');
-            // let pageName = app.currentPage
-            const element_audio = document.createElement("audio");
-            const element_text = document.createElement("div");
-            const element_text_img = document.createElement("img");
-            const element_text_text = document.createElement("div")
-            const element_btn = document.createElement("button");
-            const element_img_div = document.createElement("div")
-            const element_img = document.createElement("img")
-            const element_div = document.createElement("div");
-            const element_time = document.createElement("div");
-            const element_time_audio = document.createElement("div");
-            element_div.style.cssText = `
-                  display: flex;
-                  justify-content: space-around;
-                  align-items: center;
-                  background-color: #F0F2F4;
-                  border-radius: 8;
-                  height: inherit;
-                  width: 100%;
-            `;
-            element_btn.style.cssText = `
-              border: 1px solid #30b354;
-              border-radius: 20px;
-              padding: 10px;
-              color: #30b354;
-              font-size: 15px;
-              font-weight: 600;
-            `;
-            element_audio.id = "audio_c";
+
+          //container box
+          const element_div = document.createElement('div')
+          element_div.style.cssText = `
+              display: flex;
+              justify-content: space-around;
+              align-items: left;
+              background-color: #F0F2F4;
+              border-radius: 8;
+              min-height: 60px;
+              width: 100%;
+              padding: 0 2%;
+              flex-direction: column;
+          `
+          fragment.append(element_div)
+
+          //title top box
+          const element_top_box = document.createElement('div')
+          element_top_box.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          const element_title_img = document.createElement('img')
+          element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
+          element_top_box.append(element_title_img)
+          const element_title_text = document.createElement('div')
+          element_title_text.style.cssText = `
+            margin-left: 2%;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            max-width: 98%;
+            white-space: nowrap;
+            max-height: 1.2em;
+          `
+          element_top_box.append(element_title_text)
+          element_div.append(element_top_box)
+
+          //middle box
+          const element_middle_box = document.createElement('div')
+          element_middle_box.style.cssText = `
+            margin-top: 2%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          let transaction
+          if (dataValue["type"] === 545281) {
+            const element_audio = document.createElement('audio')
+            element_audio.setAttribute('controlslist','nofullscreen nodownload noplaybackrate noremoteplayback')
+            element_audio.id = 'audio_c'
             element_audio.style.cssText = `
+              margin: 0;
+              padding: 0;
               width: 100%;
               height: 35px;
-            `;
-            element_img_div.style.cssText = `
-              display: flex;
-              width: 25px;
-              height: 25px;
-              margin: 0px 10px 0px 0px;
-              cursor: pointer;
-            `;
-            element_time_audio.style.cssText = `
-                  display: flex;
-                  justify-content: flex-start;
-                  width: 100%;
-                  flex-wrap: wrap;
-                  align-items: center;
-            `;
-            element_time.style.cssText = `
-              margin-left: 20px;
-            `;
-            element_text.style.cssText =`
-              width: 100%;
-              // height: 35px;
-              // padding: 0px 10px 0px 20px;
-              justify-content: flex-start;
-              flex-wrap: nowrap;
-              align-items: center;
-              display: flex;
-              // padding-left: 20px;
-            `;
-            element_text_img.style.cssText =`
-              // margin-top: 12px;
-              // height: 17px;
-              margin-left: 20px;
-              // flex-gro: 1
-              width: 10%;
-            `;
+              margin-left: -6%;
+            `
+            const data = JSON.parse(dataValue["name"]["data"])
+            const url = data["audioUrl"].split('?')[0]
+            const title = dataValue["name"]['title']
+            transaction = data['transaction']
+            element_audio.src = url
+            element_audio.controls = true
+            element_title_text.innerHTML = title?title:'No title'
+            element_middle_box.append(element_audio)
+
+          } else if (dataValue["type"] === 540161) {
+            const element_text_img = document.createElement("img")
+            const element_text_text = document.createElement("div")
             element_text_text.style.cssText =`
-              height: 35px;
-              line-height: 35px;
-              padding: 0px 10px;
-              max-width: 80%;
-              // flex-gro: 8;
+              margin-left: 2%;
+              max-height: 1.2em;
+              width: 70%;
               overflow:hidden;
               text-overflow:ellipsis;
-              // white-space:nowrap;
-            `;
-            element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
-            element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
-            // element_audio.src = "ring.mp3"
-            let data = ""
-            if (dataValue["name"]["type"] === 545281) {
-              data = JSON.parse(dataValue["name"]["data"])
-              const url = data["audioUrl"].split('?')[0]
-              element_audio.src = url
-              element_audio.controls = true
-            }
+              white-space: nowrap;
+            `
+            const data = dataValue["name"]["data"]["transaction"]
+            const title = dataValue["name"]["title"]
+            transaction = data['transaction']
+            element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
+            element_text_img.style.cssText = `
+              object-fit: contain;
+            `
+            element_text_text.innerHTML = data;
+            element_title_text.innerHTML = title?title:'No title'
+            element_middle_box.append(element_text_img)
+            element_middle_box.append(element_text_text)
+          }
+
+          const element_btn = document.createElement("button");
+          const element_img = document.createElement("img")
+          element_btn.textContent = "Generate"
+          element_btn.style.cssText = `
+            margin-left: 3%;
+            border: 1px solid #30b354;
+            border-radius: 20px;
+            padding: 10px;
+            color: #30b354;
+            font-size: 0.15rem;
+            font-weight: 600;
+          `
+          element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
+          element_img.style.cssText = `
+            margin-left: 3%;
+          `
+          element_middle_box.append(element_img)
+          element_middle_box.append(element_btn)
+          element_div.append(element_middle_box)
+
+          //bottom time
+          const element_time = document.createElement("div")
+          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
+          element_time.style.cssText = `
+            margin-left: 3%;
+          `;
+          element_div.append(element_time)
+  
             
-            element_btn.textContent = "Generate"
-            element_img_div.append(element_img)
-            element_time_audio.append(element_time)
-            if (dataValue["type"] === 545281) {
-              data = JSON.parse(dataValue["name"]["data"])
-              const url = data["audioUrl"].split('?')[0]
-              element_audio.src = url
-              element_audio.controls = true
-              element_time_audio.append(element_audio)
-              element_div.append(element_time_audio)
-            } else if (dataValue["type"] === 540161) {
-              data = dataValue["name"]["data"]["transaction"]
-              element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
-              element_text_text.innerHTML = data;
-              element_text.append(element_text_img);
-              element_text.append(element_text_text);
-              element_time_audio.append(element_text)
-              element_div.append(element_time_audio)
-            }
-            
-            // 增加transcription的按钮
-            element_div.append(element_img_div)
-            element_div.append(element_btn)
-              // component.get("onGenerateClick")?.["actions"].shift()
-            if (dataValue["type"] === 545281) {
-              element_img_div.addEventListener("click",(e)=>{
-                setTimeout(()=>{
-                  // @ts-ignore
-                  component.get("onVoiceClick")?.execute()
-                })
-              },{once: true})
-            }else if (dataValue["type"] === 540161) { 
-              element_img_div.addEventListener("click",(e)=>{
-                setTimeout(()=>{
-                  // @ts-ignore
-                  component.get("onTextClick")?.execute()
-                })
-              },{once: true})
-            }
-            
-            
-            element_btn.addEventListener("click",(e)=>{
-                set(dataOptions,"selectDoc",dataValue)
-                set(dataOptions,"transcriptionContent",data["transaction"])
-                setTimeout(()=>{
-                  // @ts-ignore
-                  component.get("onGenerateClick")?.execute()
-                },100)
-               
+          // 增加transcription的按钮
+            // component.get("onGenerateClick")?.["actions"].shift()
+          if (dataValue["type"] === 545281) {
+            element_img.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onVoiceClick")?.execute()
               })
+            },{once: true})
+          }else if (dataValue["type"] === 540161) { 
+            element_img.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onTextClick")?.execute()
+              })
+            },{once: true})
+          }
             
-          node.append(element_div)
+            
+          element_btn.addEventListener("click",(e)=>{
+              set(dataOptions,"selectDoc",dataValue)
+              set(dataOptions,"transcriptionContent",transaction)
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onGenerateClick")?.execute()
+              },100)
+              
+            })
+            
+          element_title_img.addEventListener('click',(e)=>{
+            setTimeout(()=>{
+              // @ts-ignore
+              component.get('onEditClick')?.execute()
+            },100)
+          })
+          node.append(fragment)
         }
       }
     },
