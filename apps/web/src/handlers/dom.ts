@@ -3413,18 +3413,32 @@ const createExtendedDOMResolvers = function (app: App) {
             flex-direction: row;
             align-items: center;
           `
+          const element_title_img_box = document.createElement('div')
           const element_title_img = document.createElement('img')
           element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
-          element_top_box.append(element_title_img)
+          element_title_img_box.style.cssText = `
+            width: 5%;
+            display: flex;
+            align-items: center;
+          `
+          element_title_img.style.cssText = `
+            width: 100%;
+            object-fit: contain;
+          `
+          element_title_img_box.append(element_title_img)
           const element_title_text = document.createElement('div')
           element_title_text.style.cssText = `
-            margin-left: 3%;
+            display: flex;
+            align-items: center;
+            margin-left: 3.5%;
             overflow:hidden;
             text-overflow:ellipsis;
-            max-width: 98%;
+            width: 89.5%;
+            font-weight: 600;
             white-space: nowrap;
             max-height: 1.2em;
           `
+          element_top_box.append(element_title_img_box)
           element_top_box.append(element_title_text)
           element_div.append(element_top_box)
 
@@ -3446,7 +3460,7 @@ const createExtendedDOMResolvers = function (app: App) {
               padding: 0;
               width: 100%;
               height: 35px;
-              margin-left: -6%;
+              margin-left: -5.5%;
             `
             let data
             if(u.isObj(dataValue["name"]["data"])){
@@ -3463,15 +3477,23 @@ const createExtendedDOMResolvers = function (app: App) {
             element_middle_box.append(element_audio)
 
           } else if (dataValue["type"] === 540161) {
+            const element_text_img_box = document.createElement("div")
             const element_text_img = document.createElement("img")
             const element_text_text = document.createElement("div")
             element_text_text.style.cssText =`
-              margin-left: 2%;
+              display: flex;
+              align-items: center;
+              margin-left: 4%;
               max-height: 1.2em;
               width: 70%;
               overflow:hidden;
               text-overflow:ellipsis;
               white-space: nowrap;
+            `
+            element_text_img_box.style.cssText = `
+              width: 5%;
+              display: flex;
+              align-items: center;
             `
             const data = dataValue["name"]["data"]["transaction"]
             const title = dataValue["name"]["title"]
@@ -3482,7 +3504,8 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             element_text_text.innerHTML = data;
             element_title_text.innerHTML = title?title:'No title'
-            element_middle_box.append(element_text_img)
+            element_text_img_box.append(element_text_img)
+            element_middle_box.append(element_text_img_box)
             element_middle_box.append(element_text_text)
           }
 
@@ -3507,12 +3530,26 @@ const createExtendedDOMResolvers = function (app: App) {
           element_div.append(element_middle_box)
 
           //bottom time
+          const element_bottom_box = document.createElement("div")
+          const element_time_box = document.createElement("div")
           const element_time = document.createElement("div")
           element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
           element_time.style.cssText = `
-            margin-left: 5%;
-          `;
-          element_div.append(element_time)
+            display: flex;
+            align-items: center;
+            width: 89.5%;
+          `
+          element_time_box.style.cssText = `
+            width: 8.5%;
+          `
+          element_bottom_box.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          element_bottom_box.append(element_time_box)
+          element_bottom_box.append(element_time)
+          element_div.append(element_bottom_box)
   
             
           // 增加transcription的按钮
