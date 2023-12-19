@@ -3448,7 +3448,7 @@ const createExtendedDOMResolvers = function (app: App) {
           //middle box
           const element_middle_box = document.createElement('div')
           element_middle_box.style.cssText = `
-            margin-top: 2%;
+            // margin-top: 2%;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -3488,7 +3488,7 @@ const createExtendedDOMResolvers = function (app: App) {
               margin-left: 5px;
               max-height: 1.2em;
               max-width: 62%;
-              width: auto;
+              width: 62%;
               min-width: 40%;
               overflow:hidden;
               text-overflow:ellipsis;
@@ -3541,15 +3541,17 @@ const createExtendedDOMResolvers = function (app: App) {
           const element_bottom_box = document.createElement("div")
           const element_time_box = document.createElement("div")
           const element_time = document.createElement("div")
-          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
+          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
           element_time.style.cssText = `
             display: flex;
             align-items: center;
             width: 89.5%;
+            font-size: 14px;
+            color: #333333;
           `
           element_time_box.style.cssText = `
             width: 32px;
-            height: 32px;
+            // height: 32px;
             max-width: 32px;
             margin-left: 5px;
           `
