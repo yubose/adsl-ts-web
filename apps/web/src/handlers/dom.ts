@@ -3511,6 +3511,8 @@ const createExtendedDOMResolvers = function (app: App) {
           element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
           element_time.style.cssText = `
             margin-left: 5%;
+            color: #333333;
+            font-size: 12px;
           `;
           element_div.append(element_time)
   
@@ -6484,7 +6486,6 @@ const createExtendedDOMResolvers = function (app: App) {
         let pageName = app.currentPage;
         const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || '';
-
         let height = 50
         let root = document.getElementById("root") as HTMLDivElement
 
@@ -6808,16 +6809,23 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                   }
                     const text = await Promise.all(chunks_map);
-                    let val = size_ws?(await _upload_respose())?.text:text[0]?.text;
+                    console.error(text);
+                    let textVal = ''
+                    let sourceid = ''
+                    if (size_ws) {
+                      let resp = await _upload_respose()
+                      textVal = resp.text
+                      sourceid = resp.sourceId
+                    } else {
+                      //@ts-ignore
+                      textVal = text[0]?.text
+                      //@ts-ignore
+                      sourceid = text[0]?.sourceId
+                    }
+                    let resp = ''
                       app.updateRoot(draft => {
-                        set(draft?.[pageName], dataKey, val);
-                        // if(val){
-                        //   node.dispatchEvent(new Event('input', {
-                        //     bubbles: false, 
-                        //     cancelable: false, 
-                        //     composed: false 
-                        //   }));
-                        // }
+                        set(draft?.[pageName], dataKey, textVal);
+                        set(draft?.[pageName], component.get("sourceId"), sourceid);
                       })
                       recordData = []
                       setTimeout(()=> {
