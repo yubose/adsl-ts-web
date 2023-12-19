@@ -3418,7 +3418,7 @@ const createExtendedDOMResolvers = function (app: App) {
           element_top_box.append(element_title_img)
           const element_title_text = document.createElement('div')
           element_title_text.style.cssText = `
-            margin-left: 2%;
+            margin-left: 3%;
             overflow:hidden;
             text-overflow:ellipsis;
             max-width: 98%;
@@ -3448,7 +3448,12 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 35px;
               margin-left: -6%;
             `
-            const data = JSON.parse(dataValue["name"]["data"])
+            let data
+            if(u.isObj(dataValue["name"]["data"])){
+              data = dataValue["name"]["data"]
+            }else if(u.isStr(dataValue["name"]["data"])){
+              data = JSON.parse(dataValue["name"]["data"])
+            }
             const url = data["audioUrl"].split('?')[0]
             const title = dataValue["name"]['title']
             transaction = data['transaction']
@@ -3490,7 +3495,7 @@ const createExtendedDOMResolvers = function (app: App) {
             border-radius: 20px;
             padding: 10px;
             color: #30b354;
-            font-size: 0.15rem;
+            font-size: 13px;
             font-weight: 600;
           `
           element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
@@ -3505,7 +3510,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const element_time = document.createElement("div")
           element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
           element_time.style.cssText = `
-            margin-left: 3%;
+            margin-left: 5%;
           `;
           element_div.append(element_time)
   
@@ -3539,7 +3544,7 @@ const createExtendedDOMResolvers = function (app: App) {
               
             })
             
-          element_title_img.addEventListener('click',(e)=>{
+          element_top_box.addEventListener('click',(e)=>{
             setTimeout(()=>{
               // @ts-ignore
               component.get('onEditClick')?.execute()
@@ -6727,6 +6732,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     audio_url =  `${baseUrl}/smallUpload/`
                   }
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
+                  console.log('test00',chunks)
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
                       setTimeout(()=>{
