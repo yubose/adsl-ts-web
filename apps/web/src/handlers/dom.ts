@@ -3448,7 +3448,12 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 35px;
               margin-left: -6%;
             `
-            const data = JSON.parse(dataValue["name"]["data"])
+            let data
+            if(u.isObj(dataValue["name"]["data"])){
+              data = dataValue["name"]["data"]
+            }else{
+              data = JSON.parse(dataValue["name"]["data"])
+            }
             const url = data["audioUrl"].split('?')[0]
             const title = dataValue["name"]['title']
             transaction = data['transaction']
@@ -3490,7 +3495,7 @@ const createExtendedDOMResolvers = function (app: App) {
             border-radius: 20px;
             padding: 10px;
             color: #30b354;
-            font-size: 0.15rem;
+            font-size: 13px;
             font-weight: 600;
           `
           element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
