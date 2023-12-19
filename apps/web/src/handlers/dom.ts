@@ -3401,7 +3401,6 @@ const createExtendedDOMResolvers = function (app: App) {
               border-radius: 8;
               min-height: 60px;
               width: 100%;
-              padding: 0 2%;
               flex-direction: column;
           `
           fragment.append(element_div)
@@ -3413,25 +3412,43 @@ const createExtendedDOMResolvers = function (app: App) {
             flex-direction: row;
             align-items: center;
           `
+          const element_title_img_box = document.createElement('div')
           const element_title_img = document.createElement('img')
           element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
-          element_top_box.append(element_title_img)
+          element_title_img_box.style.cssText = `
+            // width: 5%;
+            width: 32px;
+            // height: 32px;
+            max-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `
+          element_title_img.style.cssText = `
+            width: 50%;
+            object-fit: cover;
+          `
+          element_title_img_box.append(element_title_img)
           const element_title_text = document.createElement('div')
           element_title_text.style.cssText = `
-            margin-left: 3%;
+            display: flex;
+            align-items: center;
+            margin-left: 5px;
             overflow:hidden;
             text-overflow:ellipsis;
-            max-width: 98%;
+            width: 89.5%;
+            font-weight: 600;
             white-space: nowrap;
             max-height: 1.2em;
           `
+          element_top_box.append(element_title_img_box)
           element_top_box.append(element_title_text)
           element_div.append(element_top_box)
 
           //middle box
           const element_middle_box = document.createElement('div')
           element_middle_box.style.cssText = `
-            margin-top: 2%;
+            // margin-top: 2%;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -3446,7 +3463,6 @@ const createExtendedDOMResolvers = function (app: App) {
               padding: 0;
               width: 100%;
               height: 35px;
-              margin-left: -6%;
             `
             let data
             if(u.isObj(dataValue["name"]["data"])){
@@ -3463,26 +3479,41 @@ const createExtendedDOMResolvers = function (app: App) {
             element_middle_box.append(element_audio)
 
           } else if (dataValue["type"] === 540161) {
+            const element_text_img_box = document.createElement("div")
             const element_text_img = document.createElement("img")
             const element_text_text = document.createElement("div")
             element_text_text.style.cssText =`
-              margin-left: 2%;
+              display: flex;
+              align-items: center;
+              margin-left: 5px;
               max-height: 1.2em;
-              width: 70%;
+              max-width: 62%;
+              width: 62%;
+              min-width: 40%;
               overflow:hidden;
               text-overflow:ellipsis;
               white-space: nowrap;
+            `
+            element_text_img_box.style.cssText = `
+              width: 32px;
+              height: 32px;
+              max-width: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             `
             const data = dataValue["name"]["data"]["transaction"]
             const title = dataValue["name"]["title"]
             transaction = data['transaction']
             element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
             element_text_img.style.cssText = `
-              object-fit: contain;
+              width: 50%;
+              object-fit: cover;
             `
             element_text_text.innerHTML = data;
             element_title_text.innerHTML = title?title:'No title'
-            element_middle_box.append(element_text_img)
+            element_text_img_box.append(element_text_img)
+            element_middle_box.append(element_text_img_box)
             element_middle_box.append(element_text_text)
           }
 
@@ -3507,14 +3538,31 @@ const createExtendedDOMResolvers = function (app: App) {
           element_div.append(element_middle_box)
 
           //bottom time
+          const element_bottom_box = document.createElement("div")
+          const element_time_box = document.createElement("div")
           const element_time = document.createElement("div")
-          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm:ss A")}`
+          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
           element_time.style.cssText = `
-            margin-left: 5%;
+            display: flex;
+            align-items: center;
+            width: 89.5%;
+            font-size: 14px;
             color: #333333;
-            font-size: 12px;
-          `;
-          element_div.append(element_time)
+          `
+          element_time_box.style.cssText = `
+            width: 32px;
+            // height: 32px;
+            max-width: 32px;
+            margin-left: 5px;
+          `
+          element_bottom_box.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          element_bottom_box.append(element_time_box)
+          element_bottom_box.append(element_time)
+          element_div.append(element_bottom_box)
   
             
           // 增加transcription的按钮
