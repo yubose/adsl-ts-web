@@ -3401,7 +3401,6 @@ const createExtendedDOMResolvers = function (app: App) {
               border-radius: 8;
               min-height: 60px;
               width: 100%;
-              padding: 0 2%;
               flex-direction: column;
           `
           fragment.append(element_div)
@@ -3417,20 +3416,24 @@ const createExtendedDOMResolvers = function (app: App) {
           const element_title_img = document.createElement('img')
           element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
           element_title_img_box.style.cssText = `
-            width: 5%;
+            // width: 5%;
+            width: 32px;
+            // height: 32px;
+            max-width: 32px;
             display: flex;
             align-items: center;
+            justify-content: center;
           `
           element_title_img.style.cssText = `
-            width: 100%;
-            object-fit: contain;
+            width: 50%;
+            object-fit: cover;
           `
           element_title_img_box.append(element_title_img)
           const element_title_text = document.createElement('div')
           element_title_text.style.cssText = `
             display: flex;
             align-items: center;
-            margin-left: 3.5%;
+            margin-left: 5px;
             overflow:hidden;
             text-overflow:ellipsis;
             width: 89.5%;
@@ -3460,7 +3463,6 @@ const createExtendedDOMResolvers = function (app: App) {
               padding: 0;
               width: 100%;
               height: 35px;
-              margin-left: -5.5%;
             `
             let data
             if(u.isObj(dataValue["name"]["data"])){
@@ -3483,24 +3485,30 @@ const createExtendedDOMResolvers = function (app: App) {
             element_text_text.style.cssText =`
               display: flex;
               align-items: center;
-              margin-left: 4%;
+              margin-left: 5px;
               max-height: 1.2em;
-              width: 70%;
+              max-width: 62%;
+              width: auto;
+              min-width: 40%;
               overflow:hidden;
               text-overflow:ellipsis;
               white-space: nowrap;
             `
             element_text_img_box.style.cssText = `
-              width: 5%;
+              width: 32px;
+              height: 32px;
+              max-width: 32px;
               display: flex;
               align-items: center;
+              justify-content: center;
             `
             const data = dataValue["name"]["data"]["transaction"]
             const title = dataValue["name"]["title"]
             transaction = data['transaction']
             element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
             element_text_img.style.cssText = `
-              object-fit: contain;
+              width: 50%;
+              object-fit: cover;
             `
             element_text_text.innerHTML = data;
             element_title_text.innerHTML = title?title:'No title'
@@ -3540,7 +3548,10 @@ const createExtendedDOMResolvers = function (app: App) {
             width: 89.5%;
           `
           element_time_box.style.cssText = `
-            width: 8.5%;
+            width: 32px;
+            height: 32px;
+            max-width: 32px;
+            margin-left: 5px;
           `
           element_bottom_box.style.cssText = `
             display: flex;
