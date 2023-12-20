@@ -3515,6 +3515,12 @@ const createExtendedDOMResolvers = function (app: App) {
             element_text_img_box.append(element_text_img)
             element_middle_box.append(element_text_img_box)
             element_middle_box.append(element_text_text)
+            element_text_text.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onTextClick")?.execute()
+              })
+            },{once: true})
           }
 
           const element_btn = document.createElement("button");
