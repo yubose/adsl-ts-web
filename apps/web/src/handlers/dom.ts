@@ -3858,40 +3858,40 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
-    '[App] Calendar': {
-      cond: 'calendar',
-      resolve({ node, component }) {
-        const inputTarget = document.createElement('input')
-        inputTarget.style.width = node.style.width
-        inputTarget.style.height = node.style.height
-        // inputTarget.setAttribute("class","latpickr form-control input")
-        flatpickr(inputTarget, {
-          // altInput: true,
-          // enableTime: true,
-          appendTo: node,
-          dateFormat: 'Y-m-d',
-          // altFormat: "DD-MM-YYYY",
-          allowInput: true,
-          // inline: true,
-          // parseDate: (datestr, format) => {
-          //   return moment(datestr, format, true).toDate();
-          // },
-          // formatDate: (date, format, locale) => {
-          //   // locale can also be used
-          //   return moment(date).format(format);
-          // }
-          // onChange: function(selectedDates, dateStr, instance){
-          //   log.log(selectedDates, dateStr, instance)
+    // '[App] Calendar': {
+    //   cond: 'calendar',
+    //   resolve({ node, component }) {
+    //     const inputTarget = document.createElement('input')
+    //     inputTarget.style.width = node.style.width
+    //     inputTarget.style.height = node.style.height
+    //     // inputTarget.setAttribute("class","latpickr form-control input")
+    //     flatpickr(inputTarget, {
+    //       // altInput: true,
+    //       // enableTime: true,
+    //       appendTo: node,
+    //       dateFormat: 'Y-m-d',
+    //       // altFormat: "DD-MM-YYYY",
+    //       allowInput: true,
+    //       // inline: true,
+    //       // parseDate: (datestr, format) => {
+    //       //   return moment(datestr, format, true).toDate();
+    //       // },
+    //       // formatDate: (date, format, locale) => {
+    //       //   // locale can also be used
+    //       //   return moment(date).format(format);
+    //       // }
+    //       // onChange: function(selectedDates, dateStr, instance){
+    //       //   log.log(selectedDates, dateStr, instance)
 
-          //   instance.calendarContainer.style.visibility = "visible"
-          // }
-        })
-        node.append(inputTarget)
+    //       //   instance.calendarContainer.style.visibility = "visible"
+    //       // }
+    //     })
+    //     node.append(inputTarget)
 
-        // if (node && Object.keys(component.get('data-value'))) {
-        // }
-      },
-    },
+    //     // if (node && Object.keys(component.get('data-value'))) {
+    //     // }
+    //   },
+    // },
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
@@ -4188,7 +4188,7 @@ const createExtendedDOMResolvers = function (app: App) {
               if(imageClicks){
                 imageClicks?.queue.forEach(imageClick=>{
                   if(imageClick?.dataKey){
-                    imageClick.dataKey = {var: Msg}
+                    imageClick.dataKey = {let: Msg}
                   }
                 })
                 imageClicks?.execute?.()
@@ -6862,18 +6862,18 @@ const createExtendedDOMResolvers = function (app: App) {
                         }
                       });
                         xhr.open("POST",`${baseUrl}/success/`);
+                        
                         let data = new FormData();
                         data.append("code", `${rand}`);
                         data.append("size", `${chunks.length}`);
-                        data.append("providerId", localStorage.getItem('user_vid') as string);
-                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
                           data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
                         } else {
                           data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
                         }
+                        data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         // const controller = new AbortController();
-                        
                         xhr.send(data);
                     })
                   }
@@ -7107,7 +7107,295 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       }
-    }
+    },
+    '[App] calendar': {
+      cond: ({component }) => component.has('calendarView'),
+      resolve({ node, component, page }) {
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+        const calendarView =
+          component.get('calendarView') || component.blueprint?.calendarView || '';
+          const defaultDate =
+          component.get('defaultDate') || component.blueprint?.defaultDate || '';
+          
+          let styleSheet = document.createElement('style');
+          styleSheet.innerText = `
+          @scope (#${node.id}){
+            .xs-date {
+              color: #606266;
+              border: 1px solid #e4e7ed;
+              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+              background: #fff;
+              border-radius: 4px;
+              line-height: 30px;
+              margin: 100px auto;
+              width: 300px;
+              // min-height: 300px;
+              height: auto;
+              padding: 10px;
+            }
+      
+            .xs-date-title {
+              display: flex;
+              justify-content: center;
+              text-align: center;
+              cursor: pointer;
+              color: #606266;
+              font-size: 16px;
+            }
+            .Disable, .item-time{
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+      
+            .date-prev {
+              width: 15%;
+              font-family: cursive;
+            }
+      
+            .date-year-prev {
+              width: 15%;
+              font-family: cursive;
+            }
+      
+      
+            .date-next {
+              width: 15%;
+              font-family: cursive;
+            }
+            .xs-date-week {
+              width: 100%;
+              display: flex;
+              justify-content: center;
+              margin-top: 15px;
+              padding-bottom: 5px;
+              border-bottom: 1px solid #e4e7ed;
+            }
+      
+            .xs-date-week div {
+              list-style: none;
+              width: calc(100%/7);
+              text-align: center;
+              color: #606266;
+              font-size: 14px;
+            }
+      
+            .xs-date-day {
+              width: 100%;
+              display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
+              flex-wrap: wrap;
+              align-items: center;
+              margin-top: 15px;
+              
+            }
+            .xs-date-day-week {
+              width: 100%;
+              display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
+              flex-wrap: wrap;
+              align-items: center;
+              margin-top: 15px;
+              
+            }
+            .week-time {
+              display: flex;
+              flex-wrap: wrap;
+              width: 90%;
+              justify-content: space-around;
+              align-items: center;
+            }
+            .week-next{
+              width: 5%;
+
+            }
+            .week-prev{
+              width: 5%;
+
+            }
+            .xs-date-day div {
+              width: calc(100%/7);
+              height: 40px;
+              text-align: center;
+              color: #606266;
+              font-size: 14px;
+              cursor: pointer;
+            }
+      
+            .date-prev:hover,
+            .date-next:hover,
+            .xs-date-day div:hover {
+              color: #409eff;
+            }
+      
+            .active {
+              color: #fff !important;
+              background: #007ee5;
+              border-radius: 50%;
+            }
+      
+            .Disable {
+              color: #c0c4cc !important;
+              // visibility: hidden;
+            }
+          }
+          `;
+          document.head.appendChild(styleSheet);
+          node.innerHTML = `
+          <div class="xs-date">
+            <div class="xs-date-title">
+              <div class="date-prev"> < </div>
+              <select class="date-time"></select>
+              <div class="date-next"> > </div>
+              <select class="year-time"></select>
+            </div>
+            <div class="xs-date-week">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+            <div class="xs-date-day" >
+            </div>
+            <div class="xs-date-day-week">
+              <div class="week-prev"> < </div>
+              <div class="week-time">
+              
+              </div>
+              <div class="week-next"> > </div>
+            </div>
+          </div>
+          `;
+          let date_time = document.querySelector(".date-time") as HTMLSelectElement;
+          let year_time = document.querySelector(".year-time") as HTMLSelectElement;
+					let prev = document.querySelector(".date-prev") as any;
+					let next = document.querySelector(".date-next") as any;
+          let week_prev = document.querySelector(".date-prev") as any;
+					let week_next = document.querySelector(".date-next") as any;
+					let date_day = document.querySelector(".xs-date-day") as any;
+					// 初始
+					let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
+          let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+          let ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
+          ms.map(e=>date_time.options.add(new Option(e)));
+          ((last = 30, next = 10)=>{
+            let currentYear = new Date().getFullYear()
+            let startYear:number = currentYear - last
+            for (let i = 0; i < last + next; i++) {
+              year_time.options.add(new Option(startYear.toString()))
+              startYear++
+            }
+          })();
+					function updateTime() {
+						let year = date.getFullYear(); //当前年份
+						let month = date.getMonth() + 1 + ""; //当前月
+						+month < 10 ? month = "0" + month : month;
+						let day = date.getDate()+ ""; //当前天 
+						+day < 10 ? day = "0" + day : day;
+						date_day.innerHTML = "";
+            date_time.value = ms[+month-1];
+            year_time.value = year+ "";
+            let setDate = new Date(year, +month, 0);
+						let setDay = setDate.getDate(); //这个月天数
+            if(calendarView==="month"){
+              //渲染头部
+              let setWeek = new Date(year, +month - 1, 1).getDay(); //上个月星期几
+              let setDayEM = new Date(year, +month - 1, 0).getDate(); //上个月天数
+						  setWeek <= 0 ? setWeek = 7 : setWeek;
+              for (let i = (setDayEM - setWeek) + 1; i <= setDayEM; i++) {
+                let EmptyDiv = document.createElement('div')  as any;
+                EmptyDiv.innerText = i;
+                EmptyDiv.className = "Disable";
+                date_day.appendChild(EmptyDiv);
+              }
+              // 渲染日期
+              for (let i = 1; i <= setDay; i++) {
+                let TimeDiv = document.createElement('div')  as any;
+                TimeDiv.innerText = i;
+                TimeDiv.className = "item-time";
+                if (i == +day) {
+                  TimeDiv.classList.add("active");
+                }
+                date_day.appendChild(TimeDiv);
+              }
+              // 渲染尾部
+              for (let i = 1; i <= (42 - setWeek - setDay); i++) {
+                let DisDiv = document.createElement('div')  as any;
+                DisDiv.innerText = i;
+                DisDiv.className = "Disable";
+                date_day.appendChild(DisDiv);
+              }
+            }else if(calendarView==="week"){
+              
+              let week_time = document.querySelector(".week-time") as any;
+              // let require_day = date.getDay();  // 星期几
+              
+              // let month_day = date.getDate();  // 几号
+              let i = 0;
+              let fragment = document.createDocumentFragment();
+              let get_day = require_day.getDay();
+              while (i <= 6) {
+                let TimeDiv = document.createElement('div')  as any;
+                  let times = new Date(date.getTime()-(24*60*60*1000*(get_day-i)));
+                  let time_stamp = times.getTime()
+                  let time_date_stamp =  require_day.getTime()
+                  if (time_stamp ===time_date_stamp) {
+                    TimeDiv.classList.add("active");
+                  }else if(time_stamp<time_date_stamp){
+                    TimeDiv.className = "Disable";
+                  }
+                  TimeDiv.innerText = times.getDate();
+                  fragment.appendChild(TimeDiv)
+                  i++;
+                }
+                week_time.appendChild(fragment);
+              }
+          
+
+						itemClick(year,month);
+					}
+					updateTime();
+          date_time.onchange = (e)=>{
+            date.setMonth(ms.indexOf(date_time.value));
+						updateTime();
+          }
+					prev.onclick = function() {
+						date.setMonth(date.getMonth() - 1);
+						updateTime();
+					};
+					next.onclick = function() {
+						date.setMonth(date.getMonth() + 1);
+						updateTime();
+					};
+					year_time.onchange = function() {
+						date.setFullYear(+year_time.value);
+						updateTime();
+					};
+          week_prev.onclick = function() {
+            date = new Date(date.getDate() - date.getDay() - 7)
+						date.setMonth(date.getDate() - date.getDay() - 7);
+						updateTime();
+					};
+					week_next.onclick = function() {
+						date.setFullYear(+year_time.value);
+						updateTime();
+					};
+					function itemClick(year,month) {
+						let item_time = document.querySelectorAll(".item-time");
+						for (let i = 0; i < item_time.length; i++) {
+							(item_time[i] as HTMLElement).onclick = function() {
+								for (let i = 0; i < item_time.length; i++) {
+									(item_time[i] as HTMLElement).classList.remove("active");
+								}
+								(item_time[i] as HTMLElement).classList.add("active");
+                date.setDate(+(item_time[i] as HTMLElement).innerText);
+							}
+						}
+					}
+      }
+
+    },
   }
 
   return u
