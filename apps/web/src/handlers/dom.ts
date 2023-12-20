@@ -6699,6 +6699,7 @@ const createExtendedDOMResolvers = function (app: App) {
               }
             }
           })
+          target[key] = true
         }
         
         const translate = () => {
