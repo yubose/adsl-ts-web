@@ -6848,9 +6848,17 @@ const createExtendedDOMResolvers = function (app: App) {
                         }
                       });
                         xhr.open("POST",`${baseUrl}/success/`);
+                        
                         let data = new FormData();
                         data.append("code", `${rand}`);
                         data.append("size", `${chunks.length}`);
+                        if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
+                          data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        } else {
+                          data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                        }
+                        data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         // const controller = new AbortController();
                         
                         xhr.send(data);
