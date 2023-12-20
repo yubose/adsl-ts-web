@@ -3515,6 +3515,12 @@ const createExtendedDOMResolvers = function (app: App) {
             element_text_img_box.append(element_text_img)
             element_middle_box.append(element_text_img_box)
             element_middle_box.append(element_text_text)
+            element_text_text.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onTextClick")?.execute()
+              })
+            },{once: true})
           }
 
           const element_btn = document.createElement("button");
@@ -6000,6 +6006,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     let data = new FormData();
                     data.append("code", `${rand}`);
                     data.append("size", `${chunks.length}`);
+                    data.append("providerId", localStorage.getItem('user_vid') as string);
+                    data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
+                    if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
+                      data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                    } else {
+                      data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                    }
                     xhr.send(data);
                 })
               }
@@ -6860,7 +6873,6 @@ const createExtendedDOMResolvers = function (app: App) {
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         // const controller = new AbortController();
-                        
                         xhr.send(data);
                     })
                   }
