@@ -562,9 +562,11 @@ class App {
           this.notification?.on('message', async(message) => {
             if (message) {
               const { data } = message
+              const title = data?.title
+              const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
               if (data?.did) {
                 const room = this.meeting?.room
-                if(room && room.state === "connected" && room?.participants?.size >=1){
+                if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
                   log.info('Meeting has been connected')
                 }else{
                   //  call onNewEcosDoc for now  until we propose a more generic approach
