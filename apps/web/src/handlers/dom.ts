@@ -3390,7 +3390,8 @@ const createExtendedDOMResolvers = function (app: App) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           const dataValue = component.get('data-value');
           const dataOptions = component.get('data-option');
-
+          const item = node.parentNode?.parentNode as HTMLElement
+          const width = node.style.width
           //container box
           const element_div = document.createElement('div')
           element_div.style.cssText = `
@@ -3416,9 +3417,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const element_title_img = document.createElement('img')
           element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
           element_title_img_box.style.cssText = `
-            // width: 5%;
             width: 32px;
-            // height: 32px;
             max-width: 32px;
             display: flex;
             align-items: center;
@@ -3436,7 +3435,7 @@ const createExtendedDOMResolvers = function (app: App) {
             margin-left: 5px;
             overflow:hidden;
             text-overflow:ellipsis;
-            width: 89.5%;
+            width: ${parseInt(width) - 32}px;
             font-weight: 600;
             white-space: nowrap;
             max-height: 1.2em;
@@ -3448,12 +3447,12 @@ const createExtendedDOMResolvers = function (app: App) {
           //middle box
           const element_middle_box = document.createElement('div')
           element_middle_box.style.cssText = `
-            // margin-top: 2%;
             display: flex;
             flex-direction: row;
             align-items: center;
           `
           let transaction
+          let isError:boolean = false
           if (dataValue["type"] === 545281) {
             const element_audio = document.createElement('audio')
             element_audio.setAttribute('controlslist','nofullscreen nodownload noplaybackrate noremoteplayback')
@@ -3461,7 +3460,7 @@ const createExtendedDOMResolvers = function (app: App) {
             element_audio.style.cssText = `
               margin: 0;
               padding: 0;
-              width: 100%;
+              width: ${(parseInt(width) - 32)*0.7 + 32}px;
               height: 35px;
             `
             let data
@@ -3472,6 +3471,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             const url = data["audioUrl"].split('?')[0]
             const title = dataValue["name"]['title']
+            isError = dataValue["tage"]===10
             transaction = data['transaction']
             element_audio.src = url
             element_audio.controls = true
@@ -3483,13 +3483,11 @@ const createExtendedDOMResolvers = function (app: App) {
             const element_text_img = document.createElement("img")
             const element_text_text = document.createElement("div")
             element_text_text.style.cssText =`
-              display: flex;
-              align-items: center;
+              // display: flex;
+              // align-items: center;
               margin-left: 5px;
               max-height: 1.2em;
-              max-width: 62%;
-              width: 62%;
-              min-width: 40%;
+              width: ${(parseInt(width) - 32)*0.7}px;
               overflow:hidden;
               text-overflow:ellipsis;
               white-space: nowrap;
@@ -3504,6 +3502,7 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             const data = dataValue["name"]["data"]["transaction"]
             const title = dataValue["name"]["title"]
+            isError = dataValue["tage"]===10
             transaction = data['transaction']
             element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
             element_text_img.style.cssText = `
@@ -3523,11 +3522,18 @@ const createExtendedDOMResolvers = function (app: App) {
             },{once: true})
           }
 
+          const element_op_box = document.createElement('div')
+          element_op_box.style.cssText = `
+            display: flex;
+            width: ${(parseInt(width) - 32)*0.3}px;
+            justify-content: flex-end;
+          `
           const element_btn = document.createElement("button");
           const element_img = document.createElement("img")
           element_btn.textContent = "Generate"
           element_btn.style.cssText = `
-            margin-left: 3%;
+            margin-left: 10%;
+            width: 70%;
             border: 1px solid #30b354;
             border-radius: 20px;
             padding: 10px;
@@ -3537,10 +3543,13 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
           element_img.style.cssText = `
-            margin-left: 3%;
+            width: 15%;
+            margin-left: 5%;
           `
-          element_middle_box.append(element_img)
-          element_middle_box.append(element_btn)
+
+          element_op_box.append(element_img)
+          element_op_box.append(element_btn)
+          element_middle_box.append(element_op_box)
           element_div.append(element_middle_box)
 
           //bottom time
@@ -3551,13 +3560,12 @@ const createExtendedDOMResolvers = function (app: App) {
           element_time.style.cssText = `
             display: flex;
             align-items: center;
-            width: 89.5%;
+            width: ${(parseInt(width) - 32)*0.6}px;
             font-size: 14px;
             color: #333333;
           `
           element_time_box.style.cssText = `
             width: 32px;
-            // height: 32px;
             max-width: 32px;
             margin-left: 5px;
           `
@@ -3568,7 +3576,46 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           element_bottom_box.append(element_time_box)
           element_bottom_box.append(element_time)
+          if(isError){
+            const element_error_box = document.createElement('div')
+            const element_error_img = document.createElement('img')
+            const element_error_text = document.createElement('div')
+            element_error_img.setAttribute('src',`${assetsUrl}error.svg`)
+            element_error_text.innerHTML = 'Generate Failed'
+            element_error_text.style.cssText = `
+              display: flex;
+              align-items: center;
+              font-size: 14px;
+              margin-left: 10px;
+              color: #FB5051;
+            `
+            element_error_box.style.cssText = `
+              display: flex;
+              flex-direction: row;
+              justify-content: flex-end;
+              width: ${(parseInt(width) - 32)*0.4}px;
+            `
+            element_error_box.append(element_error_img)
+            element_error_box.append(element_error_text)
+            element_bottom_box.append(element_error_box)
+
+            const element_error_message = document.createElement('div')
+            element_error_message.innerHTML = 'Please check if it is medical related, and click the “Generate” button to try again'
+            element_error_message.style.cssText = `
+              display: flex;
+              align-items: center;
+              font-size: 14px;
+              color: #FB5051;
+            `
+            setTimeout(()=>{
+              element_error_message.style.width = item.style.width
+              element_error_message.style.marginBottom = item.style.marginBottom
+              item.style.marginBottom = '0'
+              item.insertAdjacentElement("afterend",element_error_message)
+            },10)
+          }
           element_div.append(element_bottom_box)
+          node.append(fragment)
   
             
           // 增加transcription的按钮
@@ -3606,7 +3653,6 @@ const createExtendedDOMResolvers = function (app: App) {
               component.get('onEditClick')?.execute()
             },100)
           })
-          node.append(fragment)
         }
       }
     },
