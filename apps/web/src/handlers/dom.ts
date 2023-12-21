@@ -3390,7 +3390,6 @@ const createExtendedDOMResolvers = function (app: App) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           const dataValue = component.get('data-value');
           const dataOptions = component.get('data-option');
-          const item = node.parentNode?.parentNode as HTMLElement
           const width = node.style.width
           //container box
           const element_div = document.createElement('div')
@@ -3453,6 +3452,7 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           let transaction
           let isError:boolean = false
+          let nonce
           if (dataValue["type"] === 545281) {
             const element_audio = document.createElement('audio')
             element_audio.setAttribute('controlslist','nofullscreen nodownload noplaybackrate noremoteplayback')
@@ -3472,6 +3472,7 @@ const createExtendedDOMResolvers = function (app: App) {
             const url = data["audioUrl"].split('?')[0]
             const title = dataValue["name"]['title']
             isError = dataValue["tage"]===10
+            nonce = dataValue["name"]['nonce']
             transaction = data['transaction']
             element_audio.src = url
             element_audio.controls = true
@@ -3503,6 +3504,7 @@ const createExtendedDOMResolvers = function (app: App) {
             const data = dataValue["name"]["data"]["transaction"]
             const title = dataValue["name"]["title"]
             isError = dataValue["tage"]===10
+            nonce = dataValue["name"]['nonce']
             transaction = data['transaction']
             element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
             element_text_img.style.cssText = `
@@ -3576,6 +3578,9 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           element_bottom_box.append(element_time_box)
           element_bottom_box.append(element_time)
+
+          element_div.append(element_bottom_box)
+          node.append(fragment)
           if(isError){
             const element_error_box = document.createElement('div')
             const element_error_img = document.createElement('img')
@@ -3600,23 +3605,15 @@ const createExtendedDOMResolvers = function (app: App) {
             element_bottom_box.append(element_error_box)
 
             const element_error_message = document.createElement('div')
-            element_error_message.innerHTML = 'Please check if it is medical related, and click the “Generate” button to try again'
+            element_error_message.innerHTML = nonce
             element_error_message.style.cssText = `
               display: flex;
               align-items: center;
               font-size: 14px;
               color: #FB5051;
             `
-            setTimeout(()=>{
-              element_error_message.style.width = item.style.width
-              element_error_message.style.marginBottom = item.style.marginBottom
-              item.style.marginBottom = '0'
-              item.insertAdjacentElement("afterend",element_error_message)
-            },10)
+            node.append(element_error_message)
           }
-          element_div.append(element_bottom_box)
-          node.append(fragment)
-  
             
           // 增加transcription的按钮
             // component.get("onGenerateClick")?.["actions"].shift()
