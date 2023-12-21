@@ -562,15 +562,22 @@ class App {
           this.notification?.on('message', async(message) => {
             if (message) {
               const { data } = message
+              const title = data?.title
+              const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
               if (data?.did) {
-                //  call onNewEcosDoc for now  until we propose a more generic approach
-                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                )
-                if(onNewEcosDocRegisterComponent){
-                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                    await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                  onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                const room = this.meeting?.room
+                if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
+                  log.info('Meeting has been connected')
+                }else{
+                  //  call onNewEcosDoc for now  until we propose a more generic approach
+                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+                  )
+                  if(onNewEcosDocRegisterComponent){
+                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                    onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                  }
                 }
                 
               } else {
