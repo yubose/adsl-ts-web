@@ -563,14 +563,19 @@ class App {
             if (message) {
               const { data } = message
               if (data?.did) {
-                //  call onNewEcosDoc for now  until we propose a more generic approach
-                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                )
-                if(onNewEcosDocRegisterComponent){
-                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                    await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                  onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                const room = this.meeting?.room
+                if(room && room.state === "connected" && room?.participants?.size >=1){
+                  log.info('Meeting has been connected')
+                }else{
+                  //  call onNewEcosDoc for now  until we propose a more generic approach
+                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+                  )
+                  if(onNewEcosDocRegisterComponent){
+                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                    onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                  }
                 }
                 
               } else {
