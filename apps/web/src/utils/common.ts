@@ -182,3 +182,27 @@ export function throwError(err?: any) {
   }
   throw new Error('Error occurred')
 }
+export function hasAbortPopup(value: any) {
+  if (value) {
+    if (Array.isArray(value)) {
+      const results = u.cloneDeep(value)
+      while(results.length){
+        let result = results.pop()
+        while (u.isArr(result)) {
+          results.push(...result)
+          result = results.pop()
+        }
+
+        if((nt.Identify.action.popUp(result) && result.wait===true) || (result?.['abort'] && result['abort'] === 'true')){
+          return true
+        }
+      }
+      // return value.some((v) => nt.Identify.action.popUp(v) && v.wait===true)
+    }
+    if (typeof value === 'object') {
+      return (nt.Identify.action.popUp(value) && value.wait===true) || (value?.['abort'] && value['abort'] === 'true')
+    }
+    return false
+  }
+  return false
+}

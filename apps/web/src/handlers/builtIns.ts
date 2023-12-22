@@ -24,6 +24,9 @@ import {
   isListConsumer,
   ConsumerOptions,
   findParent,
+  asHtmlElement,
+  isNDOMPage,
+  eventId,
 } from 'noodl-ui'
 import QRCode from 'qrcode'
 import { BuiltInActionObject, EcosDocument } from 'noodl-types'
@@ -39,6 +42,7 @@ import {
 } from '../utils/dom'
 import {
   getActionMetadata,
+  hasAbortPopup,
   logError,
   pickActionKey,
   throwError,
@@ -344,13 +348,21 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     const reload = _pick(action, 'reload')
+    let isRunLeave = _pick(action, 'isRunLeave')
+    isRunLeave = u.isNil(isRunLeave)? true : isRunLeave
     const ndomPage = pickNDOMPageFromOptions(options)
+    if(isNDOMPage(ndomPage) && isRunLeave){
+      const results = await ndomPage.emitAsync(eventId.page.on.ON_NAVIGATE_START,ndomPage)
+      localStorage.setItem('continueGoto',ndomPage.previous)
+      if(u.isArr(results) && hasAbortPopup(results)) return    
+    }
     if (ndomPage) {
       ndomPage.requesting = ndomPage.previous
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       ndomPage.setModifier(ndomPage.previous, {
         reload: is.isBooleanFalse(reload) ? false : true,
+        isRunLeave: isRunLeave
       })
     }
 
@@ -589,6 +601,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       let id = ''
       let isSamePage = false
       let duration = 350
+      let isRunLeave:boolean = true
       if (_pick(action, 'blank') && _pick(action, 'goto')) {
         app.disableSpinner()
         options?.ref?.abort() as any
@@ -617,6 +630,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 (pageReload = _pick(gotoObj.goto, 'pageReload'))
               'dataIn' in gotoObj.goto &&
                 (dataIn = _pick(gotoObj.goto, 'dataIn'))
+              'isRunLeave' in gotoObj.goto && (isRunLeave = _pick(gotoObj.goto, 'isRunLeave'))
             } else if (u.isStr(gotoObj.goto)) {
               destinationParam = gotoObj.goto
             }
@@ -625,6 +639,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             'reload' in gotoObj && (reload = gotoObj.reload)
             'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
             'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
+            'isRunLeave' in gotoObj && (isRunLeave = gotoObj.isRunLeave)
           }
         }
       } else if (u.isObj(action)) {
@@ -633,6 +648,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'reload' in action && (reload = _pick(action, 'reload'))
           'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
           'dataIn' in action && _pick(action, 'dataIn')
+          'isRunLeave' in action && (isRunLeave = _pick(action, 'isRunLeave'))
         }
       }
       
@@ -723,6 +739,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         destinationParam,
         reload,
         pageReload,
+        isRunLeave
       })
 
       if (destination.startsWith('http')) {
@@ -786,7 +803,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           )
         }
       }
-
+      if(isNDOMPage(ndomPage) && isRunLeave){
+        const results = await ndomPage.emitAsync(eventId.page.on.ON_NAVIGATE_START,ndomPage)
+        if (!destinationParam.startsWith('http')) {
+          localStorage.setItem('continueGoto',destination)
+        }else{
+          localStorage.setItem('continueGoto',destinationParam)
+        }
+        if(u.isArr(results) && hasAbortPopup(results)) return    
+      }
       if (!destinationParam.startsWith('http')) {
         const originUrl = ndomPage.pageUrl
         ndomPage.pageUrl = app.parse.queryString({
@@ -1164,7 +1189,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
   }
-  const countDown = async function onCountDown(actions,options: {
+  const countDown = async function onCountDown(options: {
     viewTag: string
     timeFormat: string
     time: number | string
@@ -1557,6 +1582,121 @@ export const extendedSdkBuiltIns = {
     //   // this.register.setTimeId('extendVideoChatTime',id)
 
     // }
+  },
+  async popUp(
+    this: App,
+    action: BuiltInActionObject & {
+        popUpDismiss ?: number
+        wait ?: number | boolean
+        popUpView : string
+        dismissOnTouchOutside?: boolean
+    },
+  ){
+    return new Promise(async (resolve, reject) => {
+      try{
+        const {popUpDismiss,dismissOnTouchOutside,wait,popUpView} = action
+        let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
+        u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
+          if (dismissOnTouchOutside) {
+            const onTouchOutside = function onTouchOutside(
+              this: HTMLDivElement,
+              e: Event,
+            ) {
+              e.preventDefault()
+              hide(elem)
+              document.body.removeEventListener('click', onTouchOutside)
+            }
+            document.body.addEventListener('click', onTouchOutside)
+          }
+  
+          if (elem?.style) {
+            
+            if (!u.isNum(wait)) {
+              let inp_dom: NodeListOf<HTMLInputElement> =
+                elem.querySelectorAll('input')
+              for (let di_inp of inp_dom) {
+                if (
+                  (di_inp as HTMLInputElement).getAttribute('showSoftInput')
+                ) {
+                  setTimeout(() => {
+                    di_inp?.focus()
+                  }, 100)
+                }
+              }
+              show(elem)
+            } else if (u.isNum(wait)) {
+              show(elem)
+              setTimeout(() => {
+                hide(elem)
+                resolve(void 0)
+              }, wait)
+            }if (is.isBooleanTrue(wait)) {
+              show(elem)
+              resolve({"abort":'true'})
+            }
+            if (u.isNum(popUpDismiss)) {
+              setTimeout(() => {
+                hide(elem)
+              }, popUpDismiss)
+            }
+          }else{
+            log.error(
+              `Tried to show a element but the element ` +
+                `was null or undefined`,
+              { action: action?.snapshot?.(), popUpView },
+            )
+          }
+          if (!isWaiting) resolve(void 0)
+        })
+  
+      }catch(error){
+        reject(error instanceof Error ? error : new Error(String(error)))
+      }
+    })
+    
+  },
+  async popUpDismiss(
+    this: App,
+    action: BuiltInActionObject & {
+        popUpView : string
+    },
+  ){
+    return new Promise(async (resolve, reject) => {
+      try{
+        const {popUpView} = action
+        u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
+          if (elem?.style) hide(elem)
+          else log.error(
+            `Tried to hide a element but the element ` +
+              `was null or undefined`,
+            { action: action?.snapshot?.(), popUpView },
+          )
+        })
+        resolve(void 0)
+      }catch(error){
+        reject(error instanceof Error? error : new Error(String(error)))
+      }
+    })
+  },
+  async continueGoto(
+    this: App,
+    action: BuiltInActionObject
+  ){
+    const destination = localStorage.getItem('continueGoto')
+    if(destination){
+      const ndomPage = this.mainPage
+      ndomPage.pageUrl = this.parse.queryString({
+        destination,
+        pageUrl: ndomPage.pageUrl,
+        startPage: this.startPage,
+      })
+      await this.navigate(
+        ndomPage,
+        destination,
+        { isGoto: true},
+        false,
+      )
+    }
   },
   async initAutoDC(
     this: App,

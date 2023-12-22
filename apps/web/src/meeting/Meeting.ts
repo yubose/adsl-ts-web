@@ -183,11 +183,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         ) => {
           trackPublication?.track?.stop?.()
           trackPublication?.unpublish?.()
+          const attachedElements = trackPublication.track.detach()
+          attachedElements.forEach(element => element.remove())
         }
         // Unpublish local tracks
         _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
         _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
-        // _room?.disconnect?.()
+        _room?.disconnect?.()
         o.streams.reset()
         _calledOnConnected = false
       }

@@ -3368,7 +3368,6 @@ const createExtendedDOMResolvers = function (app: App) {
               })
             }
           }
-
           if (option.navigation) {
             node.addEventListener('mouseenter', () => {
               prevBtn.style.opacity = '1'
@@ -3382,6 +3381,282 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
         }
       },
+    },
+    '[App] audioView': {
+      cond: 'audioView',
+      resolve({ node, component }) {
+        if (node) {
+          const fragment = document.createDocumentFragment()
+          const assetsUrl = app.nui.getAssetsUrl() || ''
+          const dataValue = component.get('data-value');
+          const dataOptions = component.get('data-option');
+          const width = node.style.width
+          //container box
+          const element_div = document.createElement('div')
+          element_div.style.cssText = `
+              display: flex;
+              justify-content: space-around;
+              align-items: left;
+              background-color: #F0F2F4;
+              border-radius: 8;
+              min-height: 60px;
+              width: 100%;
+              flex-direction: column;
+          `
+          fragment.append(element_div)
+
+          //title top box
+          const element_top_box = document.createElement('div')
+          element_top_box.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          const element_title_img_box = document.createElement('div')
+          const element_title_img = document.createElement('img')
+          element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
+          element_title_img_box.style.cssText = `
+            width: 32px;
+            max-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `
+          element_title_img.style.cssText = `
+            width: 50%;
+            object-fit: cover;
+          `
+          element_title_img_box.append(element_title_img)
+          const element_title_text = document.createElement('div')
+          element_title_text.style.cssText = `
+            display: flex;
+            align-items: center;
+            margin-left: 5px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            width: ${parseInt(width) - 32}px;
+            font-weight: 600;
+            white-space: nowrap;
+            max-height: 1.2em;
+          `
+          element_top_box.append(element_title_img_box)
+          element_top_box.append(element_title_text)
+          element_div.append(element_top_box)
+
+          //middle box
+          const element_middle_box = document.createElement('div')
+          element_middle_box.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          let transaction
+          let isError:boolean = false
+          let nonce
+          if (dataValue["type"] === 545281) {
+            const element_audio = document.createElement('audio')
+            element_audio.setAttribute('controlslist','nofullscreen nodownload noplaybackrate noremoteplayback')
+            element_audio.id = 'audio_c'
+            element_audio.style.cssText = `
+              margin: 0;
+              padding: 0;
+              width: ${(parseInt(width) - 32)*0.7 + 32}px;
+              height: 35px;
+            `
+            let data
+            if(u.isObj(dataValue["name"]["data"])){
+              data = dataValue["name"]["data"]
+            }else if(u.isStr(dataValue["name"]["data"])){
+              if (dataValue["name"]["data"] === "") {
+                data = {}
+              } else {
+                data = JSON.parse(dataValue["name"]["data"])
+              }
+            }
+            const url = data["audioUrl"].split('?')[0]
+            const title = dataValue["name"]['title']
+            isError = dataValue["tage"]===10
+            nonce = dataValue["name"]['nonce']
+            transaction = data['transaction']
+            element_audio.src = url
+            element_audio.controls = true
+            element_title_text.innerHTML = title?title:`${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
+            element_middle_box.append(element_audio)
+
+          } else if (dataValue["type"] === 540161) {
+            const element_text_img_box = document.createElement("div")
+            const element_text_img = document.createElement("img")
+            const element_text_text = document.createElement("div")
+            element_text_text.style.cssText =`
+              // display: flex;
+              // align-items: center;
+              margin-left: 5px;
+              max-height: 1.2em;
+              width: ${(parseInt(width) - 32)*0.7}px;
+              overflow:hidden;
+              text-overflow:ellipsis;
+              white-space: nowrap;
+            `
+            element_text_img_box.style.cssText = `
+              width: 32px;
+              height: 32px;
+              max-width: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            `
+            transaction = dataValue["name"]["data"]["transaction"]
+            const title = dataValue["name"]["title"]
+            isError = dataValue["tage"]===10
+            nonce = dataValue["name"]['nonce']
+            element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
+            element_text_img.style.cssText = `
+              width: 50%;
+              object-fit: cover;
+            `
+            element_text_text.innerHTML = transaction;
+            element_title_text.innerHTML = title?title:`${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
+            element_text_img_box.append(element_text_img)
+            element_middle_box.append(element_text_img_box)
+            element_middle_box.append(element_text_text)
+            element_text_text.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onTextClick")?.execute()
+              })
+            },{once: true})
+          }
+
+          const element_op_box = document.createElement('div')
+          element_op_box.style.cssText = `
+            display: flex;
+            width: ${(parseInt(width) - 32)*0.3}px;
+            justify-content: flex-end;
+          `
+          const element_btn = document.createElement("button");
+          const element_img = document.createElement("img")
+          element_btn.textContent = "Generate"
+          element_btn.style.cssText = `
+            margin-left: 10%;
+            width: 70%;
+            height: 32px;
+            border: 1px solid #30b354;
+            border-radius: 20px;
+            padding: 5%;
+            color: #30b354;
+            font-size: 13px;
+            font-weight: 600;
+            overflow: hidden;
+          `
+          element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
+          element_img.style.cssText = `
+            width: 15%;
+            margin-left: 5%;
+          `
+
+          element_op_box.append(element_img)
+          element_op_box.append(element_btn)
+          element_middle_box.append(element_op_box)
+          element_div.append(element_middle_box)
+
+          //bottom time
+          const element_bottom_box = document.createElement("div")
+          const element_time_box = document.createElement("div")
+          const element_time = document.createElement("div")
+          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
+          element_time.style.cssText = `
+            display: flex;
+            align-items: center;
+            width: ${(parseInt(width) - 32)*0.6}px;
+            font-size: 14px;
+            color: #333333;
+          `
+          element_time_box.style.cssText = `
+            width: 32px;
+            max-width: 32px;
+            margin-left: 5px;
+          `
+          element_bottom_box.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          `
+          element_bottom_box.append(element_time_box)
+          element_bottom_box.append(element_time)
+
+          element_div.append(element_bottom_box)
+          node.append(fragment)
+          if(isError){
+            const element_error_box = document.createElement('div')
+            const element_error_img = document.createElement('img')
+            const element_error_text = document.createElement('div')
+            element_error_img.setAttribute('src',`${assetsUrl}error.svg`)
+            element_error_text.innerHTML = 'Generate Failed'
+            element_error_text.style.cssText = `
+              display: flex;
+              align-items: center;
+              font-size: 14px;
+              margin-left: 10px;
+              color: #FB5051;
+            `
+            element_error_box.style.cssText = `
+              display: flex;
+              flex-direction: row;
+              justify-content: flex-end;
+              width: ${(parseInt(width) - 32)*0.4}px;
+            `
+            element_error_box.append(element_error_img)
+            element_error_box.append(element_error_text)
+            element_bottom_box.append(element_error_box)
+
+            const element_error_message = document.createElement('div')
+            element_error_message.innerHTML = nonce
+            element_error_message.style.cssText = `
+              display: flex;
+              align-items: center;
+              font-size: 14px;
+              color: #FB5051;
+            `
+            node.append(element_error_message)
+          }
+            
+          // 增加transcription的按钮
+            // component.get("onGenerateClick")?.["actions"].shift()
+          if (dataValue["type"] === 545281) {
+            element_img.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onVoiceClick")?.execute()
+              })
+            },{once: true})
+          }else if (dataValue["type"] === 540161) { 
+            element_img.addEventListener("click",(e)=>{
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onTextClick")?.execute()
+              })
+            },{once: true})
+          }
+            
+            
+          element_btn.addEventListener("click",(e)=>{
+              set(dataOptions,"selectDoc",dataValue)
+              set(dataOptions,"transcriptionContent",transaction)
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onGenerateClick")?.execute()
+              },100)
+              
+            })
+            
+          element_top_box.addEventListener('click',(e)=>{
+            setTimeout(()=>{
+              // @ts-ignore
+              component.get('onEditClick')?.execute()
+            },100)
+          })
+        }
+      }
     },
     '[App] Checkbox': {
       cond: 'checkbox',
@@ -3631,40 +3906,40 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
-    '[App] Calendar': {
-      cond: 'calendar',
-      resolve({ node, component }) {
-        const inputTarget = document.createElement('input')
-        inputTarget.style.width = node.style.width
-        inputTarget.style.height = node.style.height
-        // inputTarget.setAttribute("class","latpickr form-control input")
-        flatpickr(inputTarget, {
-          // altInput: true,
-          // enableTime: true,
-          appendTo: node,
-          dateFormat: 'Y-m-d',
-          // altFormat: "DD-MM-YYYY",
-          allowInput: true,
-          // inline: true,
-          // parseDate: (datestr, format) => {
-          //   return moment(datestr, format, true).toDate();
-          // },
-          // formatDate: (date, format, locale) => {
-          //   // locale can also be used
-          //   return moment(date).format(format);
-          // }
-          // onChange: function(selectedDates, dateStr, instance){
-          //   log.log(selectedDates, dateStr, instance)
+    // '[App] Calendar': {
+    //   cond: 'calendar',
+    //   resolve({ node, component }) {
+    //     const inputTarget = document.createElement('input')
+    //     inputTarget.style.width = node.style.width
+    //     inputTarget.style.height = node.style.height
+    //     // inputTarget.setAttribute("class","latpickr form-control input")
+    //     flatpickr(inputTarget, {
+    //       // altInput: true,
+    //       // enableTime: true,
+    //       appendTo: node,
+    //       dateFormat: 'Y-m-d',
+    //       // altFormat: "DD-MM-YYYY",
+    //       allowInput: true,
+    //       // inline: true,
+    //       // parseDate: (datestr, format) => {
+    //       //   return moment(datestr, format, true).toDate();
+    //       // },
+    //       // formatDate: (date, format, locale) => {
+    //       //   // locale can also be used
+    //       //   return moment(date).format(format);
+    //       // }
+    //       // onChange: function(selectedDates, dateStr, instance){
+    //       //   log.log(selectedDates, dateStr, instance)
 
-          //   instance.calendarContainer.style.visibility = "visible"
-          // }
-        })
-        node.append(inputTarget)
+    //       //   instance.calendarContainer.style.visibility = "visible"
+    //       // }
+    //     })
+    //     node.append(inputTarget)
 
-        // if (node && Object.keys(component.get('data-value'))) {
-        // }
-      },
-    },
+    //     // if (node && Object.keys(component.get('data-value'))) {
+    //     // }
+    //   },
+    // },
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
@@ -3961,7 +4236,7 @@ const createExtendedDOMResolvers = function (app: App) {
               if(imageClicks){
                 imageClicks?.queue.forEach(imageClick=>{
                   if(imageClick?.dataKey){
-                    imageClick.dataKey = {var: Msg}
+                    imageClick.dataKey = {let: Msg}
                   }
                 })
                 imageClicks?.execute?.()
@@ -5779,6 +6054,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     let data = new FormData();
                     data.append("code", `${rand}`);
                     data.append("size", `${chunks.length}`);
+                    data.append("providerId", localStorage.getItem('user_vid') as string);
+                    data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
+                    if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
+                      data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                    } else {
+                      data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                    }
                     xhr.send(data);
                 })
               }
@@ -6313,7 +6595,6 @@ const createExtendedDOMResolvers = function (app: App) {
         let pageName = app.currentPage;
         const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || '';
-
         let height = 50
         let root = document.getElementById("root") as HTMLDivElement
 
@@ -6380,7 +6661,7 @@ const createExtendedDOMResolvers = function (app: App) {
         audio_start.src = `${assetsUrl}audio_white.svg`
         const text_start = document.createElement('div')
         text_start.style.cssText = `margin-left: 10px`
-        text_start.innerText = `Start Conversation`
+        text_start.innerText = `Start`
         text_start.style.cssText = `
           font-size: 16px;
           margin-left: 6px;
@@ -6466,6 +6747,7 @@ const createExtendedDOMResolvers = function (app: App) {
               }
             }
           })
+          target[key] = true
         }
         
         const translate = () => {
@@ -6543,7 +6825,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   const blobFile = new Blob(recordData, { type: "audio/mp3" })
                   const chun_size_sample_rates = 16000*20*5; 
                   const chunks:any[] = [];
-                  const size_ws = blobFile.size>=5242880;
+                  const             size_ws = blobFile.size>=5242880;
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
@@ -6561,8 +6843,21 @@ const createExtendedDOMResolvers = function (app: App) {
                     audio_url =  `${baseUrl}/smallUpload/`
                   }
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
+                  console.log('test00',chunks)
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
+                      setTimeout(()=>{
+                        const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
+                        // unsubscribe.aud = controller;
+                        console.log(unsubscribe,99999)
+                        if(unsubscribe) {
+                          unsubscribe.addEventListener("click",(e)=>{
+                            console.log(888888)
+                              xhr.abort()
+                            })
+                        }
+                          
+                      },1000)
                       xhr.withCredentials = true;
                       xhr.addEventListener("readystatechange", function () {
                         if (this.readyState === 4) {
@@ -6572,18 +6867,36 @@ const createExtendedDOMResolvers = function (app: App) {
                         xhr.open("POST",audio_url);
                         let data = new FormData();
                         data.append("audio", v, "123.mp3");
-                        console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
-                        data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
+                        if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
+                          data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        } else {
+                          data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                        }
+                        
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
+                        
                     })
                   
                   )
                   const _upload_respose =  ():Promise<any>=>{
                     return new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
+                      setTimeout(()=>{
+                        const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
+                        // unsubscribe.aud = controller;
+                        console.log(unsubscribe,99999)
+                        if(unsubscribe) {
+                          unsubscribe.addEventListener("click",(e)=>{
+                            console.log(888888)
+                              xhr.abort()
+                            })
+                        }
+                      },1000)
+                        
                       xhr.withCredentials = true;
                       xhr.addEventListener("readystatechange", function () {
                         if (this.readyState === 4) {
@@ -6597,23 +6910,39 @@ const createExtendedDOMResolvers = function (app: App) {
                         }
                       });
                         xhr.open("POST",`${baseUrl}/success/`);
+                        
                         let data = new FormData();
                         data.append("code", `${rand}`);
                         data.append("size", `${chunks.length}`);
+                        if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
+                          data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                        } else {
+                          data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                        }
+                        data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
+                        // const controller = new AbortController();
                         xhr.send(data);
                     })
                   }
                     const text = await Promise.all(chunks_map);
-                    let val = size_ws?(await _upload_respose())?.text:text[0]?.text;
+                    console.error(text);
+                    let textVal = ''
+                    let sourceid = ''
+                    if (size_ws) {
+                      let resp = await _upload_respose()
+                      textVal = resp.text
+                      sourceid = resp.sourceId
+                    } else {
+                      //@ts-ignore
+                      textVal = text[0]?.text
+                      //@ts-ignore
+                      sourceid = text[0]?.sourceId
+                    }
+                    let resp = ''
                       app.updateRoot(draft => {
-                        set(draft?.[pageName], dataKey, val);
-                        // if(val){
-                        //   node.dispatchEvent(new Event('input', {
-                        //     bubbles: false, 
-                        //     cancelable: false, 
-                        //     composed: false 
-                        //   }));
-                        // }
+                        set(draft?.[pageName], dataKey, textVal);
+                        set(draft?.[pageName], component.get("sourceId"), sourceid);
                       })
                       recordData = []
                       setTimeout(()=> {
@@ -6826,7 +7155,443 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       }
-    }
+    },
+    '[App] calendar': {
+      cond: ({component }) => component.has('calendarView'),
+      resolve({ node, component, page }) {
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+        const calendarView =
+          component.get('calendarView') || component.blueprint?.calendarView || '';
+        const defaultDate =
+          component.get('defaultDate') || component.blueprint?.defaultDate || '';
+        const pastDayClickAble =
+          component.get('pastDayClickAble') || component.blueprint?.pastDayClickAble || '';
+        const futureDayClickAble =
+          component.get('futureDayClickAble') || component.blueprint?.futureDayClickAble || '';
+        const showActionButton =
+          component.get('showActionButton') || component.blueprint?.showActionButton || '';
+        const dataKey =
+          component.get('dataKey') || component.blueprint?.dataKey || '';
+        const dataType =
+          component.get('dataType') || component.blueprint?.dataType || '';
+        const colorStyle =
+          component.get('colorStyle') || component.blueprint?.colorStyle || '';
+          // const newTop = app.nui?.getSize?.(`50vw`,'height')
+          let styleSheet = document.createElement('style');
+          styleSheet.innerText = `
+          :root {
+            --color-width: ${colorStyle.width};
+            --border-width: clamp(30px,12%,60px);
+          }
+          @scope (#${node.id}){
+            .xs-date {
+              color: #606266;
+              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+              background: ${colorStyle.back_color};
+              border-radius: 4px;
+              line-height: 30px;
+              width: var(--color-width);
+              min-width: 350px;
+              height: auto;
+              padding: 2vw;
+            }
+            .xs-date-title {
+              display: flex;
+              justify-content: space-between;
+              text-align: center;
+              cursor: pointer;
+              color: #606266;
+              font-size: 16px;
+            }
+            .Disable, .item-time{
+              display: flex;
+              justify-content: center;
+              font-size: 17px;
+              font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+              align-items: center;
+            }
+            .date-prev {
+              font-weight: bold;
+              width: 10%;
+              font-family: cursive;
+            }
+            .date-next {
+              width: 10%;
+              font-weight: bold;
+              font-family: cursive;
+            }
+            .xs-date-week {
+              width: 100%;
+              display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
+              justify-content: center;
+              margin-top: 15px;
+              padding-bottom: 5px;
+              border-bottom: 1px solid #e4e7ed;
+            }
+            .xs-date-week div {
+              list-style: none;
+              width: calc(var(--color-width) /7);
+              text-align: center;
+              color: #606266;
+              min-width: 50px;
+              font-size: 14px;
+            }
+            .xs-date-day {
+              width: 100%;
+              display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
+              flex-wrap: wrap;
+              align-items: center;
+              margin-top: 15px;
+              
+            }
+            .xs-date-day-week {
+              width: 100%;
+              display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
+              margin-top: 15px;
+            }
+            .btn-container {
+              width: 100%;
+              display: ${(calendarView==="month"&&showActionButton==true)?"flex": calendarView==="week"?"none":"none"};
+              flex-wrap: wrap;
+              height: 60px;
+              align-items: center;
+              justify-content: space-between;
+            }
+            .calender_cancel_btn{
+              width: 40%;
+              border: none;
+              background-color: rgb(193, 193, 193);
+              border-color: rgb(193, 193, 193);
+              height: 60%;
+              color: #fff;
+              border-radius: 4px;
+            }
+            .calender_confirm_btn{
+              width: 40%;
+              background-color: rgb(41, 136, 230);
+              border: none;
+              border-color: rgb(193, 193, 193);
+              color: #fff;
+              border-radius: 4px;
+              height: 60%;
+            }
+            .week-time {
+              display: flex;
+              flex-wrap: wrap;
+              width: 80%;
+              justify-content: space-between;
+              align-items: center;
+            }
+            .week-next{
+              width: 4vw;
+              height: 4vw;
+              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+              background: #fff;
+              border-radius: 50%;    
+              cursor: pointer;
+              display: flex;
+              max-width: 40px;
+              max-height: 40px;
+              min-width: 25px;
+              min-height: 25px;
+              font-weight: 800;
+              justify-content: center;
+              align-items: center;
+
+            }
+            .week-prev{
+              width: 4vw;
+              height: 4vw;    
+              display: flex;
+              font-weight: 800;
+              max-width: 40px;
+              max-height: 40px;
+              min-width: 25px;
+              min-height: 25px;
+              justify-content: center;
+              align-items: center;
+              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+              background: #fff;
+              cursor: pointer;
+              border-radius: 50%;
+            }
+            .xs-date-day div {
+              width: calc(var(--color-width) /7);
+              height: calc(var(--color-width) /7);
+              min-width: 50px;
+              min-height: 50px;
+              text-align: center;
+              color: #606266;
+              font-size: 14px;
+              cursor: pointer;
+            }
+      
+            .date-prev:hover,
+            .date-next:hover,
+            .xs-date-day div:hover {
+              color: #409eff;
+            }
+            .active {
+              color: #fff !important;
+              background: #007ee5;
+              border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
+            }
+            .Disable {
+              color: #c0c4cc !important;
+              // visibility: hidden;
+            }
+            .date-time{
+              border-radius: 4px;
+              width: 10vw;
+              height: 30px;              
+              min-width: 50px;
+              flex-grow: unset;
+              border: 1px solid rgb(222, 222, 223);
+              background-color: rgb(255, 255, 255);
+            }
+            .year-time{
+              border-radius: 4px;
+              width: 15vw;
+              min-width: 50px;
+              height: 30px;
+              flex-grow: unset;
+              border: 1px solid rgb(222, 222, 223);
+              background-color: rgb(255, 255, 255);
+            }
+            .month-container{
+              display: flex;
+              width: 40%;
+              justify-content: space-between;
+              align-items: center;
+            }
+          }
+          `;
+          document.head.appendChild(styleSheet);
+          node.innerHTML = `
+          <div class="xs-date">
+            <div class="xs-date-title">
+              <div class="month-container">
+                <div class="date-prev"> < </div>
+                <select class="date-time"></select>
+                <div class="date-next"> > </div>
+              </div>
+              <select class="year-time"></select>
+            </div>
+            <div class="xs-date-week">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+            <div class="xs-date-day" >
+            </div>
+            <div class="xs-date-day-week">
+              <div class="week-prev"> < </div>
+                <div class="week-time"></div>
+              <div class="week-next"> > </div>
+            </div>
+            <div class="btn-container">
+              <button class="calender_cancel_btn">Cancel</button>
+              <button class="calender_confirm_btn">Confirm</button>
+            </div>
+          </div>
+          `;
+          let pageName = app.currentPage;
+          let date_time = document.querySelector(".date-time") as HTMLSelectElement;
+          let year_time = document.querySelector(".year-time") as HTMLSelectElement;
+					let prev = document.querySelector(".date-prev") as any;
+					let next = document.querySelector(".date-next") as any;
+          let week_prev = document.querySelector(".week-prev") as any;
+					let week_next = document.querySelector(".week-next") as any;
+					let date_day = document.querySelector(".xs-date-day") as any;
+          let week_time = document.querySelector(".week-time") as any;
+          let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
+          let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
+          let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
+          let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+          let color_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+					let get_day = require_day.getDay();
+          let ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
+          let ws = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+          ms.map(e=>date_time.options.add(new Option(e)));
+          ((last = 30, next = 10)=>{
+            let currentYear = new Date().getFullYear()
+            let startYear:number = currentYear - last
+            for (let i = 0; i < last + next; i++) {
+              year_time.options.add(new Option(startYear.toString()))
+              startYear++
+            }
+          })();
+          let current_time = date;
+          app.updateRoot(draft => {
+            set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+          })
+					function updateTime() {
+						let year = date.getFullYear(); //当前年份
+						let month = date.getMonth() + 1 + ""; //当前月
+						+month < 10 ? month = "0" + month : month;
+						let day = date.getDate()+ ""; //当前天 
+						+day < 10 ? day = "0" + day : day;
+						date_day.innerHTML = "";
+						week_time.innerHTML = "";
+            let setDate = new Date(year, +month, 0);
+						let setDay = setDate.getDate(); //这个月天数
+            if(calendarView==="month"){
+              //渲染头部
+              let setWeek = new Date(year, +month - 1, 1).getDay(); //上个月星期几
+              let setDayEM = new Date(year, +month - 1, 0).getDate(); //上个月天数
+						  setWeek <= 0 ? setWeek = 7 : setWeek;
+              for (let i = (setDayEM - setWeek) + 1; i <= setDayEM; i++) {
+                let EmptyDiv = document.createElement('div')  as any;
+                EmptyDiv.innerText = i;
+                EmptyDiv.className = "Disable";
+                date_day.appendChild(EmptyDiv);
+              }
+              // 渲染日期
+              for (let i = 1; i <= setDay; i++) {
+                let TimeDiv = document.createElement('div')  as any;
+                TimeDiv.innerText = i;
+                TimeDiv.className = "item-time";
+                if (i == +day) {
+                  TimeDiv.classList.add("active");
+                }
+                date_day.appendChild(TimeDiv);
+              }
+              // 渲染尾部
+              for (let i = 1; i <= (42 - setWeek - setDay); i++) {
+                let DisDiv = document.createElement('div')  as any;
+                DisDiv.innerText = i;
+                DisDiv.className = "Disable";
+                date_day.appendChild(DisDiv);
+              }
+            }else if(calendarView==="week"){
+              let i = 0;
+              let fragment = document.createDocumentFragment();
+              while (i <= 6) {
+                let TimeDiv = document.createElement('div')  as any;
+                let TimeDivWeek = document.createElement('div')  as any;
+                let TimeDivText = document.createElement('div')  as any;
+                  let times = new Date(date.getTime()-(24*60*60*1000*(get_day-i)));
+                  if (times.setHours(0, 0, 0, 0) == color_day.setHours(0, 0, 0, 0)) {
+                    TimeDiv.className = "item-time";
+                    TimeDiv.classList.add("active");
+                  }else if(times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
+                    (pastDayClickAble==true)?TimeDiv.className = "item-time":TimeDiv.className = "Disable";
+                  }else{
+                    (futureDayClickAble==true)?TimeDiv.className = "item-time":TimeDiv.className = "Disable";
+                  }
+                  TimeDivText.innerText = times.getDate();
+                  TimeDivText.className = `text_day`
+                  TimeDivWeek.innerText = ws[i];
+                  TimeDiv.style.cssText = `
+                    display: flex;
+                    cursor: pointer;
+                    flex-wrap: nowrap;
+                    flex-direction: column;
+                    width: 12%;
+                  `;
+                  TimeDiv.append(TimeDivWeek,TimeDivText)
+                  fragment.append(TimeDiv)
+                  if(i==6){
+                    date_time.value = ms[times.getMonth()];
+                    year_time.value = times.getFullYear()+ "";
+                  }
+                  i++;
+                }
+                week_time.appendChild(fragment);
+              }
+						itemClick(year,month);
+					}
+					updateTime();
+          date_time.onchange = (e)=>{
+            if(calendarView==="month"){
+              date.setMonth(ms.indexOf(date_time.value));
+            }else{
+              date = new Date(date.getFullYear(),ms.indexOf(date_time.value),1);
+              get_day = date.getDay();
+            }
+						updateTime();
+          }
+					prev.onclick = function() {
+						date.setMonth(date.getMonth() - 1);
+						updateTime();
+					};
+					next.onclick = function() {
+						date.setMonth(date.getMonth() + 1);
+						updateTime();
+					};
+					year_time.onchange = function() {
+            if(calendarView==="month"){
+              date.setFullYear(+year_time.value);            
+            }else{
+              date = new Date(+year_time.value,date.getMonth(),1);
+              get_day = date.getDay();
+            }
+						updateTime();
+					};
+          week_prev.onclick = function() {
+            date = new Date(date.getTime()-date.getDay() - 7*24*60*60*1000)
+            updateTime();
+					};
+					week_next.onclick = function() {
+            date = new Date(date.getTime()+date.getDay() + 7*24*60*60*1000)
+            updateTime();
+					};
+
+          if(showActionButton==true){
+            cancel_btn.onclick = function() {
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onCancelclick")?.execute()
+              })
+            };
+            confirm_btn.onclick = function() {
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,dataType=="Date"?color_day.toLocaleDateString("en-US"):dataType=="timestamp"?color_day.getTime()/1000:"");
+              })
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onSelectclick")?.execute()
+              })
+            };
+          }
+					function itemClick(year,month) {
+						let item_time = document.querySelectorAll(`.item-time`);
+						for (let i = 0; i < item_time.length; i++) {
+							(item_time[i] as HTMLElement).onclick = function() {
+								for (let i = 0; i < item_time.length; i++) {
+									(item_time[i] as HTMLElement).classList.remove("active");
+								}
+								(item_time[i] as HTMLElement).classList.add("active");
+                if(calendarView==="month"){
+                  date = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
+                  current_time = date
+                }else if(calendarView==="week"){
+                  color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
+                  current_time = color_day;
+                }
+                app.updateRoot(draft => {
+                  set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+                })
+                if(showActionButton==false){
+                  setTimeout(()=>{
+                    // @ts-ignore
+                    component.get("onDateClick")?.execute()
+                  })
+                }
+							}
+						}
+					}
+
+      }
+
+    },
   }
 
   return u

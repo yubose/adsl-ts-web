@@ -19,6 +19,7 @@ apps/web/public/admin
 apps/web/public/aitmed
 apps/web/public/search
 apps/web/public/testpage
+apps/web/public/cadl
 .idea/*
 deployProd.sh
 apps/web/truthPort.json

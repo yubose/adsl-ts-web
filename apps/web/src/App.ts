@@ -396,6 +396,7 @@ class App {
       }
       return params
     }
+
     let NDOMPage
     try {
       let _page: NDOMPage
@@ -559,11 +560,15 @@ class App {
           onInitNotification && (await onInitNotification?.(this.#notification))
 
           this.notification?.on('message', async(message) => {
-            const href = window.location.href
-            if(/(aitmed|127.0.0.1|localhost)/i.test(href)){
-              if (message) {
-                const { data } = message
-                if (data?.did) {
+            if (message) {
+              const { data } = message
+              const title = data?.title
+              const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
+              if (data?.did) {
+                const room = this.meeting?.room
+                if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
+                  log.info('Meeting has been connected')
+                }else{
                   //  call onNewEcosDoc for now  until we propose a more generic approach
                   const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
                     (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
@@ -573,13 +578,33 @@ class App {
                       await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
                     onNewEcosDocRegisterComponent?.onEvent?.(data.did)
                   }
-                  
-                } else {
-                  log.log({ message })
-                  // debugger
                 }
+                
+              } else {
+                log.log({ message })
+                const { data } = message
+                const notificationTitle = data.title || ''
+                const notificationOptions = {
+                  body: data.body || '',
+                  icon: 'favicon.ico',
+                }
+                const timestap = new Date().getTime()
+                const notification = new Notification(notificationTitle,notificationOptions)  
+                this.root.NotificationMap.notificationDoc = {
+                  name:{
+                    data: '',
+                    notification: data
+                  },
+                  timestap
+                }
+                notification.addEventListener('click', () => {
+                  //@ts-expect-error
+                  this.#notification?.emit('click', 'notificationDoc')
+                })
+                // debugger
               }
             }
+          
             
           })
 
@@ -1169,9 +1194,20 @@ class App {
 
   observePages(page: NDOMPage) {
     const onNavigateStart = () => {
-      if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-        log.debug(`Removing room listeners...`)
-        // this.meeting.room?.removeAllListeners?.()
+      const pageObject = this.root[page.page]
+      if (pageObject?.['onBeforeLeave']) {
+        return new Promise(async (resolve) => {
+          log.log('execute onBeforeLeave start')
+          const res = await this.noodl?.runLifeCycle({
+            pageObject,
+            lifeCycle: 'onBeforeLeave',
+            pageName: page.page,
+          })
+          if (this.getState().spinner.active) this.disableSpinner()
+          log.log('execute onBeforeLeave end')
+          if(res) resolve(res)
+          else resolve(void 0)
+        })
       }
     }
 
@@ -1246,71 +1282,9 @@ class App {
         const pageObject = this.root[page.page]
         const Mounted = this.root[page.page]?.onMounted
         if (Mounted && pageObject) {
-          const onMounted = async (current, index, mounted) => {
-            log.debug('', { current, index, mounted, page: page.page })
-
-            const validateReference = (ref: string) => {
-              const datapath = nu.trimReference(ref as ReferenceString)
-              const location = ref.startsWith(`=.builtIn`)
-                ? 'root'
-                : is.localKey(datapath)
-                ? 'local'
-                : 'root'
-              if (
-                !has(
-                  location === 'local' ? this.root[page.page] : this.root,
-                  datapath.split('.'),
-                )
-              ) {
-                log.error(
-                  `The reference "${ref}" is missing from the ${
-                    location === 'local'
-                      ? `local root for page "${page.page}"`
-                      : 'root'
-                  }`,
-                  {
-                    previous: mounted[index - 1],
-                    current: { value: current, index },
-                    next: mounted[index + 1],
-                    datapath,
-                    location,
-                    page: page.page,
-                    snapshot: cloneDeep(
-                      location === 'root' ? this.root : this.root[page.page],
-                    ),
-                  },
-                )
-              }
-            }
-
-            const validateObject = (obj: Record<string, any>) => {
-              for (const [key, value] of u.entries(obj)) {
-                is.reference(key) && validateReference(key)
-                is.reference(value) && validateReference(value)
-                if (u.isObj(value)) validateObject(value)
-              }
-            }
-
-            u.isObj(current) && validateObject(current)
-
-            if (!isAborted) {
-              let currentIndex = this.loadingPages[page.page]?.findIndex?.(
-                (o) => o.id === page.id,
-              )
-
-              if (currentIndex > -1) {
-                if (currentIndex > 0) {
-                  isAborted = true
-                  this.loadingPages[page.page].splice(currentIndex, 1)
-                } else {
-                  this.loadingPages[page.page].shift()
-                }
-              }
-            }
-          }
-          await this.noodl?.runMounted({
+          await this.noodl?.runLifeCycle({
             pageObject,
-            onMounted: onMounted,
+            lifeCycle: 'onMounted',
             pageName: page.page,
           })
         }
@@ -1320,7 +1294,7 @@ class App {
           window['ringTong']?.stop?.()  
         }
         page.mounted = true
-        this.disableSpinner()
+        if (this.getState().spinner.active) this.disableSpinner()
       },0)
     }
 

@@ -19,7 +19,9 @@ const registerEvents = {
   showExitWarningView: 'showExitWarningView',
   twilioOnPeopleJoin: 'twilioOnPeopleJoin',
   codeTask: 'codeTask',
-  twilioOnPeopleShowRoom: 'twilioOnPeopleShowRoom'
+  twilioOnPeopleShowRoom: 'twilioOnPeopleShowRoom',
+  recordingStarted: 'recordingStarted',
+  recordingStopped:'recordingStopped',
 
 }
 interface RegisterHooks {
