@@ -3539,12 +3539,14 @@ const createExtendedDOMResolvers = function (app: App) {
           element_btn.style.cssText = `
             margin-left: 10%;
             width: 70%;
+            height: 32px;
             border: 1px solid #30b354;
             border-radius: 20px;
-            padding: 10px;
+            padding: 5%;
             color: #30b354;
             font-size: 13px;
             font-weight: 600;
+            overflow: hidden;
           `
           element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
           element_img.style.cssText = `
