@@ -7159,29 +7159,42 @@ const createExtendedDOMResolvers = function (app: App) {
         const assetsUrl = app.nui.getAssetsUrl() || ''
         const calendarView =
           component.get('calendarView') || component.blueprint?.calendarView || '';
-          const defaultDate =
+        const defaultDate =
           component.get('defaultDate') || component.blueprint?.defaultDate || '';
-          
+        const pastDayClickAble =
+          component.get('pastDayClickAble') || component.blueprint?.pastDayClickAble || '';
+        const futureDayClickAble =
+          component.get('futureDayClickAble') || component.blueprint?.futureDayClickAble || '';
+        const showActionButton =
+          component.get('showActionButton') || component.blueprint?.showActionButton || '';
+        const dataKey =
+          component.get('dataKey') || component.blueprint?.dataKey || '';
+        const dataType =
+          component.get('dataType') || component.blueprint?.dataType || '';
+        const colorStyle =
+          component.get('colorStyle') || component.blueprint?.colorStyle || '';
+          // const newTop = app.nui?.getSize?.(`50vw`,'height')
           let styleSheet = document.createElement('style');
           styleSheet.innerText = `
+          :root {
+            --color-width: ${colorStyle.width};
+            --border-width: clamp(30px,12%,60px);
+          }
           @scope (#${node.id}){
             .xs-date {
               color: #606266;
-              border: 1px solid #e4e7ed;
               box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
-              background: #fff;
+              background: ${colorStyle.back_color};
               border-radius: 4px;
               line-height: 30px;
-              margin: 100px auto;
-              width: 300px;
-              // min-height: 300px;
+              width: var(--color-width);
+              min-width: 350px;
               height: auto;
-              padding: 10px;
+              padding: 2vw;
             }
-      
             .xs-date-title {
               display: flex;
-              justify-content: center;
+              justify-content: space-between;
               text-align: center;
               cursor: pointer;
               color: #606266;
@@ -7190,41 +7203,36 @@ const createExtendedDOMResolvers = function (app: App) {
             .Disable, .item-time{
               display: flex;
               justify-content: center;
+              font-size: 17px;
+              font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
               align-items: center;
             }
-      
             .date-prev {
-              width: 15%;
+              font-weight: bold;
+              width: 10%;
               font-family: cursive;
             }
-      
-            .date-year-prev {
-              width: 15%;
-              font-family: cursive;
-            }
-      
-      
             .date-next {
-              width: 15%;
+              width: 10%;
+              font-weight: bold;
               font-family: cursive;
             }
             .xs-date-week {
               width: 100%;
-              display: flex;
+              display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
               justify-content: center;
               margin-top: 15px;
               padding-bottom: 5px;
               border-bottom: 1px solid #e4e7ed;
             }
-      
             .xs-date-week div {
               list-style: none;
-              width: calc(100%/7);
+              width: calc(var(--color-width) /7);
               text-align: center;
               color: #606266;
+              min-width: 50px;
               font-size: 14px;
             }
-      
             .xs-date-day {
               width: 100%;
               display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
@@ -7238,27 +7246,80 @@ const createExtendedDOMResolvers = function (app: App) {
               display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
               flex-wrap: wrap;
               align-items: center;
+              justify-content: space-between;
               margin-top: 15px;
-              
+            }
+            .btn-container {
+              width: 100%;
+              display: ${(calendarView==="month"&&showActionButton==true)?"flex": calendarView==="week"?"none":"none"};
+              flex-wrap: wrap;
+              height: 60px;
+              align-items: center;
+              justify-content: space-between;
+            }
+            .calender_cancel_btn{
+              width: 40%;
+              border: none;
+              background-color: rgb(193, 193, 193);
+              border-color: rgb(193, 193, 193);
+              height: 60%;
+              color: #fff;
+              border-radius: 4px;
+            }
+            .calender_confirm_btn{
+              width: 40%;
+              background-color: rgb(41, 136, 230);
+              border: none;
+              border-color: rgb(193, 193, 193);
+              color: #fff;
+              border-radius: 4px;
+              height: 60%;
             }
             .week-time {
               display: flex;
               flex-wrap: wrap;
-              width: 90%;
-              justify-content: space-around;
+              width: 80%;
+              justify-content: space-between;
               align-items: center;
             }
             .week-next{
-              width: 5%;
+              width: 4vw;
+              height: 4vw;
+              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+              background: #fff;
+              border-radius: 50%;    
+              cursor: pointer;
+              display: flex;
+              max-width: 40px;
+              max-height: 40px;
+              min-width: 25px;
+              min-height: 25px;
+              font-weight: 800;
+              justify-content: center;
+              align-items: center;
 
             }
             .week-prev{
-              width: 5%;
-
+              width: 4vw;
+              height: 4vw;    
+              display: flex;
+              font-weight: 800;
+              max-width: 40px;
+              max-height: 40px;
+              min-width: 25px;
+              min-height: 25px;
+              justify-content: center;
+              align-items: center;
+              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+              background: #fff;
+              cursor: pointer;
+              border-radius: 50%;
             }
             .xs-date-day div {
-              width: calc(100%/7);
-              height: 40px;
+              width: calc(var(--color-width) /7);
+              height: calc(var(--color-width) /7);
+              min-width: 50px;
+              min-height: 50px;
               text-align: center;
               color: #606266;
               font-size: 14px;
@@ -7270,16 +7331,38 @@ const createExtendedDOMResolvers = function (app: App) {
             .xs-date-day div:hover {
               color: #409eff;
             }
-      
             .active {
               color: #fff !important;
               background: #007ee5;
-              border-radius: 50%;
+              border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
             }
-      
             .Disable {
               color: #c0c4cc !important;
               // visibility: hidden;
+            }
+            .date-time{
+              border-radius: 4px;
+              width: 10vw;
+              height: 30px;              
+              min-width: 50px;
+              flex-grow: unset;
+              border: 1px solid rgb(222, 222, 223);
+              background-color: rgb(255, 255, 255);
+            }
+            .year-time{
+              border-radius: 4px;
+              width: 15vw;
+              min-width: 50px;
+              height: 30px;
+              flex-grow: unset;
+              border: 1px solid rgb(222, 222, 223);
+              background-color: rgb(255, 255, 255);
+            }
+            .month-container{
+              display: flex;
+              width: 40%;
+              justify-content: space-between;
+              align-items: center;
             }
           }
           `;
@@ -7287,9 +7370,11 @@ const createExtendedDOMResolvers = function (app: App) {
           node.innerHTML = `
           <div class="xs-date">
             <div class="xs-date-title">
-              <div class="date-prev"> < </div>
-              <select class="date-time"></select>
-              <div class="date-next"> > </div>
+              <div class="month-container">
+                <div class="date-prev"> < </div>
+                <select class="date-time"></select>
+                <div class="date-next"> > </div>
+              </div>
               <select class="year-time"></select>
             </div>
             <div class="xs-date-week">
@@ -7305,24 +7390,32 @@ const createExtendedDOMResolvers = function (app: App) {
             </div>
             <div class="xs-date-day-week">
               <div class="week-prev"> < </div>
-              <div class="week-time">
-              
-              </div>
+                <div class="week-time"></div>
               <div class="week-next"> > </div>
+            </div>
+            <div class="btn-container">
+              <button class="calender_cancel_btn">Cancel</button>
+              <button class="calender_confirm_btn">Confirm</button>
             </div>
           </div>
           `;
+          let pageName = app.currentPage;
           let date_time = document.querySelector(".date-time") as HTMLSelectElement;
           let year_time = document.querySelector(".year-time") as HTMLSelectElement;
 					let prev = document.querySelector(".date-prev") as any;
 					let next = document.querySelector(".date-next") as any;
-          let week_prev = document.querySelector(".date-prev") as any;
-					let week_next = document.querySelector(".date-next") as any;
+          let week_prev = document.querySelector(".week-prev") as any;
+					let week_next = document.querySelector(".week-next") as any;
 					let date_day = document.querySelector(".xs-date-day") as any;
-					// 初始
-					let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
+          let week_time = document.querySelector(".week-time") as any;
+          let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
+          let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
+          let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
           let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+          let color_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+					let get_day = require_day.getDay();
           let ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
+          let ws = ['Su','Mo','Tu','We','Th','Fr','Sa'];
           ms.map(e=>date_time.options.add(new Option(e)));
           ((last = 30, next = 10)=>{
             let currentYear = new Date().getFullYear()
@@ -7332,6 +7425,10 @@ const createExtendedDOMResolvers = function (app: App) {
               startYear++
             }
           })();
+          let current_time = date;
+          app.updateRoot(draft => {
+            set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+          })
 					function updateTime() {
 						let year = date.getFullYear(); //当前年份
 						let month = date.getMonth() + 1 + ""; //当前月
@@ -7339,8 +7436,7 @@ const createExtendedDOMResolvers = function (app: App) {
 						let day = date.getDate()+ ""; //当前天 
 						+day < 10 ? day = "0" + day : day;
 						date_day.innerHTML = "";
-            date_time.value = ms[+month-1];
-            year_time.value = year+ "";
+						week_time.innerHTML = "";
             let setDate = new Date(year, +month, 0);
 						let setDay = setDate.getDate(); //这个月天数
             if(calendarView==="month"){
@@ -7372,37 +7468,51 @@ const createExtendedDOMResolvers = function (app: App) {
                 date_day.appendChild(DisDiv);
               }
             }else if(calendarView==="week"){
-              
-              let week_time = document.querySelector(".week-time") as any;
-              // let require_day = date.getDay();  // 星期几
-              
-              // let month_day = date.getDate();  // 几号
               let i = 0;
               let fragment = document.createDocumentFragment();
-              let get_day = require_day.getDay();
               while (i <= 6) {
                 let TimeDiv = document.createElement('div')  as any;
+                let TimeDivWeek = document.createElement('div')  as any;
+                let TimeDivText = document.createElement('div')  as any;
                   let times = new Date(date.getTime()-(24*60*60*1000*(get_day-i)));
-                  let time_stamp = times.getTime()
-                  let time_date_stamp =  require_day.getTime()
-                  if (time_stamp ===time_date_stamp) {
+                  if (times.setHours(0, 0, 0, 0) == color_day.setHours(0, 0, 0, 0)) {
+                    TimeDiv.className = "item-time";
                     TimeDiv.classList.add("active");
-                  }else if(time_stamp<time_date_stamp){
-                    TimeDiv.className = "Disable";
+                  }else if(times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
+                    (pastDayClickAble==true)?TimeDiv.className = "item-time":TimeDiv.className = "Disable";
+                  }else{
+                    (futureDayClickAble==true)?TimeDiv.className = "item-time":TimeDiv.className = "Disable";
                   }
-                  TimeDiv.innerText = times.getDate();
-                  fragment.appendChild(TimeDiv)
+                  TimeDivText.innerText = times.getDate();
+                  TimeDivText.className = `text_day`
+                  TimeDivWeek.innerText = ws[i];
+                  TimeDiv.style.cssText = `
+                    display: flex;
+                    cursor: pointer;
+                    flex-wrap: nowrap;
+                    flex-direction: column;
+                    width: 12%;
+                  `;
+                  TimeDiv.append(TimeDivWeek,TimeDivText)
+                  fragment.append(TimeDiv)
+                  if(i==6){
+                    date_time.value = ms[times.getMonth()];
+                    year_time.value = times.getFullYear()+ "";
+                  }
                   i++;
                 }
                 week_time.appendChild(fragment);
               }
-          
-
 						itemClick(year,month);
 					}
 					updateTime();
           date_time.onchange = (e)=>{
-            date.setMonth(ms.indexOf(date_time.value));
+            if(calendarView==="month"){
+              date.setMonth(ms.indexOf(date_time.value));
+            }else{
+              date = new Date(date.getFullYear(),ms.indexOf(date_time.value),1);
+              get_day = date.getDay();
+            }
 						updateTime();
           }
 					prev.onclick = function() {
@@ -7414,30 +7524,68 @@ const createExtendedDOMResolvers = function (app: App) {
 						updateTime();
 					};
 					year_time.onchange = function() {
-						date.setFullYear(+year_time.value);
+            if(calendarView==="month"){
+              date.setFullYear(+year_time.value);            
+            }else{
+              date = new Date(+year_time.value,date.getMonth(),1);
+              get_day = date.getDay();
+            }
 						updateTime();
 					};
           week_prev.onclick = function() {
-            date = new Date(date.getDate() - date.getDay() - 7)
-						date.setMonth(date.getDate() - date.getDay() - 7);
-						updateTime();
+            date = new Date(date.getTime()-date.getDay() - 7*24*60*60*1000)
+            updateTime();
 					};
 					week_next.onclick = function() {
-						date.setFullYear(+year_time.value);
-						updateTime();
+            date = new Date(date.getTime()+date.getDay() + 7*24*60*60*1000)
+            updateTime();
 					};
+
+          if(showActionButton==true){
+            cancel_btn.onclick = function() {
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onCancelclick")?.execute()
+              })
+            };
+            confirm_btn.onclick = function() {
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,dataType=="Date"?color_day.toLocaleDateString("en-US"):dataType=="timestamp"?color_day.getTime()/1000:"");
+              })
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onSelectclick")?.execute()
+              })
+            };
+          }
 					function itemClick(year,month) {
-						let item_time = document.querySelectorAll(".item-time");
+						let item_time = document.querySelectorAll(`.item-time`);
 						for (let i = 0; i < item_time.length; i++) {
 							(item_time[i] as HTMLElement).onclick = function() {
 								for (let i = 0; i < item_time.length; i++) {
 									(item_time[i] as HTMLElement).classList.remove("active");
 								}
 								(item_time[i] as HTMLElement).classList.add("active");
-                date.setDate(+(item_time[i] as HTMLElement).innerText);
+                if(calendarView==="month"){
+                  date = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
+                  current_time = date
+                }else if(calendarView==="week"){
+                  color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
+                  current_time = color_day;
+                }
+                app.updateRoot(draft => {
+                  set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+                })
+                if(showActionButton==false){
+                  setTimeout(()=>{
+                    // @ts-ignore
+                    component.get("onDateClick")?.execute()
+                  })
+                }
 							}
 						}
 					}
+
       }
 
     },
