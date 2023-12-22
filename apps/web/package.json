@@ -1,7 +1,7 @@
 {
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.7.47",
+    "@aitmed/cadl": "^1.7.48",
     "@aitmed/ecos-lvl2-sdk": "^1.4.259",
     "@atslotus/keypress": "^1.0.6",
     "@emotion/css": "^11.9.0",
