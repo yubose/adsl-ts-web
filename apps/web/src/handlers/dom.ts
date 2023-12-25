@@ -7465,6 +7465,8 @@ const createExtendedDOMResolvers = function (app: App) {
                 DisDiv.className = "Disable";
                 date_day.appendChild(DisDiv);
               }
+              date_time.value = ms[date.getMonth()];
+              year_time.value = date.getFullYear()+ "";
             }else if(calendarView==="week"){
               let i = 0;
               let fragment = document.createDocumentFragment();
@@ -7472,14 +7474,23 @@ const createExtendedDOMResolvers = function (app: App) {
                 let TimeDiv = document.createElement('div')  as any;
                 let TimeDivWeek = document.createElement('div')  as any;
                 let TimeDivText = document.createElement('div')  as any;
-                  let times = new Date(date.getTime()-(24*60*60*1000*(get_day-i)));
+                  let times = new Date(date.getTime());
+                  times.setDate(times.getDate() - get_day + i);
                   if (times.setHours(0, 0, 0, 0) == color_day.setHours(0, 0, 0, 0)) {
                     TimeDiv.className = "item-time";
                     TimeDiv.classList.add("active");
-                  }else if(times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
-                    (pastDayClickAble==true)?TimeDiv.className = "item-time":TimeDiv.className = "Disable";
+                  }else if(pastDayClickAble==true?times.setHours(0, 0, 0, 0)<=require_day.setHours(0, 0, 0, 0):times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
+                    if(pastDayClickAble==true){
+                      TimeDiv.className = "item-time"
+                    }else if(futureDayClickAble==true){
+                      TimeDiv.className = "Disable"
+                    }
                   }else{
-                    (futureDayClickAble==true)?TimeDiv.className = "item-time":TimeDiv.className = "Disable";
+                    if(futureDayClickAble==true){
+                      TimeDiv.className = "item-time"
+                    }else if(pastDayClickAble==true){
+                      TimeDiv.className = "Disable"
+                    }
                   }
                   TimeDivText.innerText = times.getDate();
                   TimeDivText.className = `text_day`
@@ -7531,11 +7542,13 @@ const createExtendedDOMResolvers = function (app: App) {
 						updateTime();
 					};
           week_prev.onclick = function() {
-            date = new Date(date.getTime()-date.getDay() - 7*24*60*60*1000)
+            date.setDate(date.getDate() + date.getDay() - 8);
+            get_day = date.getDay();
             updateTime();
 					};
 					week_next.onclick = function() {
-            date = new Date(date.getTime()+date.getDay() + 7*24*60*60*1000)
+            date.setDate(date.getDate() - date.getDay() + 8 );
+            get_day = date.getDay();
             updateTime();
 					};
 
