@@ -3467,7 +3467,11 @@ const createExtendedDOMResolvers = function (app: App) {
             if(u.isObj(dataValue["name"]["data"])){
               data = dataValue["name"]["data"]
             }else if(u.isStr(dataValue["name"]["data"])){
-              data = JSON.parse(dataValue["name"]["data"])
+              if (dataValue["name"]["data"] === "") {
+                data = {}
+              } else {
+                data = JSON.parse(dataValue["name"]["data"])
+              }
             }
             const url = data["audioUrl"].split('?')[0]
             const title = dataValue["name"]['title']
@@ -3476,7 +3480,7 @@ const createExtendedDOMResolvers = function (app: App) {
             transaction = data['transaction']
             element_audio.src = url
             element_audio.controls = true
-            element_title_text.innerHTML = title?title:'No title'
+            element_title_text.innerHTML = title?title:`${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
             element_middle_box.append(element_audio)
 
           } else if (dataValue["type"] === 540161) {
@@ -3501,18 +3505,17 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               justify-content: center;
             `
-            const data = dataValue["name"]["data"]["transaction"]
+            transaction = dataValue["name"]["data"]["transaction"]
             const title = dataValue["name"]["title"]
             isError = dataValue["tage"]===10
             nonce = dataValue["name"]['nonce']
-            transaction = data['transaction']
             element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
             element_text_img.style.cssText = `
               width: 50%;
               object-fit: cover;
             `
-            element_text_text.innerHTML = data;
-            element_title_text.innerHTML = title?title:'No title'
+            element_text_text.innerHTML = transaction;
+            element_title_text.innerHTML = title?title:`${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
             element_text_img_box.append(element_text_img)
             element_middle_box.append(element_text_img_box)
             element_middle_box.append(element_text_text)
@@ -3536,12 +3539,14 @@ const createExtendedDOMResolvers = function (app: App) {
           element_btn.style.cssText = `
             margin-left: 10%;
             width: 70%;
+            height: 32px;
             border: 1px solid #30b354;
             border-radius: 20px;
-            padding: 10px;
+            padding: 5%;
             color: #30b354;
             font-size: 13px;
             font-weight: 600;
+            overflow: hidden;
           `
           element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
           element_img.style.cssText = `
