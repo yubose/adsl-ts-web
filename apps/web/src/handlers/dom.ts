@@ -7165,36 +7165,25 @@ const createExtendedDOMResolvers = function (app: App) {
         const defaultDate =
           component.get('defaultDate') || component.blueprint?.defaultDate || '';
         const pastDayClickAble =
-          component.get('pastDayClickAble') || component.blueprint?.pastDayClickAble || '';
+          component.get('pastDayClickAble') ?? component.blueprint?.pastDayClickAble ?? true;
         const futureDayClickAble =
-          component.get('futureDayClickAble') || component.blueprint?.futureDayClickAble || '';
+          component.get('futureDayClickAble')  ?? component.blueprint?.futureDayClickAble  ?? true;
         const showActionButton =
           component.get('showActionButton') || component.blueprint?.showActionButton || '';
         const dataKey =
           component.get('dataKey') || component.blueprint?.dataKey || '';
         const dataType =
           component.get('dataType') || component.blueprint?.dataType || '';
-        const colorStyle =
-          component.get('colorStyle') || component.blueprint?.colorStyle || '';
+        const calendarStyle =
+          component.get('calendarStyle') || component.blueprint?.calendarStyle || '';
           // const newTop = app.nui?.getSize?.(`50vw`,'height')
           let styleSheet = document.createElement('style');
           styleSheet.innerText = `
           :root {
-            --color-width: ${colorStyle.width};
+            --calendar-width: calc(${node.style.width} - ${node.style.paddingLeft} - ${node.style.paddingRight});
             --border-width: clamp(30px,12%,60px);
           }
           @scope (#${node.id}){
-            .xs-date {
-              color: #606266;
-              box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
-              background: ${colorStyle.back_color};
-              border-radius: 4px;
-              line-height: 30px;
-              width: var(--color-width);
-              min-width: 350px;
-              height: auto;
-              padding: 2vw;
-            }
             .xs-date-title {
               display: flex;
               justify-content: space-between;
@@ -7224,30 +7213,33 @@ const createExtendedDOMResolvers = function (app: App) {
               width: 100%;
               display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
               justify-content: center;
-              margin-top: 15px;
+              margin: 15px 0;
+              font-weight: 600;
               padding-bottom: 5px;
               border-bottom: 1px solid #e4e7ed;
             }
             .xs-date-week div {
               list-style: none;
-              width: calc(var(--color-width) /7);
+              width: calc(var(--calendar-width)/7);
               text-align: center;
               color: #606266;
-              min-width: 50px;
+              // min-width: 50px;
               font-size: 14px;
             }
             .xs-date-day {
               width: 100%;
               display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
               flex-wrap: wrap;
+              justify-content: center;
               align-items: center;
-              margin-top: 15px;
+              // margin-top: 15px;
               
             }
             .xs-date-day-week {
               width: 100%;
               display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
               flex-wrap: wrap;
+              // height: %;
               align-items: center;
               justify-content: space-between;
               margin-top: 15px;
@@ -7259,24 +7251,27 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 60px;
               align-items: center;
               justify-content: space-between;
-            }
+              ${Object.keys(calendarStyle.buttonContainerStyle).map(k=>`${k}: ${calendarStyle.buttonContainerStyle[k]};\n`).join("")}
+          }
             .calender_cancel_btn{
-              width: 40%;
+              width: 45%;
               border: none;
               background-color: rgb(193, 193, 193);
               border-color: rgb(193, 193, 193);
-              height: 60%;
+              height: 55%;
               color: #fff;
               border-radius: 4px;
+              ${Object.keys(calendarStyle.cancelStyle).map(k=>`${k}: ${calendarStyle.cancelStyle[k]};\n`).join("")}
             }
             .calender_confirm_btn{
-              width: 40%;
+              width: 45%;
               background-color: rgb(41, 136, 230);
               border: none;
               border-color: rgb(193, 193, 193);
               color: #fff;
               border-radius: 4px;
-              height: 60%;
+              height: 55%;
+              ${Object.keys(calendarStyle.confirmStyle).map(k=>`${k}: ${calendarStyle.confirmStyle[k]};\n`).join("")}
             }
             .week-time {
               display: flex;
@@ -7285,32 +7280,27 @@ const createExtendedDOMResolvers = function (app: App) {
               justify-content: space-between;
               align-items: center;
             }
+            .week-time>div{
+              padding: 5px 0;
+            }
             .week-next{
-              width: 4vw;
-              height: 4vw;
+              width: clamp(25px,2vh,25px);
+              height: clamp(25px,2vh,25px);
               box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
               background: #fff;
               border-radius: 50%;    
               cursor: pointer;
               display: flex;
-              max-width: 40px;
-              max-height: 40px;
-              min-width: 25px;
-              min-height: 25px;
               font-weight: 800;
               justify-content: center;
               align-items: center;
 
             }
             .week-prev{
-              width: 4vw;
-              height: 4vw;    
+              width: clamp(30px,2vh,30px);
+              height: clamp(30px,2vh,30px);
               display: flex;
               font-weight: 800;
-              max-width: 40px;
-              max-height: 40px;
-              min-width: 25px;
-              min-height: 25px;
               justify-content: center;
               align-items: center;
               box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
@@ -7319,16 +7309,13 @@ const createExtendedDOMResolvers = function (app: App) {
               border-radius: 50%;
             }
             .xs-date-day div {
-              width: calc(var(--color-width) /7);
-              height: calc(var(--color-width) /7);
-              min-width: 50px;
-              min-height: 50px;
+              width: calc(var(--calendar-width) /7);
+              height: calc(var(--calendar-width) /7);
               text-align: center;
               color: #606266;
               font-size: 14px;
               cursor: pointer;
             }
-      
             .date-prev:hover,
             .date-next:hover,
             .xs-date-day div:hover {
@@ -7336,8 +7323,9 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .active {
               color: #fff !important;
-              background: #007ee5;
               border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
+              background: ${calendarStyle.selectStyle.background||"#007ee5"};
+              color: ${calendarStyle.selectStyle.color||"#fff"};
             }
             .Disable {
               color: #c0c4cc !important;
@@ -7345,21 +7333,19 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .date-time{
               border-radius: 4px;
-              width: 10vw;
+              width: clamp(80px,20%,100px);
               height: 30px;              
-              min-width: 50px;
               flex-grow: unset;
               border: 1px solid rgb(222, 222, 223);
-              background-color: rgb(255, 255, 255);
+              background-color: ${node.style.backgroundColor};
             }
             .year-time{
               border-radius: 4px;
-              width: 15vw;
-              min-width: 50px;
+              width: clamp(80px,20%,100px);
               height: 30px;
               flex-grow: unset;
               border: 1px solid rgb(222, 222, 223);
-              background-color: rgb(255, 255, 255);
+              background-color: ${node.style.backgroundColor};
             }
             .month-container{
               display: flex;
@@ -7371,7 +7357,6 @@ const createExtendedDOMResolvers = function (app: App) {
           `;
           document.head.appendChild(styleSheet);
           node.innerHTML = `
-          <div class="xs-date">
             <div class="xs-date-title">
               <div class="month-container">
                 <div class="date-prev"> < </div>
@@ -7400,7 +7385,6 @@ const createExtendedDOMResolvers = function (app: App) {
               <button class="calender_cancel_btn">Cancel</button>
               <button class="calender_confirm_btn">Confirm</button>
             </div>
-          </div>
           `;
           let pageName = app.currentPage;
           let date_time = document.querySelector(".date-time") as HTMLSelectElement;
@@ -7446,6 +7430,7 @@ const createExtendedDOMResolvers = function (app: App) {
               //渲染头部
               let setWeek = new Date(year, +month - 1, 1).getDay(); //上个月星期几
               let setDayEM = new Date(year, +month - 1, 0).getDate(); //上个月天数
+              let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
 						  setWeek <= 0 ? setWeek = 7 : setWeek;
               for (let i = (setDayEM - setWeek) + 1; i <= setDayEM; i++) {
                 let EmptyDiv = document.createElement('div')  as any;
@@ -7464,7 +7449,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 date_day.appendChild(TimeDiv);
               }
               // 渲染尾部
-              for (let i = 1; i <= (42 - setWeek - setDay); i++) {
+              console.log(setWeek,setDay)
+              // for (let i = 1; i <= (42 - setWeek - setDay); i++) {
+              for (let i = 1; i <= (6- current_month_date); i++) {
                 let DisDiv = document.createElement('div')  as any;
                 DisDiv.innerText = i;
                 DisDiv.className = "Disable";
@@ -7484,16 +7471,18 @@ const createExtendedDOMResolvers = function (app: App) {
                   if (times.setHours(0, 0, 0, 0) == color_day.setHours(0, 0, 0, 0)) {
                     TimeDiv.className = "item-time";
                     TimeDiv.classList.add("active");
-                  }else if(pastDayClickAble==true?times.setHours(0, 0, 0, 0)<=require_day.setHours(0, 0, 0, 0):times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
+                  }else if(times.setHours(0, 0, 0, 0)==require_day.setHours(0, 0, 0, 0)){
+                      TimeDiv.className = "item-time"
+                  }else if(times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
                     if(pastDayClickAble==true){
                       TimeDiv.className = "item-time"
-                    }else if(futureDayClickAble==true){
+                    }else if(pastDayClickAble==false){
                       TimeDiv.className = "Disable"
                     }
-                  }else{
+                  }else {
                     if(futureDayClickAble==true){
                       TimeDiv.className = "item-time"
-                    }else if(pastDayClickAble==true){
+                    }else if(futureDayClickAble==false){
                       TimeDiv.className = "Disable"
                     }
                   }
@@ -7507,6 +7496,11 @@ const createExtendedDOMResolvers = function (app: App) {
                     flex-direction: column;
                     width: 12%;
                   `;
+                  TimeDivWeek.style.cssText = `
+                    font-weight: 600;
+                    font-size: 14px;
+                  
+                  `
                   TimeDiv.append(TimeDivWeek,TimeDivText)
                   fragment.append(TimeDiv)
                   if(i==6){
@@ -7561,7 +7555,7 @@ const createExtendedDOMResolvers = function (app: App) {
             cancel_btn.onclick = function() {
               setTimeout(()=>{
                 // @ts-ignore
-                component.get("onCancelclick")?.execute()
+                component.get("onCancelClick")?.execute()
               })
             };
             confirm_btn.onclick = function() {
@@ -7570,7 +7564,7 @@ const createExtendedDOMResolvers = function (app: App) {
               })
               setTimeout(()=>{
                 // @ts-ignore
-                component.get("onSelectclick")?.execute()
+                component.get("onSelectClick")?.execute()
               })
             };
           }
