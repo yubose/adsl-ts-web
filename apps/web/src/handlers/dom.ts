@@ -7333,7 +7333,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .date-time{
               border-radius: 4px;
-              width: clamp(80px,20%,100px);
+              width: clamp(60px,20%,100px);
               height: 30px;              
               flex-grow: unset;
               border: 1px solid rgb(222, 222, 223);
@@ -7341,7 +7341,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .year-time{
               border-radius: 4px;
-              width: clamp(80px,20%,100px);
+              width: clamp(60px,20%,100px);
               height: 30px;
               flex-grow: unset;
               border: 1px solid rgb(222, 222, 223);
@@ -7517,10 +7517,17 @@ const createExtendedDOMResolvers = function (app: App) {
           date_time.onchange = (e)=>{
             if(calendarView==="month"){
               date.setMonth(ms.indexOf(date_time.value));
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+              })
             }else{
               date = new Date(date.getFullYear(),ms.indexOf(date_time.value),1);
               get_day = date.getDay();
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,dataType=="Date"?date.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?date.getTime()/1000:"");
+              })
             }
+            
 						updateTime();
           }
 					prev.onclick = function() {
@@ -7533,10 +7540,16 @@ const createExtendedDOMResolvers = function (app: App) {
 					};
 					year_time.onchange = function() {
             if(calendarView==="month"){
-              date.setFullYear(+year_time.value);            
+              date.setFullYear(+year_time.value);    
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+              })  
             }else{
               date = new Date(+year_time.value,date.getMonth(),1);
               get_day = date.getDay();
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,dataType=="Date"?date.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?date.getTime()/1000:"");
+              })
             }
 						updateTime();
 					};
