@@ -7532,10 +7532,16 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 					prev.onclick = function() {
 						date.setMonth(date.getMonth() - 1);
+            app.updateRoot(draft => {
+              set(draft?.[pageName], dataKey,dataType=="Date"?date.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?date.getTime()/1000:"");
+            })
 						updateTime();
 					};
 					next.onclick = function() {
 						date.setMonth(date.getMonth() + 1);
+            app.updateRoot(draft => {
+              set(draft?.[pageName], dataKey,dataType=="Date"?date.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?date.getTime()/1000:"");
+            })
 						updateTime();
 					};
 					year_time.onchange = function() {
@@ -7556,11 +7562,17 @@ const createExtendedDOMResolvers = function (app: App) {
           week_prev.onclick = function() {
             date.setDate(date.getDate() + date.getDay() - 8);
             get_day = date.getDay();
+            app.updateRoot(draft => {
+              set(draft?.[pageName], dataKey,dataType=="Date"?date.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?date.getTime()/1000:"");
+            })
             updateTime();
 					};
 					week_next.onclick = function() {
             date.setDate(date.getDate() - date.getDay() + 8 );
             get_day = date.getDay();
+            app.updateRoot(draft => {
+              set(draft?.[pageName], dataKey,dataType=="Date"?date.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?date.getTime()/1000:"");
+            })
             updateTime();
 					};
 
