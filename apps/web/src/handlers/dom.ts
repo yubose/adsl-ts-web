@@ -3615,6 +3615,7 @@ const createExtendedDOMResolvers = function (app: App) {
               display: flex;
               align-items: center;
               font-size: 14px;
+              padding-left: 11px;
               color: #FB5051;
             `
             node.append(element_error_message)
