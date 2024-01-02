@@ -7251,7 +7251,7 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 60px;
               align-items: center;
               justify-content: space-between;
-              ${Object.keys(calendarStyle.buttonContainerStyle).map(k=>`${k}: ${calendarStyle.buttonContainerStyle[k]};\n`).join("")}
+              ${Object.keys(calendarStyle.buttonContainerStyle||{}).map(k=>`${k}: ${calendarStyle.buttonContainerStyle[k]};\n`).join("")}
           }
             .calender_cancel_btn{
               width: 45%;
@@ -7261,7 +7261,7 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 55%;
               color: #fff;
               border-radius: 4px;
-              ${Object.keys(calendarStyle.cancelStyle).map(k=>`${k}: ${calendarStyle.cancelStyle[k]};\n`).join("")}
+              ${Object.keys(calendarStyle?.cancelStyle||{}).map(k=>`${k}: ${calendarStyle?.cancelStyle[k]};\n`).join("")}
             }
             .calender_confirm_btn{
               width: 45%;
@@ -7271,7 +7271,7 @@ const createExtendedDOMResolvers = function (app: App) {
               color: #fff;
               border-radius: 4px;
               height: 55%;
-              ${Object.keys(calendarStyle.confirmStyle).map(k=>`${k}: ${calendarStyle.confirmStyle[k]};\n`).join("")}
+              ${Object.keys(calendarStyle?.confirmStyle||{}).map(k=>`${k}: ${calendarStyle?.confirmStyle[k]};\n`).join("")}
             }
             .week-time {
               display: flex;
@@ -7324,8 +7324,8 @@ const createExtendedDOMResolvers = function (app: App) {
             .active {
               color: #fff !important;
               border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
-              background: ${calendarStyle.selectStyle.background||"#007ee5"};
-              color: ${calendarStyle.selectStyle.color||"#fff"};
+              background: ${calendarStyle?.selectStyle?.background||"#007ee5"};
+              color: ${calendarStyle?.selectStyle?.color||"#fff"};
             }
             .Disable {
               color: #c0c4cc !important;
