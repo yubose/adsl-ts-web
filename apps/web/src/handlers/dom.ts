@@ -1816,20 +1816,34 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     }
                     function getEventTimeWeek() {
-                      let getMonth = titleTime.textContent?.split(
-                        ' ',
+                      let getMonth,getDay,getYear;
+                      getMonth = titleTime.textContent?.split(
+                        ' '
                       )[0] as string
-                      let getDay = titleTime.textContent
-                        ?.split('-')[0]
-                        ?.split(' ')[1] as string
-                      let getYear = titleTime.textContent?.split(
-                        ',',
-                      )[1] as string
+                      if(/.*,.*,/.test(titleTime?.textContent as string)){
+                        getDay = titleTime.textContent
+                          ?.split('–')[0]
+                          ?.split(',')[0]
+                          ?.split(' ')[1] as string
+                        getYear = titleTime.textContent
+                        ?.split('–')[0] 
+                        ?.split(',')[1] as string
+                        console.log(getMonth,"sss",getDay,"ssss",getYear,"sss",titleTime.textContent
+                        ?.split('–')[0] )
+                      }else{
+                        getDay = titleTime.textContent
+                          ?.split('–')[0]
+                          ?.split(' ')[1] as string
+                        getYear = titleTime.textContent?.split(
+                          ','
+                        )[1] as string
+                      }
                       let getTimeNow = new Date(
                         +getYear,
                         +abbMonths.indexOf(getMonth),
                         +getDay,
                       ).getTime()
+
                       dataValue.start = getTimeNow / 1000
                       dataValue.end = getTimeNow / 1000 + 604800
                       if (!dataValue.currentDate) {
