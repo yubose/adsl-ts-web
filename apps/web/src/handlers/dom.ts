@@ -761,7 +761,6 @@ const createExtendedDOMResolvers = function (app: App) {
 
                       setting = settingWeek as any
                     }
-                    console.log(settingWeek.series)
                     //@ts-expect-error
 
                     setting.yAxis.max =
@@ -5146,7 +5145,6 @@ const createExtendedDOMResolvers = function (app: App) {
               // editor.insertText(`-editing-@[]-editing-`)
               // searchPopUp(editor)
             }
-            // console.log(editor.selection)
           }
         })
 
@@ -6043,9 +6041,6 @@ const createExtendedDOMResolvers = function (app: App) {
                     let data = new FormData();
                     
                     data.append("audio", v, "123.mp3");
-                    // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getltem('user_vid'),"mmmmmmmmm")
-                    // data.append("appointmentid",app.root.Global?.["roomInfo"]?.["edge"]?.["id"]);
-                    // data.append("providerld", localStorage.getltem('user_vid'));
                     size_ws&&data.append("code", `${rand}-${i+1}`);
                     xhr.send(data);
                 })
@@ -6056,13 +6051,18 @@ const createExtendedDOMResolvers = function (app: App) {
                   xhr.withCredentials = true;
                   xhr.addEventListener("readystatechange", function () {
                     if (this.readyState === 4) {
+                      this.status
                       try{
                         res(JSON.parse(this.response))
                       }catch(e){
                         console.error(`Unable to parse returned data`)
                       }
                     }else{
-                      new Error("request Failed")
+                      if(this.status==502){
+                        rej("errorcode502")
+                      }else{
+                        new Error("request Failed")
+                      }
                     }
                   });
                     xhr.open("POST",`${baseUrl}/success/`);
@@ -6080,9 +6080,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
               }
               const text = await Promise.all(chunks_map);
-
-              console.log()
-
               let val = size_ws?(await _upload_respose())?.text:text[0]?.text
              app.updateRoot(draft => {
               set(draft?.[pageName], dataKey, val);
@@ -6858,16 +6855,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     audio_url =  `${baseUrl}/smallUpload/`
                   }
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
-                  console.log('test00',chunks)
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
                       setTimeout(()=>{
                         const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
                         // unsubscribe.aud = controller;
-                        console.log(unsubscribe,99999)
                         if(unsubscribe) {
                           unsubscribe.addEventListener("click",(e)=>{
-                            console.log(888888)
                               xhr.abort()
                             })
                         }
@@ -6903,10 +6897,8 @@ const createExtendedDOMResolvers = function (app: App) {
                       setTimeout(()=>{
                         const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
                         // unsubscribe.aud = controller;
-                        console.log(unsubscribe,99999)
                         if(unsubscribe) {
                           unsubscribe.addEventListener("click",(e)=>{
-                            console.log(888888)
                               xhr.abort()
                             })
                         }
@@ -6921,7 +6913,11 @@ const createExtendedDOMResolvers = function (app: App) {
                             console.error(`Unable to parse returned data`)
                           }
                         }else{
-                          new Error("request Failed")
+                          if(this.status==502){
+                            rej("errorcode502")
+                          }else{
+                            new Error("request Failed")
+                          }
                         }
                       });
                         xhr.open("POST",`${baseUrl}/success/`);
@@ -7429,7 +7425,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })();
           app.updateRoot(draft => {
-            set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+            set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
           })
 					function updateTime() {
 						let year = date.getFullYear(); //当前年份
@@ -7573,7 +7569,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
             confirm_btn.onclick = function() {
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleDateString("en-US"):dataType=="timestamp"?color_day.getTime()/1000:"");
+                set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleDateString("en-US"):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
               })
               setTimeout(()=>{
                 // @ts-ignore
@@ -7594,14 +7590,14 @@ const createExtendedDOMResolvers = function (app: App) {
                   current_time = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
                   if(showActionButton==false){
                     app.updateRoot(draft => {
-                      set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+                      set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                     })
                   }
                 }else if(calendarView==="week"){
                   color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
                   current_time = color_day;
                   app.updateRoot(draft => {
-                    set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType=="timestamp"?current_time.getTime()/1000:"");
+                    set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                   })
                 }
                   setTimeout(()=>{
