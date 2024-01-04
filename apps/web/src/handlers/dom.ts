@@ -7428,7 +7428,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })();
           app.updateRoot(draft => {
-            set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+            set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
           })
 					function updateTime() {
 						let year = date.getFullYear(); //当前年份
@@ -7587,7 +7587,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
             confirm_btn.onclick = function() {
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleDateString("en-US"):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
+                set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleDateString("en-US"):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
               })
               setTimeout(()=>{
                 // @ts-ignore
@@ -7608,14 +7608,14 @@ const createExtendedDOMResolvers = function (app: App) {
                   current_time = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
                   if(showActionButton==false){
                     app.updateRoot(draft => {
-                      set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+                      set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                     })
                   }
                 }else if(calendarView==="week"){
                   color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
                   current_time = color_day;
                   app.updateRoot(draft => {
-                    set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+                    set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                   })
                 }
                   setTimeout(()=>{
