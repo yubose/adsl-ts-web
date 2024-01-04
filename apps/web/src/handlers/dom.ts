@@ -7205,6 +7205,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .Disable, .item-time{
               display: flex;
+              user-select: none;
               justify-content: center;
               font-size: 17px;
               font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -7214,10 +7215,12 @@ const createExtendedDOMResolvers = function (app: App) {
               font-weight: bold;
               width: 10%;
               font-family: cursive;
+              user-select: none;
             }
             .date-next {
               width: 10%;
               font-weight: bold;
+              user-select: none;
               font-family: cursive;
             }
             .xs-date-week {
@@ -7334,13 +7337,13 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .active {
               color: #fff !important;
+              user-select: none;
               border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
               background: ${calendarStyle?.selectStyle?.background||"#007ee5"};
               color: ${calendarStyle?.selectStyle?.color||"#fff"};
             }
             .Disable {
               color: #c0c4cc !important;
-              // visibility: hidden;
             }
             .date-time{
               border-radius: 4px;
@@ -7441,7 +7444,7 @@ const createExtendedDOMResolvers = function (app: App) {
               //渲染头部
               let setWeek = new Date(year, +month - 1, 1).getDay(); //上个月星期几
               let setDayEM = new Date(year, +month - 1, 0).getDate(); //上个月天数
-              let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
+              // let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
 						  setWeek <= 0 ? setWeek = 7 : setWeek;
               for (let i = (setDayEM - setWeek) + 1; i <= setDayEM; i++) {
                 let EmptyDiv = document.createElement('div')  as any;
@@ -7454,6 +7457,21 @@ const createExtendedDOMResolvers = function (app: App) {
                 let TimeDiv = document.createElement('div')  as any;
                 TimeDiv.innerText = i;
                 TimeDiv.className = "item-time";
+
+                // console.log(date,"kkkk")
+                if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)<require_day.setHours(0, 0, 0, 0)){
+                  if(pastDayClickAble==true){
+                    TimeDiv.className = "item-time"
+                  }else if(pastDayClickAble==false){
+                    TimeDiv.className = "Disable"
+                  }
+                }else if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)>require_day.setHours(0, 0, 0, 0)){
+                  if(futureDayClickAble==true){
+                    TimeDiv.className = "item-time"
+                  }else if(futureDayClickAble==false){
+                    TimeDiv.className = "Disable"
+                  }
+                }
                 if (current_time.toDateString()==date.toDateString()&&i == +day) {
                   TimeDiv.classList.add("active");
                 }
