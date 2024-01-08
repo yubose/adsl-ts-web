@@ -7380,13 +7380,13 @@ const createExtendedDOMResolvers = function (app: App) {
               <select class="year-time"></select>
             </div>
             <div class="xs-date-week">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
+              <div>Su</div>
+              <div>Mo</div>
+              <div>Tu</div>
+              <div>We</div>
+              <div>Th</div>
+              <div>Fr</div>
+              <div>Sa</div>
             </div>
             <div class="xs-date-day" >
             </div>
