@@ -7380,13 +7380,13 @@ const createExtendedDOMResolvers = function (app: App) {
               <select class="year-time"></select>
             </div>
             <div class="xs-date-week">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
+              <div>Su</div>
+              <div>Mo</div>
+              <div>Tu</div>
+              <div>We</div>
+              <div>Th</div>
+              <div>Fr</div>
+              <div>Sa</div>
             </div>
             <div class="xs-date-day" >
             </div>
@@ -7419,7 +7419,7 @@ const createExtendedDOMResolvers = function (app: App) {
           let ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
           let ws = ['Su','Mo','Tu','We','Th','Fr','Sa'];
           ms.map(e=>date_time.options.add(new Option(e)));
-          ((last = 30, next = 10)=>{
+          ((last = 121, next = 10)=>{
             let currentYear = new Date().getFullYear()
             let startYear:number = currentYear - last
             for (let i = 0; i < last + next; i++) {
