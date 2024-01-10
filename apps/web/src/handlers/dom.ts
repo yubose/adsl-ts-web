@@ -7295,7 +7295,7 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
             }
             .week-time>div{
-              padding: 5px 0;
+              padding: 6px 0;
             }
             .week-next{
               width: clamp(25px,2vh,25px);
@@ -7339,7 +7339,7 @@ const createExtendedDOMResolvers = function (app: App) {
               color: #fff !important;
               user-select: none;
               border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
-              background: ${calendarStyle?.selectStyle?.background||"#007ee5"};
+              background: ${calendarStyle?.selectStyle?.background||"linear-gradient(180deg, #629efe, #2988e6)"};
               color: ${calendarStyle?.selectStyle?.color||"#fff"};
             }
             .Disable {
@@ -7522,11 +7522,12 @@ const createExtendedDOMResolvers = function (app: App) {
                     cursor: pointer;
                     flex-wrap: nowrap;
                     flex-direction: column;
-                    width: 12%;
+                    width: 11%;
                   `;
                   TimeDivWeek.style.cssText = `
                     font-weight: 600;
                     font-size: 14px;
+                    margin-bottom: 5px;
                   `
                   TimeDiv.append(TimeDivWeek,TimeDivText)
                   fragment.append(TimeDiv)
