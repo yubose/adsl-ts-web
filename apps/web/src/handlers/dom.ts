@@ -6841,7 +6841,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
-                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl;
                   let audio_url = `${baseUrl}/upload/`;
                   if(size_ws){
                     for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
@@ -6854,6 +6854,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     chunks.push(blobFile)
                     audio_url =  `${baseUrl}/smallUpload/`
                   }
+                  // 处理 生成ai report的文件
+                  const aiReq = app.root.AiVoice.formData.postBody
+                  aiReq['notification']['platform'] = 'web'
+                  aiReq['notification']['token'] = JSON.parse(localStorage.getItem('Global') || '{}')['firebaseToken']
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
@@ -6885,9 +6889,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
+                        data.append("aiRequestBody", aiReq);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
-                        
                     })
                   
                   )
@@ -6931,6 +6935,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
                         }
                         data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("aiRequestBody", aiReq);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         // const controller = new AbortController();
                         xhr.send(data);
