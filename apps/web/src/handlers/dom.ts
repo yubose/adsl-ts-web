@@ -7179,7 +7179,8 @@ const createExtendedDOMResolvers = function (app: App) {
         const calendarView =
           component.get('calendarView') || component.blueprint?.calendarView || '';
         const defaultDate =
-          component.get('defaultDate') || component.blueprint?.defaultDate || '';
+          component.get('default-date') || component.blueprint?.defaultDate || '';
+          
         const pastDayClickAble =
           component.get('pastDayClickAble') ?? component.blueprint?.pastDayClickAble ?? true;
         const futureDayClickAble =
@@ -7429,8 +7430,8 @@ const createExtendedDOMResolvers = function (app: App) {
           let year_time = document.createElement('select');
           year_time.className = 'year-time';
 
-          div1.appendChild(div2);
-          div1.appendChild(year_time);
+          div1.append(div2,year_time);
+          // div1.appendChild(year_time);
 
           let div5 = document.createElement('div');
           div5.className = 'xs-date-week';
@@ -7495,7 +7496,6 @@ const createExtendedDOMResolvers = function (app: App) {
           // let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
           // let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
           let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
-          // console.log(defaultDate,date,"kkkkkkk")
           let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
           let color_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
           let current_time = new Date(date.getFullYear(),date.getMonth(),date.getDate());
@@ -7513,6 +7513,7 @@ const createExtendedDOMResolvers = function (app: App) {
           })();
           app.updateRoot(draft => {
             set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+            node.firstChild.nodeValue&&(node.firstChild.nodeValue = ``)
           })
 					function updateTime() {
 						let year = date.getFullYear(); //当前年份
@@ -7534,7 +7535,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 let EmptyDiv = document.createElement('div')  as any;
                 EmptyDiv.innerText = i;
                 EmptyDiv.className = "Disable";
-                // console.log(date_day)
                 date_day.appendChild(EmptyDiv);
               }
               // 渲染日期
@@ -7542,8 +7542,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 let TimeDiv = document.createElement('div')  as any;
                 TimeDiv.innerText = i;
                 TimeDiv.className = "item-time";
-
-                // console.log(date,"kkkk")
                 if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)<require_day.setHours(0, 0, 0, 0)){
                   if(pastDayClickAble==true){
                     TimeDiv.className = "item-time"
