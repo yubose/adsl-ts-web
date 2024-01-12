@@ -7512,7 +7512,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })();
           app.updateRoot(draft => {
-            set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+            // set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
             node.firstChild.nodeValue&&(node.firstChild.nodeValue = ``)
           })
 					function updateTime() {
@@ -7671,7 +7671,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
             confirm_btn.onclick = function() {
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleDateString("en-US"):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
+                set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
               })
               setTimeout(()=>{
                 // @ts-ignore
@@ -7694,6 +7694,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     app.updateRoot(draft => {
                       set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                     })
+                    console.log()
                   }
                 }else if(calendarView==="week"){
                   color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
@@ -7710,9 +7711,29 @@ const createExtendedDOMResolvers = function (app: App) {
 						}
 					}
 
-      }
+      },
+      
 
     },
+    '[App] scheduleSlot': {
+      cond: 'scheduleSlot',
+      resolve({ node, component }) {
+        // const providerId =
+        //   component.get('providerId') || component.blueprint?.providerId || '';
+        // const facilityId =
+        //   component.get('facilityId') || component.blueprint?.facilityId || '';
+          
+        // const locationId =
+        //   component.get('locationId') || component.blueprint?.locationId || {};
+        const timeSlot =
+          component.get('data-timeSlot')  || component.blueprint?.timeSlot  || {};
+          const dataKey =
+            component.get('data-value') || component.blueprint?.dataKey || {};
+
+          console.log(dataKey,timeSlot,"kkkkkk")
+      },
+    }
+    
   }
 
   return u
