@@ -6855,9 +6855,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     audio_url =  `${baseUrl}/smallUpload/`
                   }
                   // 处理 生成ai report的文件
-                  const aiReq = app.root.AiVoice.formData.postBody
-                  aiReq['notification']['platform'] = 'web'
-                  aiReq['notification']['token'] = JSON.parse(localStorage.getItem('Global') || '{}')['firebaseToken']
+                  let aiReqBody = app.root.AiVoice.formData.postBody
+                  aiReqBody['notification']['platform'] = 'web'
+                  aiReqBody['notification']['token'] = JSON.parse(localStorage.getItem('Global') || '{}')['firebaseToken']
+                  let aiReq = JSON.stringify(aiReqBody)
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
@@ -6889,7 +6890,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
-                        data.append("aiRequestBody", aiReq);
+                        data.append("aiReq", aiReq);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
                     })
@@ -6935,7 +6936,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
                         }
                         data.append("providerId", localStorage.getItem('user_vid') as string);
-                        data.append("aiRequestBody", aiReq);
+                        data.append("aiReq", aiReq);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         // const controller = new AbortController();
                         xhr.send(data);
