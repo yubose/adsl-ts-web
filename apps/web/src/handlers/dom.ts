@@ -7180,7 +7180,8 @@ const createExtendedDOMResolvers = function (app: App) {
         const calendarView =
           component.get('calendarView') || component.blueprint?.calendarView || '';
         const defaultDate =
-          component.get('defaultDate') || component.blueprint?.defaultDate || '';
+          component.get('default-date') || component.blueprint?.defaultDate || '';
+          
         const pastDayClickAble =
           component.get('pastDayClickAble') ?? component.blueprint?.pastDayClickAble ?? true;
         const futureDayClickAble =
@@ -7376,47 +7377,125 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           `;
           document.head.appendChild(styleSheet);
-          node.innerHTML = `
-            <div class="xs-date-title">
-              <div class="month-container">
-                <div class="date-prev"> < </div>
-                <select class="date-time"></select>
-                <div class="date-next"> > </div>
-              </div>
-              <select class="year-time"></select>
-            </div>
-            <div class="xs-date-week">
-              <div>Su</div>
-              <div>Mo</div>
-              <div>Tu</div>
-              <div>We</div>
-              <div>Th</div>
-              <div>Fr</div>
-              <div>Sa</div>
-            </div>
-            <div class="xs-date-day" >
-            </div>
-            <div class="xs-date-day-week">
-              <div class="week-prev"> < </div>
-                <div class="week-time"></div>
-              <div class="week-next"> > </div>
-            </div>
-            <div class="btn-container">
-              <button class="calender_cancel_btn">Cancel</button>
-              <button class="calender_confirm_btn">Confirm</button>
-            </div>
-          `;
+          // node.innerHTML = `
+          //   <div class="xs-date-title">
+          //     <div class="month-container">
+          //       <div class="date-prev"> < </div>
+          //       <select class="date-time"></select>
+          //       <div class="date-next"> > </div>
+          //     </div>
+          //     <select class="year-time"></select>
+          //   </div>
+          //   <div class="xs-date-week">
+          //     <div>Su</div>
+          //     <div>Mo</div>
+          //     <div>Tu</div>
+          //     <div>We</div>
+          //     <div>Th</div>
+          //     <div>Fr</div>
+          //     <div>Sa</div>
+          //   </div>
+          //   <div class="xs-date-day" >
+          //   </div>
+          //   <div class="xs-date-day-week">
+          //     <div class="week-prev"> < </div>
+          //       <div class="week-time"></div>
+          //     <div class="week-next"> > </div>
+          //   </div>
+          //   <div class="btn-container">
+          //     <button class="calender_cancel_btn">Cancel</button>
+          //     <button class="calender_confirm_btn">Confirm</button>
+          //   </div>
+          // `;
+          let div1 = document.createElement('div');
+          div1.className = 'xs-date-title';
+
+          let div2 = document.createElement('div');
+          div2.className = 'month-container';
+
+          let prev = document.createElement('div');
+          prev.className = 'date-prev';
+          prev.textContent = ' < ';
+
+          let date_time = document.createElement('select');
+          date_time.className = 'date-time';
+
+          let next = document.createElement('div');
+          next.className = 'date-next';
+          next.textContent = ' > ';
+
+          div2.append(prev,date_time,next);
+          // div2.appendChild(select1);
+          // div2.appendChild(div4);
+
+          let year_time = document.createElement('select');
+          year_time.className = 'year-time';
+
+          div1.append(div2,year_time);
+          // div1.appendChild(year_time);
+
+          let div5 = document.createElement('div');
+          div5.className = 'xs-date-week';
+
+          let days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+          for (let i = 0; i < days.length; i++) {
+            let div = document.createElement('div');
+            div.textContent = days[i];
+            div5.appendChild(div);
+          }
+
+          let date_day = document.createElement('div');
+          date_day.className = 'xs-date-day';
+
+          let div7 = document.createElement('div');
+          div7.className = 'xs-date-day-week';
+
+          let week_prev = document.createElement('div');
+          week_prev.className = 'week-prev';
+          week_prev.textContent = ' < ';
+
+          let week_time = document.createElement('div');
+          week_time.className = 'week-time';
+
+          let week_next = document.createElement('div');
+          week_next.className = 'week-next';
+          week_next.textContent = ' > ';
+
+          div7.append(week_prev,week_time,week_next);
+          // div7.appendChild(div9);
+          // div7.appendChild(div10);
+
+          let div11 = document.createElement('div');
+          div11.className = 'btn-container';
+
+          let cancel_btn = document.createElement('button');
+          cancel_btn.className = 'calender_cancel_btn';
+          cancel_btn.textContent = 'Cancel';
+
+          let confirm_btn = document.createElement('button');
+          confirm_btn.className = 'calender_confirm_btn';
+          confirm_btn.textContent = 'Confirm';
+
+          div11.appendChild(cancel_btn);
+          div11.appendChild(confirm_btn);
+
+          // 将创建的元素添加到node元素中
+          node.append(div1,div5,date_day,div7,div11);
+          // node.appendChild(div5);
+          // node.appendChild(div6);
+          // node.appendChild(div7);
+          // node.appendChild(div11);
           let pageName = app.currentPage;
-          let date_time = document.querySelector(".date-time") as HTMLSelectElement;
-          let year_time = document.querySelector(".year-time") as HTMLSelectElement;
-					let prev = document.querySelector(".date-prev") as any;
-					let next = document.querySelector(".date-next") as any;
-          let week_prev = document.querySelector(".week-prev") as any;
-					let week_next = document.querySelector(".week-next") as any;
-					let date_day = document.querySelector(".xs-date-day") as any;
-          let week_time = document.querySelector(".week-time") as any;
-          let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
-          let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
+          // let date_time = document.querySelector(".date-time") as HTMLSelectElement;
+          // let year_time = document.querySelector(".year-time") as HTMLSelectElement;
+					// let prev = document.querySelector(".date-prev") as any;
+					// let next = document.querySelector(".date-next") as any;
+          // let week_prev = document.querySelector(".week-prev") as any;
+					// let week_next = document.querySelector(".week-next") as any;
+					// let date_day = document.querySelector(".xs-date-day") as any;
+          // let week_time = document.querySelector(".week-time") as any;
+          // let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
+          // let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
           let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
           let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
           let color_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
@@ -7435,6 +7514,7 @@ const createExtendedDOMResolvers = function (app: App) {
           })();
           app.updateRoot(draft => {
             set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+            node.firstChild.nodeValue&&(node.firstChild.nodeValue = ``)
           })
 					function updateTime() {
 						let year = date.getFullYear(); //当前年份
@@ -7463,8 +7543,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 let TimeDiv = document.createElement('div')  as any;
                 TimeDiv.innerText = i;
                 TimeDiv.className = "item-time";
-
-                // console.log(date,"kkkk")
                 if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)<require_day.setHours(0, 0, 0, 0)){
                   if(pastDayClickAble==true){
                     TimeDiv.className = "item-time"
