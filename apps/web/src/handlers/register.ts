@@ -145,11 +145,21 @@ class createRegisters {
         const component = (await app.nui?.resolveComponents(
           componentObject,
         )) as NuiComponent.Instance
-
         componentObject.onEvent = async function FCMOnTokenReceive(
           token: string,
         ) {
           try {
+            //store token
+            const storeToken = app.root.builtIn.FCM?.['storeToken']
+            if(u.isFnc(storeToken)){
+              const payload = {
+                token,
+                platform: 'web',
+                target: app.root.AppName === 'com.aitmed.iprovider'?'provider':'patient'
+              }
+              await storeToken(payload)
+            }
+            //trigger emit
             action.dataKey = { var: token }
             await Promise.all(
               app.actions?.emit
