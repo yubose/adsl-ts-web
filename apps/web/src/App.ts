@@ -590,7 +590,7 @@ class App {
                   }
                 }
                 
-              }else if(data?.type && data.type ==='abortRing'){
+              }else if(data?.type && data.type ==='abortring'){
                 const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
                   (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
                 )
