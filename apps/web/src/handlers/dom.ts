@@ -54,6 +54,7 @@ import Recorder from 'mic-recorder-to-mp3'
 import { editorBlockCss } from './editor/utils/utils'
 import { store } from '@aitmed/cadl'
 import { Square } from '../app/config'
+import { ok } from 'assert'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -66,6 +67,30 @@ function addListener(node: NDOMElement, event: string, callback: any) {
       node.removeEventListener(event, callback)
     },
   }
+}
+const host = JSON.parse(localStorage.getItem("config") as string)?.["apiHost"].startsWith("test")
+?"testgateway.aitmed.io":"gateway.aitmed.io";
+const jwt = JSON.parse(localStorage.getItem("config") as string)?.["jwt"]||"";
+async function get_lists(params: {}){
+  let myHeaders = new Headers();
+  myHeaders.append("GatewayAuthorization", `${host} ${jwt}`);
+  myHeaders.append("Content-Type", "application/json");
+  console.log(host,jwt)
+  let raw = JSON.stringify({
+    // "locationId": "YLbf0gAAAAAD2gAAAA AAAA==",
+    [params["type"]]: params["value"],
+    "limit": 1000
+  });
+  let requestOptions:RequestInit = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+  };
+  return fetch(`https://${host}/elastic/search/${params["url"]}`, requestOptions)
+    .then(response => response.json())
+    // .then(result =>result)
+    .catch(error => console.log('error', error));
 }
 const createExtendedDOMResolvers = function (app: App) {
   const getNodeOnChange = function _getNodeOnChangeFn(args: {
@@ -7718,20 +7743,210 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] scheduleSlot': {
       cond: 'scheduleSlot',
-      resolve({ node, component }) {
-        // const providerId =
-        //   component.get('providerId') || component.blueprint?.providerId || '';
-        // const facilityId =
-        //   component.get('facilityId') || component.blueprint?.facilityId || '';
+     resolve({ node, component }) {
+        let pageName = app.currentPage;
+        const providerId =
+          component.get('providerId') || component.blueprint?.providerId || '';
+        const facilityId =
+          component.get('facilityId') || component.blueprint?.facilityId || '';
           
-        // const locationId =
-        //   component.get('locationId') || component.blueprint?.locationId || {};
+        const locationId =
+          component.get('locationId') || component.blueprint?.locationId || "";
         const timeSlot =
-          component.get('data-timeSlot')  || component.blueprint?.timeSlot  || {};
-          const dataKey =
-            component.get('data-value') || component.blueprint?.dataKey || {};
+          component.get('data-timeSlot')  ||  "";
+        const dataKey =
+          component.get('data-value') || component.blueprint?.dataKey || {};
+        let data:any = timeSlot;
+        // if(providerId){
+        //   data = ( get_lists({type: "providerId",value: providerId,url: "getDoctorInFacility"}))["data"];
+        // }else if(facilityId){
+        //   data = ( get_lists({type: "facilityId",value: providerId,url: "getDoctorInFacility"}))["data"];
+        // }else if(locationId){
+        //   data =( get_lists({type: "locationId",value: providerId,url: "getRoomInFacility"}))["data"];
+        // }else if(timeSlot){
+        //   data = timeSlot;
+        // }
+      // get_lists({type: "locationId",value: "YLbf0gAAAAAD2gAAAAAAAA==",url: "getRoomInFacility"}).then(res=>{
+      //   data =  res?.["data"]||[]
+      //   console.log(data)
+      //   // return ;
+      //   },rej=>{
+      //     rej("ddd")
+      //   });    
+        data = timeSlot;
+        const len:any = Array.isArray(data)?data.length:undefined;
+        let i = 0;
+        let con_coc= {
+          status: 0,
+          timeMessage: "",
+          new_arr: Array.from({length: 5},()=>{
+            let date = new Date().setHours(24*i,0,0,0);
+            let obj = {
+              week: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
+              mday: new Intl.DateTimeFormat("en-US", {month: "short",day: "numeric"}).format(date),
+              back_color: "a",
+              date
+            };
+            i++;
+            return obj;
+          })
+        } 
+        if(!data){
+          con_coc.status = 3;
+          // con_coc.timeMessage = "No available, contact to book";
+        }else if(len>0){
+          let index_m_n = 0;
+          for (let index = 0; index < con_coc.new_arr.length; index++) {
+            const element:any = con_coc.new_arr[index];
+            for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
+              const ele = timeSlot[index_m];
+              const index_time = new Date().setHours(24*index,0,0,0);
+              const ele_time = new Date(+ele?.gte*1000).setHours(0,0,0,0);
+              if(ele_time==index_time){
+                element.back_color = "back_color"
+                index_m_n = index_m+1;
+                break;
+              }
+              if(index ==0&&index_m==timeSlot.length - 1&&ele_time<index_time){
+                con_coc.timeMessage = "No available, contact to book";
+                con_coc.status = 2
+                break;
+              }
+              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='#f0f2f4')&&ele_time>index_time){
+                con_coc.timeMessage = "Next Available " + new Intl.DateTimeFormat("en-US", {weekday: "short",month: "short",day: "2-digit"}).format(+ele?.gte*1000);
+                con_coc.status = 1
+                break;
+              }
+            }
+          }
+        }else if(len==0){
+          con_coc.status = 2;
+          con_coc.timeMessage = "No available, contact to book";
+        }
+        const container = document.createElement("div");
+        let styleSheet = document.createElement('style');
+        styleSheet.innerText = `
+        @scope (#${node.id}){
+          .times_con{
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 16%;
+            height: 100%;
+            padding: 1%;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: clamp(12px,1vw,16px);
+            background: #f0f2f4;
+            color: #c1c1c1;
+          }
+          #con{
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+          }
+          .back_color{
+            background: #e9f2fc;
+            color: #000;
+          }
+        }
+        `;
+        container.id = "con"
+        if(con_coc.status ===0){
+          con_coc.new_arr.forEach(v=>{
+            const ele = document.createElement("div");
+            const week_ele = document.createElement("p");
+            const mday_ele = document.createElement("p");
+            week_ele.textContent = v.week;
+            mday_ele.textContent = v.mday;
+            ele.setAttribute("date",v.date+"")
+            ele.classList.add("times_con",v.back_color);
+            week_ele.style.fontWeight = "600";
+            ele.append(week_ele,mday_ele)
+            container.appendChild(ele)
+          });
+        }else if(con_coc.status ===1){
+          const ele = document.createElement("div");
+          ele.className = "times_con"
+          ele.textContent = con_coc.timeMessage;
+          container.appendChild(ele)
+          styleSheet.innerText = `
+          @scope (#${node.id}){
+            .times_con {
+              display: flex;
+              justify-content: center;
+              cursor: pointer;
+              color: #000;
+              border-radius: 5px;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              font-size: clamp(12px,1vw,16px);
+              font-weight: 600;
+            }
+            #con{
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+            }
+          }
+          `;
+        }else if(con_coc.status ===2){
+          const ele = document.createElement("div");
+          ele.className = "times_con"
+          ele.classList.add("available")
+          ele.textContent = con_coc.timeMessage;
+          container.appendChild(ele)
+          styleSheet.innerText = `
+          @scope (#${node.id}){
+            .times_con {
+              display: flex;
+              justify-content: center;
+              cursor: pointer;
+              color: #000;
+              border-radius: 5px;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              font-size: clamp(12px,1vw,16px);
+              font-weight: 600;
+            }
+            #con{
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+            }
+          }
+          `;
+        }else if(con_coc.status ===3){
+          node.style.display = "none";
+        }
+        node.append(container)
+        document.head.appendChild(styleSheet);
 
-          console.log(dataKey,timeSlot,"kkkkkk")
+        document.querySelectorAll("div.back_color").forEach(e=>{
+          e.addEventListener("click",()=>{
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
+              });
+          })
+        });
+
+        document.querySelectorAll("div.available").forEach(e=>{
+          e.addEventListener("click",()=>{
+              // app.updateRoot(draft => {
+              //   set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
+              // });
+          })
+        })
+       
       },
     }
     
