@@ -206,3 +206,7 @@ export function hasAbortPopup(value: any) {
   }
   return false
 }
+
+export const getBit = (target: number, bit: number) => {
+  return !!(target & (1 << bit)) ? 1 : 0
+}

@@ -45,7 +45,7 @@ import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
-import { isUnitTestEnv, sortByPriority } from './utils/common'
+import { getBit, isUnitTestEnv, sortByPriority } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
 import axios from 'axios'
@@ -565,6 +565,16 @@ class App {
               const title = data?.title
               const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
               if (data?.did) {
+                let doc = data.did
+                if(u.isStr(data.did)){
+                  doc = JSON.parse(data.did)
+                  if(doc?.subtype && u.isNum(doc.subtype)){
+                    doc.subtype = {
+                      notification: !!getBit(doc.subtype,7),
+                      ringToneNotify: !!getBit(doc.subtype,8)
+                    }
+                  }
+                }
                 const room = this.meeting?.room
                 if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
                   log.info('Meeting has been connected')
@@ -576,10 +586,20 @@ class App {
                   if(onNewEcosDocRegisterComponent){
                     if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
                       await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                    onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+                    onNewEcosDocRegisterComponent?.onEvent?.(doc)
                   }
                 }
                 
+              }else if(data?.type){
+
+                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                  (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
+                )
+                if(onNewEcosDocRegisterComponent){
+                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                    await this.register.registrees?.['onRejected'](onNewEcosDocRegisterComponent)
+                  onNewEcosDocRegisterComponent?.onEvent?.()
+                }
               } else {
                 log.log({ message })
                 const { data } = message
