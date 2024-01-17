@@ -7934,7 +7934,7 @@ const createExtendedDOMResolvers = function (app: App) {
         document.querySelectorAll("div.back_color").forEach(e=>{
           e.addEventListener("click",()=>{
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
+                set(draft?.[pageName], dataKey,{stime: (+e.getAttribute("date"))/1000,etime:(+e.getAttribute("date"))/1000+86400});
               });
           })
         });
