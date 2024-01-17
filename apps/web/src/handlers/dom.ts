@@ -7936,14 +7936,18 @@ const createExtendedDOMResolvers = function (app: App) {
               app.updateRoot(draft => {
                 set(draft?.[pageName], dataKey,{stime: (+e.getAttribute("date"))/1000,etime:(+e.getAttribute("date"))/1000+86400});
               });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
           })
         });
-
         document.querySelectorAll("div.available").forEach(e=>{
           e.addEventListener("click",()=>{
-              // app.updateRoot(draft => {
-              //   set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
-              // });
+              setTimeout(()=>{
+              // @ts-ignore
+              component.get("onDateClick")?.execute()
+            })
           })
         })
        
