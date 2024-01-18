@@ -7226,7 +7226,6 @@ const createExtendedDOMResolvers = function (app: App) {
             --calendar-width: calc(${node.style.width} - ${node.style.paddingLeft} - ${node.style.paddingRight});
             --border-width: clamp(30px,12%,60px);
           }
-          @scope (#${node.id}){
             .xs-date-title {
               display: flex;
               justify-content: space-between;
@@ -7269,7 +7268,6 @@ const createExtendedDOMResolvers = function (app: App) {
               width: calc(var(--calendar-width)/7);
               text-align: center;
               color: #606266;
-              // min-width: 50px;
               font-size: 14px;
             }
             .xs-date-day {
@@ -7278,14 +7276,11 @@ const createExtendedDOMResolvers = function (app: App) {
               flex-wrap: wrap;
               justify-content: center;
               align-items: center;
-              // margin-top: 15px;
-              
             }
             .xs-date-day-week {
               width: 100%;
               display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
               flex-wrap: wrap;
-              // height: %;
               align-items: center;
               justify-content: space-between;
               margin-top: 15px;
