@@ -7226,7 +7226,6 @@ const createExtendedDOMResolvers = function (app: App) {
             --calendar-width: calc(${node.style.width} - ${node.style.paddingLeft} - ${node.style.paddingRight});
             --border-width: clamp(30px,12%,60px);
           }
-          @scope (#${node.id}){
             .xs-date-title {
               display: flex;
               justify-content: space-between;
@@ -7269,7 +7268,6 @@ const createExtendedDOMResolvers = function (app: App) {
               width: calc(var(--calendar-width)/7);
               text-align: center;
               color: #606266;
-              // min-width: 50px;
               font-size: 14px;
             }
             .xs-date-day {
@@ -7278,14 +7276,11 @@ const createExtendedDOMResolvers = function (app: App) {
               flex-wrap: wrap;
               justify-content: center;
               align-items: center;
-              // margin-top: 15px;
-              
             }
             .xs-date-day-week {
               width: 100%;
               display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
               flex-wrap: wrap;
-              // height: %;
               align-items: center;
               justify-content: space-between;
               margin-top: 15px;
@@ -7812,7 +7807,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 con_coc.status = 2
                 break;
               }
-              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='#f0f2f4')&&ele_time>index_time){
+              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='a')&&ele_time>index_time){
                 con_coc.timeMessage = "Next Available " + new Intl.DateTimeFormat("en-US", {weekday: "short",month: "short",day: "2-digit"}).format(+ele?.gte*1000);
                 con_coc.status = 1
                 break;
@@ -7893,6 +7888,7 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               width: 100%;
               height: 100%;
+              background: #e9f2fc;
             }
           }
           `;
@@ -7922,6 +7918,7 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               width: 100%;
               height: 100%;
+              background: #fff4e0;
             }
           }
           `;
@@ -7933,17 +7930,31 @@ const createExtendedDOMResolvers = function (app: App) {
 
         document.querySelectorAll("div.back_color").forEach(e=>{
           e.addEventListener("click",()=>{
+            let d = new Date((+e.getAttribute("date")));
+              let day = d.getDate();
+              let month = d.getMonth()+1;
+              let year = d.getUTCFullYear();
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
+                set(draft?.[pageName], dataKey,{
+                  stime: (+e.getAttribute("date"))/1000,
+                  day,
+                  month,
+                  year,
+                  etime:(+e.getAttribute("date"))/1000+86400
+                });
               });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
           })
         });
-
         document.querySelectorAll("div.available").forEach(e=>{
           e.addEventListener("click",()=>{
-              // app.updateRoot(draft => {
-              //   set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
-              // });
+              setTimeout(()=>{
+              // @ts-ignore
+              component.get("onDateClick")?.execute()
+            })
           })
         })
        
