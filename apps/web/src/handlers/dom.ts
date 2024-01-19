@@ -6036,7 +6036,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const chun_size_sample_rates = 16000*20; 
               const chunks:any[] = [];
               const size_ws = blob.size>=5242880;
-              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'https://audiosplit.aitmed.io';
               let audio_url = `${baseUrl}/upload/`;
               if(size_ws){
                 for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
@@ -6866,7 +6866,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
-                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl;
+                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl || 'https://audiosplit.aitmed.io';
                   let audio_url = `${baseUrl}/upload/`;
                   if(size_ws){
                     for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
@@ -7226,7 +7226,6 @@ const createExtendedDOMResolvers = function (app: App) {
             --calendar-width: calc(${node.style.width} - ${node.style.paddingLeft} - ${node.style.paddingRight});
             --border-width: clamp(30px,12%,60px);
           }
-          @scope (#${node.id}){
             .xs-date-title {
               display: flex;
               justify-content: space-between;
@@ -7269,7 +7268,6 @@ const createExtendedDOMResolvers = function (app: App) {
               width: calc(var(--calendar-width)/7);
               text-align: center;
               color: #606266;
-              // min-width: 50px;
               font-size: 14px;
             }
             .xs-date-day {
@@ -7278,14 +7276,11 @@ const createExtendedDOMResolvers = function (app: App) {
               flex-wrap: wrap;
               justify-content: center;
               align-items: center;
-              // margin-top: 15px;
-              
             }
             .xs-date-day-week {
               width: 100%;
               display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
               flex-wrap: wrap;
-              // height: %;
               align-items: center;
               justify-content: space-between;
               margin-top: 15px;
@@ -7776,10 +7771,18 @@ const createExtendedDOMResolvers = function (app: App) {
         data = timeSlot;
         const len:any = Array.isArray(data)?data.length:undefined;
         let i = 0;
-        let con_coc= {
+        let con_coc:any= {
           status: 0,
           timeMessage: "",
-          new_arr: Array.from({length: 5},()=>{
+          nextTime: 0,
+          new_arr: []
+        } 
+        if(!data){
+          con_coc.status = 3;
+          // con_coc.timeMessage = "No available, contact to book";
+        }else if(len>0){
+          let index_m_n = 0;
+          con_coc.new_arr = Array.from({length: 5},()=>{
             let date = new Date().setHours(24*i,0,0,0);
             let obj = {
               week: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
@@ -7789,13 +7792,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
             i++;
             return obj;
-          })
-        } 
-        if(!data){
-          con_coc.status = 3;
-          // con_coc.timeMessage = "No available, contact to book";
-        }else if(len>0){
-          let index_m_n = 0;
+          });
           for (let index = 0; index < con_coc.new_arr.length; index++) {
             const element:any = con_coc.new_arr[index];
             for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
@@ -7812,9 +7809,10 @@ const createExtendedDOMResolvers = function (app: App) {
                 con_coc.status = 2
                 break;
               }
-              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='#f0f2f4')&&ele_time>index_time){
+              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='a')&&ele_time>index_time){
                 con_coc.timeMessage = "Next Available " + new Intl.DateTimeFormat("en-US", {weekday: "short",month: "short",day: "2-digit"}).format(+ele?.gte*1000);
                 con_coc.status = 1
+                con_coc.nextTime = ele_time;
                 break;
               }
             }
@@ -7871,6 +7869,8 @@ const createExtendedDOMResolvers = function (app: App) {
         }else if(con_coc.status ===1){
           const ele = document.createElement("div");
           ele.className = "times_con"
+          ele.classList.add("next")
+          ele.setAttribute("nextTime",con_coc.nextTime+"")
           ele.textContent = con_coc.timeMessage;
           container.appendChild(ele)
           styleSheet.innerText = `
@@ -7893,6 +7893,7 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               width: 100%;
               height: 100%;
+              background: #e9f2fc;
             }
           }
           `;
@@ -7922,6 +7923,7 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               width: 100%;
               height: 100%;
+              background: #fff4e0;
             }
           }
           `;
@@ -7933,20 +7935,54 @@ const createExtendedDOMResolvers = function (app: App) {
 
         document.querySelectorAll("div.back_color").forEach(e=>{
           e.addEventListener("click",()=>{
+            let d = new Date((+e.getAttribute("date")));
+              let day = d.getDate();
+              let month = d.getMonth()+1;
+              let year = d.getUTCFullYear();
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
+                set(draft?.[pageName], dataKey,{
+                  stime: (+e.getAttribute("date"))/1000,
+                  day,
+                  month,
+                  year,
+                  etime:(+e.getAttribute("date"))/1000+86400
+                });
               });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
           })
         });
-
         document.querySelectorAll("div.available").forEach(e=>{
           e.addEventListener("click",()=>{
-              // app.updateRoot(draft => {
-              //   set(draft?.[pageName], dataKey,(+e.getAttribute("date"))/1000);
-              // });
+              setTimeout(()=>{
+              // @ts-ignore
+              component.get("onDateClick")?.execute()
+            })
           })
         })
-       
+        document.querySelectorAll("div.next").forEach(e=>{
+          e.addEventListener("click",()=>{
+            let d = new Date((+e.getAttribute("nextTime")));
+              let day = d.getDate();
+              let month = d.getMonth()+1;
+              let year = d.getUTCFullYear();
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,{
+                  stime: (+e.getAttribute("nextTime"))/1000,
+                  day,
+                  month,
+                  year,
+                  etime:(+e.getAttribute("nextTime"))/1000+86400
+                });
+              });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
+          })
+        })
       },
     }
     
