@@ -7771,10 +7771,18 @@ const createExtendedDOMResolvers = function (app: App) {
         data = timeSlot;
         const len:any = Array.isArray(data)?data.length:undefined;
         let i = 0;
-        let con_coc= {
+        let con_coc:any= {
           status: 0,
           timeMessage: "",
-          new_arr: Array.from({length: 5},()=>{
+          nextTime: 0,
+          new_arr: []
+        } 
+        if(!data){
+          con_coc.status = 3;
+          // con_coc.timeMessage = "No available, contact to book";
+        }else if(len>0){
+          let index_m_n = 0;
+          con_coc.new_arr = Array.from({length: 5},()=>{
             let date = new Date().setHours(24*i,0,0,0);
             let obj = {
               week: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
@@ -7784,13 +7792,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
             i++;
             return obj;
-          })
-        } 
-        if(!data){
-          con_coc.status = 3;
-          // con_coc.timeMessage = "No available, contact to book";
-        }else if(len>0){
-          let index_m_n = 0;
+          });
           for (let index = 0; index < con_coc.new_arr.length; index++) {
             const element:any = con_coc.new_arr[index];
             for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
@@ -7810,6 +7812,7 @@ const createExtendedDOMResolvers = function (app: App) {
               if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='a')&&ele_time>index_time){
                 con_coc.timeMessage = "Next Available " + new Intl.DateTimeFormat("en-US", {weekday: "short",month: "short",day: "2-digit"}).format(+ele?.gte*1000);
                 con_coc.status = 1
+                con_coc.nextTime = ele_time;
                 break;
               }
             }
@@ -7866,6 +7869,8 @@ const createExtendedDOMResolvers = function (app: App) {
         }else if(con_coc.status ===1){
           const ele = document.createElement("div");
           ele.className = "times_con"
+          ele.classList.add("next")
+          ele.setAttribute("nextTime",con_coc.nextTime+"")
           ele.textContent = con_coc.timeMessage;
           container.appendChild(ele)
           styleSheet.innerText = `
@@ -7957,7 +7962,27 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           })
         })
-       
+        document.querySelectorAll("div.next").forEach(e=>{
+          e.addEventListener("click",()=>{
+            let d = new Date((+e.getAttribute("nextTime")));
+              let day = d.getDate();
+              let month = d.getMonth()+1;
+              let year = d.getUTCFullYear();
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,{
+                  stime: (+e.getAttribute("nextTime"))/1000,
+                  day,
+                  month,
+                  year,
+                  etime:(+e.getAttribute("nextTime"))/1000+86400
+                });
+              });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
+          })
+        })
       },
     }
     
