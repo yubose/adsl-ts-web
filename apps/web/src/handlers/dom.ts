@@ -6036,7 +6036,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const chun_size_sample_rates = 16000*20; 
               const chunks:any[] = [];
               const size_ws = blob.size>=5242880;
-              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'https://audiosplit.aitmed.io';
               let audio_url = `${baseUrl}/upload/`;
               if(size_ws){
                 for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
@@ -6866,7 +6866,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
-                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl;
+                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl || 'https://audiosplit.aitmed.io';
                   let audio_url = `${baseUrl}/upload/`;
                   if(size_ws){
                     for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
