@@ -7102,7 +7102,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       searchCancelImage.setAttribute('src',`${assetsUrl}${deleteImagePath}`):
                       searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
             fragment.appendChild(searchCancelImage)
-            searchInput.addEventListener('input',async function(){
+            searchInput.addEventListener('input',debounce(async function(){
               console.log('test99',this.value)
               if(this.value && this.value.length>0){
                 searchCancelImage.style.visibility = 'visible'
@@ -7113,7 +7113,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 await component.get('onInput')?.execute()
                 searchCancelImage.style.visibility = 'hidden'
               }
-            })
+            },300))
 
             searchCancelImage.addEventListener('click',async function(){
               await component.get('deleteCallBack')?.execute()
