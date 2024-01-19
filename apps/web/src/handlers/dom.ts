@@ -54,6 +54,7 @@ import Recorder from 'mic-recorder-to-mp3'
 import { editorBlockCss } from './editor/utils/utils'
 import { store } from '@aitmed/cadl'
 import { Square } from '../app/config'
+import { ok } from 'assert'
 // import moment from "moment"
 // import * as echarts from "echarts";
 type ToolbarInput = any
@@ -66,6 +67,30 @@ function addListener(node: NDOMElement, event: string, callback: any) {
       node.removeEventListener(event, callback)
     },
   }
+}
+const host = JSON.parse(localStorage.getItem("config") as string)?.["apiHost"].startsWith("test")
+?"testgateway.aitmed.io":"gateway.aitmed.io";
+const jwt = JSON.parse(localStorage.getItem("config") as string)?.["jwt"]||"";
+async function get_lists(params: {}){
+  let myHeaders = new Headers();
+  myHeaders.append("GatewayAuthorization", `${host} ${jwt}`);
+  myHeaders.append("Content-Type", "application/json");
+  console.log(host,jwt)
+  let raw = JSON.stringify({
+    // "locationId": "YLbf0gAAAAAD2gAAAA AAAA==",
+    [params["type"]]: params["value"],
+    "limit": 1000
+  });
+  let requestOptions:RequestInit = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+  };
+  return fetch(`https://${host}/elastic/search/${params["url"]}`, requestOptions)
+    .then(response => response.json())
+    // .then(result =>result)
+    .catch(error => console.log('error', error));
 }
 const createExtendedDOMResolvers = function (app: App) {
   const getNodeOnChange = function _getNodeOnChangeFn(args: {
@@ -6011,7 +6036,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const chun_size_sample_rates = 16000*20; 
               const chunks:any[] = [];
               const size_ws = blob.size>=5242880;
-              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'https://audiosplit.aitmed.io';
               let audio_url = `${baseUrl}/upload/`;
               if(size_ws){
                 for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
@@ -6841,7 +6866,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
-                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'http://8.140.148.116:9006';
+                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl || 'https://audiosplit.aitmed.io';
                   let audio_url = `${baseUrl}/upload/`;
                   if(size_ws){
                     for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
@@ -6854,6 +6879,11 @@ const createExtendedDOMResolvers = function (app: App) {
                     chunks.push(blobFile)
                     audio_url =  `${baseUrl}/smallUpload/`
                   }
+                  // 处理 生成ai report的文件
+                  let aiReqBody = app.root.AiVoice.formData.postBody
+                  aiReqBody['notification']['platform'] = 'web'
+                  aiReqBody['notification']['token'] = JSON.parse(localStorage.getItem('Global') || '{}')['firebaseToken']
+                  let aiReq = JSON.stringify(aiReqBody)
                   const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
                   const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
                       let xhr = new XMLHttpRequest();
@@ -6885,9 +6915,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         
                         data.append("providerId", localStorage.getItem('user_vid') as string);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
+                        data.append("aiReq", aiReq);
                         size_ws&&data.append("code", `${rand}-${i+1}`);
                         xhr.send(data);
-                        
                     })
                   
                   )
@@ -6931,6 +6961,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
                         }
                         data.append("providerId", localStorage.getItem('user_vid') as string);
+                        data.append("aiReq", aiReq);
                         data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
                         // const controller = new AbortController();
                         xhr.send(data);
@@ -7071,7 +7102,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       searchCancelImage.setAttribute('src',`${assetsUrl}${deleteImagePath}`):
                       searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
             fragment.appendChild(searchCancelImage)
-            searchInput.addEventListener('input',async function(){
+            searchInput.addEventListener('input',debounce(async function(){
               console.log('test99',this.value)
               if(this.value && this.value.length>0){
                 searchCancelImage.style.visibility = 'visible'
@@ -7082,7 +7113,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 await component.get('onInput')?.execute()
                 searchCancelImage.style.visibility = 'hidden'
               }
-            })
+            },300))
 
             searchCancelImage.addEventListener('click',async function(){
               await component.get('deleteCallBack')?.execute()
@@ -7174,7 +7205,8 @@ const createExtendedDOMResolvers = function (app: App) {
         const calendarView =
           component.get('calendarView') || component.blueprint?.calendarView || '';
         const defaultDate =
-          component.get('defaultDate') || component.blueprint?.defaultDate || '';
+          component.get('default-date') || component.blueprint?.defaultDate || '';
+          
         const pastDayClickAble =
           component.get('pastDayClickAble') ?? component.blueprint?.pastDayClickAble ?? true;
         const futureDayClickAble =
@@ -7194,7 +7226,6 @@ const createExtendedDOMResolvers = function (app: App) {
             --calendar-width: calc(${node.style.width} - ${node.style.paddingLeft} - ${node.style.paddingRight});
             --border-width: clamp(30px,12%,60px);
           }
-          @scope (#${node.id}){
             .xs-date-title {
               display: flex;
               justify-content: space-between;
@@ -7205,6 +7236,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .Disable, .item-time{
               display: flex;
+              user-select: none;
               justify-content: center;
               font-size: 17px;
               font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -7214,10 +7246,12 @@ const createExtendedDOMResolvers = function (app: App) {
               font-weight: bold;
               width: 10%;
               font-family: cursive;
+              user-select: none;
             }
             .date-next {
               width: 10%;
               font-weight: bold;
+              user-select: none;
               font-family: cursive;
             }
             .xs-date-week {
@@ -7234,7 +7268,6 @@ const createExtendedDOMResolvers = function (app: App) {
               width: calc(var(--calendar-width)/7);
               text-align: center;
               color: #606266;
-              // min-width: 50px;
               font-size: 14px;
             }
             .xs-date-day {
@@ -7243,14 +7276,11 @@ const createExtendedDOMResolvers = function (app: App) {
               flex-wrap: wrap;
               justify-content: center;
               align-items: center;
-              // margin-top: 15px;
-              
             }
             .xs-date-day-week {
               width: 100%;
               display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
               flex-wrap: wrap;
-              // height: %;
               align-items: center;
               justify-content: space-between;
               margin-top: 15px;
@@ -7292,7 +7322,7 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
             }
             .week-time>div{
-              padding: 5px 0;
+              padding: 6px 0;
             }
             .week-next{
               width: clamp(25px,2vh,25px);
@@ -7334,13 +7364,13 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .active {
               color: #fff !important;
+              user-select: none;
               border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
-              background: ${calendarStyle?.selectStyle?.background||"#007ee5"};
+              background: ${calendarStyle?.selectStyle?.background||"linear-gradient(180deg, #629efe, #2988e6)"};
               color: ${calendarStyle?.selectStyle?.color||"#fff"};
             }
             .Disable {
               color: #c0c4cc !important;
-              // visibility: hidden;
             }
             .date-time{
               border-radius: 4px;
@@ -7367,47 +7397,125 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           `;
           document.head.appendChild(styleSheet);
-          node.innerHTML = `
-            <div class="xs-date-title">
-              <div class="month-container">
-                <div class="date-prev"> < </div>
-                <select class="date-time"></select>
-                <div class="date-next"> > </div>
-              </div>
-              <select class="year-time"></select>
-            </div>
-            <div class="xs-date-week">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-            </div>
-            <div class="xs-date-day" >
-            </div>
-            <div class="xs-date-day-week">
-              <div class="week-prev"> < </div>
-                <div class="week-time"></div>
-              <div class="week-next"> > </div>
-            </div>
-            <div class="btn-container">
-              <button class="calender_cancel_btn">Cancel</button>
-              <button class="calender_confirm_btn">Confirm</button>
-            </div>
-          `;
+          // node.innerHTML = `
+          //   <div class="xs-date-title">
+          //     <div class="month-container">
+          //       <div class="date-prev"> < </div>
+          //       <select class="date-time"></select>
+          //       <div class="date-next"> > </div>
+          //     </div>
+          //     <select class="year-time"></select>
+          //   </div>
+          //   <div class="xs-date-week">
+          //     <div>Su</div>
+          //     <div>Mo</div>
+          //     <div>Tu</div>
+          //     <div>We</div>
+          //     <div>Th</div>
+          //     <div>Fr</div>
+          //     <div>Sa</div>
+          //   </div>
+          //   <div class="xs-date-day" >
+          //   </div>
+          //   <div class="xs-date-day-week">
+          //     <div class="week-prev"> < </div>
+          //       <div class="week-time"></div>
+          //     <div class="week-next"> > </div>
+          //   </div>
+          //   <div class="btn-container">
+          //     <button class="calender_cancel_btn">Cancel</button>
+          //     <button class="calender_confirm_btn">Confirm</button>
+          //   </div>
+          // `;
+          let div1 = document.createElement('div');
+          div1.className = 'xs-date-title';
+
+          let div2 = document.createElement('div');
+          div2.className = 'month-container';
+
+          let prev = document.createElement('div');
+          prev.className = 'date-prev';
+          prev.textContent = ' < ';
+
+          let date_time = document.createElement('select');
+          date_time.className = 'date-time';
+
+          let next = document.createElement('div');
+          next.className = 'date-next';
+          next.textContent = ' > ';
+
+          div2.append(prev,date_time,next);
+          // div2.appendChild(select1);
+          // div2.appendChild(div4);
+
+          let year_time = document.createElement('select');
+          year_time.className = 'year-time';
+
+          div1.append(div2,year_time);
+          // div1.appendChild(year_time);
+
+          let div5 = document.createElement('div');
+          div5.className = 'xs-date-week';
+
+          let days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+          for (let i = 0; i < days.length; i++) {
+            let div = document.createElement('div');
+            div.textContent = days[i];
+            div5.appendChild(div);
+          }
+
+          let date_day = document.createElement('div');
+          date_day.className = 'xs-date-day';
+
+          let div7 = document.createElement('div');
+          div7.className = 'xs-date-day-week';
+
+          let week_prev = document.createElement('div');
+          week_prev.className = 'week-prev';
+          week_prev.textContent = ' < ';
+
+          let week_time = document.createElement('div');
+          week_time.className = 'week-time';
+
+          let week_next = document.createElement('div');
+          week_next.className = 'week-next';
+          week_next.textContent = ' > ';
+
+          div7.append(week_prev,week_time,week_next);
+          // div7.appendChild(div9);
+          // div7.appendChild(div10);
+
+          let div11 = document.createElement('div');
+          div11.className = 'btn-container';
+
+          let cancel_btn = document.createElement('button');
+          cancel_btn.className = 'calender_cancel_btn';
+          cancel_btn.textContent = 'Cancel';
+
+          let confirm_btn = document.createElement('button');
+          confirm_btn.className = 'calender_confirm_btn';
+          confirm_btn.textContent = 'Confirm';
+
+          div11.appendChild(cancel_btn);
+          div11.appendChild(confirm_btn);
+
+          // 将创建的元素添加到node元素中
+          node.append(div1,div5,date_day,div7,div11);
+          // node.appendChild(div5);
+          // node.appendChild(div6);
+          // node.appendChild(div7);
+          // node.appendChild(div11);
           let pageName = app.currentPage;
-          let date_time = document.querySelector(".date-time") as HTMLSelectElement;
-          let year_time = document.querySelector(".year-time") as HTMLSelectElement;
-					let prev = document.querySelector(".date-prev") as any;
-					let next = document.querySelector(".date-next") as any;
-          let week_prev = document.querySelector(".week-prev") as any;
-					let week_next = document.querySelector(".week-next") as any;
-					let date_day = document.querySelector(".xs-date-day") as any;
-          let week_time = document.querySelector(".week-time") as any;
-          let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
-          let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
+          // let date_time = document.querySelector(".date-time") as HTMLSelectElement;
+          // let year_time = document.querySelector(".year-time") as HTMLSelectElement;
+					// let prev = document.querySelector(".date-prev") as any;
+					// let next = document.querySelector(".date-next") as any;
+          // let week_prev = document.querySelector(".week-prev") as any;
+					// let week_next = document.querySelector(".week-next") as any;
+					// let date_day = document.querySelector(".xs-date-day") as any;
+          // let week_time = document.querySelector(".week-time") as any;
+          // let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
+          // let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
           let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
           let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
           let color_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
@@ -7416,7 +7524,7 @@ const createExtendedDOMResolvers = function (app: App) {
           let ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
           let ws = ['Su','Mo','Tu','We','Th','Fr','Sa'];
           ms.map(e=>date_time.options.add(new Option(e)));
-          ((last = 30, next = 10)=>{
+          ((last = 121, next = 10)=>{
             let currentYear = new Date().getFullYear()
             let startYear:number = currentYear - last
             for (let i = 0; i < last + next; i++) {
@@ -7425,7 +7533,8 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })();
           app.updateRoot(draft => {
-            set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+            // set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+            node.firstChild.nodeValue&&(node.firstChild.nodeValue = ``)
           })
 					function updateTime() {
 						let year = date.getFullYear(); //当前年份
@@ -7441,7 +7550,7 @@ const createExtendedDOMResolvers = function (app: App) {
               //渲染头部
               let setWeek = new Date(year, +month - 1, 1).getDay(); //上个月星期几
               let setDayEM = new Date(year, +month - 1, 0).getDate(); //上个月天数
-              let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
+              // let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
 						  setWeek <= 0 ? setWeek = 7 : setWeek;
               for (let i = (setDayEM - setWeek) + 1; i <= setDayEM; i++) {
                 let EmptyDiv = document.createElement('div')  as any;
@@ -7454,6 +7563,19 @@ const createExtendedDOMResolvers = function (app: App) {
                 let TimeDiv = document.createElement('div')  as any;
                 TimeDiv.innerText = i;
                 TimeDiv.className = "item-time";
+                if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)<require_day.setHours(0, 0, 0, 0)){
+                  if(pastDayClickAble==true){
+                    TimeDiv.className = "item-time"
+                  }else if(pastDayClickAble==false){
+                    TimeDiv.className = "Disable"
+                  }
+                }else if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)>require_day.setHours(0, 0, 0, 0)){
+                  if(futureDayClickAble==true){
+                    TimeDiv.className = "item-time"
+                  }else if(futureDayClickAble==false){
+                    TimeDiv.className = "Disable"
+                  }
+                }
                 if (current_time.toDateString()==date.toDateString()&&i == +day) {
                   TimeDiv.classList.add("active");
                 }
@@ -7504,11 +7626,12 @@ const createExtendedDOMResolvers = function (app: App) {
                     cursor: pointer;
                     flex-wrap: nowrap;
                     flex-direction: column;
-                    width: 12%;
+                    width: 11%;
                   `;
                   TimeDivWeek.style.cssText = `
                     font-weight: 600;
                     font-size: 14px;
+                    margin-bottom: 5px;
                   `
                   TimeDiv.append(TimeDivWeek,TimeDivText)
                   fragment.append(TimeDiv)
@@ -7569,7 +7692,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
             confirm_btn.onclick = function() {
               app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleDateString("en-US"):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
+                set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
               })
               setTimeout(()=>{
                 // @ts-ignore
@@ -7590,14 +7713,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   current_time = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
                   if(showActionButton==false){
                     app.updateRoot(draft => {
-                      set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+                      set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                     })
+                    console.log()
                   }
                 }else if(calendarView==="week"){
                   color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
                   current_time = color_day;
                   app.updateRoot(draft => {
-                    set(draft?.[pageName], dataKey,dataType=="Date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+                    set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
                   })
                 }
                   setTimeout(()=>{
@@ -7608,9 +7732,260 @@ const createExtendedDOMResolvers = function (app: App) {
 						}
 					}
 
-      }
+      },
+      
 
     },
+    '[App] scheduleSlot': {
+      cond: 'scheduleSlot',
+     resolve({ node, component }) {
+        let pageName = app.currentPage;
+        const providerId =
+          component.get('providerId') || component.blueprint?.providerId || '';
+        const facilityId =
+          component.get('facilityId') || component.blueprint?.facilityId || '';
+          
+        const locationId =
+          component.get('locationId') || component.blueprint?.locationId || "";
+        const timeSlot =
+          component.get('data-timeSlot')  ||  "";
+        const dataKey =
+          component.get('data-value') || component.blueprint?.dataKey || {};
+        let data:any = timeSlot;
+        // if(providerId){
+        //   data = ( get_lists({type: "providerId",value: providerId,url: "getDoctorInFacility"}))["data"];
+        // }else if(facilityId){
+        //   data = ( get_lists({type: "facilityId",value: providerId,url: "getDoctorInFacility"}))["data"];
+        // }else if(locationId){
+        //   data =( get_lists({type: "locationId",value: providerId,url: "getRoomInFacility"}))["data"];
+        // }else if(timeSlot){
+        //   data = timeSlot;
+        // }
+      // get_lists({type: "locationId",value: "YLbf0gAAAAAD2gAAAAAAAA==",url: "getRoomInFacility"}).then(res=>{
+      //   data =  res?.["data"]||[]
+      //   console.log(data)
+      //   // return ;
+      //   },rej=>{
+      //     rej("ddd")
+      //   });    
+        data = timeSlot;
+        const len:any = Array.isArray(data)?data.length:undefined;
+        let i = 0;
+        let con_coc:any= {
+          status: 0,
+          timeMessage: "",
+          nextTime: 0,
+          new_arr: []
+        } 
+        if(!data){
+          con_coc.status = 3;
+          // con_coc.timeMessage = "No available, contact to book";
+        }else if(len>0){
+          let index_m_n = 0;
+          con_coc.new_arr = Array.from({length: 5},()=>{
+            let date = new Date().setHours(24*i,0,0,0);
+            let obj = {
+              week: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
+              mday: new Intl.DateTimeFormat("en-US", {month: "short",day: "numeric"}).format(date),
+              back_color: "a",
+              date
+            };
+            i++;
+            return obj;
+          });
+          for (let index = 0; index < con_coc.new_arr.length; index++) {
+            const element:any = con_coc.new_arr[index];
+            for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
+              const ele = timeSlot[index_m];
+              const index_time = new Date().setHours(24*index,0,0,0);
+              const ele_time = new Date(+ele?.gte*1000).setHours(0,0,0,0);
+              if(ele_time==index_time){
+                element.back_color = "back_color"
+                index_m_n = index_m+1;
+                break;
+              }
+              if(index ==0&&index_m==timeSlot.length - 1&&ele_time<index_time){
+                con_coc.timeMessage = "No available, contact to book";
+                con_coc.status = 2
+                break;
+              }
+              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='a')&&ele_time>index_time){
+                con_coc.timeMessage = "Next Available " + new Intl.DateTimeFormat("en-US", {weekday: "short",month: "short",day: "2-digit"}).format(+ele?.gte*1000);
+                con_coc.status = 1
+                con_coc.nextTime = ele_time;
+                break;
+              }
+            }
+          }
+        }else if(len==0){
+          con_coc.status = 2;
+          con_coc.timeMessage = "No available, contact to book";
+        }
+        const container = document.createElement("div");
+        let styleSheet = document.createElement('style');
+        styleSheet.innerText = `
+        @scope (#${node.id}){
+          .times_con{
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 16%;
+            height: 100%;
+            padding: 1%;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: clamp(12px,1vw,16px);
+            background: #f0f2f4;
+            color: #c1c1c1;
+          }
+          #con{
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+          }
+          .back_color{
+            background: #e9f2fc;
+            color: #000;
+          }
+        }
+        `;
+        container.id = "con"
+        if(con_coc.status ===0){
+          con_coc.new_arr.forEach(v=>{
+            const ele = document.createElement("div");
+            const week_ele = document.createElement("p");
+            const mday_ele = document.createElement("p");
+            week_ele.textContent = v.week;
+            mday_ele.textContent = v.mday;
+            ele.setAttribute("date",v.date+"")
+            ele.classList.add("times_con",v.back_color);
+            week_ele.style.fontWeight = "600";
+            ele.append(week_ele,mday_ele)
+            container.appendChild(ele)
+          });
+        }else if(con_coc.status ===1){
+          const ele = document.createElement("div");
+          ele.className = "times_con"
+          ele.classList.add("next")
+          ele.setAttribute("nextTime",con_coc.nextTime+"")
+          ele.textContent = con_coc.timeMessage;
+          container.appendChild(ele)
+          styleSheet.innerText = `
+          @scope (#${node.id}){
+            .times_con {
+              display: flex;
+              justify-content: center;
+              cursor: pointer;
+              color: #000;
+              border-radius: 5px;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              font-size: clamp(12px,1vw,16px);
+              font-weight: 600;
+            }
+            #con{
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+              background: #e9f2fc;
+            }
+          }
+          `;
+        }else if(con_coc.status ===2){
+          const ele = document.createElement("div");
+          ele.className = "times_con"
+          ele.classList.add("available")
+          ele.textContent = con_coc.timeMessage;
+          container.appendChild(ele)
+          styleSheet.innerText = `
+          @scope (#${node.id}){
+            .times_con {
+              display: flex;
+              justify-content: center;
+              cursor: pointer;
+              color: #000;
+              border-radius: 5px;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              font-size: clamp(12px,1vw,16px);
+              font-weight: 600;
+            }
+            #con{
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+              background: #fff4e0;
+            }
+          }
+          `;
+        }else if(con_coc.status ===3){
+          node.style.display = "none";
+        }
+        node.append(container)
+        document.head.appendChild(styleSheet);
+
+        document.querySelectorAll("div.back_color").forEach(e=>{
+          e.addEventListener("click",()=>{
+            let d = new Date((+e.getAttribute("date")));
+              let day = d.getDate();
+              let month = d.getMonth()+1;
+              let year = d.getUTCFullYear();
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,{
+                  stime: (+e.getAttribute("date"))/1000,
+                  day,
+                  month,
+                  year,
+                  etime:(+e.getAttribute("date"))/1000+86400
+                });
+              });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
+          })
+        });
+        document.querySelectorAll("div.available").forEach(e=>{
+          e.addEventListener("click",()=>{
+              setTimeout(()=>{
+              // @ts-ignore
+              component.get("onDateClick")?.execute()
+            })
+          })
+        })
+        document.querySelectorAll("div.next").forEach(e=>{
+          e.addEventListener("click",()=>{
+            let d = new Date((+e.getAttribute("nextTime")));
+              let day = d.getDate();
+              let month = d.getMonth()+1;
+              let year = d.getUTCFullYear();
+              app.updateRoot(draft => {
+                set(draft?.[pageName], dataKey,{
+                  stime: (+e.getAttribute("nextTime"))/1000,
+                  day,
+                  month,
+                  year,
+                  etime:(+e.getAttribute("nextTime"))/1000+86400
+                });
+              });
+              setTimeout(()=>{
+                // @ts-ignore
+                component.get("onDateClick")?.execute()
+              })
+          })
+        })
+      },
+    }
+    
   }
 
   return u

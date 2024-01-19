@@ -145,11 +145,11 @@ class createRegisters {
         const component = (await app.nui?.resolveComponents(
           componentObject,
         )) as NuiComponent.Instance
-
         componentObject.onEvent = async function FCMOnTokenReceive(
           token: string,
         ) {
           try {
+            //trigger emit
             action.dataKey = { var: token }
             await Promise.all(
               app.actions?.emit
@@ -201,6 +201,87 @@ class createRegisters {
         componentObject.onEvent = async function onNewEcosDoc(did: string) {
           try {
             action.dataKey = { var: did }
+            const options = app.nui?.getConsumerOptions({
+              component,
+              page: app.mainPage?.getNuiPage(),
+            })
+            const result = await Promise.all(
+              app.actions?.emit
+                .get('register')
+                ?.map((obj: Store.ActionObject) =>
+                  obj?.fn?.(
+                    action,
+                    options,
+                  ),
+                ) || [],
+            )
+            if (result) {
+
+              const results = u.array(result)
+              while (results.length) {
+                let result = results.pop()
+                while (u.isArr(result)) {
+                  results.push(...result)
+                  result = results.pop()
+                }
+                
+                const action = result
+                try {
+                  const actionTypeKeys = [
+                    'popUp',
+                    'popUpDismiss',
+                    'toast',
+                    'getLocationAddress',
+                    'pageJump',
+                    'refresh',
+                  ]
+                  if (
+                    action?.['actionType'] &&
+                    actionTypeKeys.includes(action?.['actionType'])
+                  ) {
+                    const newAction = createAction({
+                      action: action,
+                      trigger: 'register',
+                    })
+                    const type = action?.['actionType']
+                    const actionFn = app.root.actions[type]
+                    u.isFnc(actionFn) &&
+                      (await actionFn?.(
+                        newAction,
+                        options
+                      ))
+                  }else if(action?.['goto']){
+                    const fn = app.root.builtIn.goto
+                    await fn?.(action['goto'])
+                    break
+                  }
+                  
+                } catch (error) {
+                  log.error(error)
+                }
+               
+              }
+            }
+            return did
+          } catch (error) {
+            log.error(error)
+          }
+        }
+      },
+      async onRejected(componentObject: GlobalRegisterComponent) {
+        componentObject['eventId']= 'onRejected'
+
+        const action = createAction({
+          action: { emit: componentObject.emit, actionType: 'register' },
+          trigger: 'register',
+        }) as EmitAction
+
+        const component = (await app.nui?.resolveComponents(
+          componentObject,
+        )) as NuiComponent.Instance
+
+        componentObject.onEvent = async function onNewEcosDoc(did: string) {
+          try {
             const options = app.nui?.getConsumerOptions({
               component,
               page: app.mainPage?.getNuiPage(),
