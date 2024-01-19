@@ -564,6 +564,10 @@ class App {
               const { data } = message
               const title = data?.title
               const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
+              if(u.isStr(data?.did)){
+                const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(data.did)
+                if(flag) return
+              }
               if (data?.did) {
                 let doc = data.did
                 if(u.isStr(data.did)){
