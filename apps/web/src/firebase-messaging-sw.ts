@@ -34,18 +34,17 @@ firebase.initializeApp({
 const messaging = firebase.messaging()
 
 // const handler = messaging.onBackgroundMessage(function (payload) {
-// messaging.onBackgroundMessage(function (payload) {
-//   console.log('[serviceWorker.js] Received background message ', payload)
-//   // payload.from example --> "669708592038"
-//   const { collapseKey, data, from, notification = {} } = payload
-//   const notificationTitle = notification.title || ''
-//   const notificationOptions = {
-//     body: notification.body || '',
-//     icon: 'favicon.ico',
-//   }
-//   // self.registration.showNotification(notificationTitle, notificationOptions)
-// })
-
+messaging.onBackgroundMessage(function (payload) {
+  console.log('[serviceWorker.js] Received background message ', payload)
+  // payload.from example --> "669708592038"
+  const { collapseKey, data, from, notification = {} } = payload
+  const notificationTitle = data.title || ''
+  const notificationOptions = {
+    body: data.body || '',
+    icon: 'favicon.ico',
+  }
+  self.registration.showNotification(notificationTitle, notificationOptions)
+})
 const style = `color:#C04000;font-weight:500;`
 const tag = `%c[serviceWorker]`
 const log = console.log
