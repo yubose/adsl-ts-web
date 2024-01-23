@@ -3511,7 +3511,12 @@ const createExtendedDOMResolvers = function (app: App) {
                 data = JSON.parse(dataValue["name"]["data"])
               }
             }
-            const url = data["audioUrl"].split('?')[0]
+            let url
+            if(data["audioUrl"] && u.isStr(data["audioUrl"])){
+              url = data["audioUrl"]?.split('?')[0]
+            }else{
+              url = ''
+            }
             const title = dataValue["name"]['title']
             isError = dataValue["tage"]===10
             nonce = dataValue["name"]['nonce']
