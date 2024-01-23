@@ -564,13 +564,12 @@ class App {
               const { data } = message
               const title = data?.title
               const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
-              if(u.isStr(data?.did)){
-                const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(data.did)
-                if(flag) return
-              }
+
               if (data?.did) {
                 let doc = data.did
                 if(u.isStr(data.did)){
+                  const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
+                  if(flag) return
                   doc = JSON.parse(data.did)
                   if(doc?.subtype && u.isNum(doc.subtype)){
                     doc.subtype = {
@@ -788,7 +787,10 @@ class App {
       const injectScripts = this.noodl.config?.preloadlib
       if (u.isArr(injectScripts) && injectScripts.length > 0) {
         // eslint-disable-next-line
-        Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
+        // Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
+        setTimeout(()=>{
+          Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
+        },1000)
       }
 
       const cfgStore = createNoodlConfigValidator({
