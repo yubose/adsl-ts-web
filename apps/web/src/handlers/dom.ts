@@ -2222,6 +2222,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 if (typeof realvalue == 'undefined' && key == 'fontColor') {
                   realvalue = '#000000'
                 }
+                if (typeof realvalue == 'undefined' && key == 'borderColor') {
+                  realvalue = '#ffffff'
+                }
                 node.style[key] = realvalue
               },
             )
