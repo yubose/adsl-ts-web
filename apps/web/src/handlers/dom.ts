@@ -4280,7 +4280,7 @@ const createExtendedDOMResolvers = function (app: App) {
               if(imageClicks){
                 imageClicks?.queue.forEach(imageClick=>{
                   if(imageClick?.dataKey){
-                    imageClick.dataKey = {let: Msg}
+                    imageClick.dataKey = {var: Msg}
                   }
                 })
                 imageClicks?.execute?.()
