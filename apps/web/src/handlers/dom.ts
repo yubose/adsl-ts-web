@@ -2223,8 +2223,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   realvalue = '#000000'
                 }
                 if (typeof realvalue == 'undefined' && key == 'borderColor') {
-                  realvalue = '#ffffff'
-                }
+                    realvalue = '#ffffff'
+                  }
                 node.style[key] = realvalue
               },
             )
