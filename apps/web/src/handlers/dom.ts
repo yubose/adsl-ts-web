@@ -7806,7 +7806,7 @@ const createExtendedDOMResolvers = function (app: App) {
             const element:any = con_coc.new_arr[index];
             for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
               const ele = timeSlot[index_m];
-              const index_time = new Date(dataOptions).setHours(24*index,0,0,0);
+              const index_time = new Date(dataOptions).getTime()||new Date().setHours(24*index,0,0,0);
               const ele_time = new Date(+ele?.gte*1000).setHours(0,0,0,0);
               if(ele_time==index_time){
                 element.back_color = "back_color"
