@@ -7709,7 +7709,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
           }
 					function itemClick(year,month) {
-						let item_time = document.querySelectorAll(`.item-time`);
+						let item_time = document.querySelectorAll(`#${node.id} div.item-time`);
 						for (let i = 0; i < item_time.length; i++) {
 							(item_time[i] as HTMLElement).onclick = function() {
 								for (let i = 0; i < item_time.length; i++) {
@@ -7942,7 +7942,7 @@ const createExtendedDOMResolvers = function (app: App) {
         node.append(container)
         document.head.appendChild(styleSheet);
 
-        document.querySelectorAll("div.back_color").forEach(e=>{
+        document.querySelectorAll(`${node.id} div.back_color`).forEach(e=>{
           e.addEventListener("click",()=>{
             let d = new Date((+e.getAttribute("date")));
               let day = d.getDate();
@@ -7963,7 +7963,7 @@ const createExtendedDOMResolvers = function (app: App) {
               })
           })
         });
-        document.querySelectorAll("div.available").forEach(e=>{
+        document.querySelectorAll(`${node.id} div.available`).forEach(e=>{
           e.addEventListener("click",()=>{
               setTimeout(()=>{
               // @ts-ignore
@@ -7971,7 +7971,7 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           })
         })
-        document.querySelectorAll("div.next").forEach(e=>{
+        document.querySelectorAll(`${node.id} div.next`).forEach(e=>{
           e.addEventListener("click",()=>{
             let d = new Date((+e.getAttribute("nextTime")));
               let day = d.getDate();
