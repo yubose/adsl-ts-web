@@ -7709,7 +7709,7 @@ const createExtendedDOMResolvers = function (app: App) {
             };
           }
 					function itemClick(year,month) {
-						let item_time = document.querySelectorAll(`.item-time`);
+						let item_time = document.querySelectorAll(`#${node.id} div.item-time`);
 						for (let i = 0; i < item_time.length; i++) {
 							(item_time[i] as HTMLElement).onclick = function() {
 								for (let i = 0; i < item_time.length; i++) {
@@ -7759,6 +7759,7 @@ const createExtendedDOMResolvers = function (app: App) {
           component.get('data-timeSlot')  ||  "";
         const dataKey =
           component.get('data-value') || component.blueprint?.dataKey || {};
+          const dataOptions = component.get('data-option') || component.blueprint?.dataKey || "";
         let data:any = timeSlot;
         // if(providerId){
         //   data = ( get_lists({type: "providerId",value: providerId,url: "getDoctorInFacility"}))["data"];
@@ -7791,7 +7792,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }else if(len>0){
           let index_m_n = 0;
           con_coc.new_arr = Array.from({length: 5},()=>{
-            let date = new Date().setHours(24*i,0,0,0);
+            let date = (new Date(dataOptions).getTime())||new Date().setHours(24*i,0,0,0);
             let obj = {
               week: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
               mday: new Intl.DateTimeFormat("en-US", {month: "short",day: "numeric"}).format(date),
@@ -7805,7 +7806,7 @@ const createExtendedDOMResolvers = function (app: App) {
             const element:any = con_coc.new_arr[index];
             for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
               const ele = timeSlot[index_m];
-              const index_time = new Date().setHours(24*index,0,0,0);
+              const index_time = new Date(dataOptions).getTime()||new Date().setHours(24*index,0,0,0);
               const ele_time = new Date(+ele?.gte*1000).setHours(0,0,0,0);
               if(ele_time==index_time){
                 element.back_color = "back_color"
@@ -7941,7 +7942,7 @@ const createExtendedDOMResolvers = function (app: App) {
         node.append(container)
         document.head.appendChild(styleSheet);
 
-        document.querySelectorAll("div.back_color").forEach(e=>{
+        document.querySelectorAll(`${node.id} div.back_color`).forEach(e=>{
           e.addEventListener("click",()=>{
             let d = new Date((+e.getAttribute("date")));
               let day = d.getDate();
@@ -7962,7 +7963,7 @@ const createExtendedDOMResolvers = function (app: App) {
               })
           })
         });
-        document.querySelectorAll("div.available").forEach(e=>{
+        document.querySelectorAll(`${node.id} div.available`).forEach(e=>{
           e.addEventListener("click",()=>{
               setTimeout(()=>{
               // @ts-ignore
@@ -7970,7 +7971,7 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           })
         })
-        document.querySelectorAll("div.next").forEach(e=>{
+        document.querySelectorAll(`${node.id} div.next`).forEach(e=>{
           e.addEventListener("click",()=>{
             let d = new Date((+e.getAttribute("nextTime")));
               let day = d.getDate();
