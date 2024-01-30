@@ -554,98 +554,98 @@ class App {
           throw new Error(`Level 3 is not provided or instantiated`)
         }
       }
-      // if (!this.#notification?.initiated) {
-      //   try {
-      //     this.#notification = new AppNotification()
-      //     log.debug(`Initialized notifications`, this.#notification)
-      //     onInitNotification && (await onInitNotification?.(this.#notification))
+      if (!this.#notification?.initiated) {
+        try {
+          this.#notification = new AppNotification()
+          log.debug(`Initialized notifications`, this.#notification)
+          onInitNotification && (await onInitNotification?.(this.#notification))
 
-      //     this.notification?.on('message', async(message) => {
-      //       if (message) {
-      //         const { data } = message
-      //         const title = data?.title
-      //         const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
+          this.notification?.on('message', async(message) => {
+            if (message) {
+              const { data } = message
+              const title = data?.title
+              const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
 
-      //         if (data?.did) {
-      //           let doc = data.did
-      //           if(u.isStr(data.did)){
-      //             const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
-      //             if(flag) return
-      //             doc = JSON.parse(data.did)
-      //             if(doc?.subtype && u.isNum(doc.subtype)){
-      //               doc.subtype = {
-      //                 notification: !!getBit(doc.subtype,7),
-      //                 ringToneNotify: !!getBit(doc.subtype,8)
-      //               }
-      //             }
-      //           }
-      //           const room = this.meeting?.room
-      //           if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
-      //             log.info('Meeting has been connected')
-      //           }else{
-      //             //  call onNewEcosDoc for now  until we propose a more generic approach
-      //             const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-      //               (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-      //             )
-      //             if(onNewEcosDocRegisterComponent){
-      //               if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-      //                 await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-      //               onNewEcosDocRegisterComponent?.onEvent?.(doc)
-      //             }
-      //           }
+              if (data?.did) {
+                let doc = data.did
+                if(u.isStr(data.did)){
+                  const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
+                  if(flag) return
+                  doc = JSON.parse(data.did)
+                  if(doc?.subtype && u.isNum(doc.subtype)){
+                    doc.subtype = {
+                      notification: !!getBit(doc.subtype,7),
+                      ringToneNotify: !!getBit(doc.subtype,8)
+                    }
+                  }
+                }
+                const room = this.meeting?.room
+                if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
+                  log.info('Meeting has been connected')
+                }else{
+                  //  call onNewEcosDoc for now  until we propose a more generic approach
+                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+                  )
+                  if(onNewEcosDocRegisterComponent){
+                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                    onNewEcosDocRegisterComponent?.onEvent?.(doc)
+                  }
+                }
                 
-      //         }else if(data?.type && data.type ==='abortring'){
-      //           const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-      //             (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
-      //           )
-      //           if(onNewEcosDocRegisterComponent){
-      //             if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-      //               await this.register.registrees?.['onRejected'](onNewEcosDocRegisterComponent)
-      //             onNewEcosDocRegisterComponent?.onEvent?.()
-      //           }
-      //         } else {
-      //           log.log({ message })
-      //           const { data } = message
-      //           const notificationTitle = data.title || ''
-      //           const notificationOptions = {
-      //             body: data.body || '',
-      //             icon: 'favicon.ico',
-      //           }
-      //           const timestap = new Date().getTime()
-      //           const notification = new Notification(notificationTitle,notificationOptions)  
-      //           this.root.NotificationMap.notificationDoc = {
-      //             name:{
-      //               data: '',
-      //               notification: data
-      //             },
-      //             timestap
-      //           }
-      //           notification.addEventListener('click', () => {
-      //             //@ts-expect-error
-      //             this.#notification?.emit('click', 'notificationDoc')
-      //           })
-      //           // debugger
-      //         }
-      //       }
+              }else if(data?.type && data.type ==='abortring'){
+                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+                  (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
+                )
+                if(onNewEcosDocRegisterComponent){
+                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                    await this.register.registrees?.['onRejected'](onNewEcosDocRegisterComponent)
+                  onNewEcosDocRegisterComponent?.onEvent?.()
+                }
+              } else {
+                log.log({ message })
+                const { data } = message
+                const notificationTitle = data.title || ''
+                const notificationOptions = {
+                  body: data.body || '',
+                  icon: 'favicon.ico',
+                }
+                const timestap = new Date().getTime()
+                const notification = new Notification(notificationTitle,notificationOptions)  
+                this.root.NotificationMap.notificationDoc = {
+                  name:{
+                    data: '',
+                    notification: data
+                  },
+                  timestap
+                }
+                notification.addEventListener('click', () => {
+                  //@ts-expect-error
+                  this.#notification?.emit('click', 'notificationDoc')
+                })
+                // debugger
+              }
+            }
           
             
-      //     })
+          })
 
-      //     this.notification?.on('click', async(notificationID) => {
-      //       if (notificationID) {
-      //         //  call onNewEcosDoc for now  until we propose a more generic approach
-      //         const onNotificationClickedRegisterComponent = this.globalRegister?.find?.(
-      //           (obj) => obj?.onEvent === 'onNotificationClicked' || obj?.eventId === 'onNotificationClicked',
-      //         )
-      //         if(!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
-      //           await this.register.registrees?.['onNotificationClicked'](onNotificationClickedRegisterComponent)
-      //         onNotificationClickedRegisterComponent?.onEvent?.(notificationID)
-      //       }
-      //     })
-      //   } catch (error) {
-      //     log.error(error instanceof Error ? error : new Error(String(error)))
-      //   }
-      // }
+          this.notification?.on('click', async(notificationID) => {
+            if (notificationID) {
+              //  call onNewEcosDoc for now  until we propose a more generic approach
+              const onNotificationClickedRegisterComponent = this.globalRegister?.find?.(
+                (obj) => obj?.onEvent === 'onNotificationClicked' || obj?.eventId === 'onNotificationClicked',
+              )
+              if(!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
+                await this.register.registrees?.['onNotificationClicked'](onNotificationClickedRegisterComponent)
+              onNotificationClickedRegisterComponent?.onEvent?.(notificationID)
+            }
+          })
+        } catch (error) {
+          log.error(error instanceof Error ? error : new Error(String(error)))
+        }
+      }
 
       const host = 'https://worldtimeapi.org/api/ip'
       fetch(host).then((response)=>response.json()).then((data) => {
