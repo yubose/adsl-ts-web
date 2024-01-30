@@ -2201,15 +2201,22 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: ({ component }) => component.has('hover'),
       resolve({ node, component }) {
         if (component?.blueprint?.hover) {
-          node?.addEventListener('mouseover', () => {
+          const mouseoverEvent = () => {
             u.entries(component?.blueprint?.hover)?.forEach?.(
               ([key, value]) => {
                 value = String(value).substring?.(2)
                 node.style[key] = '#' + value
               },
             )
+          }
+          node?.addEventListener('mouseover', mouseoverEvent)
+          component.addEventListeners({
+            event: 'mouseover',
+            callback: () => {
+              node?.removeEventListener('mouseover', mouseoverEvent)
+            },
           })
-          node?.addEventListener('mouseout', function (e) {
+          const mouseoutEvent = function (e) {
             u.entries(component?.blueprint?.hover)?.forEach?.(
               ([key, value]) => {
                 let realvalue = component.style[key]
@@ -2228,6 +2235,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 node.style[key] = realvalue
               },
             )
+          }
+          node?.addEventListener('mouseout', mouseoutEvent)
+          component.addEventListeners({
+            event: 'mouseout',
+            callback: () => {
+              node?.removeEventListener('mouseout', mouseoutEvent)
+            },
           })
         }
       },
@@ -2959,7 +2973,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
               eyeIcon.dataset.mods = ''
               eyeIcon.dataset.mods += '[password.eye.toggle]'
-              eyeContainer.onclick = () => {
+              const eyeClick = () => {
                 if (selected) {
                   eyeIcon.setAttribute('src', eyeOpened)
                   node?.setAttribute('type', 'text')
@@ -2972,6 +2986,13 @@ const createExtendedDOMResolvers = function (app: App) {
                   ? 'Click here to hide your password'
                   : 'Click here to reveal your password'
               }
+              eyeContainer.addEventListener('click',eyeClick)
+              component.addEventListeners({
+                event: 'click',
+                callback: () => {
+                  eyeContainer?.removeEventListener('click', eyeClick)
+                },
+              })
               clearTimeout(timer)
             })
           }
@@ -3040,16 +3061,36 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           let isFocus = false
           parentNode.appendChild(tips)
-          node.addEventListener('focus', () => {
+          const focusEvent = () => {
             isFocus = true
+          }
+          node.addEventListener('focus', focusEvent)
+          component.addEventListeners({
+            event: 'focus',
+            callback: () => {
+              node?.removeEventListener('focus', focusEvent)
+            },
           })
-          node.addEventListener('blur', () => {
+          const blurEvenet = () => {
             if (isFocus) {
               strict()
               isFocus = false
             }
+          }
+          node.addEventListener('blur', blurEvenet)
+          component.addEventListeners({
+            event: 'blur',
+            callback: () => {
+              node?.removeEventListener('blur', blurEvenet)
+            },
           })
           node.addEventListener('input', strict)
+          component.addEventListeners({
+            event: 'input',
+            callback: () => {
+              node?.removeEventListener('input', strict)
+            },
+          })
 
           const observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
@@ -3124,17 +3165,36 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           let isFocus = false
           parentNode.appendChild(tips)
-          node.addEventListener('focus', () => {
+          const focusEvent = () => {
             isFocus = true
+          }
+          node.addEventListener('focus', focusEvent)
+          component.addEventListeners({
+            event: 'focus',
+            callback: () => {
+              node?.removeEventListener('focus', focusEvent)
+            },
           })
-          node.addEventListener('blur', () => {
+          const blurEvent = () => {
             if (isFocus) {
               strict()
               isFocus = false
             }
+          }
+          node.addEventListener('blur', blurEvent)
+          component.addEventListeners({
+            event: 'blur',
+            callback: () => {
+              node?.removeEventListener('blur', blurEvent)
+            },
           })
           node.addEventListener('input', strict)
-
+          component.addEventListeners({
+            event: 'input',
+            callback: () => {
+              node?.removeEventListener('input', strict)
+            },
+          })
           const observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
               if (mutation.type == "attributes" && mutation.attributeName == "style") {
@@ -3899,7 +3959,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           node.append(fragment)
           fragment = null
-          node.addEventListener('click', (e) => {
+          const clickEvent = (e) => {
             let dataInput = +(e.target as HTMLInputElement).value
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
               let selected = dataValue['selectedData'] as any
@@ -3948,6 +4008,13 @@ const createExtendedDOMResolvers = function (app: App) {
               )
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
+          }
+          node.addEventListener('click', clickEvent)
+          component.addEventListeners({
+            event: 'click',
+            callback: () => {
+              node?.removeEventListener('click', clickEvent)
+            },
           })
           // node.appendChild(childrenConta)
         }
@@ -4278,7 +4345,7 @@ const createExtendedDOMResolvers = function (app: App) {
               fragment.childNodes[0].style.visibility = 'visibility'
               imageContainer.appendChild(fragment)
             }
-            imageContainer.addEventListener('click',()=>{
+            const clickEvent = ()=>{
               const imageClicks = component.get("imageClick")
               if(imageClicks){
                 imageClicks?.queue.forEach(imageClick=>{
@@ -4289,6 +4356,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 imageClicks?.execute?.()
               }
  
+            }
+            imageContainer.addEventListener('click',clickEvent)
+            component.addEventListeners({
+              event: 'click',
+              callback: () => {
+                imageContainer?.removeEventListener('click', clickEvent)
+              },
             })
             domNodeContent.append(timeContent,imageContainer)
             return fragment
@@ -4867,8 +4941,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const ulDom = new ul(toStr(ulCss), optsList).dom
 
           node.appendChild(ulDom)
-
-          ulDom.addEventListener('click', (event) => {
+          const ulClick = (event) => {
             let dom = event.target as HTMLImageElement
             app.updateRoot((draft) => {
               set(draft, component.get('data-key'), {
@@ -4960,6 +5033,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 navList.get(value).isExtend = true
               }
             }
+          }
+          ulDom.addEventListener('click', ulClick)
+          component.addEventListeners({
+            event: 'click',
+            callback: () => {
+              ulDom?.removeEventListener('click', ulClick)
+            },
           })
 
           let extendSet = navBar.extendSet
@@ -5985,12 +6065,25 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })();
           img.addEventListener(device_is_web ? 'mousedown' : "touchstart", onMouseDown);
+          component.addEventListeners({
+            event: device_is_web ? 'mousedown' : "touchstart",
+            callback: () => {
+              img?.removeEventListener(device_is_web ? 'mousedown' : "touchstart",onMouseDown)
+            },
+          })
           function onMouseDown(e) {
             device_is_web && e.preventDefault();
             offsetX = (e.clientX || e.touches[0].clientX) - img.offsetLeft;
             offsetY = (e.clientY || e.touches[0].clientY) - img.offsetTop;
             document.addEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove);
             document.addEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp);
+            component.addEventListeners({
+              event: device_is_web ? 'mousemove' : "touchmove",
+              callback: () => {
+                document?.removeEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove)
+                document?.removeEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp)
+              },
+            })
           }
           function onMouseMove(e) {
             isDragging = true;
@@ -6020,6 +6113,12 @@ const createExtendedDOMResolvers = function (app: App) {
             img.removeEventListener('click', startRecording);
             if (!isDragging) {
               img.addEventListener('click', proccess_fun ? startRecording : stopRecording);
+              component.addEventListeners({
+                event: 'click',
+                callback: () => {
+                  img?.removeEventListener('click', proccess_fun ? startRecording : stopRecording)
+                },
+              })
             }
             isDragging = false;
             document.removeEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove);
@@ -6031,7 +6130,6 @@ const createExtendedDOMResolvers = function (app: App) {
               img.removeEventListener('click', startRecording);
               proccess_fun = false;
               img.addEventListener('click', stopRecording);
-
             }).catch((e) => {
               console.error(e);
             });
@@ -6146,7 +6244,13 @@ const createExtendedDOMResolvers = function (app: App) {
             img.style.top = audioT;
           }
           node.addEventListener("click", appendEle);
-          document.addEventListener(device_is_web ? 'mousedown' : "touchstart", (e) => {
+          component.addEventListeners({
+            event: 'click',
+            callback: () => {
+              node?.removeEventListener('click', appendEle)
+            },
+          })
+          const mousedownFunc = (e) => {
             if (node.parentNode?.contains(img) && !["target_img", node.id].includes(e.target?.id as string)) {
               img.removeEventListener("click", appendEle);
               recorder.stop();
@@ -6162,6 +6266,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 node.focus();
               }
             }
+          }
+          document.addEventListener(device_is_web ? 'mousedown' : "touchstart", mousedownFunc)
+          component.addEventListeners({
+            event: device_is_web ? 'mousedown' : "touchstart",
+            callback: () => {
+              document?.removeEventListener(device_is_web ? 'mousedown' : "touchstart", mousedownFunc)
+            },
           })
         } else {
         }

@@ -430,8 +430,8 @@ function getWebpackConfig(env) {
                 terserOptions: {
                   warnings: false,
                   compress: {
-                    drop_console: false,
-                    drop_debugger: false,
+                    drop_console: true,
+                    drop_debugger: true,
                   },
                 },
               }),

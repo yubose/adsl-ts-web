@@ -498,9 +498,10 @@ class App {
       const req = await this.ndom.request(_page)
       NDOMPage = _page
       if (req) {
+        this.root.options = null
+        const components = await this.render(_page)
         // @ts-expect-error
         delete window.pcomponents
-        const components = await this.render(_page)
         window.pcomponents = components as any
       }
 
@@ -553,98 +554,98 @@ class App {
           throw new Error(`Level 3 is not provided or instantiated`)
         }
       }
-      if (!this.#notification?.initiated) {
-        try {
-          this.#notification = new AppNotification()
-          log.debug(`Initialized notifications`, this.#notification)
-          onInitNotification && (await onInitNotification?.(this.#notification))
+      // if (!this.#notification?.initiated) {
+      //   try {
+      //     this.#notification = new AppNotification()
+      //     log.debug(`Initialized notifications`, this.#notification)
+      //     onInitNotification && (await onInitNotification?.(this.#notification))
 
-          this.notification?.on('message', async(message) => {
-            if (message) {
-              const { data } = message
-              const title = data?.title
-              const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
+      //     this.notification?.on('message', async(message) => {
+      //       if (message) {
+      //         const { data } = message
+      //         const title = data?.title
+      //         const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
 
-              if (data?.did) {
-                let doc = data.did
-                if(u.isStr(data.did)){
-                  const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
-                  if(flag) return
-                  doc = JSON.parse(data.did)
-                  if(doc?.subtype && u.isNum(doc.subtype)){
-                    doc.subtype = {
-                      notification: !!getBit(doc.subtype,7),
-                      ringToneNotify: !!getBit(doc.subtype,8)
-                    }
-                  }
-                }
-                const room = this.meeting?.room
-                if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
-                  log.info('Meeting has been connected')
-                }else{
-                  //  call onNewEcosDoc for now  until we propose a more generic approach
-                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                  )
-                  if(onNewEcosDocRegisterComponent){
-                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
-                    onNewEcosDocRegisterComponent?.onEvent?.(doc)
-                  }
-                }
+      //         if (data?.did) {
+      //           let doc = data.did
+      //           if(u.isStr(data.did)){
+      //             const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
+      //             if(flag) return
+      //             doc = JSON.parse(data.did)
+      //             if(doc?.subtype && u.isNum(doc.subtype)){
+      //               doc.subtype = {
+      //                 notification: !!getBit(doc.subtype,7),
+      //                 ringToneNotify: !!getBit(doc.subtype,8)
+      //               }
+      //             }
+      //           }
+      //           const room = this.meeting?.room
+      //           if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
+      //             log.info('Meeting has been connected')
+      //           }else{
+      //             //  call onNewEcosDoc for now  until we propose a more generic approach
+      //             const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+      //               (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
+      //             )
+      //             if(onNewEcosDocRegisterComponent){
+      //               if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+      //                 await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+      //               onNewEcosDocRegisterComponent?.onEvent?.(doc)
+      //             }
+      //           }
                 
-              }else if(data?.type && data.type ==='abortring'){
-                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
-                )
-                if(onNewEcosDocRegisterComponent){
-                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                    await this.register.registrees?.['onRejected'](onNewEcosDocRegisterComponent)
-                  onNewEcosDocRegisterComponent?.onEvent?.()
-                }
-              } else {
-                log.log({ message })
-                const { data } = message
-                const notificationTitle = data.title || ''
-                const notificationOptions = {
-                  body: data.body || '',
-                  icon: 'favicon.ico',
-                }
-                const timestap = new Date().getTime()
-                const notification = new Notification(notificationTitle,notificationOptions)  
-                this.root.NotificationMap.notificationDoc = {
-                  name:{
-                    data: '',
-                    notification: data
-                  },
-                  timestap
-                }
-                notification.addEventListener('click', () => {
-                  //@ts-expect-error
-                  this.#notification?.emit('click', 'notificationDoc')
-                })
-                // debugger
-              }
-            }
+      //         }else if(data?.type && data.type ==='abortring'){
+      //           const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
+      //             (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
+      //           )
+      //           if(onNewEcosDocRegisterComponent){
+      //             if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+      //               await this.register.registrees?.['onRejected'](onNewEcosDocRegisterComponent)
+      //             onNewEcosDocRegisterComponent?.onEvent?.()
+      //           }
+      //         } else {
+      //           log.log({ message })
+      //           const { data } = message
+      //           const notificationTitle = data.title || ''
+      //           const notificationOptions = {
+      //             body: data.body || '',
+      //             icon: 'favicon.ico',
+      //           }
+      //           const timestap = new Date().getTime()
+      //           const notification = new Notification(notificationTitle,notificationOptions)  
+      //           this.root.NotificationMap.notificationDoc = {
+      //             name:{
+      //               data: '',
+      //               notification: data
+      //             },
+      //             timestap
+      //           }
+      //           notification.addEventListener('click', () => {
+      //             //@ts-expect-error
+      //             this.#notification?.emit('click', 'notificationDoc')
+      //           })
+      //           // debugger
+      //         }
+      //       }
           
             
-          })
+      //     })
 
-          this.notification?.on('click', async(notificationID) => {
-            if (notificationID) {
-              //  call onNewEcosDoc for now  until we propose a more generic approach
-              const onNotificationClickedRegisterComponent = this.globalRegister?.find?.(
-                (obj) => obj?.onEvent === 'onNotificationClicked' || obj?.eventId === 'onNotificationClicked',
-              )
-              if(!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
-                await this.register.registrees?.['onNotificationClicked'](onNotificationClickedRegisterComponent)
-              onNotificationClickedRegisterComponent?.onEvent?.(notificationID)
-            }
-          })
-        } catch (error) {
-          log.error(error instanceof Error ? error : new Error(String(error)))
-        }
-      }
+      //     this.notification?.on('click', async(notificationID) => {
+      //       if (notificationID) {
+      //         //  call onNewEcosDoc for now  until we propose a more generic approach
+      //         const onNotificationClickedRegisterComponent = this.globalRegister?.find?.(
+      //           (obj) => obj?.onEvent === 'onNotificationClicked' || obj?.eventId === 'onNotificationClicked',
+      //         )
+      //         if(!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
+      //           await this.register.registrees?.['onNotificationClicked'](onNotificationClickedRegisterComponent)
+      //         onNotificationClickedRegisterComponent?.onEvent?.(notificationID)
+      //       }
+      //     })
+      //   } catch (error) {
+      //     log.error(error instanceof Error ? error : new Error(String(error)))
+      //   }
+      // }
 
       const host = 'https://worldtimeapi.org/api/ip'
       fetch(host).then((response)=>response.json()).then((data) => {
@@ -875,7 +876,7 @@ class App {
         loadingState.push({ id: page.id as string, init: true })
       }
 
-      log.debug(`Running noodl.initPage for page "${pageRequesting}"`)
+      // log.debug(`Running noodl.initPage for page "${pageRequesting}"`)
 
       if (pageRequesting === currentPage) {
         log.warn(
@@ -907,13 +908,13 @@ class App {
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
             // log.log(localStorage.getItem("keepingLockState"))
-            log.debug('', { init, page: pageRequesting })
+            // log.debug('', { init, page: pageRequesting })
             //   if(localStorage.getItem("lockPreUrl")){
             //     history.go(-(history.length-countJumpPage-1))
             // }
           },
           onInit: async (current, index, init) => {
-            log.debug('', { current, index, init, page: pageRequesting })
+            // log.debug('', { current, index, init, page: pageRequesting })
 
             const validateReference = (ref: string) => {
               const datapath = nu.trimReference(ref as ReferenceString)
@@ -1253,7 +1254,7 @@ class App {
       }
     }
 
-    const onBeforeClearnode = () => {
+    const onBeforeClearnode = (node) => {
       if ((page.page === 'VideoChat' && page.requesting !== 'VideoChat')||
         (page.page === 'MeetingPage' && page.requesting !== 'MeetingPage')
       ) {
@@ -1272,6 +1273,18 @@ class App {
       page.previous &&
         page.previous !== page.page &&
         this.nui.cache.component.clear(page.previous)
+      
+      const remove = (node:any)=>{
+        if(node){
+          const childs = node?.childNodes
+          for(let child of childs){
+            remove(child)
+            child.remove()
+          }
+          return
+        }
+      }
+      if(node) remove(node)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
@@ -1322,6 +1335,7 @@ class App {
         if (this.getState().spinner.active) this.disableSpinner()
       },0)
     }
+
 
     page
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
