@@ -13,6 +13,7 @@ const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
 const TerserPlugin = require('terser-webpack-plugin')
+const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const serializeErr = (err) => ({
   name: err.name,
   message: err.message,
@@ -418,6 +419,7 @@ function getWebpackConfig(env) {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),
         },
       }),
+      new LodashModuleReplacementPlugin(),
     ],
     optimization:
       mode === 'production'
@@ -439,24 +441,36 @@ function getWebpackConfig(env) {
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
-              chunks: 'async',
-              minSize: 35000,
-              maxSize: 80000,
+              chunks: 'all',
+              minSize: 0,
+              maxSize: 6000000,
               minChunks: 8,
               maxAsyncRequests: 30,
               maxInitialRequests: 30,
               automaticNameDelimiter: '~',
-              enforceSizeThreshold: 50000,
+              enforceSizeThreshold: 20000,
               cacheGroups: {
-                defaultVendors: {
+                vendor: { 
                   test: /[\\/]node_modules[\\/]/,
-                  priority: -10,
+                  name: 'vendors',
+                  priority: 1,
+                  filename: '[name].[contenthash].js',
+                  enforce: true,
                 },
-                default: {
-                  minChunks: 5,
-                  priority: -20,
-                  reuseExistingChunk: true,
+                common: {
+                  minChunks: 2,
+                  name: 'common',
+                  filename: '[name].[contenthash].js',
                 },
+                // defaultVendors: {
+                //   test: /[\\/]node_modules[\\/]/,
+                //   priority: -10,
+                // },
+                // default: {
+                //   minChunks: 5,
+                //   priority: -20,
+                //   reuseExistingChunk: true,
+                // },
               },
             },
           }
