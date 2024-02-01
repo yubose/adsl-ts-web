@@ -13,7 +13,6 @@ const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
 const TerserPlugin = require('terser-webpack-plugin')
-const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const serializeErr = (err) => ({
   name: err.name,
   message: err.message,
@@ -419,7 +418,6 @@ function getWebpackConfig(env) {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),
         },
       }),
-      new LodashModuleReplacementPlugin(),
       new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/,contextRegExp: /moment$/}),
     ],
     optimization:

@@ -155,7 +155,7 @@
     "build:stable": "cross-env NODE_ENV=production DEPLOYING=true npm run build -- --env ECOS_ENV=stable --env DEPLOYING=true --env NODE_ENV=production",
     "build:test": "cross-env NODE_ENV=production npm run build -- --env ECOS_ENV=test --env DEPLOYING=true",
     "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
-    "start": "webpack serve --port 3000 --mode=development",
+    "start": "webpack serve --port 3700 --mode=development",
     "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true PLATEFORM_ENV=cn npm run start -- --env ECOS_ENV=test",
     "sync": "node scripts/op sync",
