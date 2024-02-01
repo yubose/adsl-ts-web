@@ -420,6 +420,7 @@ function getWebpackConfig(env) {
         },
       }),
       new LodashModuleReplacementPlugin(),
+      new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/,contextRegExp: /moment$/}),
     ],
     optimization:
       mode === 'production'
@@ -442,13 +443,13 @@ function getWebpackConfig(env) {
             removeEmptyChunks: true,
             splitChunks: {
               chunks: 'all',
-              minSize: 0,
-              maxSize: 6000000,
+              minSize: 2000000,
+              maxSize: 3000000,
               minChunks: 8,
               maxAsyncRequests: 30,
               maxInitialRequests: 30,
               automaticNameDelimiter: '~',
-              enforceSizeThreshold: 20000,
+              // enforceSizeThreshold: 20000,
               cacheGroups: {
                 vendor: { 
                   test: /[\\/]node_modules[\\/]/,
@@ -458,9 +459,10 @@ function getWebpackConfig(env) {
                   enforce: true,
                 },
                 common: {
-                  minChunks: 2,
+                  minChunks: 1,
                   name: 'common',
                   filename: '[name].[contenthash].js',
+                  chunks: 'all',
                 },
                 // defaultVendors: {
                 //   test: /[\\/]node_modules[\\/]/,

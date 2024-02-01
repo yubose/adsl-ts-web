@@ -191,6 +191,7 @@
   },
   "dependencies": {
     "html5-qrcode": "^2.2.1",
+    "lodash-webpack-plugin": "^0.11.6",
     "noodl-types": "^1.0.277",
     "noodl-ui": "^0.1.1190",
     "sweetalert2": "^11.7.6"
