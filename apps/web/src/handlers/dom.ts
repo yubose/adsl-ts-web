@@ -4583,6 +4583,7 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         // console.error(component.get('dataKey'))
         let currentPage = app.currentPage
+        localStorage.setItem("previousPage", app.mainPage.previous)
         const menuBarInfo = get(app.root, component.get('data-key'))
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
@@ -4677,7 +4678,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 
           let optsList: Map<string, LIOpts> = new Map()
-          let childMap: Map<string, string> = new Map()
+          let childMap: Map<string, Map<string, string>> = new Map()
           let extendMap: Map<string, string> = new Map()
           // let extendSet = new Set()
 
@@ -4719,7 +4720,13 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   if (c.children instanceof Array) {
                     c.children.forEach((item) => {
-                      childMap.set(item, c.pageName + '|' + child.pageName)
+                      if(childMap.has(item)) {
+                        const links = childMap.get(item) as Map<string, string>
+                        links.set(c.pageName, child.pageName)
+                        childMap.set(item, links)
+                      }
+                      else
+                        childMap.set(item, new Map([[c.pageName, child.pageName]]))
                     })
                   }
                   children.push({
@@ -4941,7 +4948,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const ulDom = new ul(toStr(ulCss), optsList).dom
 
           node.appendChild(ulDom)
-          const ulClick = (event) => {
+          const ulClick = (event) => {  
             let dom = event.target as HTMLImageElement
             app.updateRoot((draft) => {
               set(draft, component.get('data-key'), {
@@ -5057,9 +5064,22 @@ const createExtendedDOMResolvers = function (app: App) {
 
           if (childMap.has(currentPage)) {
             // console.log("AAAABC")
-            let info = childMap.get(currentPage)
-            let PAGE = info?.split('|')[0]
-            let BLOCK = info?.split('|')[1]
+            const info_list = childMap.get(currentPage) as Map<string, string>
+            const previous_page = localStorage.getItem("previousPage")
+            log.info("[PREVIOUS PAGE]", previous_page)
+            let PAGE
+            let BLOCK
+            if(previous_page) {
+              PAGE = previous_page
+              BLOCK = info_list.get(previous_page)
+              if(!BLOCK) {
+                PAGE = info_list.keys().next().value
+                BLOCK = info_list.get(PAGE)
+              }
+            } else {
+              PAGE = info_list.keys().next().value
+              BLOCK = info_list.get(PAGE)
+            }
             if (navBar.selectedPage !== PAGE) {
               extendSet.forEach((v) => {
                 if (navList.get(v).hasChildren) {
