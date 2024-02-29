@@ -55,7 +55,6 @@ const editorConfig: Partial<IEditorConfig> = {
                 const nodes = JSON.parse(text)
                 SlateTransforms.insertNodes(editor, nodes)
             } catch (error) {
-                // console.log(text)
                 const arr = text?.split(/[\n\r]/g)
                 arr?.forEach(item => {
                     if(item !== '') {
