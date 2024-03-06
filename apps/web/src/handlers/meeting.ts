@@ -1,21 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
 import log from '../log'
 import { findByUX, isComponent } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
-import { isMobile } from '../utils/common'
-import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
-import { Meeting } from '../app/types'
-import {
-  RemoteParticipant,
-  LocalAudioTrackPublication,
-  LocalVideoTrackPublication,
-} from '../app/types'
+import { Meeting, MeetingPages } from '../app/types'
+import { RemoteParticipant } from '../app/types'
 import { isVisible, parseCssText, toast } from '../utils/dom'
 import is from '../utils/is'
 import App from '../App'
-import { LocalParticipant } from 'twilio-video'
 import { get, set } from 'lodash'
 
 type RemoteParticipantConnectionChangeEvent =
@@ -31,7 +25,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     function onConnectionChange(participant: RemoteParticipant) {
       log.debug(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
-        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        app.meeting.room.state === 'connected' &&
+          app.register.extendVideoFunction('twilioOnPeopleJoin')
         // app.meeting.getMainStreamElement()
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
@@ -71,72 +66,185 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     ),
   } as const
 
-  async function onConnected(room: Meeting['room']) {
-    //Prevents events from being listened to multiple times and causing lag
-    room.removeAllListeners('participantConnected')
-    room.removeAllListeners('participantDisconnected')
-    room.removeAllListeners('participantReconnecting')
-    room.removeAllListeners('participantReconnected')
-    room.removeAllListeners('disconnected')
-    room.removeAllListeners('recordingStarted')
-    room.removeAllListeners('recordingStopped')
-    room.on('participantConnected', onRoomEvent.participantConnected)
-    room.on('participantDisconnected', onRoomEvent.participantDisconnected)
-    room.on('participantReconnecting', onRoomEvent.participantReconnecting)
-    room.on('participantReconnected', onRoomEvent.participantReconnected)
-    room.once('disconnected', () => {
-      function disconnect() {
-        room?.disconnect?.()
-        app.meeting.calledOnConnected = false
-      }
-      function unpublishTracks(
-        publication: LocalVideoTrackPublication | LocalAudioTrackPublication,
-      ) {
-        publication?.track?.stop?.()
-        publication?.unpublish?.()
-      }
-      room.localParticipant.videoTracks.forEach(unpublishTracks)
-      room.localParticipant.audioTracks.forEach(unpublishTracks)
-      removeEventListener('beforeunload', disconnect)
-      if (isMobile()) removeEventListener('pagehide', disconnect)
-      room.removeAllListeners('participantConnected')
-      room.removeAllListeners('participantDisconnected')
-      room.removeAllListeners('participantReconnecting')
-      room.removeAllListeners('participantReconnected')
-    })
-    room.on('recordingStarted',()=>{
-      app.register.emit('recordingStarted')
+  async function onConnected(room: Meeting['room'], type?: string) {
+    const page = app.initPage ? app.initPage : 'VideoChat'
+
+    room.on('user-updated', (payload) => {
+      console.log('user-updated', payload)
+      // user updated, like unmuting and muting
     })
 
-    room.on('recordingStopped',()=>{
-      app.register.emit('recordingStopped')
+    room.on('user-removed', (payload) => {
+      console.log('user-removed', payload)
+      // user left
+    })
+
+    room.on('connection-change', (payload) => {
+      // session ended by host
+      console.log('connection-change', payload)
+    })
+    room.on('active-speaker', (payload) => {
+      // console.log('active-speaker', payload)
+      // new active speaker, for example, use for microphone visuals, css video border, etc.
+    })
+    room.on('peer-video-state-change', async (payload) => {
+      const page = app.initPage ? app.initPage : 'VideoChat'
+      if (payload.action === 'Start') {
+        if (MeetingPages.includes(page)) {
+          const mainStreamEl = app.mainStream.getElement()
+          const mask = app.mainStream.getMaskElement()
+          const canvas = app.mainStream.getVideoElement()
+          app.mainStream.setParticipant(room.getUser(payload.userId))
+          await zoomSession.renderVideo(
+            canvas,
+            payload.userId,
+            parseInt(mainStreamEl.style.width),
+            parseInt(mainStreamEl.style.height),
+            0,
+            0,
+            3,
+          )
+          mask && (mask.style.display = 'none')
+          canvas && (canvas.style.display = 'block')
+        } else {
+          const minVideoEl = findByUX('minimizeVideoChat') as HTMLElement
+          app.mainStream.setParticipant(room.getUser(payload.userId))
+          if (minVideoEl) {
+            const minVideoMask = minVideoEl.querySelector('div')
+            const minVideoCanvasEl =
+              minVideoEl.querySelector('canvas') ||
+              minVideoEl.querySelector('video')
+            await zoomSession.renderVideo(
+              minVideoCanvasEl,
+              payload.userId,
+              parseInt(mainStreamEl.style.width),
+              parseInt(mainStreamEl.style.height),
+              0,
+              0,
+              3,
+            )
+            minVideoMask && (minVideoMask.style.display = 'none')
+            minVideoCanvasEl && (minVideoCanvasEl.style.display = 'block')
+          }
+        }
+      } else if (payload.action === 'Stop') {
+        if (MeetingPages.includes(page)) {
+          const mask = app.mainStream.getMaskElement()
+          const canvas = app.mainStream.getVideoElement()
+          app.mainStream.setParticipant(room.getUser(payload.userId))
+          await zoomSession.stopRenderVideo(canvas, payload.userId)
+          canvas && (canvas.style.display = 'none')
+          mask && (mask.style.display = 'flex')
+        } else {
+          const minVideoEl = findByUX('minimizeVideoChat') as HTMLElement
+          if (minVideoEl) {
+            const minVideoMask = minVideoEl.querySelector('div')
+            const minVideoCanvasEl =
+              minVideoEl.querySelector('canvas') ||
+              minVideoEl.querySelector('video')
+            await zoomSession.stopRenderVideo(minVideoCanvasEl, payload.userId)
+            minVideoMask && (minVideoMask.style.display = 'block')
+            minVideoCanvasEl && (minVideoCanvasEl.style.display = 'none')
+          }
+        }
+        // a user turned off their video, stop rendering it
+        // zoomSession.stopRenderVideo(canvas, payload.userId)
+      }
+    })
+
+    room.on('device-change', (payload) => {
+      console.log('device-change', payload)
     })
 
     /* -------------------------------------------------------
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
-    if (!app.selfStream.isParticipant(room.localParticipant)) {
-      app.selfStream.setParticipant(room.localParticipant)
-      if (app.selfStream.getElement()) {
-        app.selfStream.getElement().style.zIndex = '1000'
+    const zoomSession = room.stream
+    app.selfStream.isRenderSelfViewWithVideoElement =
+      zoomSession.isRenderSelfViewWithVideoElement()
+    const selfStreamEl = app.selfStream.getElement()
+    const canvas = app.selfStream.getVideoElement()
+    const selfUser = room.getCurrentUserInfo()
+    let { cameraOn, micOn } = app.root?.[page] || {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    cameraOn = u.isStr(cameraOn)
+      ? cameraOn === 'true'
+        ? true
+        : false
+      : cameraOn
+    micOn = u.isStr(micOn) ? (micOn === 'true' ? true : false) : micOn
+    if (is.isBoolean(cameraOn)) {
+      if (is.isBooleanTrue(cameraOn)) {
+        if (zoomSession.isRenderSelfViewWithVideoElement()) {
+          await zoomSession.startVideo({
+            fullHd: true,
+            hd: true,
+            ptz: true,
+            videoElement: canvas,
+            originalRatio: true,
+            captureWidth: 360,
+            captureHeight: 1080,
+          })
+          // self video started and rendered
+        } else {
+          if (!(type && type === 'rejoin')) {
+            await zoomSession.startVideo({
+              fullHd: true,
+              hd: true,
+              ptz: true,
+              originalRatio: true,
+              captureWidth: 360,
+              captureHeight: 640,
+            })
+          }
+          await zoomSession.renderVideo(
+            canvas,
+            selfUser?.userId,
+            parseInt(selfStreamEl.style.width),
+            parseInt(selfStreamEl.style.height),
+            0,
+            0,
+            3,
+          )
+        }
+        const mask = this.selfStream.getMaskElement()
+        mask && (mask.style.visibility = 'hidden')
       }
-      log.debug(`Bound local participant to selfStream`, app.selfStream)
-    }
-    const remoteParticipants = room?.participants
-    if(remoteParticipants.size == 0){
-      // twilioOnNoParticipant
-    }else{
-      // twilioOnPeopleJoin
-      app.meeting.calledOnConnected && app.register.extendVideoFunction('twilioOnPeopleJoin')
     }
 
-    if(remoteParticipants && remoteParticipants.size ==0){
-      app.meeting.calledOnConnected && app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+    if (is.isBoolean(micOn)) {
+      if (is.isBooleanTrue(micOn)) {
+        zoomSession.startAudio()
+      }
     }
 
-    for (const participant of room.participants.values()) {
-      await app.meeting.addRemoteParticipant(participant)
+    const mainStreamEl = app.mainStream.getElement()
+    const mask = app.mainStream.getMaskElement()
+    const users = room.getAllUser()
+    for (const user of users) {
+      if (user.userId !== selfUser.userId && user.bVideoOn) {
+        const canvas = app.mainStream.getVideoElement()
+        app.mainStream.setParticipant(room.getUser(user.userId))
+        // await zoomSession.startVideo({ videoElement: canvas })
+        if (canvas?.id?.indexOf('ZOOM') === -1) {
+          console.log('test11')
+          await zoomSession.renderVideo(
+            canvas,
+            user.userId,
+            parseInt(mainStreamEl.style.width),
+            parseInt(mainStreamEl.style.height),
+            0,
+            0,
+            3,
+          )
+        }
+        mask && (mask.style.display = 'none')
+      }
     }
+
+    // const mask = app.selfStream.getMaskElement()
+    // mask && (mask.style.visibility = 'hidden')
+    // self video started and rendered
   }
 
   /**
@@ -166,7 +274,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       if (!has(app.root, app.getPathToRemoteParticipantsInRoot())) {
         log.error(
           'Could not find a path to remote participants in the VideoChat page! Path: ' +
-          app.getPathToRemoteParticipantsInRoot(),
+            app.getPathToRemoteParticipantsInRoot(),
           app.root,
         )
       }
@@ -184,7 +292,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     )
     if (!app.getRoomParticipants().size || !app.getSdkParticipants()?.length) {
       // app.meeting.showWaitingOthersMessage()
-      app.nui.emit({
+      void app.nui.emit({
         type: 'register',
         event: 'twilioOnNoParticipant',
         params: { room: app.meeting.room },
@@ -217,27 +325,30 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           component,
           selfStream: selfStream.snapshot(),
         })
-        
-        if (app.mainPage.page === 'VideoChat' || app.mainPage.page === 'MeetingPage') {
-          // If the selfStream already has an element, re-use it and reload the
-          // media tracks on it
-          if (selfStream.hasElement()) {
-            node = selfStream.getElement() as HTMLDivElement
-            if (
-              !selfStream.hasAudioElement() &&
-              !selfStream.hasVideoElement()
-            ) {
-              selfStream.reloadTracks()
-            }
-          } else {
-            log.debug(
-              `The selfStream instance does not have any DOM elements. Will ` +
-                `assume the "join" function will load the tracks`,
-            )
-          }
-        } else {
-          // TODO - Implement remote participant stream
-        }
+
+        // if (
+        //   app.mainPage.page === 'VideoChat' ||
+        //   app.mainPage.page === 'MeetingPage'
+        // ) {
+        //   // If the selfStream already has an element, re-use it and reload the
+        //   // media tracks on it
+        //   if (selfStream.hasElement()) {
+        //     node = selfStream.getElement() as HTMLDivElement
+        //     if (
+        //       !selfStream.hasAudioElement() &&
+        //       !selfStream.hasVideoElement()
+        //     ) {
+        //       selfStream.reloadTracks()
+        //     }
+        //   } else {
+        //     log.debug(
+        //       `The selfStream instance does not have any DOM elements. Will ` +
+        //         `assume the "join" function will load the tracks`,
+        //     )
+        //   }
+        // } else {
+        //   // TODO - Implement remote participant stream
+        // }
       }
 
       // Substream
@@ -254,207 +365,81 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
 
         // Currently used for the popUp in the VideoChat page that have global: true
         function onMutation(mutations: Parameters<MutationCallback>[0]) {
+          if (node.querySelector('canvas') || node.querySelector('video')) {
+            log.debug(`Mutation in current Page`, mutations)
+            return
+          }
           log.debug(`Mutation change`, mutations)
-
+          const currentPage = app.initPage
+          //Jumping to other pages of the meeting is still timed
           const timerNode = findByUX('videoTimer') as HTMLElement
-          if(timerNode && mutations.length == 2){
+          if (
+            timerNode &&
+            !(currentPage && ['VideoChat', 'MeetingPage'].includes(currentPage))
+          ) {
             let dataKey = timerNode.getAttribute('data-key') || 0
-            const Interval = setInterval(()=>{
+            const Interval = setInterval(() => {
               app.updateRoot((draft) => {
                 const seconds = get(draft, dataKey, 0)
                 set(draft, dataKey, seconds + 1)
               })
-
-            },1000)
-            app.ndom.global.intervals.set('VideoChatTimer',Interval)
-          }else{
-            const interval =app.ndom.global.intervals.get('VideoChatTimer')
-            if(interval){
+            }, 1000)
+            app.ndom.global.intervals.set('VideoChatTimer', Interval)
+          } else {
+            const interval = app.ndom.global.intervals.get('VideoChatTimer')
+            if (interval) {
               clearInterval(interval)
             }
           }
 
-          const prevStyle = parseCssText(mutations[0]?.oldValue || '')
-          const newStyle = parseCssText(
-            (mutations[0].target as HTMLDivElement)?.style?.cssText || '',
-          )
-
-          if (isVisible(node)) {
-            if (selfStream.hasElement()) {
-              const childNodes = selfStream.getElement()?.childNodes as
-                | NodeListOf<HTMLElement>
-                | undefined
-
-              if (childNodes) {
-                for (const elem of childNodes) {
-                  !streamNodes.includes(elem) && streamNodes.push(elem)
-                }
-              }
+          //determine if drag is available
+          if (isAudioStreamBinding || isVideoStreamBinding) {
+            let isDragging: boolean = false
+            let offset = {
+              x: 0,
+              y: 0,
             }
-
-            streamNodes.forEach((elem) => {
-              const type = elem?.tagName?.toLowerCase?.() || ''
-              if (/audio|video/.test(type)) {
-                const el = node.querySelector(type)
-                if (el) {
-                  log.info(
-                    `Replacing the existing ${type} element with the one in the loop`,
-                    node.replaceChild(elem, el),
-                  )
-                }
-              }
+            const dragStartEvent = function (event) {
+              isDragging = true
+              offset.x = event.clientX - node.getBoundingClientRect().left
+              offset.y = event.clientY - node.getBoundingClientRect().top
+            }
+            const dragEndEvent = function (event) {
+              isDragging = false
+              let newX = event.clientX - offset.x
+              let newY = event.clientY - offset.y
+              node.style.left = newX + 'px'
+              node.style.top = newY + 'px'
+            }
+            node.setAttribute('draggable', 'true')
+            node.addEventListener('dragstart', dragStartEvent)
+            node.addEventListener('dragend', dragEndEvent)
+            component.addEventListeners({
+              event: 'drag',
+              callback: () => {
+                node.removeEventListener('dragstart', dragStartEvent)
+                node.removeEventListener('dragend', dragEndEvent)
+              },
             })
-
-            const isBindings = [isAudioStreamBinding, isVideoStreamBinding]
-
-            for (let index = 0; index < isBindings.length; index++) {
-              const currentPage = app.currentPage
-              const isBinding = isBindings[index]
-              const type = index ? 'video' : 'audio'
-              const typeLabel = type[0].toUpperCase() + type.slice(1)
-              const streamLabel = `${type}Stream`
-              const streamParticipant = selfStream?.getParticipant?.()
-
-              const localParticipant = app.meeting.localParticipant
-              const remoteParticipants = app.meeting.room.participants
-
-              const isStreamingLocalParticipant =
-                streamParticipant === localParticipant ||
-                streamParticipant?.sid === localParticipant?.sid
-
-              if (currentPage === 'VideoChat' || currentPage === 'MeetingPage') {
-                // Restore the self stream back to the local participant
-                if (!isStreamingLocalParticipant) {
-                  // debugger
-                  if (selfStream.hasParticipant()) {
-                    app.meeting.swapParticipantStream(
-                      app.selfStream,
-                      app.mainStream,
-                      localParticipant,
-                      app.mainStream.getParticipant() as LocalParticipant,
-                    )
-                  }
-                }
-              } else if (remoteParticipants.size) {
-                // Change the stream to a remote participant so the local participant is watching them while away from the VideoChat page
-                if (isStreamingLocalParticipant) {
-                  if (app.mainStream.hasParticipant()) {
-                    app.meeting.swapParticipantStream(
-                      app.mainStream,
-                      app.selfStream,
-                      app.mainStream.getParticipant() as RemoteParticipant,
-                      localParticipant,
-                    )
-                  } else {
-                    // Check subStreams
-                  }
-                }
-              } else {
-                // Keep local participant on self stream
-              }
-
-              if (is.isBoolean(isBinding)) {
-                let previousSnapshot = selfStream.snapshot()
-                let el = selfStream?.[`get${typeLabel}Element`]?.() as
-                  | HTMLVideoElement
-                  | HTMLAudioElement
-                  | null
-
-                if (is.isBooleanTrue(isBinding)) {
-                  //Prevent duplicate windows
-                  const selfStreamEl = app.meeting.selfStream.getElement()
-                  selfStreamEl.style.visibility = 'hidden'
-                  
-                  const el = app.meeting.mainStream.getElement()
-                  el.style.width = '100%'
-                  el.style.height = '100%'
-                  log.debug(
-                    `${streamLabel} is set to true. ` +
-                      `Proceeding to turn on ${type} streaming now...`,
-                  )
-                  const elNodes = el.childNodes
-                  for(const elem  of elNodes){
-                    const type = (elem as HTMLElement)?.tagName?.toLowerCase?.() || ''
-                    if(!(/audio|video/.test(type))){
-                      el.removeChild(elem)
-                    }
-                  }
-                  
-
-                  if (el) {
-                    log.debug(
-                      `${streamLabel} element exists. Checking if it is paused...`,
-                    )
-                    // @ts-expect-error
-                    if (el.paused) {
-                      log.debug(`${streamLabel} was paused. Playing now...`)
-                      // @ts-expect-error
-                      el.play()
-                    } else {
-                      log.debug(
-                        `${streamLabel} is not paused and is currently playing`,
-                      )
-                    }
-                    if (node.querySelector(type)) {
-                      log.debug(
-                        `There is already an ${type} element in children. Replacing it with the selfStream one...`,
-                      )
-                      node.replaceChild(
-                        el,
-                        node.querySelector(type) as
-                          | HTMLAudioElement
-                          | HTMLVideoElement,
-                      )
-                    } else {
-                      node.appendChild(el)
-                      
-                    }
-                  } else {
-                    log.debug(
-                      `${streamLabel} element does not exist on selfStream. Checking the current node now..`,
-                    )
-                    if (node.querySelector(type)) {
-                      log.debug(
-                        `${streamLabel} element already exists in the node`,
-                        node,
-                      )
-                    } else {
-                      log.debug(`TODO - Create + start ${type} stream`, {
-                        previousSnapshot,
-                      })
-                    }
-                  }
-                } else {
-                  log.debug(
-                    `${streamLabel} is set to false. Checking the node for an ${type} element...`,
-                    previousSnapshot,
-                  )
-                  const el = node.querySelector(type)
-                  if (el) {
-                    log.debug(`Found an ${type} element. Removing it now...`)
-                    try {
-                      node.removeChild(el)
-                      el.remove()
-                    } catch (error) {
-                      const err =
-                        error instanceof Error
-                          ? error
-                          : new Error(String(error))
-                      log.error(err)
-                    }
-                  } else {
-                    log.debug(
-                      `Did not to clean up any ${type} element because it is already removd`,
-                    )
-                  }
-                }
-              }
+          }
+          if (isVisible(node)) {
+            const userInfo = app.mainStream.getParticipant()
+            const mask = node.querySelector('div') as HTMLDivElement
+            const videoEl =
+              app.meeting.mainStream.getVideoElement() as HTMLCanvasElement
+            node.appendChild(videoEl)
+            if (userInfo?.bVideoOn) {
+              videoEl.style.display = 'block'
+              mask.style.display = 'none'
             }
+            node.addEventListener('click', async () => {
+              return app.mainStream.setVideoElement(videoEl)
+            })
           } else if (node) {
             log.debug(
               `Element is hidden. Checking and removing audio or video elements if present...`,
             )
-            for (const type of ['audio', 'video']) {
+            for (const type of ['canvas', 'video']) {
               const el = node.querySelector(type)
               if (el) {
                 log.debug(`Removing ${type} element`)

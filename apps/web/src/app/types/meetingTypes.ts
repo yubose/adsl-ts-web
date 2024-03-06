@@ -30,3 +30,5 @@ export interface InitializeMeetingOptions {
 }
 
 export type StreamType = 'mainStream' | 'selfStream' | 'subStream'
+
+export const MeetingPages = ['MeetingPage', 'VideoChat']

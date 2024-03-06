@@ -9,26 +9,21 @@ import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import * as t from '../app/types'
+import ZoomVideo from '@zoom/videosdk'
 
 const createMeetingFns = function _createMeetingFns(app: App) {
-  let _room = new EventEmitter() as t.Room & { _isMock?: boolean }
+  let _room = new EventEmitter() as any & { _isMock?: boolean }
+  let zoomSession
+  let zoomVideo
   let _streams = new Streams()
   let _calledOnConnected = false
 
-  async function _createRoom(token: string) {
-    return Twilio.Video.connect(token, {
-      dominantSpeaker: true,
-      logLevel: 'info',
-      tracks: [],
-      bandwidthProfile: {
-        video: {
-          dominantSpeakerPriority: 'high',
-          mode: 'collaboration',
-          // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
-          ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
-        },
-      },
-    })
+  async function _createRoom(token: string, topic: string, userName: string) {
+    zoomVideo = ZoomVideo.createClient()
+    await zoomVideo.init('en-US', 'Global', { patchJsMedia: true })
+    await zoomVideo.join(topic, token, userName, '')
+    zoomSession = zoomVideo.getMediaStream()
+    return zoomVideo
   }
 
   /**
@@ -60,7 +55,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           `Missing LocalParticipant in selfStream. Setting the LocalParticipant on it now`,
           o.selfStream.snapshot(),
         )
-        o.selfStream.setParticipant(_room.localParticipant)
+        o.selfStream.room = zoomVideo
+        o.selfStream.setParticipant(zoomVideo.getCurrentUserInfo())
       }
       try {
         o.selfStream.reloadTracks()
@@ -76,7 +72,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       )
       try {
         _room.localParticipant?.publishTrack(
-          await Twilio.Video.createLocalAudioTrack(),
+          await createLocalAudioTrack(),
         )
       } catch (error) {
         handleTrackErr(
@@ -86,7 +82,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
       try {
         _room.localParticipant?.publishTrack(
-          await Twilio.Video.createLocalVideoTrack(),
+          await createLocalVideoTrack(),
         )
       } catch (error) {
         handleTrackErr(
@@ -128,41 +124,49 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     get streams() {
       return _streams
     },
+    get currentSession() {
+      return zoomVideo?.getSessionInfo ? zoomVideo.getSessionInfo?.() : {}
+    },
+    get isInMeeting() {
+      return !!this.currentSession?.isInMeeting
+    },
     /**
      * Joins and returns the room using the token
      * @param { string } token - Room token
      */
-    async join(token: string) {
+    async join(token: string, topic: string, userName: string) {
       try {
         if (isUnitTestEnv() && !_room._isMock) {
           throw new Error(`Meeting room should be mocked when testing`)
         }
         if (_room && _room.state !== 'connected') {
-          _room = await _createRoom(token)
+          _room = await _createRoom(token, topic, userName)
         } else {
           _room.state === 'disconnected' && o.leave()
-          _room = await _createRoom(token)
+          _room = await _createRoom(token, topic, userName)
         }
-        await _startTracks()
-        setTimeout(() => app.meeting.onConnected?.(_room), 2000)
+        setTimeout(() => app.meeting.onConnected?.(_room), 1000)
+        // await app.meeting.onConnected?.(_room)
+        // setTimeout(() => app.meeting.onConnected?.(_room), 2000)
         o.calledOnConnected = true
+        // await _startTracks()
         return _room
       } catch (error) {
         log.error(error)
         toast(
-          (error instanceof Error ? error : new Error(String(error))).message,
+          //@ts-expect-error
+          (error instanceof Error ? error : new Error(String(error['reason'])))
+            .message,
           { type: 'error' },
         )
         if (isUnitTestEnv()) throw error
       }
     },
     async rejoin() {
-      if (isUnitTestEnv() && !_room._isMock) {
-        throw new Error(`Meeting room should be mocked when testing`)
-      }
-      log.debug(`Rejoining room`, _room)
-      await _startTracks()
-      setTimeout(() => app.meeting.onConnected?.(_room), 2000)
+      log.debug(`Rejoining room`, zoomVideo)
+      // await _startTracks()
+      setTimeout(() => app.meeting.onConnected?.(zoomVideo, 'rejoin'), 1000)
+      // await app.meeting.onConnected?.(_room)
       o.calledOnConnected = true
       return _room
     },
@@ -175,23 +179,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     /** Disconnects from the room */
     leave() {
       log.error(`LEAVING MEETING ROOM`)
-      if (_room?.state) {
-        const unpublishTracks = (
-          trackPublication:
-            | t.LocalVideoTrackPublication
-            | t.LocalAudioTrackPublication,
-        ) => {
-          trackPublication?.track?.stop?.()
-          trackPublication?.unpublish?.()
-          const attachedElements = trackPublication.track.detach()
-          attachedElements.forEach(element => element.remove())
-        }
-        // Unpublish local tracks
-        _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
-        _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
-        _room?.disconnect?.()
-        o.streams.reset()
-        _calledOnConnected = false
+      if (this.isInMeeting) {
+        zoomVideo.leave()
       }
       return this
     },
@@ -417,7 +406,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       return this
     },
     removeFalseParticipants(participants: any[]) {
-      return participants.filter((p) => !!p?.sid)
+      return participants.filter((p) => !!p?.userId)
     },
     /**
      * Switches a participant's stream to another participant's stream
@@ -426,25 +415,25 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { t.RoomParticipant } participant1
      * @param { t.RoomParticipant } participant2
      */
-    swapParticipantStream(
-      stream1: Stream, // participant1 should currently be inside stream1
-      stream2: Stream, // participant2 should currently be inside stream2
-      participant1: t.RoomParticipant,
-      participant2: t.RoomParticipant,
-    ) {
-      if (stream1 && stream2 && stream1.isParticipant(participant1)) {
-        if (stream1.getParticipant() !== participant2) {
-          stream1.unpublish()
-          stream2.unpublish()
-          stream1.setParticipant(participant2)
-          stream2.setParticipant(participant1)
-        }
-      }
-    },
+    // swapParticipantStream(
+    //   stream1: Stream, // participant1 should currently be inside stream1
+    //   stream2: Stream, // participant2 should currently be inside stream2
+    //   participant1: t.RoomParticipant,
+    //   participant2: t.RoomParticipant,
+    // ) {
+    //   if (stream1 && stream2 && stream1.isParticipant(participant1)) {
+    //     if (stream1.getParticipant() !== participant2) {
+    //       stream1.unpublish()
+    //       stream2.unpublish()
+    //       stream1.setParticipant(participant2)
+    //       stream2.setParticipant(participant1)
+    //     }
+    //   }
+    // },
   }
 
   return o as typeof o & {
-    onConnected(room: t.Room): any
+    onConnected(room: any, type?: any): any
     onAddRemoteParticipant(
       participant: t.RemoteParticipant,
       stream: Stream,

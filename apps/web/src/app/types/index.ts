@@ -7,8 +7,29 @@ import createMeetingFns from '../../meeting'
 import { ActionEvent } from '../../constants'
 export * from './domTypes'
 export * from './meetingTypes'
-export * from './twilio'
-
+// export * from './twilio'
+export interface SelfUserInfo {
+  audio: string
+  avatar: string | undefined
+  bShareAudioOn: boolean | undefined
+  bShareToSubsession: boolean | undefined
+  bVideoOn: boolean | undefined
+  bVideoShare: boolean | undefined
+  displayName: string | undefined
+  isAllowIndividualRecording: boolean | undefined
+  isHost: boolean | undefined
+  isInFailover: boolean | undefined
+  isManager: boolean | undefined
+  isPhoneUser: boolean | undefined
+  isSpeakerOnly: boolean | undefined
+  isVideoConnect: boolean | undefined
+  muted: boolean | undefined
+  sharerOn: boolean | undefined
+  sharerPause: boolean | undefined
+  userGuid: string | undefined
+  userId: string
+  userIdentity: string | undefined
+}
 export interface AppState {
   actionEvents: AppStateActionEvent[]
   authStatus: AuthStatus | ''
@@ -89,7 +110,7 @@ export interface AppNotificationHooks {
   initiated(client: firebase.app.App): void
   initError(error: Error): void
   token(token: string): void
-  click(notificationID:number):void
+  click(notificationID: number): void
 }
 
 export type AppNotificationHook = keyof AppNotificationHooks
