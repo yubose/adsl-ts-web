@@ -3778,7 +3778,7 @@ const createExtendedDOMResolvers = function (app: App) {
             document.createDocumentFragment()
           // let childrenConta = document.createElement('div')
           node.textContent = ''
-          if (get(app.root.Global, dataOptions['checkName']).length) {
+          if (get(app.root.Global, dataOptions['checkName'])?.length) {
             dataValue['selectedData'] = cloneDeep(
               get(app.root.Global, dataOptions['checkName']),
             )
