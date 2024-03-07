@@ -7,16 +7,12 @@ import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
 import { Meeting, MeetingPages } from '../app/types'
 import { RemoteParticipant } from '../app/types'
-import { isVisible, parseCssText, toast } from '../utils/dom'
+import { isVisible, toast } from '../utils/dom'
 import is from '../utils/is'
 import App from '../App'
 import { get, set } from 'lodash'
 
-type RemoteParticipantConnectionChangeEvent =
-  | 'participantConnected'
-  | 'participantDisconnected'
-  | 'participantReconnecting'
-  | 'participantReconnected'
+type RemoteParticipantConnectionChangeEvent = 'user-add' | 'user-removed'
 
 const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   function _attachOnRemoteParticipantConnectionChangeAlerter(
@@ -24,110 +20,89 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   ) {
     function onConnectionChange(participant: RemoteParticipant) {
       log.debug(`${event} "${participant.sid}",participant`)
-      if (event === 'participantConnected') {
-        app.meeting.room.state === 'connected' &&
-          app.register.extendVideoFunction('twilioOnPeopleJoin')
-        // app.meeting.getMainStreamElement()
-        toast(`A participant connected`, { type: 'default' })
-      } else if (event === 'participantDisconnected') {
-        const participantsNumber = app.meeting.room.participants.size
-        if (participantsNumber == 0 && app.meeting.room.state === 'connected') {
-          app.register.extendVideoFunction('onDisconnect')
-        }
-        // toast(`A participant disconnected`, { type: 'error' })
-        const videoNode = app.meeting.mainStream.getVideoElement()
-        videoNode && (videoNode.style.display = 'none')
-      } else if (event === 'participantReconnecting') {
-        toast(`A participant is reconnecting`, { type: 'default' })
-      } else if (event === 'participantReconnected') {
-        // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
-        toast(`A participant reconnected`, { type: 'success' })
+      if (event === 'user-add') {
+        toast(`user-add`, { type: 'default' })
+      } else if (event === 'user-removed') {
+        toast(`user-removed`, { type: 'default' })
       }
     }
     return onConnectionChange
   }
 
-  const onRoomEvent = {
-    participantConnected: u.callAll(
-      _attachOnRemoteParticipantConnectionChangeAlerter('participantConnected'),
-      app.meeting.addRemoteParticipant,
-    ),
-    participantDisconnected: u.callAll(
-      _attachOnRemoteParticipantConnectionChangeAlerter(
-        'participantDisconnected',
-      ),
-      app.meeting.removeRemoteParticipant,
-    ),
-    participantReconnecting: _attachOnRemoteParticipantConnectionChangeAlerter(
-      'participantReconnecting',
-    ),
-    participantReconnected: _attachOnRemoteParticipantConnectionChangeAlerter(
-      'participantReconnected',
-    ),
-  } as const
-
-  async function onConnected(room: Meeting['room'], type?: string) {
-    const page = app.initPage ? app.initPage : 'VideoChat'
-
-    room.on('user-updated', (payload) => {
-      console.log('user-updated', payload)
-      // user updated, like unmuting and muting
-    })
-
-    room.on('user-removed', (payload) => {
-      console.log('user-removed', payload)
+  async function onConnected(room: Meeting['room']) {
+    const zoomSession = room.stream
+    function userAdd(payload) {
+      log.debug('user-add', payload)
+    }
+    function userRemoved(payload) {
+      log.debug('user-removed', payload)
       // user left
-    })
+      const users = zoomSession.getAllUser()
+      if (users.length === 0) {
+        app.register.extendVideoFunction('onDisconnect')
+      }
+    }
+    function userUpdated(payload) {
+      log.debug('user-updated', payload)
+    }
 
-    room.on('connection-change', (payload) => {
-      // session ended by host
-      console.log('connection-change', payload)
-    })
-    room.on('peer-video-state-change', async (payload) => {
-      // const page = app.initPage ? app.initPage : 'VideoChat'
-    })
+    function connectionChange(payload) {
+      log.debug('connection-change', payload)
+      room.off('user-updated', onRoomEvent.userUpdated)
+      room.off('user-removed', onRoomEvent.userRemoved)
+      room.off('user-add', onRoomEvent.userAdd)
+      room.off('peer-video-state-change', onRoomEvent.peerVideoStateChange)
+      room.off('connection-change', onRoomEvent.connectionChange)
+    }
+    async function peerVideoStateChange(payload) {
+      log.debug('peer-video-state-change', payload)
+      if (payload.action === 'Start') {
+        await app.mainStream.toggleRemoteCamera({
+          state: 'Active',
+          userId: payload.userId,
+        })
+      } else if (payload.action === 'Stop') {
+        await app.mainStream.toggleRemoteCamera({
+          state: 'Inactive',
+          userId: payload.userId,
+        })
+      }
+    }
 
-    room.on('video-active-change', async (payload) => {
-      console.log('video-active-change', payload)
-      await app.mainStream.toggleRemoteCamera(payload)
-    })
+    const onRoomEvent = {
+      userAdd: u.callAll(
+        _attachOnRemoteParticipantConnectionChangeAlerter('user-add'),
+        userAdd,
+      ),
+      userRemoved: u.callAll(
+        _attachOnRemoteParticipantConnectionChangeAlerter('user-removed'),
+        userRemoved,
+      ),
+      userUpdated,
+      connectionChange,
+      peerVideoStateChange,
+    } as const
 
-    room.on('device-change', (payload) => {
-      console.log('device-change', payload)
-    })
+    room.off('user-updated', onRoomEvent.userUpdated)
+    room.off('user-removed', onRoomEvent.userRemoved)
+    room.off('user-add', onRoomEvent.userAdd)
+    room.off('peer-video-state-change', onRoomEvent.peerVideoStateChange)
+    room.off('connection-change', onRoomEvent.connectionChange)
+    // room.removeAllListeners('user-updated')
+    // room.removeAllListeners('user-removed')
+    // room.removeAllListeners('user-add')
+    // room.removeAllListeners('peer-video-state-change')
+
+    room.on('user-updated', onRoomEvent.userUpdated)
+    room.on('user-removed', onRoomEvent.userRemoved)
+    room.on('user-add', onRoomEvent.userAdd)
+    room.on('peer-video-state-change', onRoomEvent.peerVideoStateChange)
+    room.on('connection-change', onRoomEvent.connectionChange)
 
     /* -------------------------------------------------------
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
-    const zoomSession = room.stream
-    const selfUser = room.getCurrentUserInfo()
-
-    const mainStreamEl = app.mainStream.getElement()
-    const mask = app.mainStream.getMaskElement()
-    const users = room.getAllUser()
-    for (const user of users) {
-      if (user.userId !== selfUser.userId && user.bVideoOn) {
-        const canvas = app.mainStream.getVideoElement()
-        app.mainStream.setParticipant(room.getUser(user.userId))
-        // await zoomSession.startVideo({ videoElement: canvas })
-        if (canvas?.id?.indexOf('ZOOM') === -1) {
-          await zoomSession.renderVideo(
-            canvas,
-            user.userId,
-            parseInt(mainStreamEl.style.width),
-            parseInt(mainStreamEl.style.height),
-            0,
-            0,
-            3,
-          )
-        }
-        mask && (mask.style.display = 'none')
-      }
-    }
-
-    // const mask = app.selfStream.getMaskElement()
-    // mask && (mask.style.visibility = 'hidden')
-    // self video started and rendered
+    app.register.extendVideoFunction('twilioOnPeopleJoin')
   }
 
   /**
@@ -197,7 +172,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       const selfStream = app.meeting.streams?.selfStream
       // Nodes in this stream will be inserted from the Stream instance
       // These are considered "new" and will be used to replace the current stream nodes later
-      const streamNodes = [] as HTMLElement[]
 
       // This new node will be used in noodl-ui-dom when returned from this function
       let node = document.createElement('div')
@@ -208,30 +182,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           component,
           selfStream: selfStream.snapshot(),
         })
-
-        // if (
-        //   app.mainPage.page === 'VideoChat' ||
-        //   app.mainPage.page === 'MeetingPage'
-        // ) {
-        //   // If the selfStream already has an element, re-use it and reload the
-        //   // media tracks on it
-        //   if (selfStream.hasElement()) {
-        //     node = selfStream.getElement() as HTMLDivElement
-        //     if (
-        //       !selfStream.hasAudioElement() &&
-        //       !selfStream.hasVideoElement()
-        //     ) {
-        //       selfStream.reloadTracks()
-        //     }
-        //   } else {
-        //     log.debug(
-        //       `The selfStream instance does not have any DOM elements. Will ` +
-        //         `assume the "join" function will load the tracks`,
-        //     )
-        //   }
-        // } else {
-        //   // TODO - Implement remote participant stream
-        // }
       }
 
       // Substream
@@ -258,7 +208,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           const timerNode = findByUX('videoTimer') as HTMLElement
           if (
             timerNode &&
-            !(currentPage && ['VideoChat', 'MeetingPage'].includes(currentPage))
+            !(currentPage && MeetingPages.includes(currentPage))
           ) {
             let dataKey = timerNode.getAttribute('data-key') || 0
             const Interval = setInterval(() => {

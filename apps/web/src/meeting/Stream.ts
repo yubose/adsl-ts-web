@@ -4,21 +4,12 @@ import * as u from '@jsmanifest/utils'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
-  LocalTrack,
-  LocalAudioTrackPublication,
-  LocalVideoTrackPublication,
-  RemoteTrack,
-  RemoteAudioTrackPublication,
-  RemoteVideoTrackPublication,
-  RemoteTrackPublication,
   RoomTrack,
-  RoomParticipant,
   RoomParticipantTrackPublication,
   StreamType,
   SelfUserInfo,
   videoActiveChange,
   MeetingPages,
-  zoomError
 } from '../app/types'
 import { findByUX } from 'noodl-ui'
 class MeetingStream {
@@ -405,43 +396,49 @@ class MeetingStream {
   // }
 
   async toggleRemoteCamera(videoStatus: videoActiveChange) {
-    const zoomSession = this.#room.stream
-    const page = window.app.initPage
-    if (this.#node) {
-      let containerEl = this.#node
-      let maskEl = this.getMaskElement()
-      let canvasEl = this.getVideoElement()
-      this.setParticipant(this.#room.getUser(videoStatus.userId))
-      if (!MeetingPages.includes(page)) {
-        containerEl = findByUX('minimizeVideoChat') as HTMLElement
-        if (containerEl) {
-          maskEl = containerEl.querySelector('div')
-          canvasEl =
-            containerEl.querySelector('canvas') ||
-            containerEl.querySelector('video') ||
-            undefined
+    try {
+      const zoomSession = this.#room.stream
+      const page = window.app.initPage
+      if (this.#node) {
+        let containerEl = this.#node
+        let maskEl = this.getMaskElement()
+        let canvasEl = this.getVideoElement()
+        this.setParticipant(this.#room.getUser(videoStatus.userId))
+        if (!MeetingPages.includes(page)) {
+          containerEl = findByUX('minimizeVideoChat') as HTMLElement
+          if (containerEl) {
+            maskEl = containerEl.querySelector('div')
+            canvasEl =
+              containerEl.querySelector('canvas') ||
+              containerEl.querySelector('video') ||
+              undefined
+          }
         }
-      }
-      if (videoStatus.state === 'Active') {
-        await zoomSession.renderVideo(
-          canvasEl,
-          videoStatus.userId,
-          parseInt(containerEl.style.width),
-          parseInt(containerEl.style.height),
-          0,
-          0,
-          3,
-        )
-      } else if (videoStatus.state === 'Inactive') {
-        await zoomSession.stopRenderVideo(canvasEl, videoStatus.userId)
-      }
+        if (videoStatus.state === 'Active') {
+          await zoomSession.renderVideo(
+            canvasEl,
+            videoStatus.userId,
+            parseInt(containerEl.style.width),
+            parseInt(containerEl.style.height),
+            0,
+            0,
+            3,
+          )
+        } else if (videoStatus.state === 'Inactive') {
+          await zoomSession.stopRenderVideo(canvasEl, videoStatus.userId)
+        }
 
-      if (canvasEl && maskEl)
-        this.toggleBackdrop(
-          videoStatus.state === 'Active' ? 'open' : 'close',
-          canvasEl,
-          maskEl,
-        )
+        if (canvasEl && maskEl)
+          this.toggleBackdrop(
+            videoStatus.state === 'Active' ? 'open' : 'close',
+            canvasEl,
+            maskEl,
+          )
+      }
+    } catch (error) {
+      log.debug(error)
+      //@ts-expect-error
+      toast(error?.reason, { type: 'default' })
     }
   }
 
@@ -489,6 +486,23 @@ class MeetingStream {
         this.toggleBackdrop(type, canvas, maskEl)
       }
     } catch (error) {
+      log.debug(error)
+      //@ts-expect-error
+      toast(error?.reason, { type: 'default' })
+    }
+  }
+
+  async toggleSelfMicrophone(type: 'close' | 'open') {
+    try {
+      if (type === 'open') {
+        await this.#zoomStream.startAudio().then(async () => {
+          await this.#zoomStream.unmuteAudio()
+        })
+      } else if (type === 'close') {
+        await this.#zoomStream.muteAudio()
+      }
+    } catch (error) {
+      log.debug(error)
       //@ts-expect-error
       toast(error?.reason, { type: 'default' })
     }
@@ -503,7 +517,6 @@ class MeetingStream {
     let _maskEl = maskEl
     if (videoEl) _videoEl = this.getVideoElement()
     if (maskEl) _maskEl = this.getMaskElement()
-    console.log('test99', { videoEl, maskEl })
     if (_videoEl && _maskEl) {
       switch (type) {
         case 'close':

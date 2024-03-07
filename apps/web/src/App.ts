@@ -1287,13 +1287,13 @@ class App {
 
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
-      if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
-        if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
-          this.meeting.onConnected(this.meeting.room)
-          this.meeting.calledOnConnected = true
-          log.debug(`Republishing tracks with meeting.onConnected`)
-        }
-      }
+      // if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
+      //   if (this.meeting.isInMeeting && !this.meeting.calledOnConnected) {
+      //     this.meeting.onConnected(this.meeting.room)
+      //     this.meeting.calledOnConnected = true
+      //     log.debug(`Republishing tracks with meeting.onConnected`)
+      //   }
+      // }
       // Handle pages that have { viewPort: "top" }
       const pageObjectViewPort =
         this.root[(page.getNuiPage() as NUIPage).page || '']?.viewPort

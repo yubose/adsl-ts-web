@@ -351,7 +351,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       // app.meeting.room?.removeAllListeners?.()
       // app.meeting.leave()
       // app.meeting.room?.disconnect?.()
-      app.meeting.room?.leave()
+      app.meeting.leave()
     }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(
@@ -430,23 +430,26 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   }
 
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
-    async function onToggleCameraOnOff(action) {
-      const selfUser = app.meeting.room.getCurrentUserInfo()
-      if (selfUser.bVideoOn) {
-        void app.selfStream.toggeleSelfCamera('close')
-      } else {
-        void app.selfStream.toggeleSelfCamera('open')
+    async function onToggleCameraOnOff(action, options) {
+      const { cameraOn } = options
+      if (is.isBoolean(cameraOn)) {
+        if (is.isBooleanTrue(cameraOn)) {
+          void app.selfStream.toggeleSelfCamera('close')
+        } else if (is.isBooleanFalse(cameraOn)) {
+          void app.selfStream.toggeleSelfCamera('open')
+        }
       }
     }
 
   const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
-    async function onToggleMicrophoneOnOff(action) {
-      const zoomSession = app.meeting.room.stream
-      const isAudioMuted = zoomSession.isAudioMuted()
-      if (isAudioMuted) {
-        zoomSession.startAudio()
-      } else {
-        zoomSession.muteAudio()
+    async function onToggleMicrophoneOnOff(action, options) {
+      const { micOn } = options
+      if (is.isBoolean(micOn)) {
+        if (is.isBooleanTrue(micOn)) {
+          void app.selfStream.toggleSelfMicrophone('close')
+        } else if (is.isBooleanFalse(micOn)) {
+          void app.selfStream.toggleSelfMicrophone('open')
+        }
       }
     }
   const getViewTagValue = async function onGetViewTagValue(options: {
@@ -550,17 +553,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           })
         }
       }
-
       if (/mic/i.test(dataKey)) {
         await app.builtIns
           .get('toggleMicrophoneOnOff')
           ?.find(Boolean)
-          ?.fn?.(action, options)
+          ?.fn?.(action, { ...options, micOn: previousDataValue })
       } else if (/camera/i.test(dataKey)) {
         await app.builtIns
           .get('toggleCameraOnOff')
           ?.find(Boolean)
-          ?.fn?.(action, options)
+          ?.fn?.(action, { ...options, cameraOn: previousDataValue })
       }
 
       log.debug('', {
@@ -1491,7 +1493,7 @@ export const extendedSdkBuiltIns = {
       // }
 
       // Reuse the existing room
-      if (this.meeting?.isInMeeting) {
+      if (this.meeting?.calledOnConnected) {
         newRoom = await this.meeting.rejoin()
         log.info(
           `Reusing existent room that you are already connected to`,

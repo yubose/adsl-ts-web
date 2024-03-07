@@ -64,7 +64,32 @@ const createMeetingFns = function _createMeetingFns(app: App) {
 
         if (is.isBoolean(micOn)) {
           if (is.isBooleanTrue(micOn)) {
-            zoomSession.startAudio()
+            await app.selfStream.toggleSelfMicrophone('open')
+          }
+        }
+
+        const selfUser = zoomVideo?.getCurrentUserInfo()
+
+        const mainStreamEl = app.mainStream.getElement()
+        const mask = app.mainStream.getMaskElement()
+        const users = zoomVideo?.getAllUser()
+        for (const user of users) {
+          if (user.userId !== selfUser.userId && user.bVideoOn) {
+            const canvas = app.mainStream.getVideoElement()
+            app.mainStream.setParticipant(zoomVideo.getUser(user.userId))
+            // await zoomSession.startVideo({ videoElement: canvas })
+            if (canvas?.id?.indexOf('ZOOM') === -1) {
+              await zoomSession.renderVideo(
+                canvas,
+                user.userId,
+                parseInt(mainStreamEl.style.width),
+                parseInt(mainStreamEl.style.height),
+                0,
+                0,
+                3,
+              )
+            }
+            mask && (mask.style.display = 'none')
           }
         }
       } catch (error) {
@@ -101,10 +126,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       _calledOnConnected = called
     },
     get isConnected() {
-      return _room?.state === 'connected'
+      return !!this.currentSession?.isInMeeting
     },
     get localParticipant() {
-      return _room?.localParticipant
+      return _room?.getCurrentUserInfo()
     },
     get room() {
       return _room
@@ -139,10 +164,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         if (isUnitTestEnv() && !_room._isMock) {
           throw new Error(`Meeting room should be mocked when testing`)
         }
-        if (_room && _room.state !== 'connected') {
+        if (_room && !o.isInMeeting) {
           _room = await _createRoom(token, topic, userName)
         } else {
-          _room.state === 'disconnected' && o.leave()
+          o.isInMeeting && o.leave()
           _room = await _createRoom(token, topic, userName)
         }
         log.debug(`joining room`, _room)
@@ -171,7 +196,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       log.debug(`Rejoining room`, zoomVideo)
       // await _startTracks()
       setTimeout(async () => {
-        await app.meeting.onConnected?.(zoomVideo)
+        // await app.meeting.onConnected?.(zoomVideo)
         await _startTracks(true)
         o.calledOnConnected = true
       }, 1000)
@@ -187,8 +212,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Disconnects from the room */
     leave() {
-      log.error(`LEAVING MEETING ROOM`)
+      log.error(`LEAVING MEETING ROOM`, this.isInMeeting)
       if (this.isInMeeting) {
+        zoomVideo.off('user-updated', () => {})
+        zoomVideo.off('user-removed', () => {})
+        zoomVideo.off('user-add', () => {})
+        zoomVideo.off('connection-change', () => {})
+        zoomVideo.off('peer-video-state-change', () => {})
+        zoomVideo.off('media-sdk-change', () => {})
+        o.calledOnConnected = false
+        o.reset()
         zoomVideo.leave()
       }
       return this
@@ -409,7 +442,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         key === 'room' && (_room = new EventEmitter() as t.Room)
         key === 'streams' && (_streams = new Streams())
       } else {
-        _room = new EventEmitter() as t.Room
+        _room = null
         _streams = new Streams()
       }
       return this
@@ -442,7 +475,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
   }
 
   return o as typeof o & {
-    onConnected(room: any, type?: any): any
+    onConnected(room: any): any
     onAddRemoteParticipant(
       participant: t.RemoteParticipant,
       stream: Stream,
