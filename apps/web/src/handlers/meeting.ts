@@ -83,73 +83,13 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       // session ended by host
       console.log('connection-change', payload)
     })
-    room.on('active-speaker', (payload) => {
-      // console.log('active-speaker', payload)
-      // new active speaker, for example, use for microphone visuals, css video border, etc.
-    })
     room.on('peer-video-state-change', async (payload) => {
-      const page = app.initPage ? app.initPage : 'VideoChat'
-      if (payload.action === 'Start') {
-        if (MeetingPages.includes(page)) {
-          const mainStreamEl = app.mainStream.getElement()
-          const mask = app.mainStream.getMaskElement()
-          const canvas = app.mainStream.getVideoElement()
-          app.mainStream.setParticipant(room.getUser(payload.userId))
-          await zoomSession.renderVideo(
-            canvas,
-            payload.userId,
-            parseInt(mainStreamEl.style.width),
-            parseInt(mainStreamEl.style.height),
-            0,
-            0,
-            3,
-          )
-          mask && (mask.style.display = 'none')
-          canvas && (canvas.style.display = 'block')
-        } else {
-          const minVideoEl = findByUX('minimizeVideoChat') as HTMLElement
-          app.mainStream.setParticipant(room.getUser(payload.userId))
-          if (minVideoEl) {
-            const minVideoMask = minVideoEl.querySelector('div')
-            const minVideoCanvasEl =
-              minVideoEl.querySelector('canvas') ||
-              minVideoEl.querySelector('video')
-            await zoomSession.renderVideo(
-              minVideoCanvasEl,
-              payload.userId,
-              parseInt(mainStreamEl.style.width),
-              parseInt(mainStreamEl.style.height),
-              0,
-              0,
-              3,
-            )
-            minVideoMask && (minVideoMask.style.display = 'none')
-            minVideoCanvasEl && (minVideoCanvasEl.style.display = 'block')
-          }
-        }
-      } else if (payload.action === 'Stop') {
-        if (MeetingPages.includes(page)) {
-          const mask = app.mainStream.getMaskElement()
-          const canvas = app.mainStream.getVideoElement()
-          app.mainStream.setParticipant(room.getUser(payload.userId))
-          await zoomSession.stopRenderVideo(canvas, payload.userId)
-          canvas && (canvas.style.display = 'none')
-          mask && (mask.style.display = 'flex')
-        } else {
-          const minVideoEl = findByUX('minimizeVideoChat') as HTMLElement
-          if (minVideoEl) {
-            const minVideoMask = minVideoEl.querySelector('div')
-            const minVideoCanvasEl =
-              minVideoEl.querySelector('canvas') ||
-              minVideoEl.querySelector('video')
-            await zoomSession.stopRenderVideo(minVideoCanvasEl, payload.userId)
-            minVideoMask && (minVideoMask.style.display = 'block')
-            minVideoCanvasEl && (minVideoCanvasEl.style.display = 'none')
-          }
-        }
-        // a user turned off their video, stop rendering it
-        // zoomSession.stopRenderVideo(canvas, payload.userId)
-      }
+      // const page = app.initPage ? app.initPage : 'VideoChat'
+    })
+
+    room.on('video-active-change', async (payload) => {
+      console.log('video-active-change', payload)
+      await app.mainStream.toggleRemoteCamera(payload)
     })
 
     room.on('device-change', (payload) => {
@@ -160,63 +100,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
     const zoomSession = room.stream
-    app.selfStream.isRenderSelfViewWithVideoElement =
-      zoomSession.isRenderSelfViewWithVideoElement()
-    const selfStreamEl = app.selfStream.getElement()
-    const canvas = app.selfStream.getVideoElement()
     const selfUser = room.getCurrentUserInfo()
-    let { cameraOn, micOn } = app.root?.[page] || {}
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    cameraOn = u.isStr(cameraOn)
-      ? cameraOn === 'true'
-        ? true
-        : false
-      : cameraOn
-    micOn = u.isStr(micOn) ? (micOn === 'true' ? true : false) : micOn
-    if (is.isBoolean(cameraOn)) {
-      if (is.isBooleanTrue(cameraOn)) {
-        if (zoomSession.isRenderSelfViewWithVideoElement()) {
-          await zoomSession.startVideo({
-            fullHd: true,
-            hd: true,
-            ptz: true,
-            videoElement: canvas,
-            originalRatio: true,
-            captureWidth: 360,
-            captureHeight: 1080,
-          })
-          // self video started and rendered
-        } else {
-          if (!(type && type === 'rejoin')) {
-            await zoomSession.startVideo({
-              fullHd: true,
-              hd: true,
-              ptz: true,
-              originalRatio: true,
-              captureWidth: 360,
-              captureHeight: 640,
-            })
-          }
-          await zoomSession.renderVideo(
-            canvas,
-            selfUser?.userId,
-            parseInt(selfStreamEl.style.width),
-            parseInt(selfStreamEl.style.height),
-            0,
-            0,
-            3,
-          )
-        }
-        const mask = this.selfStream.getMaskElement()
-        mask && (mask.style.visibility = 'hidden')
-      }
-    }
-
-    if (is.isBoolean(micOn)) {
-      if (is.isBooleanTrue(micOn)) {
-        zoomSession.startAudio()
-      }
-    }
 
     const mainStreamEl = app.mainStream.getElement()
     const mask = app.mainStream.getMaskElement()
@@ -227,7 +111,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         app.mainStream.setParticipant(room.getUser(user.userId))
         // await zoomSession.startVideo({ videoElement: canvas })
         if (canvas?.id?.indexOf('ZOOM') === -1) {
-          console.log('test11')
           await zoomSession.renderVideo(
             canvas,
             user.userId,
@@ -433,7 +316,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               mask.style.display = 'none'
             }
             node.addEventListener('click', async () => {
-              return app.mainStream.setVideoElement(videoEl)
+              app.selfStream.setVideoElement(app.selfStream.getVideoElement())
+              app.mainStream.setVideoElement(videoEl)
             })
           } else if (node) {
             log.debug(

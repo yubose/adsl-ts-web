@@ -10,6 +10,7 @@ import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import * as t from '../app/types'
 import ZoomVideo from '@zoom/videosdk'
+import is from '../utils/is'
 
 const createMeetingFns = function _createMeetingFns(app: App) {
   let _room = new EventEmitter() as any & { _isMock?: boolean }
@@ -29,22 +30,20 @@ const createMeetingFns = function _createMeetingFns(app: App) {
   /**
    * Start LocalParticipant tracks (intended to be used immediately after room.join)
    */
-  async function _startTracks() {
-    function handleTrackErr(kind: 'audio' | 'video', err: Error) {
-      let errMsg = ''
-      if (/NotAllowedError/i.test(err.name)) {
-        kind === 'video' && (errMsg = `The camera permisson is not enabled`)
-        kind === 'audio' && (errMsg = `The microphone permisson is not enabled`)
-      } else if (/NotFoundError/i.test(err.name)) {
-        errMsg = `Could not locate your ${kind} device.`
-      } else if (/NotReadableError/i.test(err.name)) {
-        errMsg = `Failed to start your ${kind} device. It may be busy or is being used by another tab.`
-      } else {
-        errMsg = err.message
-      }
-      log.error(err)
-      toast(errMsg, { type: 'default' })
-    }
+  async function _startTracks(isload: boolean = false) {
+    const page = app.initPage ? app.initPage : 'VideoChat'
+    let { cameraOn, micOn } = app.root?.[page] || {}
+    cameraOn = u.isStr(cameraOn)
+      ? cameraOn === 'true'
+        ? true
+        : false
+      : cameraOn
+    micOn = u.isStr(micOn) ? (micOn === 'true' ? true : false) : micOn
+    o.selfStream.isRenderSelfViewWithVideoElement =
+      zoomSession.isRenderSelfViewWithVideoElement()
+    o.selfStream.room = zoomVideo
+    o.mainStream.room = zoomVideo
+    o.selfStream.setParticipant(zoomVideo.getCurrentUserInfo())
     if (o.selfStream?.hasElement?.()) {
       log.debug(
         `Starting tracks using the existent selfStream instance`,
@@ -55,15 +54,21 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           `Missing LocalParticipant in selfStream. Setting the LocalParticipant on it now`,
           o.selfStream.snapshot(),
         )
-        o.selfStream.room = zoomVideo
-        o.selfStream.setParticipant(zoomVideo.getCurrentUserInfo())
       }
       try {
-        o.selfStream.reloadTracks()
+        if (is.isBoolean(cameraOn)) {
+          if (is.isBooleanTrue(cameraOn)) {
+            await app.selfStream.toggeleSelfCamera('open', isload)
+          }
+        }
+
+        if (is.isBoolean(micOn)) {
+          if (is.isBooleanTrue(micOn)) {
+            zoomSession.startAudio()
+          }
+        }
       } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        log.error(err)
-        toast(err.message, { type: 'error' })
+        log.debug('_startTracks', error)
       }
     } else {
       log.debug(
@@ -71,24 +76,19 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         o.selfStream.snapshot(),
       )
       try {
-        _room.localParticipant?.publishTrack(
-          await createLocalAudioTrack(),
-        )
+        if (is.isBoolean(cameraOn)) {
+          if (is.isBooleanTrue(cameraOn)) {
+            await app.selfStream.toggeleSelfCamera('open', isload)
+          }
+        }
+
+        if (is.isBoolean(micOn)) {
+          if (is.isBooleanTrue(micOn)) {
+            zoomSession.startAudio()
+          }
+        }
       } catch (error) {
-        handleTrackErr(
-          'audio',
-          error instanceof Error ? error : new Error(String(error)),
-        )
-      }
-      try {
-        _room.localParticipant?.publishTrack(
-          await createLocalVideoTrack(),
-        )
-      } catch (error) {
-        handleTrackErr(
-          'video',
-          error instanceof Error ? error : new Error(String(error)),
-        )
+        log.debug(error)
       }
     }
   }
@@ -145,10 +145,15 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           _room.state === 'disconnected' && o.leave()
           _room = await _createRoom(token, topic, userName)
         }
-        setTimeout(() => app.meeting.onConnected?.(_room), 1000)
+        log.debug(`joining room`, _room)
+        setTimeout(async () => {
+          await app.meeting.onConnected?.(_room)
+          await _startTracks()
+          o.calledOnConnected = true
+        }, 1000)
         // await app.meeting.onConnected?.(_room)
         // setTimeout(() => app.meeting.onConnected?.(_room), 2000)
-        o.calledOnConnected = true
+        // o.calledOnConnected = true
         // await _startTracks()
         return _room
       } catch (error) {
@@ -165,9 +170,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     async rejoin() {
       log.debug(`Rejoining room`, zoomVideo)
       // await _startTracks()
-      setTimeout(() => app.meeting.onConnected?.(zoomVideo, 'rejoin'), 1000)
+      setTimeout(async () => {
+        await app.meeting.onConnected?.(zoomVideo)
+        await _startTracks(true)
+        o.calledOnConnected = true
+      }, 1000)
       // await app.meeting.onConnected?.(_room)
-      o.calledOnConnected = true
+      // o.calledOnConnected = true
       return _room
     },
     hideWaitingOthersMessage() {

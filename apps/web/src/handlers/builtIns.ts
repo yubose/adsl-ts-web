@@ -431,56 +431,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
     async function onToggleCameraOnOff(action) {
-      const zoomSession = app.meeting.room.stream
-      const selfStream = app.selfStream.getElement() as HTMLDivElement
-      const selfStreamEl = app.selfStream.getVideoElement()
-      const selfStreamMaskEl = app.selfStream.getMaskElement() as HTMLDivElement
       const selfUser = app.meeting.room.getCurrentUserInfo()
-      if (selfUser.bVideoOn && selfStreamMaskEl && selfStreamEl) {
-        zoomSession.stopVideo().then(() => {
-          selfStreamEl.style.visibility = 'hidden'
-          selfStreamMaskEl.style.visibility = 'visible'
-        })
+      if (selfUser.bVideoOn) {
+        void app.selfStream.toggeleSelfCamera('close')
       } else {
-        if (app.selfStream.isRenderSelfViewWithVideoElement) {
-          zoomSession
-            .startVideo({
-              videoElement: selfStreamEl,
-              captureWidth: 360,
-              captureHeight: 640,
-              fullHd: true,
-              hd: true,
-              ptz: true,
-            })
-            .then(() => {
-              selfStreamEl && (selfStreamEl.style.visibility = 'hidden')
-              selfStreamMaskEl &&
-                (selfStreamMaskEl.style.visibility = 'visible')
-            })
-        } else {
-          zoomSession
-            .startVideo({
-              originalRatio: true,
-              captureWidth: 360,
-              captureHeight: 1080,
-              fullHd: true,
-              hd: true,
-              ptz: true,
-            })
-            .then(async () => {
-              await zoomSession.renderVideo(
-                selfStreamEl,
-                selfUser.userId,
-                parseInt(selfStream.style.width),
-                parseInt(selfStream.style.height),
-                0,
-                0,
-                3,
-              )
-              selfStreamEl && (selfStreamEl.style.visibility = 'visible')
-              selfStreamMaskEl && (selfStreamMaskEl.style.visibility = 'hidden')
-            })
-        }
+        void app.selfStream.toggeleSelfCamera('open')
       }
     }
 
@@ -490,9 +445,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const isAudioMuted = zoomSession.isAudioMuted()
       if (isAudioMuted) {
         zoomSession.startAudio()
-        // zoomSession.muteAudio()
       } else {
-        // zoomSession.unmuteAudio()
         zoomSession.muteAudio()
       }
     }

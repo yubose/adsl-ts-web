@@ -16,10 +16,14 @@ import {
   RoomParticipantTrackPublication,
   StreamType,
   SelfUserInfo,
+  videoActiveChange,
+  MeetingPages,
+  zoomError
 } from '../app/types'
-
+import { findByUX } from 'noodl-ui'
 class MeetingStream {
   #room: any = null
+  #zoomStream: any = null
   #id = getRandomKey()
   #node: HTMLElement | null = null
   #videoElement: HTMLCanvasElement | HTMLVideoElement | null = null
@@ -52,6 +56,7 @@ class MeetingStream {
 
   set room(_room) {
     this.#room = _room
+    this.#zoomStream = _room.stream
   }
 
   #log = (name: string, s?: string, o?: Record<string, any>) => {
@@ -152,12 +157,14 @@ class MeetingStream {
     }
   }
 
-  setVideoElement(node: HTMLCanvasElement | HTMLVideoElement | null) {
-    this.#videoElement = node
+  setVideoElement(
+    node: HTMLCanvasElement | HTMLVideoElement | null | undefined,
+  ) {
+    if (node) this.#videoElement = node
   }
 
   getMaskElement() {
-    return this.getElement()?.querySelector?.('div') ?? null
+    return this.getElement()?.querySelector?.('div')
   }
 
   hasVideoElement() {
@@ -255,7 +262,7 @@ class MeetingStream {
    * Re-queries for the currrent participant's tracks and assigns them to the
    * currently set node if they aren't set
    */
-  reloadTracks() {
+  reloadTracks(only?: 'audio' | 'video') {
     this.#log('reloadTracks', `[${this.type || 'Stream'}] Loading tracks...`, {
       args: { only },
     })
@@ -275,57 +282,49 @@ class MeetingStream {
       this.#log(`Attached participant userId in the element's dataset`)
     }
 
-    if (!this.#participant?.tracks?.size) {
-      const createTrack = async (kind: 'audio' | 'video') => {
-        const fn =
-          kind === 'audio'
-            ? Twilio.Video.createLocalAudioTrack
-            : Twilio.Video.createLocalVideoTrack
-        try {
-          this.#attachTrack(await fn())
-        } catch (err) {
-          log.error(`[${kind}]: ${err.message}`)
-          toast(err.message, { type: 'error' })
-        } finally {
-          this.#log(`Created ${kind} track`)
-        }
-      }
+    if (!this.#participant?.bVideoOn) {
       this.#log(`Participant is missing both tracks. Creating them now...`)
-      createTrack('audio')
-      createTrack('video')
-    } else {
-      const handleTrack = (track: LocalTrack | RemoteTrack | null) => {
-        if (track) {
-          const label = track.kind === 'audio' ? 'audio' : 'video'
-          const counterLabel = label === 'audio' ? 'video' : 'audio'
-          let elem = this.#node?.querySelector?.(label)
-          this.#log('handleTrack', `Removing previous ${label} element`, {
-            elem,
+      this.#zoomStream.startVideo().then(() => {
+        this.#zoomStream
+          .attachVideo(this.#participant?.userId, 4)
+          .then((userVideo) => {
+            this.#node?.appendChild(userVideo)
           })
-          elem?.remove?.()
-          elem = null
-          if (track.kind === 'audio' && only !== counterLabel) {
-            this.#node?.appendChild?.(track.attach())
-            this.#log(`Started the audio element`)
-          } else if (track.kind === 'video' && only !== counterLabel) {
-            if (this.#node) {
-              const videoElem = track.attach()
-              videoElem.style.width = '100%'
-              videoElem.style.height = '100%'
-              videoElem.style.objectFit = 'cover'
-              videoElem.style.position = 'absolute'
-              this.#node.appendChild(videoElem)
-              this.#log(`Started the video element`)
-            }
-          }
-        }
-      }
-      this.#participant.tracks?.forEach?.(
-        (publication: RoomParticipantTrackPublication) => {
-          publication?.track && handleTrack(publication.track)
-        },
-      )
+      })
     }
+    // else {
+    //   const handleTrack = (track: LocalTrack | RemoteTrack | null) => {
+    //     if (track) {
+    //       const label = track.kind === 'audio' ? 'audio' : 'video'
+    //       const counterLabel = label === 'audio' ? 'video' : 'audio'
+    //       let elem = this.#node?.querySelector?.(label)
+    //       this.#log('handleTrack', `Removing previous ${label} element`, {
+    //         elem,
+    //       })
+    //       elem?.remove?.()
+    //       elem = null
+    //       if (track.kind === 'audio' && only !== counterLabel) {
+    //         this.#node?.appendChild?.(track.attach())
+    //         this.#log(`Started the audio element`)
+    //       } else if (track.kind === 'video' && only !== counterLabel) {
+    //         if (this.#node) {
+    //           const videoElem = track.attach()
+    //           videoElem.style.width = '100%'
+    //           videoElem.style.height = '100%'
+    //           videoElem.style.objectFit = 'cover'
+    //           videoElem.style.position = 'absolute'
+    //           this.#node.appendChild(videoElem)
+    //           this.#log(`Started the video element`)
+    //         }
+    //       }
+    //     }
+    //   }
+    //   this.#participant.tracks?.forEach?.(
+    //     (publication: RoomParticipantTrackPublication) => {
+    //       publication?.track && handleTrack(publication.track)
+    //     },
+    //   )
+    // }
   }
 
   /** Returns a JS representation of the current state of this stream */
@@ -378,35 +377,149 @@ class MeetingStream {
    * Handle tracks published as well as tracks that are going to be published
    * by the participant later
    */
-  #handlePublishTracks = () => {
-    this.#participant?.tracks?.forEach?.(this.#handleAttachTracks)
-    this.#participant?.on?.('trackPublished', this.#handleAttachTracks)
-    this.#participant?.on?.('trackEnabled', this.#handleTrackToggle)
-    this.#participant?.on?.('trackDisabled', this.#handleTrackToggle)
-  }
+  // #handlePublishTracks = () => {
+  //   this.#participant?.tracks?.forEach?.(this.#handleAttachTracks)
+  //   this.#participant?.on?.('trackPublished', this.#handleAttachTracks)
+  //   this.#participant?.on?.('trackEnabled', this.#handleTrackToggle)
+  //   this.#participant?.on?.('trackDisabled', this.#handleTrackToggle)
+  // }
 
-  #handleTrackToggle = (
-    trackOrPublication: LocalTrack | RemoteTrackPublication,
-  ) => {
-    if ('isTrackEnabled' in trackOrPublication) {
-      if (trackOrPublication.kind === 'video') {
-        this.toggleBackdrop(
-          trackOrPublication.isTrackEnabled ? 'open' : 'close',
-        )
+  // #handleTrackToggle = (userId: number) => {
+  //   if (this.type === 'selfStream') {
+  //     if (this.#isRenderSelfViewWithVideoElement){
+  //       await zoomSession.startVideo({
+  //         fullHd: true,
+  //         hd: true,
+  //         ptz: true,
+  //         videoElement: canvas,
+  //         originalRatio: true,
+  //         captureWidth: 360,
+  //         captureHeight: 1080,
+  //       })
+  //     }
+  //   }
+  //   const userInfo = this.#room.getUser(userId)
+  //   this.setParticipant(userInfo)
+  //   const bVideoOn = userInfo?.bVideoOn
+  //   this.toggleBackdrop(bVideoOn ? 'close' : 'open')
+  // }
+
+  async toggleRemoteCamera(videoStatus: videoActiveChange) {
+    const zoomSession = this.#room.stream
+    const page = window.app.initPage
+    if (this.#node) {
+      let containerEl = this.#node
+      let maskEl = this.getMaskElement()
+      let canvasEl = this.getVideoElement()
+      this.setParticipant(this.#room.getUser(videoStatus.userId))
+      if (!MeetingPages.includes(page)) {
+        containerEl = findByUX('minimizeVideoChat') as HTMLElement
+        if (containerEl) {
+          maskEl = containerEl.querySelector('div')
+          canvasEl =
+            containerEl.querySelector('canvas') ||
+            containerEl.querySelector('video') ||
+            undefined
+        }
       }
-    } else {
-      const localTrack = trackOrPublication
-      log.info(`localTrack`, localTrack)
+      if (videoStatus.state === 'Active') {
+        await zoomSession.renderVideo(
+          canvasEl,
+          videoStatus.userId,
+          parseInt(containerEl.style.width),
+          parseInt(containerEl.style.height),
+          0,
+          0,
+          3,
+        )
+      } else if (videoStatus.state === 'Inactive') {
+        await zoomSession.stopRenderVideo(canvasEl, videoStatus.userId)
+      }
+
+      if (canvasEl && maskEl)
+        this.toggleBackdrop(
+          videoStatus.state === 'Active' ? 'open' : 'close',
+          canvasEl,
+          maskEl,
+        )
     }
   }
 
-  toggleBackdrop(type: 'close' | 'open') {
-    const backdropId = `${this.#id}_backdrop`
-    let backdrop = this.#node?.querySelector?.(
-      `#${backdropId}`,
-    ) as HTMLDivElement
-    const videoNode = window.app.meeting.mainStream.getVideoElement()
-    videoNode && (videoNode.style.display = type === 'close' ? 'none' : 'block')
+  async toggeleSelfCamera(type: 'close' | 'open', reload: boolean = false) {
+    try {
+      const selfStreamEl = this.getElement()
+      const canvas = this.getVideoElement()
+      const maskEl = this.getMaskElement()
+      if (type === 'open') {
+        if (this.#isRenderSelfViewWithVideoElement) {
+          await this.#zoomStream.startVideo({
+            fullHd: true,
+            hd: true,
+            ptz: true,
+            videoElement: canvas,
+            originalRatio: true,
+            captureWidth: 360,
+            captureHeight: 1080,
+          })
+          // self video started and rendered
+        } else {
+          if (!reload) {
+            await this.#zoomStream.startVideo({
+              fullHd: true,
+              hd: true,
+              ptz: true,
+              originalRatio: true,
+              captureWidth: 360,
+              captureHeight: 640,
+            })
+          }
+          await this.#zoomStream.renderVideo(
+            canvas,
+            this.#userInfo?.userId,
+            parseInt(selfStreamEl.style.width),
+            parseInt(selfStreamEl.style.height),
+            0,
+            0,
+            3,
+          )
+        }
+        this.toggleBackdrop(type, canvas, maskEl)
+      } else if (type === 'close') {
+        await this.#zoomStream.stopVideo()
+        this.toggleBackdrop(type, canvas, maskEl)
+      }
+    } catch (error) {
+      //@ts-expect-error
+      toast(error?.reason, { type: 'default' })
+    }
+  }
+
+  toggleBackdrop(
+    type: 'close' | 'open',
+    videoEl?: HTMLCanvasElement | HTMLVideoElement | undefined,
+    maskEl?: HTMLDivElement | null,
+  ) {
+    let _videoEl = videoEl
+    let _maskEl = maskEl
+    if (videoEl) _videoEl = this.getVideoElement()
+    if (maskEl) _maskEl = this.getMaskElement()
+    console.log('test99', { videoEl, maskEl })
+    if (_videoEl && _maskEl) {
+      switch (type) {
+        case 'close':
+          _videoEl.style.display = 'none'
+          if (this.type === 'mainStream') {
+            _maskEl.style.display = 'flex'
+          } else {
+            _maskEl.style.display = 'block'
+          }
+          break
+        case 'open':
+          _videoEl.style.display = 'block'
+          _maskEl.style.display = 'none'
+          break
+      }
+    }
   }
 
   /**

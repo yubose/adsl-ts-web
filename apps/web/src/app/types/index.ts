@@ -58,6 +58,23 @@ export interface AppSpinnerState {
   trigger: NUITrigger | 'inject' | null
 }
 
+export interface videoActiveChange {
+  state: 'Active' | 'Inactive'
+  userId: number
+}
+
+export class ZoomError extends Error {
+  // 自定义属性
+  type: string
+  reason: string
+
+  constructor(message: string, type: string, reason: string) {
+    super(message)
+    this.type = type
+    this.reason = reason
+  }
+}
+
 export interface AppConstructorOptions {
   configKey?: string
   getStatus?: typeof Account.getStatus
