@@ -9,8 +9,8 @@ import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import * as t from '../app/types'
-import ZoomVideo from '@zoom/videosdk'
 import is from '../utils/is'
+import ZoomVideo from '@zoom/videosdk'
 
 const createMeetingFns = function _createMeetingFns(app: App) {
   let _room = new EventEmitter() as any & { _isMock?: boolean }
@@ -232,7 +232,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { object } options - This is temporarily used for debugging
      */
     async addRemoteParticipant(
-      participant: t.RoomParticipant,
+      participant: t.SelfUserInfo,
       {
         force = false,
       }: {
@@ -259,7 +259,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
             await app.meeting.onAddRemoteParticipant?.(
-              participant as t.RemoteParticipant,
+              participant as t.SelfUserInfo,
               o.mainStream,
             )
             return this
@@ -279,7 +279,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               const subStream = o.subStreams
                 .create({
                   node,
-                  participant: participant as t.RemoteParticipant,
+                  participant: participant as t.SelfUserInfo,
                 })
                 .last()
               log.info(
@@ -287,7 +287,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                 { blueprint: props, node, participant, subStream },
               )
               app.meeting.onAddRemoteParticipant?.(
-                participant as t.RemoteParticipant,
+                participant as t.SelfUserInfo,
                 subStream as Stream,
               )
             } else {
@@ -317,7 +317,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       return this
     },
     removeRemoteParticipant(
-      participant: t.RoomParticipant,
+      participant: t.SelfUserInfo,
       { force }: { force?: boolean } = {},
     ) {
       if (participant && (force || !o.isLocalParticipant(participant))) {
@@ -381,8 +381,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { RoomParticipant } participant
      */
     isLocalParticipant(
-      participant: t.RoomParticipant,
-    ): participant is t.LocalParticipant {
+      participant: t.SelfUserInfo,
+    ): participant is t.SelfUserInfo {
       return !!(_room && participant === _room.localParticipant)
     },
     /** Element used for the dominant/main speaker */
@@ -439,7 +439,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     reset(key?: 'room' | 'streams') {
       if (key) {
-        key === 'room' && (_room = new EventEmitter() as t.Room)
+        key === 'room' && (_room = new EventEmitter())
         key === 'streams' && (_streams = new Streams())
       } else {
         _room = null
@@ -476,14 +476,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
 
   return o as typeof o & {
     onConnected(room: any): any
-    onAddRemoteParticipant(
-      participant: t.RemoteParticipant,
-      stream: Stream,
-    ): any
-    onRemoveRemoteParticipant(
-      participant: t.RemoteParticipant,
-      stream: Stream,
-    ): any
+    onAddRemoteParticipant(participant: t.SelfUserInfo, stream: Stream): any
+    onRemoveRemoteParticipant(participant: t.SelfUserInfo, stream: Stream): any
   }
 }
 

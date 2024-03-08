@@ -4,8 +4,6 @@ import * as u from '@jsmanifest/utils'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
-  RoomTrack,
-  RoomParticipantTrackPublication,
   StreamType,
   SelfUserInfo,
   videoActiveChange,
@@ -346,7 +344,7 @@ class MeetingStream {
       this.#node?.parentElement?.removeChild?.(this.#node)
       this.#node?.remove?.()
       this.#node = null
-      this.unpublish()
+      // this.unpublish()
     } catch (error) {
       log.error(error)
     }
@@ -409,17 +407,18 @@ class MeetingStream {
           if (containerEl) {
             maskEl = containerEl.querySelector('div')
             canvasEl =
-              containerEl.querySelector('canvas') ||
-              containerEl.querySelector('video') ||
+              containerEl.querySelector('canvas') ??
+              containerEl.querySelector('video') ??
               undefined
           }
         }
+        console.log('test99', videoStatus)
         if (videoStatus.state === 'Active') {
           await zoomSession.renderVideo(
             canvasEl,
             videoStatus.userId,
-            parseInt(containerEl.style.width),
-            parseInt(containerEl.style.height),
+            parseInt(this.#node.style.width),
+            parseInt(this.#node.style.height),
             0,
             0,
             3,
@@ -515,8 +514,8 @@ class MeetingStream {
   ) {
     let _videoEl = videoEl
     let _maskEl = maskEl
-    if (videoEl) _videoEl = this.getVideoElement()
-    if (maskEl) _maskEl = this.getMaskElement()
+    if (!_videoEl) _videoEl = this.getVideoElement()
+    if (!_maskEl) _maskEl = this.getMaskElement()
     if (_videoEl && _maskEl) {
       switch (type) {
         case 'close':
@@ -539,83 +538,83 @@ class MeetingStream {
    * Attach the published track to the DOM once it is subscribed
    * @param { RoomParticipantTrackPublication } publication - Track publication
    */
-  #handleAttachTracks = (publication: RoomParticipantTrackPublication) => {
-    if (publication.track) this.#attachTrack(publication.track)
-    else publication.on('subscribed', this.#attachTrack)
-    publication.on('unsubscribed', this.#detachTrack)
-  }
+  // #handleAttachTracks = (publication: RoomParticipantTrackPublication) => {
+  //   if (publication.track) this.#attachTrack(publication.track)
+  //   else publication.on('subscribed', this.#attachTrack)
+  //   publication.on('unsubscribed', this.#detachTrack)
+  // }
 
   /**
    * Attaches a track to a DOM node
    * @param { RoomTrack } track - Track from the room instance
    */
-  #attachTrack = (track: RoomTrack) => {
-    if (this.#node) {
-      let attachee: HTMLAudioElement | HTMLVideoElement | undefined
-      if (track.kind === 'audio') {
-        attachee = track.attach()
-        if (this.hasAudioElement()) {
-          this.removeAudioElement()
-          this.#log(`attachTrack (audio)`, `Removed previous audio element`)
-        }
-      } else if (track.kind === 'video') {
-        attachee = track.attach()
-        attachee.style.width = '100%'
-        attachee.style.height = '100%'
-        attachee.style.objectFit = 'cover'
-        attachee.style.position = 'absolute'
-        attachee.style.top = '0'
-        if (this.hasVideoElement()) {
-          this.removeVideoElement()
-          this.#log(`attachTrack (video)`, `Removed previous video element`)
-        }
-      }
+  // #attachTrack = (track: RoomTrack) => {
+  //   if (this.#node) {
+  //     let attachee: HTMLAudioElement | HTMLVideoElement | undefined
+  //     if (track.kind === 'audio') {
+  //       attachee = track.attach()
+  //       if (this.hasAudioElement()) {
+  //         this.removeAudioElement()
+  //         this.#log(`attachTrack (audio)`, `Removed previous audio element`)
+  //       }
+  //     } else if (track.kind === 'video') {
+  //       attachee = track.attach()
+  //       attachee.style.width = '100%'
+  //       attachee.style.height = '100%'
+  //       attachee.style.objectFit = 'cover'
+  //       attachee.style.position = 'absolute'
+  //       attachee.style.top = '0'
+  //       if (this.hasVideoElement()) {
+  //         this.removeVideoElement()
+  //         this.#log(`attachTrack (video)`, `Removed previous video element`)
+  //       }
+  //     }
 
-      const page = window.app.initPage
-      if (window.app.root?.[page]) {
-        let { cameraOn, micOn } = window.app.root?.[page]
-        cameraOn = u.isStr(cameraOn)
-          ? cameraOn === 'true'
-            ? true
-            : false
-          : cameraOn
-        micOn = u.isStr(micOn) ? (micOn === 'true' ? true : false) : micOn
-        if (track.kind === 'audio') {
-          micOn ? track?.['enable']?.() : track?.['disable']?.()
-        } else if (track.kind === 'video') {
-          cameraOn ? track?.['enable']?.() : track?.['disable']?.()
-          if (attachee) {
-            cameraOn || track.isEnabled
-              ? (attachee.style.display = 'block')
-              : (attachee.style.display = 'none')
-          }
-        }
-      }
-      if (attachee) {
-        this.#node.appendChild(attachee)
-        this.#log(
-          `#attachTrack (${track.kind})`,
-          `Loaded the participant's ${track.kind} track ${
-            this.type ? `on ${this.type}` : ''
-          }`,
-          { track },
-        )
-      }
-    }
-  }
+  //     const page = window.app.initPage
+  //     if (window.app.root?.[page]) {
+  //       let { cameraOn, micOn } = window.app.root?.[page]
+  //       cameraOn = u.isStr(cameraOn)
+  //         ? cameraOn === 'true'
+  //           ? true
+  //           : false
+  //         : cameraOn
+  //       micOn = u.isStr(micOn) ? (micOn === 'true' ? true : false) : micOn
+  //       if (track.kind === 'audio') {
+  //         micOn ? track?.['enable']?.() : track?.['disable']?.()
+  //       } else if (track.kind === 'video') {
+  //         cameraOn ? track?.['enable']?.() : track?.['disable']?.()
+  //         if (attachee) {
+  //           cameraOn || track.isEnabled
+  //             ? (attachee.style.display = 'block')
+  //             : (attachee.style.display = 'none')
+  //         }
+  //       }
+  //     }
+  //     if (attachee) {
+  //       this.#node.appendChild(attachee)
+  //       this.#log(
+  //         `#attachTrack (${track.kind})`,
+  //         `Loaded the participant's ${track.kind} track ${
+  //           this.type ? `on ${this.type}` : ''
+  //         }`,
+  //         { track },
+  //       )
+  //     }
+  //   }
+  // }
 
   /**
    * Removes the track element from the DOM
    * @param { RoomTrack } track - Track from the room instance
    */
-  #detachTrack = (track: RoomTrack) => {
-    if (track.kind === 'audio') {
-      track?.detach?.()?.forEach((elem) => elem?.remove?.())
-    } else if (track.kind === 'video') {
-      track.detach?.()?.forEach((elem) => elem?.remove?.())
-    }
-    return this
-  }
+  // #detachTrack = (track: RoomTrack) => {
+  //   if (track.kind === 'audio') {
+  //     track?.detach?.()?.forEach((elem) => elem?.remove?.())
+  //   } else if (track.kind === 'video') {
+  //     track.detach?.()?.forEach((elem) => elem?.remove?.())
+  //   }
+  //   return this
+  // }
 }
 
 export default MeetingStream

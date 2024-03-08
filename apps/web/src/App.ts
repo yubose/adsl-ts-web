@@ -1253,7 +1253,8 @@ class App {
     }
 
     const onBeforeClearnode = (node) => {
-      if ((page.page === 'VideoChat' && page.requesting !== 'VideoChat')||
+      if (
+        (page.page === 'VideoChat' && page.requesting !== 'VideoChat') ||
         (page.page === 'MeetingPage' && page.requesting !== 'MeetingPage')
       ) {
         const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
@@ -1263,7 +1264,6 @@ class App {
           log.debug(`Wiping ${label} state`, { before, after: getSnapshot() })
         }
         this.meeting.calledOnConnected = false
-        this.getSdkParticipants()?.length && this.setSdkParticipants([])
         this.mainStream.hasElement() && _log('mainStream')
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
@@ -1271,18 +1271,17 @@ class App {
       page.previous &&
         page.previous !== page.page &&
         this.nui.cache.component.clear(page.previous)
-      
-      const remove = (node:any)=>{
-        if(node){
+      const remove = (node: any) => {
+        if (node) {
           const childs = node?.childNodes
-          for(let child of childs){
+          for (let child of childs) {
             remove(child)
             child.remove()
           }
           return
         }
       }
-      if(node) remove(node)
+      if (node) remove(node)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {

@@ -160,7 +160,7 @@ function getWebpackConfig(env) {
     'Access-Control-Allow-Headers':
       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     'Cross-Origin-Embedder-Policy': '',
-    'Cross-Origin-Opener-Policy': ''
+    'Cross-Origin-Opener-Policy': '',
   }
   mode === 'production' && (headers['Cache-Control'] = 'max-age=86400')
   const webpackOptions = {
@@ -188,13 +188,14 @@ function getWebpackConfig(env) {
         'aitmed.io',
       ],
       compress: true,
-      // https: true,
+      https: true,
       devMiddleware: { writeToDisk: true },
-      host: '127.0.0.1',
+      host: '0.0.0.0',
       hot: 'only',
       headers: {
         'Cross-Origin-Embedder-Policy': 'credentialless',
-        'Cross-Origin-Opener-Policy': 'same-origin'
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Content-Security-Policy': "base-uri 'self';",
       },
       client: {
         overlay: false,
