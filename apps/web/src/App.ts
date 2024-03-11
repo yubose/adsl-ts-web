@@ -39,6 +39,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import getMiddlewares from './handlers/shared/middlewares'
+import type AtsLotusKeypress from '@atslotus/keypress'
 import * as lf from './utils/lf'
 import is from './utils/is'
 import parseUrl from './utils/parseUrl'
@@ -78,10 +79,12 @@ class App {
       page: '',
     },
   }
-  #initPage:string|null = null
+
+  #initPage: string | null = null
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #ecosLogger: ReturnType<typeof createEcosLogger>
+  #keypress: AtsLotusKeypress
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -220,6 +223,7 @@ class App {
   get spinner() {
     return this.#spinner
   }
+
   get uploadProgress() {
     return this.#uploadProgress
   }
@@ -238,6 +242,10 @@ class App {
 
   get globalRegister() {
     return this.noodl.root?.Global?.globalRegister
+  }
+
+  get keypress() {
+    return this.#keypress!
   }
 
   get loadingPages() {
@@ -315,7 +323,8 @@ class App {
   get piBackgroundWorker() {
     return this.#piBackgroundWorker as Worker
   }
-  get initPage(){
+
+  get initPage() {
     return this.#initPage
   }
 
@@ -391,7 +400,7 @@ class App {
         for (let i = 1; i < nameParts.length; i++) {
           const partItem = nameParts[i]
           const parts = partItem.split('=')
-          params[parts[0]] = partItem.slice(parts[0].length+1)
+          params[parts[0]] = partItem.slice(parts[0].length + 1)
         }
       }
       return params
@@ -491,7 +500,7 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       this.#initPage = _page.requesting
       _page.mounted = false
-      if(localStorage.getItem('esk')){
+      if (localStorage.getItem('esk')) {
         const { globalRegister, ...rest } = this.root.Global
         localStorage.setItem('Global', JSON.stringify(rest))
       }
@@ -506,29 +515,35 @@ class App {
       }
 
       _page.setStatus(eventId.page.status.RENDERING_COMPONENTS)
-      _page.emitSync(eventId.page.on.ON_MOUNTED,_page,)
+      _page.emitSync(eventId.page.on.ON_MOUNTED, _page)
     } catch (error) {
       throw new Error(error as any)
     }
-    if([window.build.nodeEnv,window.build.build_web].includes("development")){
-      try{
-        const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+    if (
+      [window.build?.nodeEnv, window.build?.build_web].includes('development')
+    ) {
+      try {
+        const port = (
+          await fetch('./truthPort.json').then(
+            async (res) => res.json(),
+            (rej) => console.error('error'),
+          )
+        )?.['port']
         axios({
           url: `http://127.0.0.1:${port}`,
-          method: "POST",
-          headers:{
-            "Content-Type": "text/plain"
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain',
           },
-          data:  this.#noodl?.root
+          data: this.#noodl?.root,
         })
-      }catch(error){
+      } catch (error) {
         console.error(error)
-      }   
+      }
     }
-    
+
     let e = Date.now()
     log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
-    
   }
 
   async initialize({
@@ -541,6 +556,10 @@ class App {
     try {
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
+      if (!this.#keypress && process.env.NODE_ENV !== 'test') {
+        const { default: Keypress } = await import('@atslotus/keypress')
+        this.#keypress = new Keypress()
+      }
 
       if (!this.noodl) {
         /**
@@ -560,47 +579,67 @@ class App {
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
 
-          this.notification?.on('message', async(message) => {
+          this.notification?.on('message', async (message) => {
             if (message) {
               const { data } = message
               const title = data?.title
-              const denyTitle = ['The participant has declined','Your caller is busy now, please call again later.','Recipient is not available. Please try again later.']
+              const denyTitle = [
+                'The participant has declined',
+                'Your caller is busy now, please call again later.',
+                'Recipient is not available. Please try again later.',
+              ]
 
               if (data?.did) {
                 let doc = data.did
-                if(u.isStr(data.did)){
-                  const flag = /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
-                  if(flag) return
+                if (u.isStr(data.did)) {
+                  const flag =
+                    /^\s*([a-z0-9!$&',()*+;=\-._~:@/?%\s]*?)\s*$/i.test(doc)
+                  if (flag) return
                   doc = JSON.parse(data.did)
-                  if(doc?.subtype && u.isNum(doc.subtype)){
+                  if (doc?.subtype && u.isNum(doc.subtype)) {
                     doc.subtype = {
-                      notification: !!getBit(doc.subtype,7),
-                      ringToneNotify: !!getBit(doc.subtype,8)
+                      notification: !!getBit(doc.subtype, 7),
+                      ringToneNotify: !!getBit(doc.subtype, 8),
                     }
                   }
                 }
                 const room = this.meeting?.room
-                if(u.isStr(title) && denyTitle.includes(title) && room && room.state === "connected" && room?.participants?.size >=1){
+                if (
+                  u.isStr(title) &&
+                  denyTitle.includes(title) &&
+                  room &&
+                  room.state === 'connected' &&
+                  room?.participants?.size >= 1
+                ) {
                   log.info('Meeting has been connected')
-                }else{
+                } else {
                   //  call onNewEcosDoc for now  until we propose a more generic approach
-                  const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                    (obj) => obj?.onEvent === 'onNewEcosDoc' || obj?.eventId === 'onNewEcosDoc',
-                  )
-                  if(onNewEcosDocRegisterComponent){
-                    if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                      await this.register.registrees?.['onNewEcosDoc'](onNewEcosDocRegisterComponent)
+                  const onNewEcosDocRegisterComponent =
+                    this.globalRegister?.find?.(
+                      (obj) =>
+                        obj?.onEvent === 'onNewEcosDoc' ||
+                        obj?.eventId === 'onNewEcosDoc',
+                    )
+                  if (onNewEcosDocRegisterComponent) {
+                    if (!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                      await this.register.registrees?.['onNewEcosDoc'](
+                        onNewEcosDocRegisterComponent,
+                      )
                     onNewEcosDocRegisterComponent?.onEvent?.(doc)
                   }
                 }
-                
-              }else if(data?.type && data.type ==='abortring'){
-                const onNewEcosDocRegisterComponent = this.globalRegister?.find?.(
-                  (obj) => obj?.onEvent === 'onRejected' || obj?.eventId === 'onRejected',
-                )
-                if(onNewEcosDocRegisterComponent){
-                  if(!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
-                    await this.register.registrees?.['onRejected'](onNewEcosDocRegisterComponent)
+              } else if (data?.type && data.type === 'abortring') {
+                const onNewEcosDocRegisterComponent =
+                  this.globalRegister?.find?.(
+                    (obj) =>
+                      obj?.onEvent === 'onRejected' ||
+                      obj?.eventId === 'onRejected',
+                  )
+                if (onNewEcosDocRegisterComponent) {
+                  if (!u.isFnc(onNewEcosDocRegisterComponent?.onEvent))
+                    await this.register.registrees?.['onRejected'](
+                      onNewEcosDocRegisterComponent,
+                    )
                   onNewEcosDocRegisterComponent?.onEvent?.()
                 }
               } else {
@@ -612,13 +651,16 @@ class App {
                   icon: 'favicon.ico',
                 }
                 const timestap = new Date().getTime()
-                const notification = new Notification(notificationTitle,notificationOptions)  
+                const notification = new Notification(
+                  notificationTitle,
+                  notificationOptions,
+                )
                 this.root.NotificationMap.notificationDoc = {
-                  name:{
+                  name: {
                     data: '',
-                    notification: data
+                    notification: data,
                   },
-                  timestap
+                  timestap,
                 }
                 notification.addEventListener('click', () => {
                   //@ts-expect-error
@@ -627,18 +669,21 @@ class App {
                 // debugger
               }
             }
-          
-            
           })
 
-          this.notification?.on('click', async(notificationID) => {
+          this.notification?.on('click', async (notificationID) => {
             if (notificationID) {
               //  call onNewEcosDoc for now  until we propose a more generic approach
-              const onNotificationClickedRegisterComponent = this.globalRegister?.find?.(
-                (obj) => obj?.onEvent === 'onNotificationClicked' || obj?.eventId === 'onNotificationClicked',
-              )
-              if(!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
-                await this.register.registrees?.['onNotificationClicked'](onNotificationClickedRegisterComponent)
+              const onNotificationClickedRegisterComponent =
+                this.globalRegister?.find?.(
+                  (obj) =>
+                    obj?.onEvent === 'onNotificationClicked' ||
+                    obj?.eventId === 'onNotificationClicked',
+                )
+              if (!u.isFnc(onNotificationClickedRegisterComponent?.onEvent))
+                await this.register.registrees?.['onNotificationClicked'](
+                  onNotificationClickedRegisterComponent,
+                )
               onNotificationClickedRegisterComponent?.onEvent?.(notificationID)
             }
           })
@@ -648,23 +693,27 @@ class App {
       }
 
       const host = 'https://worldtimeapi.org/api/ip'
-      fetch(host).then((response)=>response.json()).then((data) => {
-        const selfDialog = new SelfDialog()
-        const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
-        if(data['unixtime'] && Math.abs(data['unixtime'] - currentClientUnixTime)>4*60){
-          selfDialog.insert(
-            `Sorry, You computer's local time is not accurate, please correct and click refresh button to refresh the page.`,
-            {
-              confirmButtonCallback: ()=>{
-                window.location.reload()
-                selfDialog.destroy()
+      fetch(host)
+        .then(async (response) => response.json())
+        .then((data) => {
+          const selfDialog = new SelfDialog()
+          const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
+          if (
+            data['unixtime'] &&
+            Math.abs(data['unixtime'] - currentClientUnixTime) > 4 * 60
+          ) {
+            selfDialog.insert(
+              `Sorry, You computer's local time is not accurate, please correct and click refresh button to refresh the page.`,
+              {
+                confirmButtonCallback: () => {
+                  window.location.reload()
+                  selfDialog.destroy()
+                },
+                confirmButtonText: 'Refresh',
               },
-              confirmButtonText: 'Refresh'
-            }
-          )
-        }
-        
-      })
+            )
+          }
+        })
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()
@@ -680,8 +729,8 @@ class App {
       const initInjectScripts = this.noodl.config?.preloadlibInit
       if (u.isArr(initInjectScripts) && initInjectScripts.length > 0) {
         // eslint-disable-next-line
-        const loadjs = (url:string)=>{
-          return new Promise((resolve,reject)=>{
+        const loadjs = (url: string) => {
+          return new Promise((resolve, reject) => {
             const script_ = document.createElement('script')
             script_.onload = () => resolve(true)
             script_.onerror = () => reject()
@@ -691,7 +740,9 @@ class App {
             script_.src = url
           })
         }
-        await Promise.all(initInjectScripts.map(async (url) => await loadjs(url)))
+        await Promise.all(
+          initInjectScripts.map(async (url) => await loadjs(url)),
+        )
       }
       onSdkInit?.(this.noodl)
       // console.time('a')
@@ -789,9 +840,9 @@ class App {
       if (u.isArr(injectScripts) && injectScripts.length > 0) {
         // eslint-disable-next-line
         // Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
-        setTimeout(()=>{
+        setTimeout(() => {
           Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
-        },1000)
+        }, 1000)
       }
 
       const cfgStore = createNoodlConfigValidator({
@@ -1125,8 +1176,9 @@ class App {
     this.updateRoot(this.getPathToRemoteParticipantsInRoot(), participants)
     return this.getSdkParticipants() || null
   }
-  getPathToRemoteParticipantsInRoot(){
-    const page = this.initPage?this.initPage:'VideoChat'
+
+  getPathToRemoteParticipantsInRoot() {
+    const page = this.initPage ? this.initPage : 'VideoChat'
     return `${page}listData.participants`
   }
 
@@ -1179,16 +1231,15 @@ class App {
         viewport.width = sizes.width
         viewport.height = sizes.height
         const userAgent = window.navigator.userAgent
-        if(/Mobi|Android|iPhone/.test(userAgent)){
+        if (/Mobi|Android|iPhone/.test(userAgent)) {
           viewport.width = window.innerWidth
           viewport.height = window.innerHeight
         }
         this.#spinner = new Spinner({
           containerWidth: viewport.width,
           containerHeight: viewport.height,
-          ...this.spinner.opts
+          ...this.spinner.opts,
         })
-        
       } else {
         viewport.width = w
         viewport.height = h
@@ -1199,27 +1250,26 @@ class App {
     refreshWidthAndHeight()
 
     viewport.onResize = debounce(async (args) => {
-        log.debug('Resizing')
-        if (
-          args.width !== args.previousWidth ||
-          args.height !== args.previousHeight
-        ) {
-          // if (this.currentPage === 'VideoChat') return
-          this.aspectRatio = aspectRatio
-          refreshWidthAndHeight()
-          document.body.style.width = `${args.width}px`
-          document.body.style.height = `${args.height}px`
-          this.mainPage.node.style.width = `${args.width}px`
-          this.mainPage.node.style.height = `${args.height}px`
-          if(this.mainPage.page === 'ChatMessage') return
-          await this.render(this.mainPage)
-        }
-      
-    },300)
+      log.debug('Resizing')
+      if (
+        args.width !== args.previousWidth ||
+        args.height !== args.previousHeight
+      ) {
+        // if (this.currentPage === 'VideoChat') return
+        this.aspectRatio = aspectRatio
+        refreshWidthAndHeight()
+        document.body.style.width = `${args.width}px`
+        document.body.style.height = `${args.height}px`
+        this.mainPage.node.style.width = `${args.width}px`
+        this.mainPage.node.style.height = `${args.height}px`
+        if (this.mainPage.page === 'ChatMessage') return
+        await this.render(this.mainPage)
+      }
+    }, 300)
   }
 
   observePages(page: NDOMPage) {
-    const onNavigateStart = () => {
+    const onNavigateStart = async () => {
       const pageObject = this.root[page.page]
       if (pageObject?.['onBeforeLeave']) {
         return new Promise(async (resolve) => {
@@ -1231,7 +1281,7 @@ class App {
           })
           if (this.getState().spinner.active) this.disableSpinner()
           log.log('execute onBeforeLeave end')
-          if(res) resolve(res)
+          if (res) resolve(res)
           else resolve(void 0)
         })
       }
@@ -1255,7 +1305,8 @@ class App {
     }
 
     const onBeforeClearnode = (node) => {
-      if ((page.page === 'VideoChat' && page.requesting !== 'VideoChat')||
+      if (
+        (page.page === 'VideoChat' && page.requesting !== 'VideoChat') ||
         (page.page === 'MeetingPage' && page.requesting !== 'MeetingPage')
       ) {
         const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
@@ -1273,18 +1324,18 @@ class App {
       page.previous &&
         page.previous !== page.page &&
         this.nui.cache.component.clear(page.previous)
-      
-      const remove = (node:any)=>{
-        if(node){
+
+      const remove = (node: any) => {
+        if (node) {
           const childs = node?.childNodes
-          for(let child of childs){
+          for (let child of childs) {
             remove(child)
             child.remove()
           }
           return
         }
       }
-      if(node) remove(node)
+      if (node) remove(node)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
@@ -1309,12 +1360,11 @@ class App {
           setDocumentScrollTop('bottom')
         }
       }
-
     }
 
-    const onMounted = (page:NDOMPage)=>{
+    const onMounted = (page: NDOMPage) => {
       //onMounted
-      setTimeout(async()=>{
+      setTimeout(async () => {
         log.log('execute onMounted')
         let isAborted = false
         const pageObject = this.root[page.page]
@@ -1326,16 +1376,18 @@ class App {
             pageName: page.page,
           })
         }
-        if(this.initPage && ['RingToneCallPage','RingTonePage'].includes(this.initPage)){
-          window['ringTong']?.play?.()  
-        }else{
-          window['ringTong']?.stop?.()  
+        if (
+          this.initPage &&
+          ['RingToneCallPage', 'RingTonePage'].includes(this.initPage)
+        ) {
+          window['ringTong']?.play?.()
+        } else {
+          window['ringTong']?.stop?.()
         }
         page.mounted = true
         if (this.getState().spinner.active) this.disableSpinner()
-      },0)
+      }, 0)
     }
-
 
     page
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
