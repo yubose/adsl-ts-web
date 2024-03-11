@@ -390,15 +390,7 @@ const createActions = function createActions(app: App) {
     useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
 
-      const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
-        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
-      )
-      const startSlownessMark = app.ecosLogger.createSlownessMetricStartMark(
-        c.perf.slowness.goto,
-        {
-          detail: goto && u.isStr(goto) ? { destination: goto } : undefined,
-        },
-      )
+     
       let isRunLeave:boolean = true
       if (options?.component?.blueprint?.["dataOption"]?.["blank"] && u.isStr(goto)) {
         app.disableSpinner()
@@ -584,11 +576,6 @@ const createActions = function createActions(app: App) {
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
-        // if(_pick(action, 'blank')){
-        //   app.disableSpinner();
-        //   options.ref?.abort();
-        //   return void window.open(destProps.destination, '_blank');
-        // }
         await app.navigate(
           ndomPage,
           destination,
@@ -602,32 +589,6 @@ const createActions = function createActions(app: App) {
           )
         }
       }
-
-      const endSlownessMark = app.ecosLogger.createSlownessMetricEndMark(
-        c.perf.slowness.goto,
-      )
-
-      const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-        c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
-      )
-      // xuchen: We have identified the issue of slow speed and are currently commenting on this log
-      // try {
-      //   await Promise.all([
-      //     app.ecosLogger.createSlownessMetricDocument({
-      //       metricName: c.perf.slowness.goto,
-      //       start: startSlownessMark,
-      //       end: endSlownessMark,
-      //     }),
-      //     app.ecosLogger.createMemoryUsageMetricDocument({
-      //       metricName: c.actionMiddlewareLogKey.GOTO_EXECUTION_MEMORY_USAGE,
-      //       start: startMemUsageMark,
-      //       end: endMemUsageMark,
-      //     }),
-      //   ])
-      // } catch (error) {
-      //   const err = error instanceof Error ? error : new Error(String(error))
-      //   console.error(err)
-      // }
     }),
   )
 

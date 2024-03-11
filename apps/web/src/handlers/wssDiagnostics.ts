@@ -20,6 +20,7 @@ function createWssDiagnosticsClient(
 } {
   let tag = `[diagnostics]`
   let address = `ws://127.0.0.1:${port}`
+
   let ws = new WebSocket(address)
 
   if (u.isFnc(appProp)) {

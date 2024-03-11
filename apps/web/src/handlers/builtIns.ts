@@ -584,10 +584,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const goto = createBuiltInHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
-      const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
-        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      )
-      
       if (!app.getState().spinner.active) app.enableSpinner()
 
       let destinationParam = ''
@@ -859,17 +855,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           )
         }
       }
-      // xuchen: We have identified the issue of slow speed and are currently commenting on this l
-      // const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-      //   c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      // )
-
-      // await app.ecosLogger.createMemoryUsageMetricDocument({
-      //   metricName:
-      //     c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      //   start: startMemUsageMark,
-      //   end: endMemUsageMark,
-      // })
     }),
   )
 

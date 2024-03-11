@@ -184,9 +184,6 @@ window.addEventListener('load', async (e) => {
     const { Account } = await import('@aitmed/cadl')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
-
-    startObservingAppPerformance()
-
     log.debug('Initializing [App] instance')
     app = await initializeApp({ noodl, Account })
     log.debug('Initialized [App] instance')
@@ -307,24 +304,6 @@ function attachDebugUtilsToWindow(app: App) {
 }
 
 attachDebugUtilsToWindow.attached = false
-
-function startObservingAppPerformance() {
-  log.log(`Observing app performance through the PerformanceObserver.`)
-  const callback: PerformanceObserverCallback = function onPerformanceObserved(
-    list: PerformanceObserverEntryList,
-    obs: PerformanceObserver,
-  ) {
-    list.getEntries().forEach(function onPerformanceObserverEntry(entry) {
-      const { name, entryType, duration, startTime } = entry
-      const json = entry.toJSON()
-      console.log({ json, entry, name, entryType, duration, startTime })
-      debugger
-    })
-  }
-  const observer = new PerformanceObserver(callback)
-  observer.observe({ entryTypes: ['frame'] })
-  return observer
-}
 
 /**
  * Initializes the Personal Index Worker

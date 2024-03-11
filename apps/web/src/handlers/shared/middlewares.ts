@@ -10,8 +10,6 @@ import { createAction } from 'noodl-ui'
 import log from '../../log'
 import App from '../../App'
 import { ActionEvent } from '../../constants'
-import * as perf from '../../utils/performance'
-import * as c from '../../constants'
 import type { AppStateActionEvent, ObjectWithPriority } from '../../app/types'
 
 export type MiddlewareConfig = ObjectWithPriority<{
@@ -113,37 +111,6 @@ function getMiddlewares() {
         }
       },
     },
-    (function () {
-      return {
-        id: c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME,
-        priority: 1,
-        // @ts-expect-error
-        cond: (args): args is [{ destination: string }, any] =>
-          u.isObj(args?.[0]) && 'destination' in args[0],
-        fn: async function onBuiltInGotoExecutionTimeStart(
-          args,
-          { app, context },
-        ) {
-          const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
-          const injectedObject = args?.[0] as { destination: string }
-          const destination = injectedObject?.destination
-          const start = app.ecosLogger.createSlownessMetricStartMark(key, {
-            detail: { destination },
-          })
-          context[key] = { currentPage: app.currentPage, destination, start }
-        },
-        end: async function onBuiltInGotoExecutionTimeEnd(_, { app, context }) {
-          const key = c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_TIME
-          const { start } = context?.[key] || {}
-          const end = app.ecosLogger.createSlownessMetricEndMark(key)
-          await app.ecosLogger.createSlownessMetricDocument({
-            metricName: key,
-            start,
-            end,
-          })
-        },
-      }
-    })(),
     {
       id: 'actions-event-state-middleware',
       priority: 5,
