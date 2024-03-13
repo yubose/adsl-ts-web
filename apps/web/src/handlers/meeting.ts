@@ -184,7 +184,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
 
       // This new node will be used in noodl-ui-dom when returned from this function
       let node = document.createElement('div')
-      let viewTag = component.blueprint?.viewTag || ''
+      let viewTag = component.blueprint?.viewTag ?? ''
 
       if (viewTag === 'selfStream') {
         log.debug(`Entered element binding resolver for selfStream`, {

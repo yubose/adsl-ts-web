@@ -188,9 +188,9 @@ function getWebpackConfig(env) {
         'aitmed.io',
       ],
       compress: true,
-      https: true,
+      // https: true,
       devMiddleware: { writeToDisk: true },
-      host: '0.0.0.0',
+      host: '127.0.0.1',
       hot: 'only',
       headers: {
         'Cross-Origin-Embedder-Policy': 'credentialless',

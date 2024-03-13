@@ -376,6 +376,17 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
       return this
     },
+    cloudRecord(type: 'exclude' | 'include') {
+      const cloudRecording = zoomVideo.getRecordingClient()
+      switch (type) {
+        case 'include':
+          cloudRecording.startCloudRecording()
+          return true
+        case 'exclude':
+          cloudRecording.stopCloudRecording()
+          return false
+      }
+    },
     /**
      * Returns true if the participant is the LocalParticipant
      * @param { RoomParticipant } participant
