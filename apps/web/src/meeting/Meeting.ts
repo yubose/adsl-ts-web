@@ -9,47 +9,41 @@ import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import * as t from '../app/types'
+import is from '../utils/is'
+import ZoomVideo from '@zoom/videosdk'
 
 const createMeetingFns = function _createMeetingFns(app: App) {
-  let _room = new EventEmitter() as t.Room & { _isMock?: boolean }
+  let _room = new EventEmitter() as any & { _isMock?: boolean }
+  let zoomSession
+  let zoomVideo
   let _streams = new Streams()
   let _calledOnConnected = false
 
-  async function _createRoom(token: string) {
-    return Twilio.Video.connect(token, {
-      dominantSpeaker: true,
-      logLevel: 'info',
-      tracks: [],
-      bandwidthProfile: {
-        video: {
-          dominantSpeakerPriority: 'high',
-          mode: 'collaboration',
-          // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps
-          ...(isMobile() ? { maxSubscriptionBitrate: 2500000 } : undefined),
-        },
-      },
-    })
+  async function _createRoom(token: string, topic: string, userName: string) {
+    zoomVideo = ZoomVideo.createClient()
+    await zoomVideo.init('en-US', 'Global', { patchJsMedia: true })
+    await zoomVideo.join(topic, token, userName, '')
+    zoomSession = zoomVideo.getMediaStream()
+    return zoomVideo
   }
 
   /**
    * Start LocalParticipant tracks (intended to be used immediately after room.join)
    */
-  async function _startTracks() {
-    function handleTrackErr(kind: 'audio' | 'video', err: Error) {
-      let errMsg = ''
-      if (/NotAllowedError/i.test(err.name)) {
-        kind === 'video' && (errMsg = `The camera permisson is not enabled`)
-        kind === 'audio' && (errMsg = `The microphone permisson is not enabled`)
-      } else if (/NotFoundError/i.test(err.name)) {
-        errMsg = `Could not locate your ${kind} device.`
-      } else if (/NotReadableError/i.test(err.name)) {
-        errMsg = `Failed to start your ${kind} device. It may be busy or is being used by another tab.`
-      } else {
-        errMsg = err.message
-      }
-      log.error(err)
-      toast(errMsg, { type: 'default' })
-    }
+  async function _startTracks(isload: boolean = false) {
+    const page = app.initPage ? app.initPage : 'VideoChat'
+    let { cameraOn, micOn } = app.root?.[page] || {}
+    cameraOn = u.isStr(cameraOn)
+      ? cameraOn === 'true'
+        ? true
+        : false
+      : cameraOn
+    micOn = u.isStr(micOn) ? (micOn === 'true' ? true : false) : micOn
+    o.selfStream.isRenderSelfViewWithVideoElement =
+      zoomSession.isRenderSelfViewWithVideoElement()
+    o.selfStream.room = zoomVideo
+    o.mainStream.room = zoomVideo
+    o.selfStream.setParticipant(zoomVideo.getCurrentUserInfo())
     if (o.selfStream?.hasElement?.()) {
       log.debug(
         `Starting tracks using the existent selfStream instance`,
@@ -60,14 +54,46 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           `Missing LocalParticipant in selfStream. Setting the LocalParticipant on it now`,
           o.selfStream.snapshot(),
         )
-        o.selfStream.setParticipant(_room.localParticipant)
       }
       try {
-        o.selfStream.reloadTracks()
+        if (is.isBoolean(cameraOn)) {
+          if (is.isBooleanTrue(cameraOn)) {
+            await app.selfStream.toggeleSelfCamera('open', isload)
+          }
+        }
+
+        if (is.isBoolean(micOn)) {
+          if (is.isBooleanTrue(micOn)) {
+            await app.selfStream.toggleSelfMicrophone('open')
+          }
+        }
+
+        const selfUser = zoomVideo?.getCurrentUserInfo()
+
+        const mainStreamEl = app.mainStream.getElement()
+        const mask = app.mainStream.getMaskElement()
+        const users = zoomVideo?.getAllUser()
+        for (const user of users) {
+          if (user.userId !== selfUser.userId && user.bVideoOn) {
+            const canvas = app.mainStream.getVideoElement()
+            app.mainStream.setParticipant(zoomVideo.getUser(user.userId))
+            // await zoomSession.startVideo({ videoElement: canvas })
+            if (canvas?.id?.indexOf('ZOOM') === -1) {
+              await zoomSession.renderVideo(
+                canvas,
+                user.userId,
+                parseInt(mainStreamEl.style.width),
+                parseInt(mainStreamEl.style.height),
+                0,
+                0,
+                3,
+              )
+            }
+            mask && (mask.style.display = 'none')
+          }
+        }
       } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        log.error(err)
-        toast(err.message, { type: 'error' })
+        log.debug('_startTracks', error)
       }
     } else {
       log.debug(
@@ -75,24 +101,19 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         o.selfStream.snapshot(),
       )
       try {
-        _room.localParticipant?.publishTrack(
-          await Twilio.Video.createLocalAudioTrack(),
-        )
+        if (is.isBoolean(cameraOn)) {
+          if (is.isBooleanTrue(cameraOn)) {
+            await app.selfStream.toggeleSelfCamera('open', isload)
+          }
+        }
+
+        if (is.isBoolean(micOn)) {
+          if (is.isBooleanTrue(micOn)) {
+            zoomSession.startAudio()
+          }
+        }
       } catch (error) {
-        handleTrackErr(
-          'audio',
-          error instanceof Error ? error : new Error(String(error)),
-        )
-      }
-      try {
-        _room.localParticipant?.publishTrack(
-          await Twilio.Video.createLocalVideoTrack(),
-        )
-      } catch (error) {
-        handleTrackErr(
-          'video',
-          error instanceof Error ? error : new Error(String(error)),
-        )
+        log.debug(error)
       }
     }
   }
@@ -105,10 +126,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       _calledOnConnected = called
     },
     get isConnected() {
-      return _room?.state === 'connected'
+      return !!this.currentSession?.isInMeeting
     },
     get localParticipant() {
-      return _room?.localParticipant
+      return _room?.getCurrentUserInfo()
     },
     get room() {
       return _room
@@ -128,42 +149,59 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     get streams() {
       return _streams
     },
+    get currentSession() {
+      return zoomVideo?.getSessionInfo ? zoomVideo.getSessionInfo?.() : {}
+    },
+    get isInMeeting() {
+      return !!this.currentSession?.isInMeeting
+    },
     /**
      * Joins and returns the room using the token
      * @param { string } token - Room token
      */
-    async join(token: string) {
+    async join(token: string, topic: string, userName: string) {
       try {
         if (isUnitTestEnv() && !_room._isMock) {
           throw new Error(`Meeting room should be mocked when testing`)
         }
-        if (_room && _room.state !== 'connected') {
-          _room = await _createRoom(token)
+        if (_room && !o.isInMeeting) {
+          _room = await _createRoom(token, topic, userName)
         } else {
-          _room.state === 'disconnected' && o.leave()
-          _room = await _createRoom(token)
+          o.isInMeeting && o.leave()
+          _room = await _createRoom(token, topic, userName)
         }
-        await _startTracks()
-        setTimeout(() => app.meeting.onConnected?.(_room), 2000)
-        o.calledOnConnected = true
+        log.debug(`joining room`, _room)
+        setTimeout(async () => {
+          await app.meeting.onConnected?.(_room)
+          await _startTracks()
+          o.calledOnConnected = true
+        }, 1000)
+        // await app.meeting.onConnected?.(_room)
+        // setTimeout(() => app.meeting.onConnected?.(_room), 2000)
+        // o.calledOnConnected = true
+        // await _startTracks()
         return _room
       } catch (error) {
         log.error(error)
         toast(
-          (error instanceof Error ? error : new Error(String(error))).message,
+          //@ts-expect-error
+          (error instanceof Error ? error : new Error(String(error['reason'])))
+            .message,
           { type: 'error' },
         )
         if (isUnitTestEnv()) throw error
       }
     },
     async rejoin() {
-      if (isUnitTestEnv() && !_room._isMock) {
-        throw new Error(`Meeting room should be mocked when testing`)
-      }
-      log.debug(`Rejoining room`, _room)
-      await _startTracks()
-      setTimeout(() => app.meeting.onConnected?.(_room), 2000)
-      o.calledOnConnected = true
+      log.debug(`Rejoining room`, zoomVideo)
+      // await _startTracks()
+      setTimeout(async () => {
+        // await app.meeting.onConnected?.(zoomVideo)
+        await _startTracks(true)
+        o.calledOnConnected = true
+      }, 1000)
+      // await app.meeting.onConnected?.(_room)
+      // o.calledOnConnected = true
       return _room
     },
     hideWaitingOthersMessage() {
@@ -174,24 +212,17 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Disconnects from the room */
     leave() {
-      log.error(`LEAVING MEETING ROOM`)
-      if (_room?.state) {
-        const unpublishTracks = (
-          trackPublication:
-            | t.LocalVideoTrackPublication
-            | t.LocalAudioTrackPublication,
-        ) => {
-          trackPublication?.track?.stop?.()
-          trackPublication?.unpublish?.()
-          const attachedElements = trackPublication.track.detach()
-          attachedElements.forEach(element => element.remove())
-        }
-        // Unpublish local tracks
-        _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
-        _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
-        _room?.disconnect?.()
-        o.streams.reset()
-        _calledOnConnected = false
+      log.error(`LEAVING MEETING ROOM`, this.isInMeeting)
+      if (this.isInMeeting) {
+        zoomVideo.off('user-updated', () => {})
+        zoomVideo.off('user-removed', () => {})
+        zoomVideo.off('user-add', () => {})
+        zoomVideo.off('connection-change', () => {})
+        zoomVideo.off('peer-video-state-change', () => {})
+        zoomVideo.off('media-sdk-change', () => {})
+        o.calledOnConnected = false
+        o.reset()
+        zoomVideo.leave()
       }
       return this
     },
@@ -201,7 +232,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { object } options - This is temporarily used for debugging
      */
     async addRemoteParticipant(
-      participant: t.RoomParticipant,
+      participant: t.SelfUserInfo,
       {
         force = false,
       }: {
@@ -228,7 +259,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
             await app.meeting.onAddRemoteParticipant?.(
-              participant as t.RemoteParticipant,
+              participant as t.SelfUserInfo,
               o.mainStream,
             )
             return this
@@ -248,7 +279,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               const subStream = o.subStreams
                 .create({
                   node,
-                  participant: participant as t.RemoteParticipant,
+                  participant: participant as t.SelfUserInfo,
                 })
                 .last()
               log.info(
@@ -256,7 +287,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                 { blueprint: props, node, participant, subStream },
               )
               app.meeting.onAddRemoteParticipant?.(
-                participant as t.RemoteParticipant,
+                participant as t.SelfUserInfo,
                 subStream as Stream,
               )
             } else {
@@ -286,7 +317,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       return this
     },
     removeRemoteParticipant(
-      participant: t.RoomParticipant,
+      participant: t.SelfUserInfo,
       { force }: { force?: boolean } = {},
     ) {
       if (participant && (force || !o.isLocalParticipant(participant))) {
@@ -345,13 +376,24 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
       return this
     },
+    cloudRecord(type: 'exclude' | 'include') {
+      const cloudRecording = zoomVideo.getRecordingClient()
+      switch (type) {
+        case 'include':
+          cloudRecording.startCloudRecording()
+          return true
+        case 'exclude':
+          cloudRecording.stopCloudRecording()
+          return false
+      }
+    },
     /**
      * Returns true if the participant is the LocalParticipant
      * @param { RoomParticipant } participant
      */
     isLocalParticipant(
-      participant: t.RoomParticipant,
-    ): participant is t.LocalParticipant {
+      participant: t.SelfUserInfo,
+    ): participant is t.SelfUserInfo {
       return !!(_room && participant === _room.localParticipant)
     },
     /** Element used for the dominant/main speaker */
@@ -408,16 +450,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     reset(key?: 'room' | 'streams') {
       if (key) {
-        key === 'room' && (_room = new EventEmitter() as t.Room)
+        key === 'room' && (_room = new EventEmitter())
         key === 'streams' && (_streams = new Streams())
       } else {
-        _room = new EventEmitter() as t.Room
+        _room = null
         _streams = new Streams()
       }
       return this
     },
     removeFalseParticipants(participants: any[]) {
-      return participants.filter((p) => !!p?.sid)
+      return participants.filter((p) => !!p?.userId)
     },
     /**
      * Switches a participant's stream to another participant's stream
@@ -426,33 +468,27 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { t.RoomParticipant } participant1
      * @param { t.RoomParticipant } participant2
      */
-    swapParticipantStream(
-      stream1: Stream, // participant1 should currently be inside stream1
-      stream2: Stream, // participant2 should currently be inside stream2
-      participant1: t.RoomParticipant,
-      participant2: t.RoomParticipant,
-    ) {
-      if (stream1 && stream2 && stream1.isParticipant(participant1)) {
-        if (stream1.getParticipant() !== participant2) {
-          stream1.unpublish()
-          stream2.unpublish()
-          stream1.setParticipant(participant2)
-          stream2.setParticipant(participant1)
-        }
-      }
-    },
+    // swapParticipantStream(
+    //   stream1: Stream, // participant1 should currently be inside stream1
+    //   stream2: Stream, // participant2 should currently be inside stream2
+    //   participant1: t.RoomParticipant,
+    //   participant2: t.RoomParticipant,
+    // ) {
+    //   if (stream1 && stream2 && stream1.isParticipant(participant1)) {
+    //     if (stream1.getParticipant() !== participant2) {
+    //       stream1.unpublish()
+    //       stream2.unpublish()
+    //       stream1.setParticipant(participant2)
+    //       stream2.setParticipant(participant1)
+    //     }
+    //   }
+    // },
   }
 
   return o as typeof o & {
-    onConnected(room: t.Room): any
-    onAddRemoteParticipant(
-      participant: t.RemoteParticipant,
-      stream: Stream,
-    ): any
-    onRemoveRemoteParticipant(
-      participant: t.RemoteParticipant,
-      stream: Stream,
-    ): any
+    onConnected(room: any): any
+    onAddRemoteParticipant(participant: t.SelfUserInfo, stream: Stream): any
+    onRemoveRemoteParticipant(participant: t.SelfUserInfo, stream: Stream): any
   }
 }
 

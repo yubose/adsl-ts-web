@@ -188,12 +188,19 @@ module.exports = function getWebpackConfig({
         cache: true,
         scriptLoading: 'defer',
         minify: true,
-        meta: {
-          description: settings.description,
-          keywords: settings.keywords.join(', '),
-          viewport:
-            'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',
-        },
+        meta: [
+          {
+            description: settings.description,
+            keywords: settings.keywords.join(', '),
+            viewport:
+              'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',
+          },
+          {
+            'http-equiv': 'origin-trial',
+            content: 'ApbyCprSSGVaT3D3B6PtIv+n/9OBJNNvn90FOjL7bJcSHnPiF3EWtIu0cucMH4cSEaJfG+5/wMev1YBGHQNkHw0AAABLeyJvcmlnaW4iOiJodHRwczovLzAuMC4wLjA6MzAwMCIsImZlYXR1cmUiOiJXZWJDb2RlY3MiLCJleHBpcnkiOjE2MjYyMjA3OTl9',
+          }
+        ]
+        ,
       }),
       new WorkboxPlugin.InjectManifest({
         swSrc: getFilePath('src/firebase-messaging-sw.ts'),

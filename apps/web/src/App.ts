@@ -21,6 +21,7 @@ import {
   Page as NUIPage,
   resolveAssetUrl,
   Viewport as VP,
+  findByUX,
 } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { CachedPageObject } from './app/types'
@@ -396,7 +397,6 @@ class App {
       }
       return params
     }
-
     let NDOMPage
     try {
       let _page: NDOMPage
@@ -491,7 +491,7 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       this.#initPage = _page.requesting
       _page.mounted = false
-      if(localStorage.getItem('esk')){
+      if (localStorage.getItem('esk')) {
         const { globalRegister, ...rest } = this.root.Global
         localStorage.setItem('Global', JSON.stringify(rest))
       }
@@ -510,21 +510,21 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    if([window.build.nodeEnv,window.build.build_web].includes("development")){
-      try{
-        const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
-        axios({
-          url: `http://127.0.0.1:${port}`,
-          method: "POST",
-          headers:{
-            "Content-Type": "text/plain"
-          },
-          data:  this.#noodl?.root
-        })
-      }catch(error){
-        console.error(error)
-      }   
-    }
+    // if([window.build.nodeEnv,window.build.build_web].includes("development")){
+    //   try{
+    //     const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+    //     axios({
+    //       url: `http://127.0.0.1:${port}`,
+    //       method: "POST",
+    //       headers:{
+    //         "Content-Type": "text/plain"
+    //       },
+    //       data:  this.#noodl?.root
+    //     })
+    //   }catch(error){
+    //     console.error(error)
+    //   }   
+    // }
     
     let e = Date.now()
     log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
@@ -1179,16 +1179,15 @@ class App {
         viewport.width = sizes.width
         viewport.height = sizes.height
         const userAgent = window.navigator.userAgent
-        if(/Mobi|Android|iPhone/.test(userAgent)){
+        if (/Mobi|Android|iPhone/.test(userAgent)) {
           viewport.width = window.innerWidth
           viewport.height = window.innerHeight
         }
         this.#spinner = new Spinner({
           containerWidth: viewport.width,
           containerHeight: viewport.height,
-          ...this.spinner.opts
+          ...this.spinner.opts,
         })
-        
       } else {
         viewport.width = w
         viewport.height = h
@@ -1199,23 +1198,22 @@ class App {
     refreshWidthAndHeight()
 
     viewport.onResize = debounce(async (args) => {
-        log.debug('Resizing')
-        if (
-          args.width !== args.previousWidth ||
-          args.height !== args.previousHeight
-        ) {
-          // if (this.currentPage === 'VideoChat') return
-          this.aspectRatio = aspectRatio
-          refreshWidthAndHeight()
-          document.body.style.width = `${args.width}px`
-          document.body.style.height = `${args.height}px`
-          this.mainPage.node.style.width = `${args.width}px`
-          this.mainPage.node.style.height = `${args.height}px`
-          if(this.mainPage.page === 'ChatMessage') return
-          await this.render(this.mainPage)
-        }
-      
-    },300)
+      log.debug('Resizing')
+      if (
+        args.width !== args.previousWidth ||
+        args.height !== args.previousHeight
+      ) {
+        if (['VideoChat', 'MeetingPage'].includes(this.currentPage)) return
+        this.aspectRatio = aspectRatio
+        refreshWidthAndHeight()
+        document.body.style.width = `${args.width}px`
+        document.body.style.height = `${args.height}px`
+        this.mainPage.node.style.width = `${args.width}px`
+        this.mainPage.node.style.height = `${args.height}px`
+        if (this.mainPage.page === 'ChatMessage') return
+        await this.render(this.mainPage)
+      }
+    }, 300)
   }
 
   observePages(page: NDOMPage) {
@@ -1255,7 +1253,8 @@ class App {
     }
 
     const onBeforeClearnode = (node) => {
-      if ((page.page === 'VideoChat' && page.requesting !== 'VideoChat')||
+      if (
+        (page.page === 'VideoChat' && page.requesting !== 'VideoChat') ||
         (page.page === 'MeetingPage' && page.requesting !== 'MeetingPage')
       ) {
         const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
@@ -1265,7 +1264,6 @@ class App {
           log.debug(`Wiping ${label} state`, { before, after: getSnapshot() })
         }
         this.meeting.calledOnConnected = false
-        this.getSdkParticipants()?.length && this.setSdkParticipants([])
         this.mainStream.hasElement() && _log('mainStream')
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
@@ -1273,29 +1271,28 @@ class App {
       page.previous &&
         page.previous !== page.page &&
         this.nui.cache.component.clear(page.previous)
-      
-      const remove = (node:any)=>{
-        if(node){
+      const remove = (node: any) => {
+        if (node) {
           const childs = node?.childNodes
-          for(let child of childs){
+          for (let child of childs) {
             remove(child)
             child.remove()
           }
           return
         }
       }
-      if(node) remove(node)
+      if (node) remove(node)
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
-      if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
-        if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
-          this.meeting.onConnected(this.meeting.room)
-          this.meeting.calledOnConnected = true
-          log.debug(`Republishing tracks with meeting.onConnected`)
-        }
-      }
+      // if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
+      //   if (this.meeting.isInMeeting && !this.meeting.calledOnConnected) {
+      //     this.meeting.onConnected(this.meeting.room)
+      //     this.meeting.calledOnConnected = true
+      //     log.debug(`Republishing tracks with meeting.onConnected`)
+      //   }
+      // }
       // Handle pages that have { viewPort: "top" }
       const pageObjectViewPort =
         this.root[(page.getNuiPage() as NUIPage).page || '']?.viewPort

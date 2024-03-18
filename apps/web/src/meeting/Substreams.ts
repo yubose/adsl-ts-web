@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 import * as u from '@jsmanifest/utils'
 import log from '../log'
 import inRange from 'lodash/inRange'
@@ -43,7 +44,7 @@ class MeetingSubstreams {
   create({
     node,
     participant,
-  }: { node?: HTMLElement; participant?: t.RemoteParticipant } = {}) {
+  }: { node?: HTMLElement; participant?: t.SelfUserInfo } = {}) {
     const stream = new Stream('subStream', { node })
 
     if (node && this.container && !this.container.contains(node)) {
@@ -54,7 +55,7 @@ class MeetingSubstreams {
     if (participant) {
       stream.setParticipant(participant)
       log.debug(
-        `The participant "${participant.sid}" was set on the stream`,
+        `The participant "${participant.userId}" was set on the stream`,
         stream.snapshot(),
       )
     }
@@ -111,9 +112,9 @@ class MeetingSubstreams {
    * the collection
    * @param { RoomParticipant } participant
    */
-  participantExists(participant: t.RoomParticipant) {
-    return this.#subStreams.some(
-      (subStream: Stream) => subStream && subStream.isParticipant(participant),
+  participantExists(participant: t.SelfUserInfo) {
+    return this.#subStreams.some((subStream: Stream) =>
+      subStream?.isParticipant(participant),
     )
   }
 
@@ -121,7 +122,7 @@ class MeetingSubstreams {
    * Returns the stream from the subStreams collection, null otherwise
    * @param { RoomParticipant } participant
    */
-  getSubStream(participant: t.RoomParticipant) {
+  getSubStream(participant: t.SelfUserInfo) {
     const fn = (subStream: Stream) => subStream.isParticipant(participant)
     return this.findBy(fn)
   }
@@ -135,7 +136,7 @@ class MeetingSubstreams {
     return this.#subStreams.find(cb)
   }
 
-  findByParticipant(participant: t.RoomParticipant) {
+  findByParticipant(participant: t.SelfUserInfo) {
     return this.#subStreams.find((s) => s.isParticipant(participant))
   }
 
