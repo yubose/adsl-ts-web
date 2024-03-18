@@ -611,10 +611,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const goto = createBuiltInHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
-      const startMemUsageMark = app.ecosLogger.createMemoryUsageMetricStartMark(
-        c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      )
-
       if (!app.getState().spinner.active) app.enableSpinner()
 
       let destinationParam = ''
@@ -888,17 +884,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           )
         }
       }
-      // xuchen: We have identified the issue of slow speed and are currently commenting on this l
-      // const endMemUsageMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-      //   c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      // )
-
-      // await app.ecosLogger.createMemoryUsageMetricDocument({
-      //   metricName:
-      //     c.actionMiddlewareLogKey.BUILTIN_GOTO_EXECUTION_MEMORY_USAGE,
-      //   start: startMemUsageMark,
-      //   end: endMemUsageMark,
-      // })
     }),
   )
 
@@ -1209,7 +1194,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (u.isArr(videoInputs) && videoInputs.length >= 2) {
           for (let i = 0; i < 2; i++) {
             if (videoInputs[i].label !== videoTrackLabel) {
-
             }
           }
         }
@@ -1566,7 +1550,7 @@ export const extendedSdkBuiltIns = {
     this: App,
     action: BuiltInActionObject & {
       popUpDismiss?: number
-      wait?: number | boolean
+      wait?: boolean | number
       popUpView: string
       dismissOnTouchOutside?: boolean
     },

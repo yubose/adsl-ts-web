@@ -322,18 +322,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        // const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
-        //   c.perf.memoryUsage.onChange,
-        // )
         await actionChain?.execute?.(event)
-        // const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-        //   c.perf.memoryUsage.onChange,
-        // )
-        // await app.ecosLogger.createMemoryUsageMetricDocument({
-        //   metricName: c.perf.memoryUsage.onChange,
-        //   start: startMark,
-        //   end: endMark,
-        // })
       }
     }
 
@@ -3778,7 +3767,7 @@ const createExtendedDOMResolvers = function (app: App) {
             document.createDocumentFragment()
           // let childrenConta = document.createElement('div')
           node.textContent = ''
-          if (get(app.root.Global, dataOptions['checkName']).length) {
+          if (get(app.root.Global, dataOptions['checkName'])?.length) {
             dataValue['selectedData'] = cloneDeep(
               get(app.root.Global, dataOptions['checkName']),
             )

@@ -1011,7 +1011,9 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                             display: "inline-block",
                                             backgroundColor: "0xffffff",
                                             color: "0x333333",
-                                            flexGrow: 0
+                                            flexGrow: 0,
+                                            cursor: "pointer",
+                                            pointerEvents: "none"
                                         },
                                         viewTag: opts.config.key + "Tag",
                                     }, 
@@ -1413,7 +1415,9 @@ const sharpYaml = (opts: SharpYamlOption, BaseJsonCopy: any = {}) => {
                                                     display: "inline-block",
                                                     backgroundColor: "0xffffff",
                                                     color: "0x333333",
-                                                    flexGrow: 0
+                                                    flexGrow: 0,
+                                                    cursor: "pointer",
+                                                    pointerEvents: "none"
                                                 },
                                                 viewTag: opts.config.key + "Tag",
                                             }, 
