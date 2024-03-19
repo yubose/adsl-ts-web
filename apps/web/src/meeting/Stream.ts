@@ -448,15 +448,18 @@ class MeetingStream {
       const maskEl = this.getMaskElement()
       if (type === 'open') {
         if (this.#isRenderSelfViewWithVideoElement) {
-          await this.#zoomStream.startVideo({
-            fullHd: true,
-            hd: true,
-            ptz: true,
-            videoElement: canvas,
-            originalRatio: true,
-            captureWidth: 360,
-            captureHeight: 1080,
-          })
+          if (!reload) {
+            await this.#zoomStream.startVideo({
+              fullHd: true,
+              hd: true,
+              ptz: true,
+              videoElement: canvas,
+              originalRatio: true,
+              // captureWidth: 360,
+              // captureHeight: 1080,
+            })
+          }
+
           // self video started and rendered
         } else {
           if (!reload) {
@@ -465,8 +468,8 @@ class MeetingStream {
               hd: true,
               ptz: true,
               originalRatio: true,
-              captureWidth: 360,
-              captureHeight: 640,
+              // captureWidth: 360,
+              // captureHeight: 640,
             })
           }
           await this.#zoomStream.renderVideo(
