@@ -447,8 +447,8 @@ class MeetingStream {
       const canvas = this.getVideoElement()
       const maskEl = this.getMaskElement()
       if (type === 'open') {
-        if (this.#isRenderSelfViewWithVideoElement) {
-          if (!reload) {
+        if (!reload) {
+          if (this.#isRenderSelfViewWithVideoElement) {
             await this.#zoomStream.startVideo({
               fullHd: true,
               hd: true,
@@ -458,11 +458,8 @@ class MeetingStream {
               // captureWidth: 360,
               // captureHeight: 1080,
             })
-          }
-
-          // self video started and rendered
-        } else {
-          if (!reload) {
+            // self video started and rendered
+          } else {
             await this.#zoomStream.startVideo({
               fullHd: true,
               hd: true,
@@ -472,16 +469,16 @@ class MeetingStream {
               // captureHeight: 640,
             })
           }
-          await this.#zoomStream.renderVideo(
-            canvas,
-            this.#userInfo?.userId,
-            parseInt(selfStreamEl.style.width),
-            parseInt(selfStreamEl.style.height),
-            0,
-            0,
-            3,
-          )
         }
+        await this.#zoomStream.renderVideo(
+          canvas,
+          this.#userInfo?.userId,
+          parseInt(selfStreamEl.style.width),
+          parseInt(selfStreamEl.style.height),
+          0,
+          0,
+          3,
+        )
         this.toggleBackdrop(type, canvas, maskEl)
       } else if (type === 'close') {
         await this.#zoomStream.stopVideo()

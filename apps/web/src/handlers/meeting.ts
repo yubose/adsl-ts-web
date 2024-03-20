@@ -276,6 +276,12 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               app.selfStream.getElement().style.visibility = 'hidden'
             }
             node.addEventListener('click', async () => {
+              if (app.selfStream.isRenderSelfViewWithVideoElement) {
+                await app.meeting.room.stream.stopRenderVideo(
+                  videoEl,
+                  app.selfStream.getParticipant()?.userId,
+                )
+              }
               app.selfStream.setVideoElement(app.selfStream.getVideoElement())
               app.mainStream.setVideoElement(videoEl)
             })

@@ -1179,25 +1179,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.debug('switchCamera', options)
-    const userAgent = window.navigator.userAgent
-    if (/Mobi|Android|iPhone/.test(userAgent)) {
-      const devices = await window.navigator.mediaDevices.enumerateDevices()
-      if (devices && u.isArr(devices)) {
-        const videoInputs = devices.filter(
-          (device) => device.kind === 'videoinput',
-        )
-        let videoTrackLabel
-        const videoTracks = app.meeting.room.localParticipant.videoTracks
-        videoTracks.forEach((publishTrack) => {
-          videoTrackLabel = publishTrack.track.mediaStreamTrack.label
-        })
-        if (u.isArr(videoInputs) && videoInputs.length >= 2) {
-          for (let i = 0; i < 2; i++) {
-            if (videoInputs[i].label !== videoTrackLabel) {
-            }
-          }
-        }
-      }
+    try {
+      void app.meeting.switchCamera()
+    } catch (error) {
+      log.error(error)
     }
   }
   const countDown = async function onCountDown(options: {

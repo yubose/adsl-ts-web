@@ -368,7 +368,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
             subStream.unpublish().removeElement()
             app.subStreams?.removeSubStream(subStream)
             app.meeting.onRemoveRemoteParticipant?.(
-              participant as t.RemoteParticipant,
+              participant as t.SelfUserInfo,
               subStream,
             )
           }
@@ -385,6 +385,17 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         case 'exclude':
           cloudRecording.stopCloudRecording()
           return false
+      }
+    },
+    async switchCamera() {
+      const cameraList = zoomSession.getCameraList()
+      const currentCameraId = zoomSession.getActiveCamera()
+      if (u.isArr(cameraList) && cameraList.length >= 2) {
+        for (const camera of cameraList) {
+          if (camera.deviceId !== currentCameraId) {
+            await zoomSession.switchCamera(camera.deviceId)
+          }
+        }
       }
     },
     /**
