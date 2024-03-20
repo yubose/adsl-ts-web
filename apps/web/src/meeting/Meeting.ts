@@ -23,6 +23,15 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     zoomVideo = ZoomVideo.createClient()
     await zoomVideo.init('en-US', 'Global', { patchJsMedia: true })
     await zoomVideo.join(topic, token, userName, '')
+    const sessionInfo = zoomVideo.getSessionInfo()
+    const saveZoomSessionId =
+      app.root.builtIn.ecosRequest?.['saveZoomSessionId']
+    if (saveZoomSessionId && sessionInfo) {
+      saveZoomSessionId({
+        sessionId: sessionInfo.sessionId,
+        appointmentId: sessionInfo.topic,
+      })
+    }
     zoomSession = zoomVideo.getMediaStream()
     return zoomVideo
   }

@@ -75,6 +75,7 @@
     "@types/webpack-env": "^1.16.1",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
+    "@zoom/videosdk": "^1.10.8",
     "babel-plugin-lodash": "^3.3.4",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
