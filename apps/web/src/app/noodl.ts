@@ -15,7 +15,10 @@ import { isStable } from 'noodl-utils'
 import type { Env } from 'noodl-types'
 
 export const lvl3Options = {
-  baseConfigUrl: process.env.PLATEFORM_ENV === 'cn' ? 'https://public.aitmed.com.cn/config':'https://public.aitmed.com/config',
+  baseConfigUrl:
+    process.env.PLATEFORM_ENV === 'cn'
+      ? 'https://public.aitmed.com.cn/config'
+      : 'https://public.aitmed.com/config',
   app: process.env.ANALYSIS_APP ?? process.env.DEBUG_APP ?? 'patient',
   get url() {
     // ONLY used if passed in as cli args via --env APP=<config name>
