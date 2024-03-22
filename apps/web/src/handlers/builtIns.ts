@@ -924,7 +924,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     try {
       if (!numComponents) {
         log.error(
-          `Could not find any components to redraw`,
+          `Could not find any components to redraw, please check yaml ,viewTag is:`,
+          `${JSON.stringify(action)}`,
           action?.snapshot?.(),
         )
       } else {
@@ -1024,7 +1025,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       log.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     }
-    log.error(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
+    log.debug(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
 
   const redrawCurrent: Store.BuiltInObject['fn'] =

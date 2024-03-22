@@ -30,6 +30,7 @@ export const lvl3Options = {
     const port = 3000
     // return '../superadmin/config/superadmin.yml'
     return safeDeployUrl
+    // return '../admin/config/admin.yml'
     // return '../aitmed/config/localhost.yml'
     //   ? safeDeployUrl
     //   : `http://127.0.0.1:${port}/${lvl3Options.app}.yml`

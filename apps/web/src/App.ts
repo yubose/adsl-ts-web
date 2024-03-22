@@ -1106,7 +1106,7 @@ class App {
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
             let e2 = Date.now()
-            log.log('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
+            log.warn('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -1137,7 +1137,7 @@ class App {
 
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       let e = Date.now()
-      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
+      log.warn('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
       return this.root[pageRequesting]
     } catch (error) {
       log.error(error)
