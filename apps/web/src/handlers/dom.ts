@@ -322,18 +322,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        // const startMark = app.ecosLogger.createMemoryUsageMetricStartMark(
-        //   c.perf.memoryUsage.onChange,
-        // )
         await actionChain?.execute?.(event)
-        // const endMark = app.ecosLogger.createMemoryUsageMetricEndMark(
-        //   c.perf.memoryUsage.onChange,
-        // )
-        // await app.ecosLogger.createMemoryUsageMetricDocument({
-        //   metricName: c.perf.memoryUsage.onChange,
-        //   start: startMark,
-        //   end: endMark,
-        // })
       }
     }
 
@@ -6888,19 +6877,23 @@ const createExtendedDOMResolvers = function (app: App) {
         let audioTime = 0
         let complete = false
         start_button.addEventListener("click", () => {
-          timestamp = Date.now()
-          audio_box.removeChild(start_button)
-          audio_box.appendChild(recording)
-          audio_status_img.src = `${assetsUrl}audio_pause.svg`
-          status = 'recording'
-          startRecording()
-          setTimeout(()=> {
-            complete = true
-          })
-          setTimeout(()=> {
-            // @ts-ignore
-            component.get("startRecord")?.execute()
-          })
+          try {
+            timestamp = Date.now()
+            audio_box.removeChild(start_button)
+            audio_box.appendChild(recording)
+            audio_status_img.src = `${assetsUrl}audio_pause.svg`
+            status = 'recording'
+            startRecording()
+            setTimeout(()=> {
+              complete = true
+            })
+            setTimeout(()=> {
+              // @ts-ignore
+              component.get("startRecord")?.execute()
+            })      
+          } catch (error) {
+            log.error(error)
+          }
         })
 
         const isInterrupt = component.get("isInterrupt")
@@ -6931,8 +6924,11 @@ const createExtendedDOMResolvers = function (app: App) {
             // @ts-ignore
             component.get("finishRecord")?.execute()
           })
-          
-          stopRecording()
+          try {
+            stopRecording()
+          } catch (error) {
+            log.error(error)
+          }
         }
 
         end_button.addEventListener("click", () => {
@@ -7001,7 +6997,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   const blobFile = new Blob(recordData, { type: "audio/mp3" })
                   const chun_size_sample_rates = 16000*20*5; 
                   const chunks:any[] = [];
-                  const             size_ws = blobFile.size>=5242880;
+                  const size_ws = blobFile.size>=5242880;
                   app.updateRoot(draft => {
                     set(draft?.[pageName], component.get("audioFile"), blobFile);
                   })
@@ -7107,7 +7103,6 @@ const createExtendedDOMResolvers = function (app: App) {
                     })
                   }
                     const text = await Promise.all(chunks_map);
-                    console.error(text);
                     let textVal = ''
                     let sourceid = ''
                     if (size_ws) {
