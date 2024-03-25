@@ -36,7 +36,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.debug('user-added', payload)
       const user = payload[0]
       const commandChannel = room.getCommandClient()
-      commandChannel.send(app.root.Global.timer, user.userId)
+      // commandChannel.send(app.root.Global.timer, user.userId)
     }
     function userRemoved(payload) {
       log.debug('user-removed', payload)
@@ -127,6 +127,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     const userList = room.getAllUser()
     if (userList.length <= 1) {
       app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+    } else {
+      app.register.extendVideoFunction('twilioOnPeopleJoin')
     }
   }
 
