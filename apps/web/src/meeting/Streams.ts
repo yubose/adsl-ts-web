@@ -1,6 +1,6 @@
 import { ComponentObject } from 'noodl-types'
 import { NUI, NDOMElement } from 'noodl-ui'
-import { RoomParticipant } from '../app/types'
+import { SelfUserInfo } from '../app/types'
 import Stream from '../meeting/Stream'
 import Substreams from '../meeting/Substreams'
 
@@ -47,7 +47,7 @@ class MeetingStreams {
     return this.#subStreams
   }
 
-  isSubStreaming(participant: RoomParticipant) {
+  isSubStreaming(participant: SelfUserInfo) {
     return this.#subStreams?.participantExists(participant)
   }
 

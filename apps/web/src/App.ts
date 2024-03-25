@@ -21,6 +21,7 @@ import {
   Page as NUIPage,
   resolveAssetUrl,
   Viewport as VP,
+  findByUX,
 } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { CachedPageObject } from './app/types'
@@ -405,7 +406,6 @@ class App {
       }
       return params
     }
-
     let NDOMPage
     try {
       let _page: NDOMPage
@@ -519,28 +519,21 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
-    if (
-      [window.build?.nodeEnv, window.build?.build_web].includes('development')
-    ) {
-      try {
-        const port = (
-          await fetch('./truthPort.json').then(
-            async (res) => res.json(),
-            (rej) => console.error('error'),
-          )
-        )?.['port']
-        axios({
-          url: `http://127.0.0.1:${port}`,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain',
-          },
-          data: this.#noodl?.root,
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    }
+    // if([window.build.nodeEnv,window.build.build_web].includes("development")){
+    //   try{
+    //     const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
+    //     axios({
+    //       url: `http://127.0.0.1:${port}`,
+    //       method: "POST",
+    //       headers:{
+    //         "Content-Type": "text/plain"
+    //       },
+    //       data:  this.#noodl?.root
+    //     })
+    //   }catch(error){
+    //     console.error(error)
+    //   }
+    // }
 
     let e = Date.now()
     log.log('%c[timerLog]页面整体渲染', 'color: green;', `${e - s}`)
@@ -1123,7 +1116,7 @@ class App {
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
             let e2 = Date.now()
-            log.log('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
+            log.warn('%c[timerLog]afterinit', 'color: green;', `${e2 - s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -1154,7 +1147,7 @@ class App {
 
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       let e = Date.now()
-      log.log('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
+      log.warn('%c[timerLog]获取页面和init', 'color: green;', `${e - s}`)
       return this.root[pageRequesting]
     } catch (error) {
       log.error(error)
@@ -1255,7 +1248,7 @@ class App {
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
       ) {
-        // if (this.currentPage === 'VideoChat') return
+        if (['VideoChat', 'MeetingPage'].includes(this.currentPage)) return
         this.aspectRatio = aspectRatio
         refreshWidthAndHeight()
         document.body.style.width = `${args.width}px`
@@ -1316,7 +1309,6 @@ class App {
           log.debug(`Wiping ${label} state`, { before, after: getSnapshot() })
         }
         this.meeting.calledOnConnected = false
-        this.getSdkParticipants()?.length && this.setSdkParticipants([])
         this.mainStream.hasElement() && _log('mainStream')
         this.selfStream.hasElement() && _log('selfStream')
         this.subStreams?.length && _log('subStreams')
@@ -1324,7 +1316,6 @@ class App {
       page.previous &&
         page.previous !== page.page &&
         this.nui.cache.component.clear(page.previous)
-
       const remove = (node: any) => {
         if (node) {
           const childs = node?.childNodes
@@ -1340,13 +1331,13 @@ class App {
 
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
-      if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
-        if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
-          this.meeting.onConnected(this.meeting.room)
-          this.meeting.calledOnConnected = true
-          log.debug(`Republishing tracks with meeting.onConnected`)
-        }
-      }
+      // if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
+      //   if (this.meeting.isInMeeting && !this.meeting.calledOnConnected) {
+      //     this.meeting.onConnected(this.meeting.room)
+      //     this.meeting.calledOnConnected = true
+      //     log.debug(`Republishing tracks with meeting.onConnected`)
+      //   }
+      // }
       // Handle pages that have { viewPort: "top" }
       const pageObjectViewPort =
         this.root[(page.getNuiPage() as NUIPage).page || '']?.viewPort
@@ -1386,6 +1377,12 @@ class App {
         }
         page.mounted = true
         if (this.getState().spinner.active) this.disableSpinner()
+        const spinners = document.getElementsByClassName('spinner')
+        if (spinners.length > 0) {
+          for (const spinner of spinners) {
+            spinner.remove()
+          }
+        }
       }, 0)
     }
 

@@ -643,7 +643,6 @@ const populateBlock = ({
                             }
                         })
                     }
-                    // console.log(widthList)
                     target.children = new Array()
                     obj.children.forEach((item, index) => {
                         const child = {

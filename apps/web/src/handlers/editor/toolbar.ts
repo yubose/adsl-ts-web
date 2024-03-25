@@ -11,30 +11,6 @@ import { parseAtBlockHtml, parseSharpBlockHtml } from "./node/parseNode";
 import selectTemplate from "./utils/selectTemplate";
 
 
-// const input = document.createElement('input')
-// input.type = 'file'
-// input.click()
-// input.onchange = () => {
-//     // console.log(input.files)
-//     if(input.files) {
-//         const file = input.files[0] as File
-//         const reader = new FileReader
-//         reader.onload = e => {
-//             console.log(e.target?.result)
-//             const node = {
-//                 type: "image",
-//                 alt: file.name,
-//                 src: e.target?.result,
-//                 href: '',
-//                 children: [
-//                     {text: ''}
-//                 ]
-//             }
-//             editor.insertNode(node)
-//         }
-//         reader.readAsDataURL(file)
-//     }
-// }
 
 const DynamicFields = new DefaultButton({
     title: "Dynamic Fields",

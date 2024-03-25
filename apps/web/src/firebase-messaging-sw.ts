@@ -51,17 +51,6 @@ const log = console.log
 
 self.addEventListener('install', function (evt) {
   console.log(`${tag} install`, evt)
-  // evt.waitUntil(
-  //   caches
-  //     .open('v1')
-  //     .then(function (cache) {
-  //       console.log('caching - getting')
-  //       return cache.addAll(['/react-redux/a.js'])
-  //     })
-  //     .catch(function (error) {
-  //       console.log('error', error)
-  //     }),
-  // )
 })
 
 self.addEventListener('activate', function (evt) {

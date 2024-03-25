@@ -159,6 +159,8 @@ function getWebpackConfig(env) {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers':
       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    'Cross-Origin-Embedder-Policy': '',
+    'Cross-Origin-Opener-Policy': '',
   }
   mode === 'production' && (headers['Cache-Control'] = 'max-age=86400')
   const webpackOptions = {
@@ -190,7 +192,11 @@ function getWebpackConfig(env) {
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
-      headers: headers,
+      headers: {
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Content-Security-Policy': "base-uri 'self';",
+      },
       client: {
         overlay: false,
       },
@@ -362,6 +368,7 @@ function getWebpackConfig(env) {
           keywords: settings.keywords.join(', '),
           viewport:
             'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',
+            'origin-trial': 'ApbyCprSSGVaT3D3B6PtIv+n/9OBJNNvn90FOjL7bJcSHnPiF3EWtIu0cucMH4cSEaJfG+5/wMev1YBGHQNkHw0AAABLeyJvcmlnaW4iOiJodHRwczovLzAuMC4wLjA6MzAwMCIsImZlYXR1cmUiOiJXZWJDb2RlY3MiLCJleHBpcnkiOjE2MjYyMjA3OTl9',
         },
       }),
       new HtmlWebpackHarddiskPlugin(),

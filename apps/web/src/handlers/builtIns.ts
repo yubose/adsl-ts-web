@@ -51,14 +51,8 @@ import * as perf from '../utils/performance'
 import is from '../utils/is'
 import App from '../App'
 import { useGotoSpinner } from './shared/goto'
-import {
-	LocalAudioTrack,
-	LocalAudioTrackPublication,
-	LocalVideoTrack,
-	LocalVideoTrackPublication,
-	Room,
-} from "../app/types";
-import type { Format as PdfPageFormat } from "../modules/ExportPdf";
+import { Room } from '../app/types'
+import type { Format as PdfPageFormat } from '../modules/ExportPdf'
 import * as c from '../constants'
 import axios from 'axios'
 import isLocalReference from 'noodl-types/dist/utils/isLocalReference'
@@ -72,38 +66,54 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
     (app.pickNDOMPage(options?.page) || app.mainPage) as NDOMPage
 
-  function _toggleMeetingDevice(kind: 'audio' | 'video') {
+  async function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.debug(`Toggling ${kind}`)
-    const page = app.initPage?app.initPage:'VideoChat'
+    const page = app.initPage ? app.initPage : 'VideoChat'
     let devicePath = `${page}.${kind === 'audio' ? 'micOn' : 'cameraOn'}`
-    let localParticipant = app.meeting.localParticipant
-    let localTrack: LocalAudioTrack | LocalVideoTrack | undefined
-    if (localParticipant) {
-      for (const publication of localParticipant.tracks.values()) {
-        if (publication.track.kind === kind) localTrack = publication.track
-      }
-      app.updateRoot((draft) => {
-        if (localTrack) {
-          let videoNode = app.selfStream.getVideoElement()
-          if (videoNode && kind === 'video') {
-            localTrack.isEnabled
-              ? (videoNode.style.display = 'none')
-              : (videoNode.style.display = 'block')
-          }
-          localTrack[localTrack.isEnabled ? 'disable' : 'enable']?.()
-
-          // set(draft, devicePath, !localTrack.isEnabled)
-          log.debug(
-            `Toggled ${kind} ${localTrack.isEnabled ? 'off' : 'on'}`,
-            localParticipant,
+    let localParticipant = app.meeting.room.getCurrentUserInfo()
+    const userId = localParticipant?.userId
+    const isVideoOn = localParticipant?.bVideoOn
+    const mediaStream = app.meeting.room.stream
+    if (localParticipant && userId && isVideoOn && mediaStream) {
+      // for (const publication of localParticipant.tracks.values()) {
+      //   if (publication.track.kind === kind) localTrack = publication.track
+      // }
+      app.updateRoot(async (draft) => {
+        // if (localUser) {
+        let videoNode = app.selfStream.getVideoElement() as HTMLVideoElement
+        if (videoNode && kind === 'video') {
+          isVideoOn
+            ? (videoNode.style.display = 'none')
+            : (videoNode.style.display = 'block')
+        }
+        if (isVideoOn) {
+          // await mediaStream.startVideo({videoElement: videoNode})
+          await mediaStream.renderVideo(
+            videoNode,
+            userId,
+            videoNode.width,
+            videoNode.height,
+            0,
+            0,
+            3,
           )
         } else {
-          log.error(
-            `Tried to toggle ${kind} track on/off for LocalParticipant but a ${kind} ` +
-              `track was not available`,
-            app.meeting.localParticipant,
-          )
+          await mediaStream.stopRenderVideo(videoNode, userId)
         }
+        // localTrack[localTrack.isEnabled ? 'disable' : 'enable']?.()
+
+        // set(draft, devicePath, !localTrack.isEnabled)
+        // log.debug(
+        //   `Toggled ${kind} ${localTrack.isEnabled ? 'off' : 'on'}`,
+        //   localParticipant,
+        // )
+        // } else {
+        //   log.error(
+        //     `Tried to toggle ${kind} track on/off for LocalParticipant but a ${kind} ` +
+        //       `track was not available`,
+        //     app.meeting.localParticipant,
+        //   )
+        // }
       })
     }
   }
@@ -331,16 +341,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async function onDisconnectMeeting(action) {
       const selfStream = app.meeting.selfStream.getElement()
       const parent = selfStream?.parentElement
-      const cloneNode = selfStream?.cloneNode()  
+      const cloneNode = selfStream?.cloneNode()
 
-      if(parent){
-        parent.replaceChild(cloneNode,selfStream)
+      if (parent) {
+        parent.replaceChild(cloneNode, selfStream)
         parent.style.visibility = 'hidden'
       }
-      
-      app.meeting.room?.removeAllListeners?.()
+
+      // app.meeting.room?.removeAllListeners?.()
+      // app.meeting.leave()
+      // app.meeting.room?.disconnect?.()
       app.meeting.leave()
-      app.meeting.room?.disconnect?.()
     }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(
@@ -349,12 +360,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     const reload = _pick(action, 'reload')
     let isRunLeave = _pick(action, 'isRunLeave')
-    isRunLeave = u.isNil(isRunLeave)? true : isRunLeave
+    isRunLeave = u.isNil(isRunLeave) ? true : isRunLeave
     const ndomPage = pickNDOMPageFromOptions(options)
-    if(isNDOMPage(ndomPage) && isRunLeave){
-      const results = await ndomPage.emitAsync(eventId.page.on.ON_NAVIGATE_START,ndomPage)
-      localStorage.setItem('continueGoto',ndomPage.previous)
-      if(u.isArr(results) && hasAbortPopup(results)) return    
+    if (isNDOMPage(ndomPage) && isRunLeave) {
+      const results = await ndomPage.emitAsync(
+        eventId.page.on.ON_NAVIGATE_START,
+        ndomPage,
+      )
+      localStorage.setItem('continueGoto', ndomPage.previous)
+      if (u.isArr(results) && hasAbortPopup(results)) return
     }
     if (ndomPage) {
       ndomPage.requesting = ndomPage.previous
@@ -362,7 +376,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       ndomPage.setModifier(ndomPage.previous, {
         reload: is.isBooleanFalse(reload) ? false : true,
-        isRunLeave: isRunLeave
+        isRunLeave: isRunLeave,
       })
     }
 
@@ -416,13 +430,27 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   }
 
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
-    async function onToggleCameraOnOff(action) {
-      _toggleMeetingDevice('video')
+    async function onToggleCameraOnOff(action, options) {
+      const { cameraOn } = options
+      if (is.isBoolean(cameraOn)) {
+        if (is.isBooleanTrue(cameraOn)) {
+          void app.selfStream.toggeleSelfCamera('close')
+        } else if (is.isBooleanFalse(cameraOn)) {
+          void app.selfStream.toggeleSelfCamera('open')
+        }
+      }
     }
 
   const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
-    async function onToggleMicrophoneOnOff(action) {
-      _toggleMeetingDevice('audio')
+    async function onToggleMicrophoneOnOff(action, options) {
+      const { micOn } = options
+      if (is.isBoolean(micOn)) {
+        if (is.isBooleanTrue(micOn)) {
+          void app.selfStream.toggleSelfMicrophone('close')
+        } else if (is.isBooleanFalse(micOn)) {
+          void app.selfStream.toggleSelfMicrophone('open')
+        }
+      }
     }
   const getViewTagValue = async function onGetViewTagValue(options: {
     viewTag: string
@@ -525,17 +553,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           })
         }
       }
-
       if (/mic/i.test(dataKey)) {
         await app.builtIns
           .get('toggleMicrophoneOnOff')
           ?.find(Boolean)
-          ?.fn?.(action, options)
+          ?.fn?.(action, { ...options, micOn: previousDataValue })
       } else if (/camera/i.test(dataKey)) {
         await app.builtIns
           .get('toggleCameraOnOff')
           ?.find(Boolean)
-          ?.fn?.(action, options)
+          ?.fn?.(action, { ...options, cameraOn: previousDataValue })
       }
 
       log.debug('', {
@@ -597,7 +624,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       let id = ''
       let isSamePage = false
       let duration = 350
-      let isRunLeave:boolean = true
+      let isRunLeave: boolean = true
       if (_pick(action, 'blank') && _pick(action, 'goto')) {
         app.disableSpinner()
         options?.ref?.abort() as any
@@ -609,7 +636,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         a = null as any
         return
       }
-      
+
       if (u.isStr(action)) {
         destinationParam = action
       } else if (isAction(action)) {
@@ -626,7 +653,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 (pageReload = _pick(gotoObj.goto, 'pageReload'))
               'dataIn' in gotoObj.goto &&
                 (dataIn = _pick(gotoObj.goto, 'dataIn'))
-              'isRunLeave' in gotoObj.goto && (isRunLeave = _pick(gotoObj.goto, 'isRunLeave'))
+              'isRunLeave' in gotoObj.goto &&
+                (isRunLeave = _pick(gotoObj.goto, 'isRunLeave'))
             } else if (u.isStr(gotoObj.goto)) {
               destinationParam = gotoObj.goto
             }
@@ -647,7 +675,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'isRunLeave' in action && (isRunLeave = _pick(action, 'isRunLeave'))
         }
       }
-      
+
       // @ts-expect-error
       destProps = app.parse.destination(
         is.pageComponentUrl(destinationParam)
@@ -661,7 +689,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             })
           : destinationParam,
       )
-      
+
       /** PARSE FOR DESTINATION PROPS */
 
       if ('destination' in destProps) {
@@ -701,14 +729,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       //find reference value
-      if(isLocalReference(destination)){
+      if (isLocalReference(destination)) {
         destination = destination.substring(2)
-        app.initPage && (
-          destination = get(app.root[app.initPage],destination)
-        )
-      }else if(isRootReference(destination)){
+        app.initPage && (destination = get(app.root[app.initPage], destination))
+      } else if (isRootReference(destination)) {
         destination = destination.substring(1)
-        destination = get(app.root,destination)
+        destination = get(app.root, destination)
       }
 
       if (destination === destinationParam) {
@@ -735,7 +761,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         destinationParam,
         reload,
         pageReload,
-        isRunLeave
+        isRunLeave,
       })
 
       if (destination.startsWith('http')) {
@@ -799,14 +825,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           )
         }
       }
-      if(isNDOMPage(ndomPage) && isRunLeave){
-        const results = await ndomPage.emitAsync(eventId.page.on.ON_NAVIGATE_START,ndomPage)
+      if (isNDOMPage(ndomPage) && isRunLeave) {
+        const results = await ndomPage.emitAsync(
+          eventId.page.on.ON_NAVIGATE_START,
+          ndomPage,
+        )
         if (!destinationParam.startsWith('http')) {
-          localStorage.setItem('continueGoto',destination)
-        }else{
-          localStorage.setItem('continueGoto',destinationParam)
+          localStorage.setItem('continueGoto', destination)
+        } else {
+          localStorage.setItem('continueGoto', destinationParam)
         }
-        if(u.isArr(results) && hasAbortPopup(results)) return    
+        if (u.isArr(results) && hasAbortPopup(results)) return
       }
       if (!destinationParam.startsWith('http')) {
         const originUrl = ndomPage.pageUrl
@@ -868,10 +897,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           'viewTag'
         ]
       : { fromAction: options['viewTag'], fromComponent: undefined }
-     
+
     let components = [] as NuiComponent.Instance[]
     let numComponents = 0
-    let focus = action.original?.focus||action?.["focus"];
+    let focus = action.original?.focus || action?.['focus']
 
     for (const obj of app.cache.component) {
       if (obj) {
@@ -895,7 +924,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     try {
       if (!numComponents) {
         log.error(
-          `Could not find any components to redraw`,
+          `Could not find any components to redraw, please check yaml ,viewTag is:`,
+          `${JSON.stringify(action)}`,
           action?.snapshot?.(),
         )
       } else {
@@ -928,24 +958,39 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             }
           }
           const ndomPage = pickNDOMPageFromOptions(options)
-          await app.ndom.redraw(_node, _component, ndomPage, {
-            context: ctx,
-          },{focus})
-          if([window.build.nodeEnv,window.build.build_web].includes("development")){
-            try{
-              const port = (await fetch("./truthPort.json").then(res=>res.json(),rej=>console.error("error")))?.["port"]
-              axios({
-                url: `http://127.0.0.1:${port}`,
-                method: "POST",
-                headers:{
-                  "Content-Type": "text/plain"
-                },
-                data:  app.root
-              }).catch(e=>console.error(e))
-            }catch(e){
-              console.error(e)
-            }
-            }
+          await app.ndom.redraw(
+            _node,
+            _component,
+            ndomPage,
+            {
+              context: ctx,
+            },
+            { focus },
+          )
+          if (
+            [window.build.nodeEnv, window.build.build_web].includes(
+              'development',
+            )
+          ) {
+            // try {
+            //   const port = (
+            //     await fetch('./truthPort.json').then(
+            //       (res) => res.json(),
+            //       (rej) => console.error('error'),
+            //     )
+            //   )?.['port']
+            //   axios({
+            //     url: `http://127.0.0.1:${port}`,
+            //     method: 'POST',
+            //     headers: {
+            //       'Content-Type': 'text/plain',
+            //     },
+            //     data: app.root,
+            //   }).catch((e) => console.error(e))
+            // } catch (e) {
+            //   console.error(e)
+            // }
+          }
         }
       }
 
@@ -980,7 +1025,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       log.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     }
-    log.error(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
+    log.debug(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
 
   const redrawCurrent: Store.BuiltInObject['fn'] =
@@ -1135,43 +1180,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.debug('switchCamera', options)
-    const userAgent = window.navigator.userAgent
-    if(/Mobi|Android|iPhone/.test(userAgent)){
-      const devices = await window.navigator.mediaDevices.enumerateDevices()
-      if(devices && u.isArr(devices)){
-        const videoInputs = devices.filter(device=>device.kind === 'videoinput')
-        let videoTrackLabel
-        const videoTracks = app.meeting.room.localParticipant.videoTracks
-        videoTracks.forEach(publishTrack=>{
-          videoTrackLabel = publishTrack.track.mediaStreamTrack.label
-        })
-        if(u.isArr(videoInputs) && videoInputs.length >= 2){
-          for(let i = 0;i<2;i++){   
-            if(videoInputs[i].label !== videoTrackLabel){
-                await Twilio.Video.createLocalVideoTrack({deviceId:{exact:videoInputs[i].deviceId}})
-                .then(function(localVideoTrack){
-                const tracks = Array.from(videoTracks.values())
-                const localVideoTracks = tracks.reduce(
-                  (acc,cur)=>{
-                    return acc.concat(cur.track)
-                  },
-                  [] as LocalVideoTrack[]
-                )
-
-               localVideoTracks.forEach(track=>{
-                  track.stop?.()
-                  track.detach().forEach((detachedElement) => {
-                    detachedElement.remove()
-                  })
-                })
-              
-                app.meeting.room.localParticipant.unpublishTracks(localVideoTracks)
-                app.meeting.room.localParticipant.publishTrack(localVideoTrack)
-              })
-            }
-          }
-        }
-      }
+    try {
+      void app.meeting.switchCamera()
+    } catch (error) {
+      log.error(error)
     }
   }
   const countDown = async function onCountDown(options: {
@@ -1203,37 +1215,31 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }, 1000)
     return
   }
-  const toast = async function onToast(
-    action,
-    options
-  ){
+  const toast = async function onToast(action, options) {
     const components = options.components
-    const container =  document.createElement("div")
+    const container = document.createElement('div')
     container.id = 'toast-innerHTML'
-    if(u.isArr(components) && app.initPage){
+    if (u.isArr(components) && app.initPage) {
       const page = app.mainPage.getNuiPage()
-      for(let i=0;i<components.length;i++){
+      for (let i = 0; i < components.length; i++) {
         const component = components[i]
         const obj = await app.noodl.replaceEvalObject({
           pageName: app.initPage,
           cadlObject: component,
-          dispatch: app.noodl.dispatch
+          dispatch: app.noodl.dispatch,
         })
-        let newComponent = app.nui.createComponent(
-          obj,
-          page
-        )
+        let newComponent = app.nui.createComponent(obj, page)
         newComponent = await app.nui.resolveComponents?.({
           callback: options?.callback,
           components: newComponent,
           page,
-          context:{},
+          context: {},
           on: {},
         })
         await app.ndom.draw(newComponent, container, app.mainPage, {
           ...options,
           on: options?.on,
-          context:{},
+          context: {},
           nodeIndex: i,
         })
       }
@@ -1242,18 +1248,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     const left = options.left ? options.left : 0
     const top = options.top ? options.top : 0
     //@ts-expect-error
-    const newTop = app.nui?.getSize?.(`${1-parseFloat(top)}`,'height')
+    const newTop = app.nui?.getSize?.(`${1 - parseFloat(top)}`, 'height')
     //@ts-expect-error
-    const newLeft = app.nui?.getSize?.(left,'width')
+    const newLeft = app.nui?.getSize?.(left, 'width')
     createToast(container, {
       timeout: 2000,
       groupId: 'chat-toast-contrainer',
-      groupStyle:  {
+      groupStyle: {
         bottom: `${newTop}`,
-        left: `${newLeft}`
-      }
+        left: `${newLeft}`,
+      },
     })
-    container.addEventListener('click',()=>{
+    container.addEventListener('click', () => {
       destroyAllToasts()
     })
   }
@@ -1392,7 +1398,7 @@ export const extendedSdkBuiltIns = {
       for (let i = 0; i < imgArr.length; i++) {
         imgArr[i].setAttribute('crossOrigin', 'anonymous')
       }
-      html2canvas(node, {
+      void html2canvas(node, {
         allowTaint: true, //跨域
         useCORS: true, //跨域
       }).then((canvas) => {
@@ -1431,6 +1437,8 @@ export const extendedSdkBuiltIns = {
       accessToken: string
       timer: number
       timerTag: string
+      sessionName: string
+      userName: string
     },
   ) {
     try {
@@ -1455,66 +1463,22 @@ export const extendedSdkBuiltIns = {
       // }
 
       // Reuse the existing room
-      if (this.meeting.isConnected) {
+      if (this.meeting?.calledOnConnected) {
         newRoom = await this.meeting.rejoin()
         log.info(
           `Reusing existent room that you are already connected to`,
           newRoom,
         )
       } else {
-        log.debug(`Connecting to room id: ${action?.roomId}`)
-        newRoom = (await this.meeting.join(action?.accessToken)) as Room
+        log.debug(`Connecting to room id: ${action?.sessionName}`)
+        newRoom = (await this.meeting.join(
+          action?.accessToken,
+          action?.sessionName,
+          action?.userName,
+        )) as Room
         if (newRoom) {
-          log.info(`Connected to room: ${newRoom.name}`, newRoom)
+          log.info(`Connected to room: ${action?.sessionName}`, newRoom)
         }
-        // newRoom &&
-      }
-      if (newRoom) {
-        // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
-        // to initiate the default values for audio/video default enabled/disabled state
-        const page = this.initPage?this.initPage:'VideoChat'
-        let { cameraOn, micOn } = this.root?.[page] || {}
-        const { localParticipant } = newRoom
-        cameraOn = u.isStr(cameraOn)? cameraOn==='true'?true :false :cameraOn
-        micOn = u.isStr(micOn)? micOn==='true'?true :false :micOn
-        const toggle =
-          (state: 'disable' | 'enable') =>
-          (
-            tracks: Map<
-              string,
-              LocalAudioTrackPublication | LocalVideoTrackPublication
-            >,
-          ) => {
-            tracks.forEach((publication) => publication?.track?.[state]?.())
-          }
-
-        const enable = toggle('enable')
-        const disable = toggle('disable')
-
-        if (is.isBoolean(cameraOn)) {
-          if (is.isBooleanTrue(cameraOn)) {
-            enable(localParticipant?.videoTracks)
-          } else if (is.isBooleanFalse(cameraOn)) {
-            disable(localParticipant?.videoTracks)
-          }
-        } else {
-          // Automatically disable by default
-          disable(localParticipant?.videoTracks)
-        }
-        if (is.isBoolean(micOn)) {
-          if (is.isBooleanTrue(micOn)) {
-            enable(localParticipant?.audioTracks)
-          } else if (is.isBooleanFalse(micOn)) {
-            disable(localParticipant?.audioTracks)
-          }
-        } else {
-          disable(localParticipant?.audioTracks)
-        }
-      } else {
-        log.error(
-          `Expected a room instance to be returned but received null or undefined instead`,
-          newRoom,
-        )
       }
     } catch (error) {
       log.error(error)
@@ -1571,15 +1535,15 @@ export const extendedSdkBuiltIns = {
   async popUp(
     this: App,
     action: BuiltInActionObject & {
-        popUpDismiss ?: number
-        wait ?: number | boolean
-        popUpView : string
-        dismissOnTouchOutside?: boolean
+      popUpDismiss?: number
+      wait?: boolean | number
+      popUpView: string
+      dismissOnTouchOutside?: boolean
     },
-  ){
+  ) {
     return new Promise(async (resolve, reject) => {
-      try{
-        const {popUpDismiss,dismissOnTouchOutside,wait,popUpView} = action
+      try {
+        const { popUpDismiss, dismissOnTouchOutside, wait, popUpView } = action
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
@@ -1593,9 +1557,8 @@ export const extendedSdkBuiltIns = {
             }
             document.body.addEventListener('click', onTouchOutside)
           }
-  
+
           if (elem?.style) {
-            
             if (!u.isNum(wait)) {
               let inp_dom: NodeListOf<HTMLInputElement> =
                 elem.querySelectorAll('input')
@@ -1615,16 +1578,17 @@ export const extendedSdkBuiltIns = {
                 hide(elem)
                 resolve(void 0)
               }, wait)
-            }if (is.isBooleanTrue(wait)) {
+            }
+            if (is.isBooleanTrue(wait)) {
               show(elem)
-              resolve({"abort":'true'})
+              resolve({ abort: 'true' })
             }
             if (u.isNum(popUpDismiss)) {
               setTimeout(() => {
                 hide(elem)
               }, popUpDismiss)
             }
-          }else{
+          } else {
             log.error(
               `Tried to show a element but the element ` +
                 `was null or undefined`,
@@ -1633,54 +1597,45 @@ export const extendedSdkBuiltIns = {
           }
           if (!isWaiting) resolve(void 0)
         })
-  
-      }catch(error){
+      } catch (error) {
         reject(error instanceof Error ? error : new Error(String(error)))
       }
     })
-    
   },
   async popUpDismiss(
     this: App,
     action: BuiltInActionObject & {
-        popUpView : string
+      popUpView: string
     },
-  ){
+  ) {
     return new Promise(async (resolve, reject) => {
-      try{
-        const {popUpView} = action
+      try {
+        const { popUpView } = action
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (elem?.style) hide(elem)
-          else log.error(
-            `Tried to hide a element but the element ` +
-              `was null or undefined`,
-            { action: action?.snapshot?.(), popUpView },
-          )
+          else
+            log.error(
+              `Tried to hide a element but the element ` +
+                `was null or undefined`,
+              { action: action?.snapshot?.(), popUpView },
+            )
         })
         resolve(void 0)
-      }catch(error){
-        reject(error instanceof Error? error : new Error(String(error)))
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)))
       }
     })
   },
-  async continueGoto(
-    this: App,
-    action: BuiltInActionObject
-  ){
+  async continueGoto(this: App, action: BuiltInActionObject) {
     const destination = localStorage.getItem('continueGoto')
-    if(destination){
+    if (destination) {
       const ndomPage = this.mainPage
       ndomPage.pageUrl = this.parse.queryString({
         destination,
         pageUrl: ndomPage.pageUrl,
         startPage: this.startPage,
       })
-      await this.navigate(
-        ndomPage,
-        destination,
-        { isGoto: true},
-        false,
-      )
+      await this.navigate(ndomPage, destination, { isGoto: true }, false)
     }
   },
   async initAutoDC(
@@ -1718,16 +1673,14 @@ export const extendedSdkBuiltIns = {
       // )
     }
   },
-  async handlePaymentMethodSubmission(
-    this: App,
-  ){
+  async handlePaymentMethodSubmission(this: App) {
     const paymentMethod = this['paymentMethod']
-    if(paymentMethod){
-      const tokenResult = await paymentMethod.tokenize();
+    if (paymentMethod) {
+      const tokenResult = await paymentMethod.tokenize()
       return tokenResult
     }
-    return  
-  }
+    return
+  },
 }
 
 export default createBuiltInActions
