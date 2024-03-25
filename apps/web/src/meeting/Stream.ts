@@ -520,11 +520,7 @@ class MeetingStream {
       switch (type) {
         case 'close':
           _videoEl.style.display = 'none'
-          if (this.type === 'mainStream') {
-            _maskEl.style.display = 'flex'
-          } else {
-            _maskEl.style.display = 'block'
-          }
+          _maskEl.style.display = 'flex'
           break
         case 'open':
           _videoEl.style.display = 'block'

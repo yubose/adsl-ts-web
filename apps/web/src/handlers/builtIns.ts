@@ -1507,14 +1507,14 @@ export const extendedSdkBuiltIns = {
     this.register.popUpWaitSeconds = popUpWaitSeconds
     if (remainTime > 0 && numberofExtensions > 0) {
       const id = setTimeout(() => {
-        this.meeting.room.state === 'connected' &&
+        this.meeting.isInMeeting &&
           this.register.extendVideoFunction('showExtendView')
         clearTimeout(id)
       }, remainTime * 1000)
       this.register.setTimeId('extendVideoChatTime', id)
     } else if (remainTime > 0 && numberofExtensions == 0) {
       const id = setTimeout(() => {
-        this.meeting.room.state === 'connected' &&
+        this.meeting.isInMeeting &&
           this.register.extendVideoFunction('showExitWarningView')
         clearTimeout(id)
       }, remainTime * 1000)
