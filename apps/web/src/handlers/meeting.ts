@@ -125,7 +125,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
     const userList = room.getAllUser()
-    if (userList.length > 1) {
+    if (userList.length <= 1) {
       app.register.extendVideoFunction('twilioOnPeopleShowRoom')
     }
   }
