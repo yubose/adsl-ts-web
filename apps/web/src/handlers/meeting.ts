@@ -34,6 +34,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     // const cloudRecording = room.getRecordingClient()
     function userAdded(payload) {
       log.debug('user-added', payload)
+      const user = payload[0]
+      const commandChannel = room.getCommandClient()
+      // commandChannel.send(app.root.Global.timer, user.userId)
     }
     function userRemoved(payload) {
       log.debug('user-removed', payload)
@@ -45,6 +48,12 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     }
     function userUpdated(payload) {
       log.debug('user-updated', payload)
+    }
+
+    function commandChannelMessage(payload) {
+      console.log(payload)
+      console.log(`Command from ${payload.senderName} is ${payload.text}`)
+      app.root.Global.timer = parseInt(payload.text)
     }
 
     function recordingChange(payload) {
@@ -63,6 +72,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       room.off('peer-video-state-change', onRoomEvent.peerVideoStateChange)
       room.off('connection-change', onRoomEvent.connectionChange)
       room.off('recording-change', onRoomEvent.recordingChange)
+      room.off('command-channel-message', onRoomEvent.commandChannelMessage)
     }
     async function peerVideoStateChange(payload) {
       log.debug('peer-video-state-change', payload)
@@ -92,6 +102,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       connectionChange,
       peerVideoStateChange,
       recordingChange,
+      commandChannelMessage,
     } as const
 
     room.off('user-updated', onRoomEvent.userUpdated)
@@ -100,6 +111,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     room.off('peer-video-state-change', onRoomEvent.peerVideoStateChange)
     room.off('connection-change', onRoomEvent.connectionChange)
     room.off('recording-change', onRoomEvent.recordingChange)
+    room.off('command-channel-message', onRoomEvent.commandChannelMessage)
 
     room.on('user-updated', onRoomEvent.userUpdated)
     room.on('user-removed', onRoomEvent.userRemoved)
@@ -107,11 +119,17 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     room.on('peer-video-state-change', onRoomEvent.peerVideoStateChange)
     room.on('connection-change', onRoomEvent.connectionChange)
     room.on('recording-change', onRoomEvent.recordingChange)
+    room.on('command-channel-message', onRoomEvent.commandChannelMessage)
 
     /* -------------------------------------------------------
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
-    app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+    const userList = room.getAllUser()
+    if (userList.length <= 1) {
+      app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+    } else {
+      app.register.extendVideoFunction('twilioOnPeopleJoin')
+    }
   }
 
   /**
