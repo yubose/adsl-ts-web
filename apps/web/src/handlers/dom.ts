@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import log from '../log'
 import add from 'date-fns/add'
-import * as nt from 'noodl-types'
 import startOfDay from 'date-fns/startOfDay'
 import tippy, { MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
@@ -6047,7 +6046,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: ({ component: c }) => ["textField", "textView"].includes(c.type),
       resolve({ node, component }) {
-        if (u.isObj(component.blueprint) && 'audio' in component.blueprint && (!nt.Identify.isBooleanFalse(component.blueprint.audio))) {
+        if (!(component.blueprint.audio === false)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage;
           const dataKey =
