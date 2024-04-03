@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import * as nt from 'noodl-types'
 import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
@@ -6046,7 +6047,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: ({ component: c }) => ["textField", "textView"].includes(c.type),
       resolve({ node, component }) {
-        if (!(component.blueprint.audio === false)) {
+        if (u.isObj(component.blueprint) && 'audio' in component.blueprint && !nt.Identify.isBooleanFalse(component.blueprint.audio)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage;
           const dataKey =
