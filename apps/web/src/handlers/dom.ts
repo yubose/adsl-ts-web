@@ -6204,11 +6204,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: ({ component: c }) => ['textField', 'textView'].includes(c.type),
       resolve({ node, component }) {
-        if (
-          u.isObj(component.blueprint) &&
-          'audio' in component.blueprint &&
-          !nt.Identify.isBooleanFalse(component.blueprint.audio)
-        ) {
+        if (!(component.blueprint.audio === false)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage
           const dataKey =
@@ -6504,7 +6500,8 @@ const createExtendedDOMResolvers = function (app: App) {
               proccess_fun = true
               img.removeEventListener('click', stopRecording)
               img.addEventListener('click', startRecording)
-
+              // 如果是正在录音的状态 则保留录音然后在销毁组件
+              stopRecording()
               node.parentNode?.removeChild(img)
               img.remove()
             } else {
@@ -6526,6 +6523,7 @@ const createExtendedDOMResolvers = function (app: App) {
               )
             },
           })
+          // eslint-disable-next-line no-empty
         } else {
         }
       },
