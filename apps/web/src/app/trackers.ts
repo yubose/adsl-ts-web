@@ -186,11 +186,11 @@ const trackProperty = function trackProperty({
           // )
         }
       }
-      // log.log(
-      //   `%c${category ? `[${category}]` : ''}${label}`,
-      //   `color:${colorProp};`,
-      //   combinedArgs,
-      // )
+      log.log(
+        `%c${category ? `[${category}]` : ''}${label}`,
+        `color:${colorProp};`,
+        combinedArgs,
+      )
     }
     return ref(...args)
   }
