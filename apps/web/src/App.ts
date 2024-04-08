@@ -40,6 +40,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import getMiddlewares from './handlers/shared/middlewares'
+import type AtsLotusKeypress from '@atslotus/keypress'
 import * as lf from './utils/lf'
 import is from './utils/is'
 import parseUrl from './utils/parseUrl'
@@ -84,6 +85,7 @@ class App {
   #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #ecosLogger: ReturnType<typeof createEcosLogger>
+  #keypress: AtsLotusKeypress
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -241,6 +243,10 @@ class App {
 
   get globalRegister() {
     return this.noodl.root?.Global?.globalRegister
+  }
+
+  get keypress() {
+    return this.#keypress!
   }
 
   get loadingPages() {
@@ -543,6 +549,10 @@ class App {
     try {
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
+      if (!this.#keypress && process.env.NODE_ENV !== 'test') {
+        const { default: Keypress } = await import('@atslotus/keypress')
+        this.#keypress = new Keypress()
+      }
 
       if (!this.noodl) {
         /**

@@ -6,7 +6,14 @@
     "allowJs": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "lib": ["dom", "dom.iterable", "esnext", "WebWorker", "WebWorker.ImportScripts"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "WebWorker",
+      "WebWorker.ImportScripts"
+    ],
+    "ignoreDeprecations": "5.0",
     "module": "esnext",
     "noImplicitAny": false,
     "noImplicitThis": false,
@@ -14,10 +21,7 @@
     "outDir": "../../output/apps/web",
     "target": "es2018"
   },
-  "include": [
-    "src/**/*",
-    "analysis/server.js"
-  ],
+  "include": ["src/**/*", "analysis/server.js"],
   "exclude": [
     "analysis",
     "build",

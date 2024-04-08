@@ -29,7 +29,7 @@ const rl = readline.createInterface({
  * @param { string } question
  * @returns { Promise<string> }
  */
-const ask = (question) =>
+const ask = async (question) =>
   new Promise((resolve) => rl.question(question, resolve))
 
 /**
@@ -157,13 +157,13 @@ const coolGold = chalk.keyword('navajowhite')
       u.newline()
     }
 
-    log.info(
-      `Running ${coolGold('npm install')} in ${u.yellow('./apps/static')}`,
-    )
+    // log.info(
+    //   `Running ${coolGold('npm install')} in ${u.yellow('./apps/static')}`,
+    // )
 
-    u.newline()
+    // u.newline()
 
-    exec(`cd apps/static && npm install -f`)
+    // exec(`cd apps/static && npm install -f`)
 
     u.newline()
 
