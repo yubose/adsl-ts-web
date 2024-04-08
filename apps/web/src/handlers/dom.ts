@@ -3256,7 +3256,7 @@ const createExtendedDOMResolvers = function (app: App) {
           component.on('timer:interval', (value) => {
             app.updateRoot((draft) => {
               const seconds = get(draft, dataKey) ? get(draft, dataKey) : 0
-              console.log('test000', dataKey, seconds)
+              // console.log('test000', dataKey, seconds)
               set(draft, dataKey, seconds + 1)
               const updatedSecs = get(draft, dataKey)
               if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
@@ -3268,7 +3268,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   )
                 }
               }
-              console.log('test001', textFunc(seconds))
+              // console.log('test001', textFunc(seconds))
               node && (node.textContent = textFunc(value))
             })
           })
@@ -6204,7 +6204,11 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Audio': {
       cond: ({ component: c }) => ['textField', 'textView'].includes(c.type),
       resolve({ node, component }) {
-        if (u.isObj(component.blueprint) && 'audio' in component.blueprint && !nt.Identify.isBooleanFalse(component.blueprint.audio)) {
+        if (
+          u.isObj(component.blueprint) &&
+          'audio' in component.blueprint &&
+          !nt.Identify.isBooleanFalse(component.blueprint.audio)
+        ) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           let pageName = app.currentPage
           const dataKey =

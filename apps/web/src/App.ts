@@ -1248,7 +1248,6 @@ class App {
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
       ) {
-        if (['VideoChat', 'MeetingPage'].includes(this.currentPage)) return
         this.aspectRatio = aspectRatio
         refreshWidthAndHeight()
         document.body.style.width = `${args.width}px`
@@ -1256,6 +1255,7 @@ class App {
         this.mainPage.node.style.width = `${args.width}px`
         this.mainPage.node.style.height = `${args.height}px`
         if (this.mainPage.page === 'ChatMessage') return
+        if (['VideoChat', 'MeetingPage'].includes(this.currentPage)) return
         await this.render(this.mainPage)
       }
     }, 300)
