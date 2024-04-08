@@ -42,12 +42,20 @@ import { cloneDeep, debounce, wrap } from 'lodash'
 import moment from 'moment'
 import { createHash } from 'crypto'
 import { editorHtml, styleText } from './editor/editorHtml'
-import { Boot, createEditor, createToolbar, i18nChangeLanguage, i18nGetResources, IDomEditor, t } from "@wangeditor/editor"
-import editorConfig from "./editor/editor"
+import {
+  Boot,
+  createEditor,
+  createToolbar,
+  i18nChangeLanguage,
+  i18nGetResources,
+  IDomEditor,
+  t,
+} from '@wangeditor/editor'
+import editorConfig from './editor/editor'
 // import toolbarConfig from "./editor/toolbar"
 import { matchBlock } from './editor/utils/matchChar'
 import getYaml from './editor/getYaml/getYaml'
-import keypress from "@atslotus/keypress"
+import keypress from '@atslotus/keypress'
 import searchPopUp from './editor/utils/search'
 import { CalculateInit } from './editor/utils/calculate'
 import registerToolbar, { DynamicFields } from './editor/toolbar'
@@ -69,29 +77,34 @@ function addListener(node: NDOMElement, event: string, callback: any) {
     },
   }
 }
-const host = JSON.parse(localStorage.getItem("config") as string)?.["apiHost"].startsWith("test")
-?"testgateway.aitmed.io":"gateway.aitmed.io";
-const jwt = JSON.parse(localStorage.getItem("config") as string)?.["jwt"]||"";
-async function get_lists(params: {}){
-  let myHeaders = new Headers();
-  myHeaders.append("GatewayAuthorization", `${host} ${jwt}`);
-  myHeaders.append("Content-Type", "application/json");
-  console.log(host,jwt)
+const host = JSON.parse(localStorage.getItem('config') as string)?.[
+  'apiHost'
+].startsWith('test')
+  ? 'testgateway.aitmed.io'
+  : 'gateway.aitmed.io'
+const jwt = JSON.parse(localStorage.getItem('config') as string)?.['jwt'] || ''
+async function get_lists(params: {}) {
+  let myHeaders = new Headers()
+  myHeaders.append('GatewayAuthorization', `${host} ${jwt}`)
+  myHeaders.append('Content-Type', 'application/json')
+  console.log(host, jwt)
   let raw = JSON.stringify({
     // "locationId": "YLbf0gAAAAAD2gAAAA AAAA==",
-    [params["type"]]: params["value"],
-    "limit": 1000
-  });
-  let requestOptions:RequestInit = {
+    [params['type']]: params['value'],
+    limit: 1000,
+  })
+  let requestOptions: RequestInit = {
     method: 'POST',
     headers: myHeaders,
     body: raw,
-    redirect: 'follow'
-  };
-  return fetch(`https://${host}/elastic/search/${params["url"]}`, requestOptions)
-    .then(response => response.json())
-    // .then(result =>result)
-    .catch(error => console.log('error', error));
+    redirect: 'follow',
+  }
+  return (
+    fetch(`https://${host}/elastic/search/${params['url']}`, requestOptions)
+      .then((response) => response.json())
+      // .then(result =>result)
+      .catch((error) => console.log('error', error))
+  )
 }
 const createExtendedDOMResolvers = function (app: App) {
   const getNodeOnChange = function _getNodeOnChangeFn(args: {
@@ -123,7 +136,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataObject = findListDataObject(component)
         if (initialCapital) {
           value = value.slice(0, 1).toUpperCase() + value.slice(1)
-            ; (node as HTMLInputElement).value = value
+          ;(node as HTMLInputElement).value = value
         }
         if (dataObject) {
           set(
@@ -135,7 +148,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.error(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-            `to update its value but a dataObject was not found`,
+              `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -156,7 +169,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             if (initialCapital) {
               value = value.slice(0, 1).toUpperCase() + value.slice(1)
-                ; (node as HTMLInputElement).value = value
+              ;(node as HTMLInputElement).value = value
             }
 
             if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
@@ -234,18 +247,19 @@ const createExtendedDOMResolvers = function (app: App) {
       pageName !== page.page && (pageName = page.page)
 
       let value = (event.target as any)?.value || ''
-      if(component.contentType == "strictNumber"){
-        const numericOnly = value.replace(/\D/g, '');
-        value = numericOnly;
-        (event.target as any).value = numericOnly
+      if (component.contentType == 'strictNumber') {
+        const numericOnly = value.replace(/\D/g, '')
+        value = numericOnly
+        ;(event.target as any).value = numericOnly
       }
-      if (component?.has('richtext')) value = (event.target as any)?.textContent || ''
+      if (component?.has('richtext'))
+        value = (event.target as any)?.textContent || ''
 
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
         if (initialCapital) {
           value = value.slice(0, 1).toUpperCase() + value.slice(1)
-            ; (node as HTMLInputElement).value = value
+          ;(node as HTMLInputElement).value = value
         }
         if (dataObject) {
           set(
@@ -259,7 +273,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.error(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-            `to update its value but a dataObject was not found`,
+              `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -283,7 +297,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             if (initialCapital) {
               value = value.slice(0, 1).toUpperCase() + value.slice(1)
-                ; (node as HTMLInputElement).value = value
+              ;(node as HTMLInputElement).value = value
             }
 
             if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
@@ -330,24 +344,24 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-    ; (function () {
-      let beforeUnload_time = 0,
-        gap_time = 0
-      window.onunload = function () {
-        gap_time = new Date().getTime() - beforeUnload_time
-        if (gap_time <= 2) {
-          //浏览器关闭判断
-          clearCookie()
-        }
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
+    window.onunload = function () {
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 2) {
+        //浏览器关闭判断
+        clearCookie()
       }
-      window.onbeforeunload = function () {
-        beforeUnload_time = new Date().getTime()
-      }
-      function clearCookie() {
-        //清除localstorage
-        window.localStorage.clear()
-      }
-    })()
+    }
+    window.onbeforeunload = function () {
+      beforeUnload_time = new Date().getTime()
+    }
+    function clearCookie() {
+      //清除localstorage
+      window.localStorage.clear()
+    }
+  })()
 
   const antiShake = (fn, wait) => {
     let timer
@@ -358,8 +372,8 @@ const createExtendedDOMResolvers = function (app: App) {
       }, wait)
     }
   }
-  let audioT = "40%";
-  let audioL = "85%";
+  let audioT = '40%'
+  let audioL = '85%'
 
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
@@ -619,11 +633,11 @@ const createExtendedDOMResolvers = function (app: App) {
                           data: [],
                         },
                       )
-                        ; (settingWeek.xAxis.data as any).forEach((element) => {
-                          _dateTempObj[element] = {}
-                          _dateTempObj[element]['Systolic'] = []
-                          _dateTempObj[element]['Diastolic'] = []
-                        })
+                      ;(settingWeek.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element]['Systolic'] = []
+                        _dateTempObj[element]['Diastolic'] = []
+                      })
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
                         let signal = Intl.DateTimeFormat('en-US', {
@@ -653,12 +667,12 @@ const createExtendedDOMResolvers = function (app: App) {
                             ).toFixed(),
                           )
                         } else {
-                          ; (settingWeek.series[0]['data'] as any[]).push(
+                          ;(settingWeek.series[0]['data'] as any[]).push(
                             undefined,
                           )
-                            ; (settingWeek.series[1]['data'] as any[]).push(
-                              undefined,
-                            )
+                          ;(settingWeek.series[1]['data'] as any[]).push(
+                            undefined,
+                          )
                         }
                       })
 
@@ -714,12 +728,12 @@ const createExtendedDOMResolvers = function (app: App) {
                           ],
                         },
                       })
-                        ; (settingWeek.xAxis.data as any).forEach((element) => {
-                          _dateTempObj[element] = {}
-                          _dateTempObj[element][
-                            `${dataType[dataValue.dataType][0]}`
-                          ] = []
-                        })
+                      ;(settingWeek.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element][
+                          `${dataType[dataValue.dataType][0]}`
+                        ] = []
+                      })
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
                         let signal = Intl.DateTimeFormat('en-US', {
@@ -733,12 +747,13 @@ const createExtendedDOMResolvers = function (app: App) {
                               item,
                               `name.data.${dataType[dataValue.dataType][2][0]}`,
                             ) +
-                            '.' +
-                            get(
-                              item,
-                              `name.data.${dataType[dataValue.dataType][2][1]
-                              }`,
-                            ),
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
                           )
                         } else {
                           _dateTempObj[signal][
@@ -768,7 +783,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             settingWeek.series[0]['data'].push(cum.toFixed())
                           }
                         } else {
-                          ; (settingWeek.series[0]['data'] as any[]).push(
+                          ;(settingWeek.series[0]['data'] as any[]).push(
                             undefined,
                           )
                         }
@@ -984,15 +999,17 @@ const createExtendedDOMResolvers = function (app: App) {
                             ]?.push(
                               get(
                                 item,
-                                `name.data.${dataType[dataValue.dataType][2][0]
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][0]
                                 }`,
                               ) +
-                              '.' +
-                              get(
-                                item,
-                                `name.data.${dataType[dataValue.dataType][2][1]
-                                }`,
-                              ),
+                                '.' +
+                                get(
+                                  item,
+                                  `name.data.${
+                                    dataType[dataValue.dataType][2][1]
+                                  }`,
+                                ),
                             )
                           } else {
                             _dateTempObj[signal][
@@ -1047,7 +1064,6 @@ const createExtendedDOMResolvers = function (app: App) {
 
                     setting = settingDay as any
                   } else if (dataValue.dateType === 'month') {
-
                     let settingMonth = {
                       title: {
                         show: true,
@@ -1130,7 +1146,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           // minSpan: 5, // 设置最小缩放程度为1个数据点
                           moveOnMouseMove: true,
                           moveOnMouseWheel: false,
-                          zoomOnMouseWheel: true
+                          zoomOnMouseWheel: true,
                         },
                       ],
                       yAxis: {
@@ -1154,12 +1170,14 @@ const createExtendedDOMResolvers = function (app: App) {
                       series: [],
                     }
                     const getDateX = () => {
-                      const arr: string[] = [];
+                      const arr: string[] = []
                       // for (let index = 0; index < 6; index++) {
                       //   arr.unshift(moment().subtract(index ===5 ?30: index*7,"days").format("MM-DD"))
                       // }
                       for (let index = 0; index < 31; index++) {
-                        arr.unshift(moment().subtract(index, "days").format("MM-DD"))
+                        arr.unshift(
+                          moment().subtract(index, 'days').format('MM-DD'),
+                        )
                       }
                       return arr
                     }
@@ -1256,16 +1274,16 @@ const createExtendedDOMResolvers = function (app: App) {
                             ],
                           },
                           data: [],
-                        }
+                        },
                       )
-                        ; (settingMonth.xAxis.data as any).forEach((element) => {
-                          _dateTempObj[element] = {}
-                          _dateTempObj[element]['Systolic'] = []
-                          _dateTempObj[element]['Diastolic'] = []
-                        })
+                      ;(settingMonth.xAxis.data as any).forEach((element) => {
+                        _dateTempObj[element] = {}
+                        _dateTempObj[element]['Systolic'] = []
+                        _dateTempObj[element]['Diastolic'] = []
+                      })
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
-                        let signal = moment(_stamp * 1000).format("MM-DD");
+                        let signal = moment(_stamp * 1000).format('MM-DD')
                         _dateTempObj[signal]['Systolic']?.push(
                           get(item, 'name.data.heightBloodPressure'),
                         )
@@ -1290,12 +1308,12 @@ const createExtendedDOMResolvers = function (app: App) {
                             ).toFixed(),
                           )
                         } else {
-                          ; (settingMonth.series[0]['data'] as any[]).push(
+                          ;(settingMonth.series[0]['data'] as any[]).push(
                             undefined,
                           )
-                            ; (settingMonth.series[1]['data'] as any[]).push(
-                              undefined,
-                            )
+                          ;(settingMonth.series[1]['data'] as any[]).push(
+                            undefined,
+                          )
                         }
                       })
 
@@ -1352,8 +1370,7 @@ const createExtendedDOMResolvers = function (app: App) {
                           ],
                         },
                       })
-                        ;
-                      (settingMonth.xAxis.data as any).forEach((element) => {
+                      ;(settingMonth.xAxis.data as any).forEach((element) => {
                         _dateTempObj[element] = {}
                         _dateTempObj[element][
                           `${dataType[dataValue.dataType][0]}`
@@ -1362,7 +1379,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                       dataValue.dataSource.forEach((item) => {
                         let _stamp = get(item, 'deat')
-                        let signal = moment(_stamp * 1000).format("MM-DD");
+                        let signal = moment(_stamp * 1000).format('MM-DD')
                         if (dataValue.dataType == '386561') {
                           _dateTempObj[signal][
                             `${dataType[dataValue.dataType][0]}`
@@ -1371,12 +1388,13 @@ const createExtendedDOMResolvers = function (app: App) {
                               item,
                               `name.data.${dataType[dataValue.dataType][2][0]}`,
                             ) +
-                            '.' +
-                            get(
-                              item,
-                              `name.data.${dataType[dataValue.dataType][2][1]
-                              }`,
-                            ),
+                              '.' +
+                              get(
+                                item,
+                                `name.data.${
+                                  dataType[dataValue.dataType][2][1]
+                                }`,
+                              ),
                           )
                         } else {
                           _dateTempObj[signal][
@@ -1407,7 +1425,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             settingMonth.series[0]['data'].push(cum.toFixed())
                           }
                         } else {
-                          ; (settingMonth.series[0]['data'] as any[]).push(
+                          ;(settingMonth.series[0]['data'] as any[]).push(
                             undefined,
                           )
                         }
@@ -1419,12 +1437,11 @@ const createExtendedDOMResolvers = function (app: App) {
                       Math.max(
                         ...settingMonth.series[0]['data'].filter((x) => x),
                       ) + 50
-
                   }
                   //@ts-expect-error
                   // setting.height =  "80%";
-                  setting!.grid!.left = "3%";
-                  setting!.grid!.bottom = "2%";
+                  setting!.grid!.left = '3%'
+                  setting!.grid!.bottom = '2%'
                   let myChart = echarts.init(node)
                   dataValue && myChart.setOption(setting)
                 } catch (error) {
@@ -1655,7 +1672,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) { },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -1666,9 +1683,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         _instance: { range: { start: any; end: any } }
                       }
                     }) => {
-                      let t_time = new Date(
-                        info.event._instance.range.start,
-                      );
+                      let t_time = new Date(info.event._instance.range.start)
                       tippy(info.el, {
                         content:
                           '<div >\
@@ -1685,7 +1700,7 @@ const createExtendedDOMResolvers = function (app: App) {
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             t_time.getTime() +
-                            t_time.getTimezoneOffset() * 60 * 1000,
+                              t_time.getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '<div  style="padding-top:3px">Duration：' +
@@ -1742,7 +1757,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                   })
                   window.setTimeout(() => {
-                    ; (
+                    ;(
                       document.querySelectorAll(
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
@@ -1830,27 +1845,30 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     }
                     function getEventTimeWeek() {
-                      let getMonth,getDay,getYear;
-                      getMonth = titleTime.textContent?.split(
-                        ' '
-                      )[0] as string
-                      if(/.*,.*,/.test(titleTime?.textContent as string)){
+                      let getMonth, getDay, getYear
+                      getMonth = titleTime.textContent?.split(' ')[0] as string
+                      if (/.*,.*,/.test(titleTime?.textContent as string)) {
                         getDay = titleTime.textContent
                           ?.split('–')[0]
                           ?.split(',')[0]
                           ?.split(' ')[1] as string
                         getYear = titleTime.textContent
-                        ?.split('–')[0] 
-                        ?.split(',')[1] as string
-                        console.log(getMonth,"sss",getDay,"ssss",getYear,"sss",titleTime.textContent
-                        ?.split('–')[0] )
-                      }else{
+                          ?.split('–')[0]
+                          ?.split(',')[1] as string
+                        console.log(
+                          getMonth,
+                          'sss',
+                          getDay,
+                          'ssss',
+                          getYear,
+                          'sss',
+                          titleTime.textContent?.split('–')[0],
+                        )
+                      } else {
                         getDay = titleTime.textContent
                           ?.split('–')[0]
                           ?.split(' ')[1] as string
-                        getYear = titleTime.textContent?.split(
-                          ','
-                        )[1] as string
+                        getYear = titleTime.textContent?.split(',')[1] as string
                       }
                       let getTimeNow = new Date(
                         +getYear,
@@ -1988,14 +2006,15 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: ({ node, component }) => isTextFieldLike(node) || component.has('richtext'),
+      cond: ({ node, component }) =>
+        isTextFieldLike(node) || component.has('richtext'),
       before({ node, component }) {
-        ; (node as HTMLInputElement).value = component.get('data-value') || ''
+        ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ; (node as HTMLSelectElement)['selectedIndex'] = 0
+            ;(node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -2055,7 +2074,18 @@ const createExtendedDOMResolvers = function (app: App) {
             if (component?.type == 'textField') {
               const executeFunc = component.blueprint.debounce
                 ? antiShake(
-                  getOnChange({
+                    getOnChange({
+                      component,
+                      dataKey,
+                      evtName: 'onInput',
+                      node: node as NDOMElement,
+                      iteratorVar,
+                      page,
+                      initialCapital,
+                    }),
+                    component.blueprint.debounce,
+                  )
+                : getOnChange({
                     component,
                     dataKey,
                     evtName: 'onInput',
@@ -2063,18 +2093,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     iteratorVar,
                     page,
                     initialCapital,
-                  }),
-                  component.blueprint.debounce,
-                )
-                : getOnChange({
-                  component,
-                  dataKey,
-                  evtName: 'onInput',
-                  node: node as NDOMElement,
-                  iteratorVar,
-                  page,
-                  initialCapital,
-                })
+                  })
               const listener = addListener(node, 'input', executeFunc)
               component.addEventListeners(listener)
               // node.addEventListener(
@@ -2140,7 +2159,6 @@ const createExtendedDOMResolvers = function (app: App) {
               const listener = addListener(node, 'blur', executeFunc)
               component.addEventListeners(listener)
             }
-
           }
         }
         if (component.blueprint?.onBlur) {
@@ -2220,8 +2238,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   realvalue = '#000000'
                 }
                 if (typeof realvalue == 'undefined' && key == 'borderColor') {
-                    realvalue = '#ffffff'
-                  }
+                  realvalue = '#ffffff'
+                }
                 node.style[key] = realvalue
               },
             )
@@ -2290,7 +2308,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            ; (node as HTMLImageElement).src = url
+            ;(node as HTMLImageElement).src = url
           })
         }
       },
@@ -2530,8 +2548,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -2700,14 +2718,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                      Name +
-                      ' </span><br> <span style="font-size: 1vh;">' +
-                      Speciality +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      phoneNumber +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      address +
-                      '</span>',
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
+                        Speciality +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        phoneNumber +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
@@ -2736,8 +2754,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -2818,14 +2836,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (app.subStreams.elementExists(node)) {
               log.error(
                 `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+                  `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
           } else {
             log.error(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-              `was not available`,
+                `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
@@ -2976,7 +2994,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   ? 'Click here to hide your password'
                   : 'Click here to reveal your password'
               }
-              eyeContainer.addEventListener('click',eyeClick)
+              eyeContainer.addEventListener('click', eyeClick)
               component.addEventListeners({
                 event: 'click',
                 callback: () => {
@@ -2986,7 +3004,7 @@ const createExtendedDOMResolvers = function (app: App) {
               clearTimeout(timer)
             })
           }
-        } else if(component.contentType!=='strictNumber'){
+        } else if (component.contentType !== 'strictNumber') {
           const contentType = component?.contentType || ''
           // Default === 'text'
           node.setAttribute(
@@ -2994,8 +3012,8 @@ const createExtendedDOMResolvers = function (app: App) {
             /number|integer/i.test(contentType)
               ? 'number'
               : u.isStr(contentType)
-                ? contentType
-                : 'text',
+              ? contentType
+              : 'text',
           )
         }
       },
@@ -3011,7 +3029,7 @@ const createExtendedDOMResolvers = function (app: App) {
         if (component.contentType === 'strictLength') {
           let strictLength = {
             max: Number.MAX_VALUE,
-            min: 1
+            min: 1,
           }
           if (component.props.strictLength) {
             if (component.props.strictLength.max >= 0) {
@@ -3021,11 +3039,11 @@ const createExtendedDOMResolvers = function (app: App) {
               strictLength.min = component.props.strictLength.min
             }
           }
-          const parentNode = node.parentElement as HTMLElement;
+          const parentNode = node.parentElement as HTMLElement
           let oldValue = ''
           let borderColor = (node as HTMLInputElement).style.borderColor
 
-          let tips = document.createElement("div")
+          let tips = document.createElement('div')
           tips.innerText = `${strictLength.min} characters minimum`
           tips.style.cssText = `
             position: absolute;
@@ -3038,14 +3056,14 @@ const createExtendedDOMResolvers = function (app: App) {
           const strict = () => {
             const value = (node as HTMLInputElement).value
             if (value.length < strictLength.min) {
-              (node as HTMLInputElement).style.borderColor = "#ff0000";
-              tips.style.display = "block"
-              oldValue = value;
+              ;(node as HTMLInputElement).style.borderColor = '#ff0000'
+              tips.style.display = 'block'
+              oldValue = value
             } else if (value.length > strictLength.max) {
-              (node as HTMLInputElement).value = oldValue;
+              ;(node as HTMLInputElement).value = oldValue
             } else {
-              (node as HTMLInputElement).style.borderColor = borderColor
-              tips.style.display = "none"
+              ;(node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = 'none'
               oldValue = value
             }
           }
@@ -3084,18 +3102,20 @@ const createExtendedDOMResolvers = function (app: App) {
 
           const observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
-              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+              if (
+                mutation.type == 'attributes' &&
+                mutation.attributeName == 'style'
+              ) {
                 strict()
               }
-            });
+            })
           })
 
           observer.observe(node, {
             attributes: true,
-            attributeFilter: ['style']
+            attributeFilter: ['style'],
           })
-
-        } else if(component.contentType!=='strictNumber') {
+        } else if (component.contentType !== 'strictNumber') {
           const contentType = component?.contentType || ''
           // Default === 'text'
           node.setAttribute(
@@ -3103,11 +3123,11 @@ const createExtendedDOMResolvers = function (app: App) {
             /number|integer/i.test(contentType)
               ? 'number'
               : u.isStr(contentType)
-                ? contentType
-                : 'text',
+              ? contentType
+              : 'text',
           )
         }
-      }
+      },
     },
     '[App] strictLength textView': {
       cond: 'textView',
@@ -3115,7 +3135,7 @@ const createExtendedDOMResolvers = function (app: App) {
         if (component.contentType === 'strictLength') {
           let strictLength = {
             max: Number.MAX_VALUE,
-            min: 1
+            min: 1,
           }
           if (component.props.strictLength) {
             if (component.props.strictLength.max >= 0) {
@@ -3125,11 +3145,11 @@ const createExtendedDOMResolvers = function (app: App) {
               strictLength.min = component.props.strictLength.min
             }
           }
-          const parentNode = node.parentElement as HTMLElement;
+          const parentNode = node.parentElement as HTMLElement
           let oldValue = ''
           let borderColor = (node as HTMLInputElement).style.borderColor
 
-          let tips = document.createElement("div")
+          let tips = document.createElement('div')
           tips.innerText = `${strictLength.min} characters minimum`
           tips.style.cssText = `
             position: absolute;
@@ -3142,14 +3162,14 @@ const createExtendedDOMResolvers = function (app: App) {
           const strict = () => {
             const value = (node as HTMLInputElement).value
             if (value.length < strictLength.min) {
-              (node as HTMLInputElement).style.borderColor = "#ff0000";
-              tips.style.display = "block"
-              oldValue = value;
+              ;(node as HTMLInputElement).style.borderColor = '#ff0000'
+              tips.style.display = 'block'
+              oldValue = value
             } else if (value.length > strictLength.max) {
-              (node as HTMLInputElement).value = oldValue;
+              ;(node as HTMLInputElement).value = oldValue
             } else {
-              (node as HTMLInputElement).style.borderColor = borderColor
-              tips.style.display = "none"
+              ;(node as HTMLInputElement).style.borderColor = borderColor
+              tips.style.display = 'none'
               oldValue = value
             }
           }
@@ -3187,17 +3207,19 @@ const createExtendedDOMResolvers = function (app: App) {
           })
           const observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
-              if (mutation.type == "attributes" && mutation.attributeName == "style") {
+              if (
+                mutation.type == 'attributes' &&
+                mutation.attributeName == 'style'
+              ) {
                 strict()
               }
-            });
+            })
           })
 
           observer.observe(node, {
             attributes: true,
-            attributeFilter: ['style']
+            attributeFilter: ['style'],
           })
-
         } else {
           const contentType = component?.contentType || ''
           // Default === 'text'
@@ -3206,11 +3228,11 @@ const createExtendedDOMResolvers = function (app: App) {
             /number|integer/i.test(contentType)
               ? 'number'
               : u.isStr(contentType)
-                ? contentType
-                : 'text',
+              ? contentType
+              : 'text',
           )
         }
-      }
+      },
     },
     '[App] VideoChat Timer': {
       cond: ({ component: c }) =>
@@ -3264,25 +3286,25 @@ const createExtendedDOMResolvers = function (app: App) {
             direction?: 'horizontal' | 'vertical'
             spaceBetween?: number
             autoplay?:
-            | boolean
-            | {
-              delay: number
-              stopOnLastSlide?: boolean
-              disableOnInteraction?: boolean
-            }
+              | boolean
+              | {
+                  delay: number
+                  stopOnLastSlide?: boolean
+                  disableOnInteraction?: boolean
+                }
             slidesPerView?: number
             effect?: 'coverflow' | 'cube' | 'fade' | 'flip' | 'slide'
             pagination?:
-            | boolean
-            | {
-              type?: 'bullets' | 'custom' | 'fraction' | 'progressbar'
-              clickable?: boolean
-            }
+              | boolean
+              | {
+                  type?: 'bullets' | 'custom' | 'fraction' | 'progressbar'
+                  clickable?: boolean
+                }
             navigation?: boolean
             childStyle?: {
               width?: number | string
               height?: number | string
-              objectFit?:  string
+              objectFit?: string
             }
             loop?: boolean
           }
@@ -3349,11 +3371,11 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           for (let index = 0; index < listDom.childElementCount; index++) {
-            ; (listDom.children[index] as HTMLLIElement).setAttribute(
+            ;(listDom.children[index] as HTMLLIElement).setAttribute(
               'class',
               'swiper-slide',
             )
-              ; (listDom.children[index] as HTMLLIElement).style.cssText = `
+            ;(listDom.children[index] as HTMLLIElement).style.cssText = `
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -3479,8 +3501,8 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node) {
           const fragment = document.createDocumentFragment()
           const assetsUrl = app.nui.getAssetsUrl() || ''
-          const dataValue = component.get('data-value');
-          const dataOptions = component.get('data-option');
+          const dataValue = component.get('data-value')
+          const dataOptions = component.get('data-option')
           const width = node.style.width
           //container box
           const element_div = document.createElement('div')
@@ -3505,7 +3527,7 @@ const createExtendedDOMResolvers = function (app: App) {
           `
           const element_title_img_box = document.createElement('div')
           const element_title_img = document.createElement('img')
-          element_title_img.setAttribute('src',`${assetsUrl}editAudio.svg`)
+          element_title_img.setAttribute('src', `${assetsUrl}editAudio.svg`)
           element_title_img_box.style.cssText = `
             width: 32px;
             max-width: 32px;
@@ -3542,53 +3564,57 @@ const createExtendedDOMResolvers = function (app: App) {
             align-items: center;
           `
           let transaction
-          let isError:boolean = false
+          let isError: boolean = false
           let nonce
-          if (dataValue["type"] === 545281) {
+          if (dataValue['type'] === 545281) {
             const element_audio = document.createElement('audio')
-            element_audio.setAttribute('controlslist','nofullscreen nodownload noplaybackrate noremoteplayback')
+            element_audio.setAttribute(
+              'controlslist',
+              'nofullscreen nodownload noplaybackrate noremoteplayback',
+            )
             element_audio.id = 'audio_c'
             element_audio.style.cssText = `
               margin: 0;
               padding: 0;
-              width: ${(parseInt(width) - 32)*0.7 + 32}px;
+              width: ${(parseInt(width) - 32) * 0.7 + 32}px;
               height: 35px;
             `
             let data
-            if(u.isObj(dataValue["name"]["data"])){
-              data = dataValue["name"]["data"]
-            }else if(u.isStr(dataValue["name"]["data"])){
-              if (dataValue["name"]["data"] === "") {
+            if (u.isObj(dataValue['name']['data'])) {
+              data = dataValue['name']['data']
+            } else if (u.isStr(dataValue['name']['data'])) {
+              if (dataValue['name']['data'] === '') {
                 data = {}
               } else {
-                data = JSON.parse(dataValue["name"]["data"])
+                data = JSON.parse(dataValue['name']['data'])
               }
             }
             let url
-            if(data["audioUrl"] && u.isStr(data["audioUrl"])){
-              url = data["audioUrl"]?.split('?')[0]
-            }else{
+            if (data['audioUrl'] && u.isStr(data['audioUrl'])) {
+              url = data['audioUrl']?.split('?')[0]
+            } else {
               url = ''
             }
-            const title = dataValue["name"]['title']
-            isError = dataValue["tage"]===10
-            nonce = dataValue["name"]['nonce']
+            const title = dataValue['name']['title']
+            isError = dataValue['tage'] === 10
+            nonce = dataValue['name']['nonce']
             transaction = data['transaction']
             element_audio.src = url
             element_audio.controls = true
-            element_title_text.innerHTML = title?title:`${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
+            element_title_text.innerHTML = title
+              ? title
+              : `${moment(dataValue['ctime'] * 1000).format('L hh:mm A')}`
             element_middle_box.append(element_audio)
-
-          } else if (dataValue["type"] === 540161) {
-            const element_text_img_box = document.createElement("div")
-            const element_text_img = document.createElement("img")
-            const element_text_text = document.createElement("div")
-            element_text_text.style.cssText =`
+          } else if (dataValue['type'] === 540161) {
+            const element_text_img_box = document.createElement('div')
+            const element_text_img = document.createElement('img')
+            const element_text_text = document.createElement('div')
+            element_text_text.style.cssText = `
               // display: flex;
               // align-items: center;
               margin-left: 5px;
               max-height: 1.2em;
-              width: ${(parseInt(width) - 32)*0.7}px;
+              width: ${(parseInt(width) - 32) * 0.7}px;
               overflow:hidden;
               text-overflow:ellipsis;
               white-space: nowrap;
@@ -3601,37 +3627,43 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               justify-content: center;
             `
-            transaction = dataValue["name"]["data"]["transaction"]
-            const title = dataValue["name"]["title"]
-            isError = dataValue["tage"]===10
-            nonce = dataValue["name"]['nonce']
-            element_text_img.setAttribute('src',`${assetsUrl}texticon.svg`)
+            transaction = dataValue['name']['data']['transaction']
+            const title = dataValue['name']['title']
+            isError = dataValue['tage'] === 10
+            nonce = dataValue['name']['nonce']
+            element_text_img.setAttribute('src', `${assetsUrl}texticon.svg`)
             element_text_img.style.cssText = `
               width: 50%;
               object-fit: cover;
             `
-            element_text_text.innerHTML = transaction;
-            element_title_text.innerHTML = title?title:`${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
+            element_text_text.innerHTML = transaction
+            element_title_text.innerHTML = title
+              ? title
+              : `${moment(dataValue['ctime'] * 1000).format('L hh:mm A')}`
             element_text_img_box.append(element_text_img)
             element_middle_box.append(element_text_img_box)
             element_middle_box.append(element_text_text)
-            element_text_text.addEventListener("click",(e)=>{
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onTextClick")?.execute()
-              })
-            },{once: true})
+            element_text_text.addEventListener(
+              'click',
+              (e) => {
+                setTimeout(() => {
+                  // @ts-expect-error
+                  component.get('onTextClick')?.execute()
+                })
+              },
+              { once: true },
+            )
           }
 
           const element_op_box = document.createElement('div')
           element_op_box.style.cssText = `
             display: flex;
-            width: ${(parseInt(width) - 32)*0.3}px;
+            width: ${(parseInt(width) - 32) * 0.3}px;
             justify-content: flex-end;
           `
-          const element_btn = document.createElement("button");
-          const element_img = document.createElement("img")
-          element_btn.textContent = "Generate"
+          const element_btn = document.createElement('button')
+          const element_img = document.createElement('img')
+          element_btn.textContent = 'Generate'
           element_btn.style.cssText = `
             margin-left: 10%;
             width: 70%;
@@ -3644,7 +3676,7 @@ const createExtendedDOMResolvers = function (app: App) {
             font-weight: 600;
             overflow: hidden;
           `
-          element_img.setAttribute("src",`${assetsUrl}opentranscription.svg`)
+          element_img.setAttribute('src', `${assetsUrl}opentranscription.svg`)
           element_img.style.cssText = `
             width: 15%;
             margin-left: 5%;
@@ -3656,14 +3688,16 @@ const createExtendedDOMResolvers = function (app: App) {
           element_div.append(element_middle_box)
 
           //bottom time
-          const element_bottom_box = document.createElement("div")
-          const element_time_box = document.createElement("div")
-          const element_time = document.createElement("div")
-          element_time.textContent = `${moment(dataValue["ctime"]*1000).format("L hh:mm A")}`
+          const element_bottom_box = document.createElement('div')
+          const element_time_box = document.createElement('div')
+          const element_time = document.createElement('div')
+          element_time.textContent = `${moment(
+            dataValue['ctime'] * 1000,
+          ).format('L hh:mm A')}`
           element_time.style.cssText = `
             display: flex;
             align-items: center;
-            width: ${(parseInt(width) - 32)*0.6}px;
+            width: ${(parseInt(width) - 32) * 0.6}px;
             font-size: 14px;
             color: #333333;
           `
@@ -3682,11 +3716,11 @@ const createExtendedDOMResolvers = function (app: App) {
 
           element_div.append(element_bottom_box)
           node.append(fragment)
-          if(isError){
+          if (isError) {
             const element_error_box = document.createElement('div')
             const element_error_img = document.createElement('img')
             const element_error_text = document.createElement('div')
-            element_error_img.setAttribute('src',`${assetsUrl}error.svg`)
+            element_error_img.setAttribute('src', `${assetsUrl}error.svg`)
             element_error_text.innerHTML = 'Generate Failed'
             element_error_text.style.cssText = `
               display: flex;
@@ -3699,7 +3733,7 @@ const createExtendedDOMResolvers = function (app: App) {
               display: flex;
               flex-direction: row;
               justify-content: flex-end;
-              width: ${(parseInt(width) - 32)*0.4}px;
+              width: ${(parseInt(width) - 32) * 0.4}px;
             `
             element_error_box.append(element_error_img)
             element_error_box.append(element_error_text)
@@ -3716,44 +3750,50 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             node.append(element_error_message)
           }
-            
+
           // 增加transcription的按钮
-            // component.get("onGenerateClick")?.["actions"].shift()
-          if (dataValue["type"] === 545281) {
-            element_img.addEventListener("click",(e)=>{
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onVoiceClick")?.execute()
-              })
-            },{once: true})
-          }else if (dataValue["type"] === 540161) { 
-            element_img.addEventListener("click",(e)=>{
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onTextClick")?.execute()
-              })
-            },{once: true})
+          // component.get("onGenerateClick")?.["actions"].shift()
+          if (dataValue['type'] === 545281) {
+            element_img.addEventListener(
+              'click',
+              (e) => {
+                setTimeout(() => {
+                  // @ts-expect-error
+                  component.get('onVoiceClick')?.execute()
+                })
+              },
+              { once: true },
+            )
+          } else if (dataValue['type'] === 540161) {
+            element_img.addEventListener(
+              'click',
+              (e) => {
+                setTimeout(() => {
+                  // @ts-expect-error
+                  component.get('onTextClick')?.execute()
+                })
+              },
+              { once: true },
+            )
           }
-            
-            
-          element_btn.addEventListener("click",(e)=>{
-              set(dataOptions,"selectDoc",dataValue)
-              set(dataOptions,"transcriptionContent",transaction)
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onGenerateClick")?.execute()
-              },100)
-              
-            })
-            
-          element_top_box.addEventListener('click',(e)=>{
-            setTimeout(()=>{
-              // @ts-ignore
+
+          element_btn.addEventListener('click', (e) => {
+            set(dataOptions, 'selectDoc', dataValue)
+            set(dataOptions, 'transcriptionContent', transaction)
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('onGenerateClick')?.execute()
+            }, 100)
+          })
+
+          element_top_box.addEventListener('click', (e) => {
+            setTimeout(() => {
+              // @ts-expect-error
               component.get('onEditClick')?.execute()
-            },100)
+            }, 100)
           })
         }
-      }
+      },
     },
     '[App] Checkbox': {
       cond: 'checkbox',
@@ -3897,7 +3937,8 @@ const createExtendedDOMResolvers = function (app: App) {
               dataValue['path'],
             )
             if (
-              dataValue['selectedData'] == get(dataValue['allData'][i], dataValue['path'])
+              dataValue['selectedData'] ==
+              get(dataValue['allData'][i], dataValue['path'])
             ) {
               childInput.checked = true
               app.updateRoot((draft) => {
@@ -3913,7 +3954,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['inputStyle'])[index]}`
               let styleValue =
                 dataOptions['inputStyle'][
-                `${Object.keys(dataOptions['inputStyle'])[index]}`
+                  `${Object.keys(dataOptions['inputStyle'])[index]}`
                 ]
               childInput.style[styleKey] = styleValue
             }
@@ -3925,7 +3966,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let styleKey = `${Object.keys(dataOptions['textStyle'])[index]}`
               let styleValue =
                 dataOptions['textStyle'][
-                `${Object.keys(dataOptions['textStyle'])[index]}`
+                  `${Object.keys(dataOptions['textStyle'])[index]}`
                 ]
               spanDom.style[styleKey] = styleValue
             }
@@ -3934,11 +3975,12 @@ const createExtendedDOMResolvers = function (app: App) {
               index < Object.keys(dataOptions['containerStyle']).length;
               index++
             ) {
-              let styleKey = `${Object.keys(dataOptions['containerStyle'])[index]
-                }`
+              let styleKey = `${
+                Object.keys(dataOptions['containerStyle'])[index]
+              }`
               let styleValue =
                 dataOptions['containerStyle'][
-                `${Object.keys(dataOptions['containerStyle'])[index]}`
+                  `${Object.keys(dataOptions['containerStyle'])[index]}`
                 ]
               contanierDiv.style[styleKey] = styleValue
             }
@@ -4047,8 +4089,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
-        
-        const assetsUrl = app.nui.getAssetsUrl() || ""
+        const assetsUrl = app.nui.getAssetsUrl() || ''
         interface PdfCss {
           pdfContentWidth: number
           pdfContentHeight: number
@@ -4059,10 +4100,10 @@ const createExtendedDOMResolvers = function (app: App) {
           width: string
           height: string
         }
-        const scrollChange = debounce((node,scrollH)=>{
+        const scrollChange = debounce((node, scrollH) => {
           node.scrollTop =
             scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
-        },200)
+        }, 200)
         class liveChat {
           protected chatBox: HTMLElement
           public dataSource: Array<any>
@@ -4086,39 +4127,41 @@ const createExtendedDOMResolvers = function (app: App) {
             this.chatBox = document.createElement('div')
             this.chatBox.id = 'chatBox'
             this._events = []
-            
+
             this.setBox()
             for (let i = 0; i < this.dataSource.length; i++) {
-              const isLast = (i === this.dataSource.length-1)
+              const isLast = i === this.dataSource.length - 1
               const itemData = this.dataSource[i]
-              if(itemData?.name?.title){
-                this.chatBox.appendChild(this.judgeType(itemData,isLast))
-              }   
+              if (itemData?.name?.title) {
+                this.chatBox.appendChild(this.judgeType(itemData, isLast))
+              }
             }
           }
 
-          public addNewChat(data: Array<any>){
+          public addNewChat(data: Array<any>) {
             for (let i = 0; i < data.length; i++) {
-              const isLast = (i === data.length-1)
+              const isLast = i === data.length - 1
               const itemData = data[i]
-              if(itemData?.name?.title){
-                this.chatBox.appendChild(this.judgeType(itemData,isLast))
-              }   
+              if (itemData?.name?.title) {
+                this.chatBox.appendChild(this.judgeType(itemData, isLast))
+              }
             }
             // this.dataSource = this.dataSource.concat(data)
             // console.log('test8',this.dataSource)
             node.scrollTop = node.scrollHeight
           }
-          
 
-          public addOldChat(data: Array<any>){
+          public addOldChat(data: Array<any>) {
             const oldHeight = node.scrollHeight
-            for (let i = data.length-1; i >=0; i--) {
+            for (let i = data.length - 1; i >= 0; i--) {
               const isLast = false
               const itemData = data[i]
-              if(itemData?.name?.title){
-                this.chatBox.insertBefore(this.judgeType(itemData,isLast),this.chatBox.firstChild)
-              }   
+              if (itemData?.name?.title) {
+                this.chatBox.insertBefore(
+                  this.judgeType(itemData, isLast),
+                  this.chatBox.firstChild,
+                )
+              }
             }
             node.scrollTop = node.scrollHeight - oldHeight
 
@@ -4141,11 +4184,11 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 
           private caculateTime(timestamp: number) {
-            const date = new Date(timestamp*1000)
+            const date = new Date(timestamp * 1000)
             const time = ''
-            let hour: string|number = date.getHours()
-            let minute: string|number = date.getMinutes()
-            const AP = hour > 12 ? "PM" : "AM"
+            let hour: string | number = date.getHours()
+            let minute: string | number = date.getMinutes()
+            const AP = hour > 12 ? 'PM' : 'AM'
             hour = hour > 12 ? `${hour - 12}` : `${hour}`
             minute = minute < 10 ? `0${minute}` : `${minute}`
             return `${hour}:${minute} ${AP}`
@@ -4158,11 +4201,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let domNodeContent: HTMLElement
             let chatBackground: string
             let color: string
-              ;[domNode, domNodeContent, chatBackground, color] = this.judgeIsOwner(
-                domNode,
-                this.IsOwner(Msg.bsig),
-                Msg,
-              )
+            ;[domNode, domNodeContent, chatBackground, color] =
+              this.judgeIsOwner(domNode, this.IsOwner(Msg.bsig), Msg)
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;/]*[-A-Z0-9+&@#%=~_|/])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
@@ -4171,7 +4211,10 @@ const createExtendedDOMResolvers = function (app: App) {
               if (typeof data == 'string') {
                 data = JSON.parse(data)
               }
-              const xss_remove = data.text.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g, '')
+              const xss_remove = data.text.replace(
+                /<(\S*?)[^>]*>.*?|<.*? \/>/g,
+                '',
+              )
               let messageInfo = xss_remove.replace(urlRegex, (url) => {
                 // return `<a href="${url}" target="_blank">${url}</a>`
                 return `<a style="
@@ -4185,7 +4228,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                 })()">${url}</a>`
               })
-              let timeContent = document.createElement("div")
+              let timeContent = document.createElement('div')
               timeContent.innerText = this.caculateTime(Msg.ctime)
               timeContent.style.cssText = `
                 color: #999999;
@@ -4206,9 +4249,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 font-size: 14px;
               `
               domNodeContent.append(timeContent, textContent)
-            } catch (error) {
-              
-            }
+            } catch (error) {}
             return fragment
           }
 
@@ -4217,11 +4258,11 @@ const createExtendedDOMResolvers = function (app: App) {
             let domNode = this.createChatNode()
             fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
-              ;[domNode, domNodeContent] = this.judgeIsOwner(
-                domNode,
-                this.IsOwner(Msg.bsig),
-                Msg
-              )
+            ;[domNode, domNodeContent] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+              Msg,
+            )
             let pdfInfo = this.judgePdfIsOwner(
               domNodeContent,
               this.IsOwner(Msg.bsig),
@@ -4236,37 +4277,36 @@ const createExtendedDOMResolvers = function (app: App) {
             node.addEventListener(event, callback)
             return {
               event,
-              callback: ()=>{
-                node.removeEventListener(event,callback)
-              }
+              callback: () => {
+                node.removeEventListener(event, callback)
+              },
             }
           }
 
-          public removeListener(){
-            if(u.isArr(this._events)){
-              for(let i=0;i<this._events.length;i++){
+          public removeListener() {
+            if (u.isArr(this._events)) {
+              for (let i = 0; i < this._events.length; i++) {
                 const item = this._events[i]
-                if(u.isFnc(item.callback)){
+                if (u.isFnc(item.callback)) {
                   item.callback?.()
                 }
               }
               this._events = []
             }
           }
-          private createImageNode(Msg:any,isLast:boolean): DocumentFragment{
+          private createImageNode(Msg: any, isLast: boolean): DocumentFragment {
             const fragment = document.createDocumentFragment()
             let domNode = this.createChatNode()
             fragment.appendChild(domNode)
             let domNodeContent: HTMLElement
             let chatBackground: string
             let color: string
-              ;[domNode, domNodeContent, chatBackground, color] = this.judgeIsOwner(
-                domNode,
-                this.IsOwner(Msg.bsig),
-                Msg,
-              )
-            let timeContent = document.createElement("div")
-            timeContent.innerText = this.caculateTime(Msg.ctime || Msg?.name?.chatData?.time)
+            ;[domNode, domNodeContent, chatBackground, color] =
+              this.judgeIsOwner(domNode, this.IsOwner(Msg.bsig), Msg)
+            let timeContent = document.createElement('div')
+            timeContent.innerText = this.caculateTime(
+              Msg.ctime || Msg?.name?.chatData?.time,
+            )
             timeContent.style.cssText = `
               color: #999999;
             `
@@ -4275,7 +4315,8 @@ const createExtendedDOMResolvers = function (app: App) {
               width: 100%;
               position: relative;
             `
-            const imageData = Msg.tage === 2 ? Msg?.name?.chatData.localData:Msg?.name?.data
+            const imageData =
+              Msg.tage === 2 ? Msg?.name?.chatData.localData : Msg?.name?.data
             const id = Msg?.id
             const func = app.root.builtIn.utils.prepareDocToPath
             const image = document.createElement('img')
@@ -4295,70 +4336,71 @@ const createExtendedDOMResolvers = function (app: App) {
               border-radius: 4px;
               border: 1px solid #DEDEDE;
             `
-            if(id){
-              if(imageData instanceof Blob){
+            if (id) {
+              if (imageData instanceof Blob) {
                 const func = app.root.builtIn.utils.prepareChatDocToPath
-                func(id,imageData).then(res=>{
-                  if(res){
+                func(id, imageData).then((res) => {
+                  if (res) {
                     res?.url && (image.src = res?.url)
                   }
                 })
-              }else if(u.isStr(imageData) && imageData.length > 32768){
-                func(id,Msg?.name).then(res=>{
-                  if(res){
+              } else if (u.isStr(imageData) && imageData.length > 32768) {
+                func(id, Msg?.name).then((res) => {
+                  if (res) {
                     res?.url && (image.src = res?.url)
                   }
                 })
-              }else{
-                func(id).then(res=>{
-                  if(res){
+              } else {
+                func(id).then((res) => {
+                  if (res) {
                     res?.url && (image.src = res?.url)
                   }
                 })
               }
-              
-            }else if(!id && imageData instanceof Blob){
-              func(id,imageData).then(res=>{
-                if(res){
+            } else if (!id && imageData instanceof Blob) {
+              func(id, imageData).then((res) => {
+                if (res) {
                   res?.url && (image.src = res?.url)
                 }
               })
             }
-            const listener = this.addListener(image,'load',(e)=>{
-              scrollChange(node,scrollH)
+            const listener = this.addListener(image, 'load', (e) => {
+              scrollChange(node, scrollH)
             })
             this._events.push(listener)
             imageContainer.appendChild(image)
-            if(isLast && Msg.tage === 2){
+            if (isLast && Msg.tage === 2) {
               const fragment = app.uploadProgress.generateProgress(id)
               //@ts-expect-error
               fragment.childNodes[0].style.visibility = 'visibility'
               imageContainer.appendChild(fragment)
             }
-            const clickEvent = ()=>{
-              const imageClicks = component.get("imageClick")
-              if(imageClicks){
-                imageClicks?.queue.forEach(imageClick=>{
-                  if(imageClick?.dataKey){
-                    imageClick.dataKey = {var: Msg}
+            const clickEvent = () => {
+              const imageClicks = component.get('imageClick')
+              if (imageClicks) {
+                imageClicks?.queue.forEach((imageClick) => {
+                  if (imageClick?.dataKey) {
+                    imageClick.dataKey = { var: Msg }
                   }
                 })
                 imageClicks?.execute?.()
               }
- 
             }
-            imageContainer.addEventListener('click',clickEvent)
+            imageContainer.addEventListener('click', clickEvent)
             component.addEventListeners({
               event: 'click',
               callback: () => {
                 imageContainer?.removeEventListener('click', clickEvent)
               },
             })
-            domNodeContent.append(timeContent,imageContainer)
+            domNodeContent.append(timeContent, imageContainer)
             return fragment
           }
 
-          private judgeType(Msg: any,isLast:boolean): DocumentFragment | HTMLElement {
+          private judgeType(
+            Msg: any,
+            isLast: boolean,
+          ): DocumentFragment | HTMLElement {
             let domNode: DocumentFragment | HTMLElement
             switch (Msg.name.title) {
               case 'textMessage':
@@ -4368,10 +4410,10 @@ const createExtendedDOMResolvers = function (app: App) {
                 domNode = this.createPdfNode(Msg)
                 return domNode
               case 'imageMessage':
-                domNode = this.createImageNode(Msg,isLast)
+                domNode = this.createImageNode(Msg, isLast)
                 return domNode
               default:
-                return document.createElement("div")
+                return document.createElement('div')
             }
           }
 
@@ -4393,7 +4435,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 width: auto;
                 height: auto;
             `
-            if(isOwner) {
+            if (isOwner) {
               domNodeContent.style.cssText += `
                 display: flex;
                 flex-direction: column;
@@ -4403,37 +4445,41 @@ const createExtendedDOMResolvers = function (app: App) {
             return domNodeContent
           }
 
-          private createChatNodeAvatar(isOwner: boolean, Msg: any): HTMLElement {
+          private createChatNodeAvatar(
+            isOwner: boolean,
+            Msg: any,
+          ): HTMLElement {
             let data = Msg.name.data
             if (typeof data == 'string' && Msg.name.title !== 'imageMessage') {
               data = JSON.parse(data)
             }
             let domNodeAvatar = document.createElement('img')
             let avatarId = data?.avatar
-            if(Msg.name.title === 'imageMessage'){
+            if (Msg.name.title === 'imageMessage') {
               avatarId = Msg.name.chatData.avatar
             }
             // console.log("AVATAR", avatarId)
-            if(data?.capacity === "provider") 
+            if (data?.capacity === 'provider')
               domNodeAvatar.src = `${assetsUrl}providerImage.svg`
-            else if(data?.capacity === "patient")
+            else if (data?.capacity === 'patient')
               domNodeAvatar.src = `${assetsUrl}patientImage.svg`
-            else 
-              domNodeAvatar.src = `${assetsUrl}patientImage.svg`
-            if(avatarId) {
-              app.root.builtIn.utils.prepareDocToPath(avatarId).then((value) => {
-                domNodeAvatar.setAttribute("src", value.url)
-              })
+            else domNodeAvatar.src = `${assetsUrl}patientImage.svg`
+            if (avatarId) {
+              app.root.builtIn.utils
+                .prepareDocToPath(avatarId)
+                .then((value) => {
+                  domNodeAvatar.setAttribute('src', value.url)
+                })
             }
-            
+
             let ML = ''
             let MR = ''
-            if(isOwner) {
+            if (isOwner) {
               ML = '12px'
               MR = '15px'
             } else {
-              ML = "15px"
-              MR = "12px"
+              ML = '15px'
+              MR = '12px'
             }
             domNodeAvatar.style.cssText = `
                 width: 50px;
@@ -4444,7 +4490,7 @@ const createExtendedDOMResolvers = function (app: App) {
             return domNodeAvatar
           }
 
-          private IsOwner(ovid: string|null): boolean {
+          private IsOwner(ovid: string | null): boolean {
             let judgeOvid = localStorage.getItem('user_vid')
             return ovid === judgeOvid || !ovid
           }
@@ -4463,13 +4509,13 @@ const createExtendedDOMResolvers = function (app: App) {
               domNode.appendChild(domNodeContent)
               domNode.appendChild(domNodeAvatar)
               chatBackground = '#2988E6'
-              color = "#ffffff"
+              color = '#ffffff'
             } else {
               domNode.style.justifyContent = 'start'
               domNode.appendChild(domNodeAvatar)
               domNode.appendChild(domNodeContent)
               chatBackground = '#F0F2F4'
-              color = "#333333"
+              color = '#333333'
             }
             return [domNode, domNodeContent, chatBackground, color]
           }
@@ -4491,14 +4537,17 @@ const createExtendedDOMResolvers = function (app: App) {
             pdfIcon.style.cssText = `
               width: ${this.pdfCss.pdfIconWidth}px;
               height: ${this.pdfCss.pdfIconHeight}px;
-              margin: ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-              }px 10px ${(this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
-              }px 10px;
+              margin: ${
+                (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px ${
+              (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+            }px 10px;
             `
             let pdfInfo = document.createElement('div')
             pdfInfo.style.cssText = `
-                width: ${this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
-              }px;
+                width: ${
+                  this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
+                }px;
                 height: auto;
                 margin: 5px 10px 5px 10px;
                 display: flex;
@@ -4521,51 +4570,52 @@ const createExtendedDOMResolvers = function (app: App) {
         const scrollH = component.get('data-value') || '' || 'dataKey'
         // const scrollH = component
         const globalListChat = store.globalListChat
-        if(globalListChat){
+        if (globalListChat) {
           const oldData = globalListChat.dataSource
           const newData = data
-          if(!u.isArr(oldData) || !u.isArr(newData)) return
+          if (!u.isArr(oldData) || !u.isArr(newData)) return
           const oldDataLen = oldData.length
           const newDataLen = newData.length
-          if(oldDataLen === newDataLen) return
-          if(oldDataLen === 0){
+          if (oldDataLen === newDataLen) return
+          if (oldDataLen === 0) {
             //perform upload
             const latestData = newData.slice(oldDataLen)
             globalListChat.addNewChat(latestData)
             // globalListChat.dataSource = u.cloneDeep(newData)
-            globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
-          }else{
-            const isPull = oldData[0]['id'] === newData[0]['id']?false:true
-            if(isPull){
+            globalListChat.dataSource =
+              globalListChat.dataSource.concat(latestData)
+          } else {
+            const isPull = oldData[0]['id'] === newData[0]['id'] ? false : true
+            if (isPull) {
               //perform onPull
-              const latestData = newData.slice(0,newDataLen-oldDataLen)
+              const latestData = newData.slice(0, newDataLen - oldDataLen)
               globalListChat.addOldChat(latestData)
               // globalListChat.dataSource = u.cloneDeep(newData)
-              globalListChat.dataSource = latestData.concat(globalListChat.dataSource)
-            }else{
+              globalListChat.dataSource = latestData.concat(
+                globalListChat.dataSource,
+              )
+            } else {
               //perform upload
               const latestData = newData.slice(oldDataLen)
               globalListChat.addNewChat(latestData)
               // globalListChat.dataSource = u.cloneDeep(newData)
-              globalListChat.dataSource = globalListChat.dataSource.concat(latestData)
+              globalListChat.dataSource =
+                globalListChat.dataSource.concat(latestData)
             }
           }
-          
-        }else{
+        } else {
           const liveChatObject = new liveChat(u.cloneDeep(data))
           store.globalListChat = liveChatObject
           let liveChatBox = liveChatObject.dom()
-          node.innerHTML = ""
+          node.innerHTML = ''
           node.append(liveChatBox)
           // node.innerHTML = liveChatBox.innerHTML
-          node.setAttribute("class", "scroll-view")
-          scrollChange(node,scrollH)
-          node.addEventListener('wheel',(e)=>{
+          node.setAttribute('class', 'scroll-view')
+          scrollChange(node, scrollH)
+          node.addEventListener('wheel', (e) => {
             liveChatObject.removeListener()
           })
         }
-        
-        
       },
     },
     '[App] navBar': {
@@ -4573,7 +4623,7 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         // console.error(component.get('dataKey'))
         let currentPage = app.currentPage
-        localStorage.setItem("previousPage", app.mainPage.previous)
+        localStorage.setItem('previousPage', app.mainPage.previous)
         const menuBarInfo = get(app.root, component.get('data-key'))
         let width = Number(node.style.width.replace('px', ''))
         let height = Number(node.style.height.replace('px', ''))
@@ -4710,13 +4760,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   if (c.children instanceof Array) {
                     c.children.forEach((item) => {
-                      if(childMap.has(item)) {
+                      if (childMap.has(item)) {
                         const links = childMap.get(item) as Map<string, string>
                         links.set(c.pageName, child.pageName)
                         childMap.set(item, links)
-                      }
-                      else
-                        childMap.set(item, new Map([[c.pageName, child.pageName]]))
+                      } else
+                        childMap.set(
+                          item,
+                          new Map([[c.pageName, child.pageName]]),
+                        )
                     })
                   }
                   children.push({
@@ -4726,11 +4778,11 @@ const createExtendedDOMResolvers = function (app: App) {
                     level: c.level,
                     background: c.backgroundColor.replace('0x', '#'),
                     hasChildren: false,
-                    withDot: c.childList instanceof Array
+                    withDot: c.childList instanceof Array,
                   })
                   extendMap.set(c.pageName, child.pageName)
-                  if(c.childList instanceof Array) {
-                    c.childList.forEach(list => {
+                  if (c.childList instanceof Array) {
+                    c.childList.forEach((list) => {
                       if (list.pageName === currentPage) {
                         isExtend = true
                       }
@@ -4741,7 +4793,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         level: list.level,
                         background: list.backgroundColor.replace('0x', '#'),
                         hasChildren: false,
-                        hasDot: true
+                        hasDot: true,
                       })
                       extendMap.set(list.pageName, child.pageName)
                     })
@@ -4839,7 +4891,8 @@ const createExtendedDOMResolvers = function (app: App) {
                 opts,
               ).dom
               // if(opts.level === 2)
-              if (!opts.hasChildren && !opts.withDot) divDom.id = `_${opts.pageName}_`
+              if (!opts.hasChildren && !opts.withDot)
+                divDom.id = `_${opts.pageName}_`
               this.dom.appendChild(divDom)
               if (opts.hasChildren) {
                 let level2UlCss = {}
@@ -4892,7 +4945,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       // @ts-expect-error
                       height:
                         Math.ceil((2.5 / Number(style?.height)) * height) /
-                        100 +
+                          100 +
                         'px',
                       // @ts-expect-error
                       left:
@@ -4901,12 +4954,13 @@ const createExtendedDOMResolvers = function (app: App) {
                       // @ts-expect-error
                       top:
                         Math.ceil((1.5 / Number(style?.height)) * height) /
-                        100 +
+                          100 +
                         'px',
                       position: 'absolute',
                       background: `url(${sprites}) ${logoPathLeft}px ${logoPathRight}px no-repeat`,
-                      'background-size': `${ratio * originIconWidth}px ${ratio * originIconHeight
-                        }px`,
+                      'background-size': `${ratio * originIconWidth}px ${
+                        ratio * originIconHeight
+                      }px`,
                     },
                   )
                   this.dom.appendChild(
@@ -4914,13 +4968,12 @@ const createExtendedDOMResolvers = function (app: App) {
                   )
                 }
                 let label = document.createElement('div')
-                label.innerHTML = 
-                  opts.hasDot ? 
-                  `<svg style='margin-right: 5px;' xmlns="http://www.w3.org/2000/svg" width="5" height="5" viewBox="0 0 5 5">
+                label.innerHTML = opts.hasDot
+                  ? `<svg style='margin-right: 5px;' xmlns="http://www.w3.org/2000/svg" width="5" height="5" viewBox="0 0 5 5">
                     <circle id="椭圆_1105" data-name="椭圆 1105" cx="2.5" cy="2.5" r="2.5" fill="#fff"/>
                   </svg>
-                  ${opts.title}` : 
-                  opts.title as string
+                  ${opts.title}`
+                  : (opts.title as string)
                 label.style.cssText = toStr(title1Css)
                 label.setAttribute('title-value', `${opts.pageName}`)
                 this.dom.appendChild(label)
@@ -4938,13 +4991,13 @@ const createExtendedDOMResolvers = function (app: App) {
           const ulDom = new ul(toStr(ulCss), optsList).dom
 
           node.appendChild(ulDom)
-          const ulClick = (event) => {  
+          const ulClick = (event) => {
             let dom = event.target as HTMLImageElement
             app.updateRoot((draft) => {
               set(draft, component.get('data-key'), {
                 pageName: 'ScheduleManagement',
                 isGoto: false,
-                status: true
+                status: true,
               })
             })
             if (dom.tagName === 'DIV') {
@@ -4961,17 +5014,17 @@ const createExtendedDOMResolvers = function (app: App) {
                     if (!isExtend) {
                       extendSet.forEach((v) => {
                         if (navList.get(v).hasChildren) {
-                          ; (
+                          ;(
                             document.getElementById(`_${v}`) as HTMLUListElement
                           ).style.position = 'absolute'
-                            ; (
-                              document.getElementById(`_${v}`) as HTMLUListElement
-                            ).style.display = 'none'
-                            ; (
-                              document.getElementById(
-                                `__${v}`,
-                              ) as HTMLImageElement
-                            ).src = down
+                          ;(
+                            document.getElementById(`_${v}`) as HTMLUListElement
+                          ).style.display = 'none'
+                          ;(
+                            document.getElementById(
+                              `__${v}`,
+                            ) as HTMLImageElement
+                          ).src = down
                           navList.get(v).isExtend = false
                         }
                       })
@@ -4981,12 +5034,12 @@ const createExtendedDOMResolvers = function (app: App) {
                       extendSet.add(value)
                       navList.get(value).isExtend = true
                     }
-                  } catch (error) { }
+                  } catch (error) {}
                   app.updateRoot((draft) => {
                     set(draft, component.get('data-key'), {
                       pageName: value,
                       isGoto: true,
-                      status: true
+                      status: true,
                     })
                   })
                 }
@@ -5008,7 +5061,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                 }
                 action(value)
-              } catch (error) { }
+              } catch (error) {}
             } else if (dom.tagName === 'IMG') {
               let value = dom.getAttribute('title-value')
               // @ts-expect-error
@@ -5043,11 +5096,11 @@ const createExtendedDOMResolvers = function (app: App) {
 
           if (menuBarInfo.remainName !== '') {
             currentPage = menuBarInfo.remainName
-            app.updateRoot(dratf => {
+            app.updateRoot((dratf) => {
               set(dratf, component.get('data-key'), {
                 isGoto: menuBarInfo.isGoto,
                 pageName: menuBarInfo.pageName,
-                remainName: ''
+                remainName: '',
               })
             })
           }
@@ -5055,14 +5108,14 @@ const createExtendedDOMResolvers = function (app: App) {
           if (childMap.has(currentPage)) {
             // console.log("AAAABC")
             const info_list = childMap.get(currentPage) as Map<string, string>
-            const previous_page = localStorage.getItem("previousPage")
-            log.info("[PREVIOUS PAGE]", previous_page)
+            const previous_page = localStorage.getItem('previousPage')
+            log.info('[PREVIOUS PAGE]', previous_page)
             let PAGE
             let BLOCK
-            if(previous_page) {
+            if (previous_page) {
               PAGE = previous_page
               BLOCK = info_list.get(previous_page)
-              if(!BLOCK) {
+              if (!BLOCK) {
                 PAGE = info_list.keys().next().value
                 BLOCK = info_list.get(PAGE)
               }
@@ -5073,28 +5126,28 @@ const createExtendedDOMResolvers = function (app: App) {
             if (navBar.selectedPage !== PAGE) {
               extendSet.forEach((v) => {
                 if (navList.get(v).hasChildren) {
-                  ; (
+                  ;(
                     document.getElementById(`_${v}`) as HTMLUListElement
                   ).style.position = 'absolute'
-                    ; (
-                      document.getElementById(`_${v}`) as HTMLUListElement
-                    ).style.display = 'none'
-                    ; (document.getElementById(`__${v}`) as HTMLImageElement).src =
-                      down
+                  ;(
+                    document.getElementById(`_${v}`) as HTMLUListElement
+                  ).style.display = 'none'
+                  ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                    down
                   navList.get(v).isExtend = false
                 }
               })
               extendSet.clear()
               extendSet.add(BLOCK)
               navList.get(BLOCK).isExtend = true
-                ; (
-                  document.getElementById(`_${BLOCK}`) as HTMLUListElement
-                ).style.position = 'relative'
-                ; (
-                  document.getElementById(`_${BLOCK}`) as HTMLUListElement
-                ).style.display = 'block'
+              ;(
+                document.getElementById(`_${BLOCK}`) as HTMLUListElement
+              ).style.position = 'relative'
+              ;(
+                document.getElementById(`_${BLOCK}`) as HTMLUListElement
+              ).style.display = 'block'
               if (navList.get(BLOCK).hasChildren) {
-                ; (
+                ;(
                   document.getElementById(`__${BLOCK}`) as HTMLImageElement
                 ).src = up
               }
@@ -5109,28 +5162,28 @@ const createExtendedDOMResolvers = function (app: App) {
             let extendPage = extendMap.get(currentPage)
             extendSet.forEach((v) => {
               if (navList.get(v).hasChildren) {
-                ; (
+                ;(
                   document.getElementById(`_${v}`) as HTMLUListElement
                 ).style.position = 'absolute'
-                  ; (
-                    document.getElementById(`_${v}`) as HTMLUListElement
-                  ).style.display = 'none'
-                  ; (document.getElementById(`__${v}`) as HTMLImageElement).src =
-                    down
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.display = 'none'
+                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                  down
                 navList.get(v).isExtend = false
               }
             })
             extendSet.clear()
             extendSet.add(extendPage)
             navList.get(extendPage).isExtend = true
-              ; (
-                document.getElementById(`_${extendPage}`) as HTMLUListElement
-              ).style.position = 'relative'
-              ; (
-                document.getElementById(`_${extendPage}`) as HTMLUListElement
-              ).style.display = 'block'
+            ;(
+              document.getElementById(`_${extendPage}`) as HTMLUListElement
+            ).style.position = 'relative'
+            ;(
+              document.getElementById(`_${extendPage}`) as HTMLUListElement
+            ).style.display = 'block'
             if (navList.get(extendPage).hasChildren) {
-              ; (
+              ;(
                 document.getElementById(`__${extendPage}`) as HTMLImageElement
               ).src = up
             }
@@ -5144,14 +5197,14 @@ const createExtendedDOMResolvers = function (app: App) {
           ) {
             extendSet.forEach((v) => {
               if (navList.get(v).hasChildren) {
-                ; (
+                ;(
                   document.getElementById(`_${v}`) as HTMLUListElement
                 ).style.position = 'absolute'
-                  ; (
-                    document.getElementById(`_${v}`) as HTMLUListElement
-                  ).style.display = 'none'
-                  ; (document.getElementById(`__${v}`) as HTMLImageElement).src =
-                    down
+                ;(
+                  document.getElementById(`_${v}`) as HTMLUListElement
+                ).style.display = 'none'
+                ;(document.getElementById(`__${v}`) as HTMLImageElement).src =
+                  down
                 navList.get(v).isExtend = false
               }
               extendSet.clear()
@@ -5167,7 +5220,7 @@ const createExtendedDOMResolvers = function (app: App) {
               document.getElementById(
                 `_${navBar.selectedPage}_`,
               ).style.background = '#1871b3'
-            } catch (error) { }
+            } catch (error) {}
           }
         }
 
@@ -5179,34 +5232,33 @@ const createExtendedDOMResolvers = function (app: App) {
             img.onload = null
           }
         }
-
-      }
+      },
     },
     '[App editor]': {
-      cond: "editor",
+      cond: 'editor',
       resolve({ node, component }) {
-        let style = document.createElement("style") as HTMLStyleElement
-        const ROOT_CHILD = document.getElementById("root")?.children[0] as HTMLDivElement
-        style.innerHTML =
-          styleText
-            .replace("@[SWAL_WIDTH]", `${ROOT_CHILD.clientWidth}px`)
-            .replace("@[SWAL_LEFT]", `${0.16 * ROOT_CHILD.clientWidth}px`)
+        let style = document.createElement('style') as HTMLStyleElement
+        const ROOT_CHILD = document.getElementById('root')
+          ?.children[0] as HTMLDivElement
+        style.innerHTML = styleText
+          .replace('@[SWAL_WIDTH]', `${ROOT_CHILD.clientWidth}px`)
+          .replace('@[SWAL_LEFT]', `${0.16 * ROOT_CHILD.clientWidth}px`)
         document.body.appendChild(style)
-        node.style.width = "100%"
-        node.style.height = "100%"
-        node.style.display = "flex"
-        node.style.justifyContent = "center"
-        node.style.alignItems = "center"
-        node.innerHTML = editorHtml;
+        node.style.width = '100%'
+        node.style.height = '100%'
+        node.style.display = 'flex'
+        node.style.justifyContent = 'center'
+        node.style.alignItems = 'center'
+        node.innerHTML = editorHtml
 
         // uuidMap.clear()
 
         // node.innerHTML = editorHtml.replace(/@\[\w+\]/g, `${node.clientHeight-82}px`)
 
-        const assetsUrl = app.nui.getAssetsUrl() || ""
+        const assetsUrl = app.nui.getAssetsUrl() || ''
         const expend = `${assetsUrl}expend.svg`
         const contract = `${assetsUrl}contract.svg`
-        const img = document.createElement("img") as HTMLImageElement
+        const img = document.createElement('img') as HTMLImageElement
         img.src = expend
         img.style.cssText = `
           position: absolute;
@@ -5220,35 +5272,31 @@ const createExtendedDOMResolvers = function (app: App) {
         CalculateInit()
 
         const kp = new keypress()
-        let isUseHotKey = false;
+        let isUseHotKey = false
         let kpIsDisabled = false
         const id = node.id
 
         kp.clean()
         kp.listen({
-          type: "keydown",
+          type: 'keydown',
           key: ' ',
           callback: () => {
             // console.log(document.getElementById(id))
             if (!kpIsDisabled) {
-              if (document.getElementById(id) !== null)
-                isUseHotKey = true
+              if (document.getElementById(id) !== null) isUseHotKey = true
               else {
                 kp.clean()
               }
             }
-          }
+          },
         })
 
         kp.listen({
-          type: "keydown",
-          skip: [
-            ' ',
-            'shift@'
-          ],
+          type: 'keydown',
+          skip: [' ', 'shift@'],
           callback: (event) => {
             if (isUseHotKey) isUseHotKey = false
-          }
+          },
         })
 
         kp.listen({
@@ -5262,27 +5310,35 @@ const createExtendedDOMResolvers = function (app: App) {
               searchPopUp({
                 editor,
                 selection,
-                isUseHotKey
+                isUseHotKey,
               })
               isUseHotKey = false
               // editor.insertText(`-editing-@[]-editing-`)
               // searchPopUp(editor)
             }
-          }
+          },
         })
 
         let isExpend = true
 
-        img.addEventListener("click", () => {
+        img.addEventListener('click', () => {
           if (isExpend) {
-            img.src = contract;
-            (document.getElementById("preViewBox") as HTMLElement).style.display = "none";
-            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "100%";
+            img.src = contract
+            ;(
+              document.getElementById('preViewBox') as HTMLElement
+            ).style.display = 'none'
+            ;(
+              document.getElementById('editor—wrapper') as HTMLElement
+            ).style.width = '100%'
             isExpend = false
           } else {
-            img.src = expend;
-            (document.getElementById("preViewBox") as HTMLElement).style.display = "block";
-            (document.getElementById("editor—wrapper") as HTMLElement).style.width = "45%";
+            img.src = expend
+            ;(
+              document.getElementById('preViewBox') as HTMLElement
+            ).style.display = 'block'
+            ;(
+              document.getElementById('editor—wrapper') as HTMLElement
+            ).style.width = '45%'
             isExpend = true
           }
         })
@@ -5295,13 +5351,14 @@ const createExtendedDOMResolvers = function (app: App) {
             // const oldTemplateInfo = get(app.root, component.get('data-key'))
             // const html = matchChar(str)
             const html = matchBlock(str).replace(/__replace__/g, assetsUrl)
-            app.updateRoot(draft => {
-              set(draft, component.get("data-key"), {
+            app.updateRoot((draft) => {
+              set(draft, component.get('data-key'), {
                 html: str,
-                yaml: getYaml(editor)
+                yaml: getYaml(editor),
               })
-            });
-            (document.getElementById("preView") as HTMLDivElement).innerHTML = html
+            })
+            ;(document.getElementById('preView') as HTMLDivElement).innerHTML =
+              html
             oldSHA = newSHA
           }
         }
@@ -5326,22 +5383,32 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let timer
         const calculateHeight = () => {
-          let toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
+          let toolbarDom = document.getElementById(
+            'toolbar-container',
+          ) as HTMLDivElement
           if (toolbarDom.clientHeight) {
-            const height = `${node.clientHeight - toolbarDom.clientHeight - 2}px`;
-            (document.getElementById("editor-container") as HTMLDivElement).style.height = height;
-            (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
-            (document.getElementById("preView") as HTMLDivElement).style.height = height;
-            node.removeEventListener("load", calculateHeight)
+            const height = `${
+              node.clientHeight - toolbarDom.clientHeight - 2
+            }px`
+            ;(
+              document.getElementById('editor-container') as HTMLDivElement
+            ).style.height = height
+            ;(
+              document.getElementById('preViewTilte') as HTMLDivElement
+            ).style.height = `${toolbarDom.clientHeight}px`
+            ;(
+              document.getElementById('preView') as HTMLDivElement
+            ).style.height = height
+            node.removeEventListener('load', calculateHeight)
             const templateInfo = get(app.root, component.get('data-key'))
             if (templateInfo.title && templateInfo.title !== '') {
               editor.focus()
               // editor.dangerouslyInsertHtml(templateInfo.html)
               editor.setHtml(templateInfo.html)
-              app.updateRoot(draft => {
-                set(draft, component.get("data-key"), {
+              app.updateRoot((draft) => {
+                set(draft, component.get('data-key'), {
                   html: editor.getHtml(),
-                  yaml: getYaml(editor)
+                  yaml: getYaml(editor),
                 })
               })
             }
@@ -5358,45 +5425,74 @@ const createExtendedDOMResolvers = function (app: App) {
         // node.addEventListener("load", calculateHeight)
 
         const adaptHeight = () => {
-          const toolbarDom = document.getElementById("toolbar-container") as HTMLDivElement
-          const editorDom = document.getElementById("editor-container") as HTMLDivElement
+          const toolbarDom = document.getElementById(
+            'toolbar-container',
+          ) as HTMLDivElement
+          const editorDom = document.getElementById(
+            'editor-container',
+          ) as HTMLDivElement
           // console.log(height);
-          console.log(`${editorDom.clientHeight}px`);
-          (document.getElementById("preView") as HTMLDivElement).style.height = `${editorDom.clientHeight}px`;
-          (document.getElementById("preViewTilte") as HTMLDivElement).style.height = `${toolbarDom.clientHeight}px`;
+          console.log(`${editorDom.clientHeight}px`)
+          ;(
+            document.getElementById('preView') as HTMLDivElement
+          ).style.height = `${editorDom.clientHeight}px`
+          ;(
+            document.getElementById('preViewTilte') as HTMLDivElement
+          ).style.height = `${toolbarDom.clientHeight}px`
         }
 
-        editor.on("fullScreen", () => {
-          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
-          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
-          if (!editorClass) editorClass = '';
-          if (!previewClass) previewClass = '';
-          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass + " w-e_full-editor");
-          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass + "w-e-full-screen-container w-e_full-preView");
-          img.style.display = "none";
+        editor.on('fullScreen', () => {
+          let editorClass = (
+            document.getElementById('editor—wrapper') as HTMLElement
+          ).getAttribute('class') as string
+          let previewClass = (
+            document.getElementById('preViewBox') as HTMLElement
+          ).getAttribute('class') as string
+          if (!editorClass) editorClass = ''
+          if (!previewClass) previewClass = ''
+          ;(
+            document.getElementById('editor—wrapper') as HTMLElement
+          ).setAttribute('class', editorClass + ' w-e_full-editor')
+          ;(document.getElementById('preViewBox') as HTMLElement).setAttribute(
+            'class',
+            previewClass + 'w-e-full-screen-container w-e_full-preView',
+          )
+          img.style.display = 'none'
           adaptHeight()
         })
 
-        editor.on("unFullScreen", () => {
-          let editorClass = (document.getElementById("editor—wrapper") as HTMLElement).getAttribute("class") as string;
-          let previewClass = (document.getElementById("preViewBox") as HTMLElement).getAttribute("class") as string;
-          if (!editorClass) editorClass = '';
-          if (!previewClass) previewClass = '';
-          (document.getElementById("editor—wrapper") as HTMLElement).setAttribute("class", editorClass.replace("w-e_full-editor", ""));
-          (document.getElementById("preViewBox") as HTMLElement).setAttribute("class", previewClass.replace("w-e-full-screen-container w-e_full-preView", ""))
-          img.style.display = "block";
+        editor.on('unFullScreen', () => {
+          let editorClass = (
+            document.getElementById('editor—wrapper') as HTMLElement
+          ).getAttribute('class') as string
+          let previewClass = (
+            document.getElementById('preViewBox') as HTMLElement
+          ).getAttribute('class') as string
+          if (!editorClass) editorClass = ''
+          if (!previewClass) previewClass = ''
+          ;(
+            document.getElementById('editor—wrapper') as HTMLElement
+          ).setAttribute('class', editorClass.replace('w-e_full-editor', ''))
+          ;(document.getElementById('preViewBox') as HTMLElement).setAttribute(
+            'class',
+            previewClass.replace(
+              'w-e-full-screen-container w-e_full-preView',
+              '',
+            ),
+          )
+          img.style.display = 'block'
           adaptHeight()
         })
 
-        i18nChangeLanguage("en")
+        i18nChangeLanguage('en')
 
-        app.updateRoot(draft => {
-          set(draft, "editor", editor);
-          set(draft, 'toolbar', toolbar);
+        app.updateRoot((draft) => {
+          set(draft, 'editor', editor)
+          set(draft, 'toolbar', toolbar)
         })
 
-        const resource = i18nGetResources("en")
-        resource.fontSize["default"] = "Font Size"
+        const resource = i18nGetResources('en')
+        resource.fontSize['default'] = 'Font Size'
 
         app.mainPage.once(eventId.page.on.ON_DOM_CLEANUP, () => {
           // console.log("TEST")
@@ -5404,59 +5500,74 @@ const createExtendedDOMResolvers = function (app: App) {
           kp.clean()
           editor.destroy()
           toolbar.destroy()
-          app.updateRoot(draft => {
-            set(draft, "editor", null);
-            set(draft, 'toolbar', null);
+          app.updateRoot((draft) => {
+            set(draft, 'editor', null)
+            set(draft, 'toolbar', null)
           })
         })
 
-        document.getElementById('editor—wrapper')?.addEventListener('click', (event) => {
-          try {
-            // @ts-ignore
-            const isDisabled = editor.getFragment()[0].type === "table"
-            kpIsDisabled = isDisabled
-            toolbarRegister.templateSelect.disabled = isDisabled
-            toolbarRegister.InfoSelect.disabled = isDisabled
-            DynamicFields.disabled = isDisabled
-          } catch (error) {
+        document
+          .getElementById('editor—wrapper')
+          ?.addEventListener('click', (event) => {
+            try {
+              // @ts-expect-error
+              const isDisabled = editor.getFragment()[0].type === 'table'
+              kpIsDisabled = isDisabled
+              toolbarRegister.templateSelect.disabled = isDisabled
+              toolbarRegister.InfoSelect.disabled = isDisabled
+              DynamicFields.disabled = isDisabled
+            } catch (error) {}
+          })
 
-          }
-        })
-
-        document.getElementById('editor—wrapper')?.addEventListener('copy', (e) => {
-          e.clipboardData && e.clipboardData.setData('text/plain', JSON.stringify(editor.getFragment()))
-        })
+        document
+          .getElementById('editor—wrapper')
+          ?.addEventListener('copy', (e) => {
+            e.clipboardData &&
+              e.clipboardData.setData(
+                'text/plain',
+                JSON.stringify(editor.getFragment()),
+              )
+          })
 
         let cutData
-        document.getElementById('editor—wrapper')?.addEventListener('cut', (e) => {
-          cutData = editor.getFragment()
-        }, true)
+        document.getElementById('editor—wrapper')?.addEventListener(
+          'cut',
+          (e) => {
+            cutData = editor.getFragment()
+          },
+          true,
+        )
 
-        document.getElementById('editor—wrapper')?.addEventListener('cut', (e) => {
-          e.clipboardData && e.clipboardData.setData('text/plain', JSON.stringify(cutData))
-        })
-
-
-        window.addEventListener('resize', () => {
-          app.updateRoot(draft => {
-            set(draft, component.get("data-key"), {
-              title: ' ',
-              html: editor.getHtml(),
-              yaml: getYaml(editor)
-            })
+        document
+          .getElementById('editor—wrapper')
+          ?.addEventListener('cut', (e) => {
+            e.clipboardData &&
+              e.clipboardData.setData('text/plain', JSON.stringify(cutData))
           })
-        }, true)
+
+        window.addEventListener(
+          'resize',
+          () => {
+            app.updateRoot((draft) => {
+              set(draft, component.get('data-key'), {
+                title: ' ',
+                html: editor.getHtml(),
+                yaml: getYaml(editor),
+              })
+            })
+          },
+          true,
+        )
 
         // document.getElementById('editor—wrapper')?.addEventListener('')
-
-      }
+      },
     },
     '[App templateView]': {
-      cond: "templateView",
+      cond: 'templateView',
       resolve({ node, component }) {
         const html = get(app.root, component.get('data-key'))
-        const assetsUrl = app.nui.getAssetsUrl() || ""
-        node.setAttribute("class", "w-e-preView")
+        const assetsUrl = app.nui.getAssetsUrl() || ''
+        node.setAttribute('class', 'w-e-preView')
         const style = `
           <style>
             p {
@@ -5503,79 +5614,80 @@ const createExtendedDOMResolvers = function (app: App) {
           </style>
         `
         // node.innerHTML = style + matchChar(html)
-        node.innerHTML = style + matchBlock(html).replace(/__replace__/g, assetsUrl)
-      }
+        node.innerHTML =
+          style + matchBlock(html).replace(/__replace__/g, assetsUrl)
+      },
     },
     '[App horizontalScroll]': {
-      cond: "horizontalScroll",
+      cond: 'horizontalScroll',
       resolve({ node, component }) {
-
         node.style.display = 'flex'
         const assetsUrl = app.nui.getAssetsUrl() || ''
 
         let listStyle = {
-          color: "#005795",
-          background: "#f0f0f0",
-          textDecoration: "underline",
+          color: '#005795',
+          background: '#f0f0f0',
+          textDecoration: 'underline',
           marginLeft: 10,
           marginRight: 0,
-          buttonWidth: 40
+          buttonWidth: 40,
         }
 
-        let liStyle = component.get("listStyle")
+        let liStyle = component.get('listStyle')
 
         // console.log(liStyle, document.getElementById("root")?.clientWidth)
         if (liStyle) {
-          const fullWidth = document.getElementById("root")?.children[0].clientWidth as number
+          const fullWidth = document.getElementById('root')?.children[0]
+            .clientWidth as number
           const floatReg = /^0.[0-9]*$/
           const pxReg = /^[1-9][0-9]*px$/
-          if ("marginLeft" in liStyle) {
-            if (floatReg.test(liStyle["marginLeft"]))
-              liStyle["marginLeft"] = parseFloat(liStyle["marginLeft"]) * fullWidth
-            else if (pxReg.test((liStyle["marginLeft"])))
-              liStyle["marginLeft"] = liStyle["marginLeft"].replace("px", "")
-            else
-              delete liStyle["marginLeft"]
+          if ('marginLeft' in liStyle) {
+            if (floatReg.test(liStyle['marginLeft']))
+              liStyle['marginLeft'] =
+                parseFloat(liStyle['marginLeft']) * fullWidth
+            else if (pxReg.test(liStyle['marginLeft']))
+              liStyle['marginLeft'] = liStyle['marginLeft'].replace('px', '')
+            else delete liStyle['marginLeft']
           }
-          if ("margin-left" in liStyle) {
-            if (floatReg.test(liStyle["margin-left"]))
-              liStyle["marginLeft"] = parseFloat(liStyle["margin-left"]) * fullWidth
-            else if (pxReg.test((liStyle["margin-left"])))
-              liStyle["marginLeft"] = liStyle["margin-left"].replace("px", "")
-            else
-              delete liStyle["margin-left"]
+          if ('margin-left' in liStyle) {
+            if (floatReg.test(liStyle['margin-left']))
+              liStyle['marginLeft'] =
+                parseFloat(liStyle['margin-left']) * fullWidth
+            else if (pxReg.test(liStyle['margin-left']))
+              liStyle['marginLeft'] = liStyle['margin-left'].replace('px', '')
+            else delete liStyle['margin-left']
           }
-          if ("marginRight" in liStyle) {
-            if (floatReg.test(liStyle["marginRight"]))
-              liStyle["marginRight"] = parseFloat(liStyle["marginRight"]) * fullWidth
-            else if (pxReg.test((liStyle["marginRight"])))
-              liStyle["marginRight"] = liStyle["marginRight"].replace("px", "")
-            else
-              delete liStyle["marginRight"]
+          if ('marginRight' in liStyle) {
+            if (floatReg.test(liStyle['marginRight']))
+              liStyle['marginRight'] =
+                parseFloat(liStyle['marginRight']) * fullWidth
+            else if (pxReg.test(liStyle['marginRight']))
+              liStyle['marginRight'] = liStyle['marginRight'].replace('px', '')
+            else delete liStyle['marginRight']
           }
-          if ("margin-right" in liStyle) {
-            if (floatReg.test(liStyle["margin-right"]))
-              liStyle["marginRight"] = parseFloat(liStyle["margin-right"]) * fullWidth
-            else if (pxReg.test((liStyle["margin-right"])))
-              liStyle["marginRight"] = liStyle["margin-right"].replace("px", "")
-            else
-              delete liStyle["margin-right"]
+          if ('margin-right' in liStyle) {
+            if (floatReg.test(liStyle['margin-right']))
+              liStyle['marginRight'] =
+                parseFloat(liStyle['margin-right']) * fullWidth
+            else if (pxReg.test(liStyle['margin-right']))
+              liStyle['marginRight'] = liStyle['margin-right'].replace('px', '')
+            else delete liStyle['margin-right']
           }
-          if ("buttonWidth" in liStyle) {
-            if (floatReg.test(liStyle["buttonWidth"]))
-              liStyle["buttonWidth"] = parseFloat(liStyle["buttonWidth"]) * fullWidth
-            else if (pxReg.test((liStyle["buttonWidth"])))
-              liStyle["buttonWidth"] = liStyle["buttonWidth"].replace("px", "")
-            else
-              delete liStyle["buttonWidth"]
+          if ('buttonWidth' in liStyle) {
+            if (floatReg.test(liStyle['buttonWidth']))
+              liStyle['buttonWidth'] =
+                parseFloat(liStyle['buttonWidth']) * fullWidth
+            else if (pxReg.test(liStyle['buttonWidth']))
+              liStyle['buttonWidth'] = liStyle['buttonWidth'].replace('px', '')
+            else delete liStyle['buttonWidth']
           }
-          if ("button-width" in liStyle) {
-            if (floatReg.test(liStyle["button-width"]))
-              liStyle["buttonWidth"] = parseFloat(liStyle["button-width"]) * fullWidth
-            else if (pxReg.test((liStyle["button-width"])))
-              liStyle["buttonWidth"] = liStyle["button-width"].replace("px", "")
-            else
-              delete liStyle["button-width"]
+          if ('button-width' in liStyle) {
+            if (floatReg.test(liStyle['button-width']))
+              liStyle['buttonWidth'] =
+                parseFloat(liStyle['button-width']) * fullWidth
+            else if (pxReg.test(liStyle['button-width']))
+              liStyle['buttonWidth'] = liStyle['button-width'].replace('px', '')
+            else delete liStyle['button-width']
           }
           listStyle = Object.assign(listStyle, liStyle)
         }
@@ -5585,9 +5697,11 @@ const createExtendedDOMResolvers = function (app: App) {
         const MenuShowNumber = 5
         const MenuItemHeight = 40
 
-        const MENU = document.createElement("div")
+        const MENU = document.createElement('div')
         MENU.style.cssText = `
-          width: ${listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight}px;
+          width: ${
+            listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight
+          }px;
           height: inherit;
           flex-shrink: 0;
           border-radius: 6px;
@@ -5599,7 +5713,7 @@ const createExtendedDOMResolvers = function (app: App) {
         `
         // MENU.innerHTML = `<img src="${assetsUrl}menuIcon.svg" width="${0.5 * listStyle.buttonWidth}" height="${0.5 * listStyle.buttonWidth}">`
 
-        const MENULIST = document.createElement("div")
+        const MENULIST = document.createElement('div')
         MENULIST.style.cssText = `
           width: 300px;
           height: ${MenuShowNumber * MenuItemHeight}px;
@@ -5618,7 +5732,12 @@ const createExtendedDOMResolvers = function (app: App) {
         const horizontalScroll = document.createElement('div')
         // const BTWidth = 100;
         horizontalScroll.style.cssText = `
-          width: calc(100% - ${3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px);
+          width: calc(100% - ${
+            3 *
+            (listStyle.buttonWidth +
+              listStyle.marginLeft +
+              listStyle.marginRight)
+          }px);
           height: inherit;
           display: flex;
           overflow-x: scroll;
@@ -5627,8 +5746,8 @@ const createExtendedDOMResolvers = function (app: App) {
           flex-shrink: 0;
         `
         const list = get(app.root?.[currentPage], component.get('list'))
-        const titlePath = component.get("titlePath")
-        const dataKey = component.get("data-key")
+        const titlePath = component.get('titlePath')
+        const dataKey = component.get('data-key')
 
         const Items = new Array<HTMLDivElement>()
         const MenuItems = new Array<HTMLDivElement>()
@@ -5638,14 +5757,14 @@ const createExtendedDOMResolvers = function (app: App) {
 
         let currentItem = {}
         let currentIndex = 0
-        if (dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+        if (dataKey.startsWith(currentPage) || dataKey.startsWith('Global')) {
           currentItem = get(app.root, dataKey)
         } else {
           currentItem = get(app.root?.[currentPage], dataKey)
         }
 
         list.forEach((item, index) => {
-          const Item = document.createElement("div")
+          const Item = document.createElement('div')
           Item.innerText = `${get(item, titlePath)}`
           Item.style.cssText = `
             background: ${listStyle.background};
@@ -5663,14 +5782,14 @@ const createExtendedDOMResolvers = function (app: App) {
             cursor: pointer;
             box-sizing: border-box;
           `
-          Item.setAttribute("class", "horizontal")
-          Item.setAttribute("alt", `${index}`)
+          Item.setAttribute('class', 'horizontal')
+          Item.setAttribute('alt', `${index}`)
           // if(index !== 0) Item.style.marginLeft = "4px"
           Items.push(Item)
           horizontalScroll.appendChild(Item)
-          const MENUItem = document.createElement("div")
-          MENUItem.setAttribute("class", "li")
-          MENUItem.setAttribute("alt", `${index}`)
+          const MENUItem = document.createElement('div')
+          MENUItem.setAttribute('class', 'li')
+          MENUItem.setAttribute('alt', `${index}`)
           MENUItem.innerText = `${get(item, titlePath)}`
           MENUItem.style.cssText = `
             background: #ffffff;
@@ -5685,13 +5804,15 @@ const createExtendedDOMResolvers = function (app: App) {
           MenuItems.push(MENUItem)
           MENULIST.appendChild(MENUItem)
           // 校验ID, 无ID
-          if (currentItem
-            && get(currentItem, "id")
-            && get(currentItem, "id") === get(item, "id")) {
+          if (
+            currentItem &&
+            get(currentItem, 'id') &&
+            get(currentItem, 'id') === get(item, 'id')
+          ) {
             currentIndex = index
           }
         })
-        const style = document.createElement("style")
+        const style = document.createElement('style')
         style.innerText = `
           ::-webkit-scrollbar {
             display: none;
@@ -5709,15 +5830,20 @@ const createExtendedDOMResolvers = function (app: App) {
         node.appendChild(style)
         node.appendChild(MENU)
         node.appendChild(horizontalScroll)
-        const BT = document.createElement("div")
+        const BT = document.createElement('div')
         BT.style.cssText = `
-          width: ${2 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight)}px;
+          width: ${
+            2 *
+            (listStyle.buttonWidth +
+              listStyle.marginLeft +
+              listStyle.marginRight)
+          }px;
           height: inherit;
           display: flex;
           justify-content: space-around;
           flex-shrink: 0;
         `
-        const LEFT = document.createElement("div")
+        const LEFT = document.createElement('div')
         LEFT.style.cssText = `
           width: ${listStyle.buttonWidth}px;
           cursor: pointer;
@@ -5726,7 +5852,7 @@ const createExtendedDOMResolvers = function (app: App) {
           align-items: center;
         `
         LEFT.innerHTML = `<img src="${assetsUrl}leftBarIcon.svg" />`
-        const RIGHT = document.createElement("div")
+        const RIGHT = document.createElement('div')
         RIGHT.style.cssText = `
           width: ${listStyle.buttonWidth}px;
           cursor: pointer;
@@ -5745,15 +5871,25 @@ const createExtendedDOMResolvers = function (app: App) {
         const getAllWidths = () => {
           if (horizontalScroll.clientWidth) {
             const WIDTH = horizontalScroll.clientWidth
-            const MAXWIDTH = Math.floor(parseFloat(node.style.maxWidth.includes("px")
-              ? node.style.maxWidth.replace("px", "")
-              : node.style.maxWidth) - 3 * (listStyle.buttonWidth + listStyle.marginLeft + listStyle.marginRight))
+            const MAXWIDTH = Math.floor(
+              parseFloat(
+                node.style.maxWidth.includes('px')
+                  ? node.style.maxWidth.replace('px', '')
+                  : node.style.maxWidth,
+              ) -
+                3 *
+                  (listStyle.buttonWidth +
+                    listStyle.marginLeft +
+                    listStyle.marginRight),
+            )
             const HEIGHT = horizontalScroll.clientHeight
-            Items.forEach(item => {
-              ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+            Items.forEach((item) => {
+              ALLWIDTHS.push(
+                item.clientWidth + listStyle.marginLeft + listStyle.marginRight,
+              )
             })
             if (WIDTH >= MAXWIDTH) {
-              const blank = document.createElement("div")
+              const blank = document.createElement('div')
               blank.style.cssText = `
                 width: ${WIDTH}px;
                 height: inherit;
@@ -5763,7 +5899,7 @@ const createExtendedDOMResolvers = function (app: App) {
               node.appendChild(BT)
             } else {
               // horizontalScroll.style.width = `${WIDTH + 3 * listStyle.buttonWidth}px`
-              horizontalScroll.style.width = "100%"
+              horizontalScroll.style.width = '100%'
             }
             MENULIST.style.marginTop = `${HEIGHT}px`
             if (!timer) {
@@ -5776,14 +5912,16 @@ const createExtendedDOMResolvers = function (app: App) {
         getAllWidths()
         const refreshAllWidth = () => {
           ALLWIDTHS.length = 0
-          Items.forEach(item => {
-            ALLWIDTHS.push(item.clientWidth + listStyle.marginLeft + listStyle.marginRight)
+          Items.forEach((item) => {
+            ALLWIDTHS.push(
+              item.clientWidth + listStyle.marginLeft + listStyle.marginRight,
+            )
           })
         }
 
         const sum = (arr: Array<number>) => {
           let res = 0
-          arr.forEach(item => {
+          arr.forEach((item) => {
             res += item
           })
           return res
@@ -5803,7 +5941,7 @@ const createExtendedDOMResolvers = function (app: App) {
             } else {
               break
             }
-          } while (count < WIDTH);
+          } while (count < WIDTH)
           if (sum(SHOWWIDTHS) > WIDTH) {
             SHOWITEM.delete(start - 1)
           }
@@ -5835,40 +5973,43 @@ const createExtendedDOMResolvers = function (app: App) {
 
         const changBT = () => {
           if (index === 0) {
-            LEFT.style.filter = "grayscale(100%)"
+            LEFT.style.filter = 'grayscale(100%)'
           } else {
-            LEFT.style.filter = "none"
+            LEFT.style.filter = 'none'
           }
           refreshAllWidth()
           getShowWidths(index)
           const WIDTH = horizontalScroll.clientWidth
           // if(sum(SHOWWIDTHS) >= WIDTH) {
           if (lastIndex < ALLWIDTHS.length) {
-            RIGHT.style.filter = "none"
+            RIGHT.style.filter = 'none'
           } else {
-            RIGHT.style.filter = "grayscale(100%)"
+            RIGHT.style.filter = 'grayscale(100%)'
           }
         }
         changBT()
 
         const delay_frame = (delay: number) => {
-          let count = 0;
+          let count = 0
           return new Promise(function (resolve, reject) {
-            (function raf() {
-              count++;
-              let id = window.requestAnimationFrame(raf);
+            ;(function raf() {
+              count++
+              let id = window.requestAnimationFrame(raf)
               if (count > delay) {
-                window.cancelAnimationFrame(id);
-                resolve(true);
+                window.cancelAnimationFrame(id)
+                resolve(true)
               }
-            }())
+            })()
           })
         }
 
         const gotoIndex = async (target: number) => {
           selectIndex = target
-          app.updateRoot(draft => {
-            if (dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+          app.updateRoot((draft) => {
+            if (
+              dataKey.startsWith(currentPage) ||
+              dataKey.startsWith('Global')
+            ) {
               set(draft, dataKey, list[target])
             } else {
               set(draft?.[currentPage], dataKey, list[target])
@@ -5887,22 +6028,22 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
           const targetDom = Items[target]
-          Items.forEach(item => {
+          Items.forEach((item) => {
             if (item === targetDom) {
               item.style.background = listStyle.color
-              item.style.color = "#ffffff"
-              item.style.fontWeight = "700"
+              item.style.color = '#ffffff'
+              item.style.fontWeight = '700'
             } else {
               item.style.background = listStyle.background
               item.style.color = listStyle.color
-              item.style.fontWeight = "normal"
+              item.style.fontWeight = 'normal'
             }
           })
         }
 
         function debounce(fn, delay = 500) {
           // timer 是在闭包中的
-          let timer: NodeJS.Timeout | null = null;
+          let timer: NodeJS.Timeout | null = null
 
           return function (...args) {
             const context = this
@@ -5916,44 +6057,47 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
 
-        horizontalScroll.addEventListener("wheel", debounce((event: WheelEvent) => {
-          event.preventDefault()
-          try {
-            MENU.removeChild(MENULIST)
-            isShow = false
-          } catch { }
-          // const WIDTH = horizontalScroll.clientWidth
-          refreshAllWidth()
-          getShowWidths(index)
-          if (event.deltaY > 0) {
-            calculateRight()
-          } else {
-            calculateLeft()
-          }
-        }, 200))
+        horizontalScroll.addEventListener(
+          'wheel',
+          debounce((event: WheelEvent) => {
+            event.preventDefault()
+            try {
+              MENU.removeChild(MENULIST)
+              isShow = false
+            } catch {}
+            // const WIDTH = horizontalScroll.clientWidth
+            refreshAllWidth()
+            getShowWidths(index)
+            if (event.deltaY > 0) {
+              calculateRight()
+            } else {
+              calculateLeft()
+            }
+          }, 200),
+        )
 
-        LEFT.addEventListener("click", (e) => {
+        LEFT.addEventListener('click', (e) => {
           e.stopPropagation()
           debounce(() => {
             calculateLeft()
           }, 200)()
         })
 
-        RIGHT.addEventListener("click", (e) => {
+        RIGHT.addEventListener('click', (e) => {
           e.stopPropagation()
           debounce(() => {
             calculateRight()
           }, 200)()
         })
 
-        horizontalScroll.addEventListener("click", (event: MouseEvent) => {
+        horizontalScroll.addEventListener('click', (event: MouseEvent) => {
           const target = event.target as HTMLDivElement
           // const WIDTH = horizontalScroll.clientWidth
-          const idx = parseInt(target.getAttribute("alt") as string)
+          const idx = parseInt(target.getAttribute('alt') as string)
           try {
             MENU.removeChild(MENULIST)
             isShow = false
-          } catch { }
+          } catch {}
           if (!Number.isNaN(idx)) {
             selectIndex = idx
             refreshAllWidth()
@@ -5961,22 +6105,25 @@ const createExtendedDOMResolvers = function (app: App) {
             if (!SHOWITEM.has(idx)) {
               calculateRight()
             }
-            app.updateRoot(draft => {
-              if (dataKey.startsWith(currentPage) || dataKey.startsWith("Global")) {
+            app.updateRoot((draft) => {
+              if (
+                dataKey.startsWith(currentPage) ||
+                dataKey.startsWith('Global')
+              ) {
                 set(draft, dataKey, list[idx])
               } else {
                 set(draft?.[currentPage], dataKey, list[idx])
               }
             })
-            Items.forEach(item => {
+            Items.forEach((item) => {
               if (item === target) {
                 item.style.background = listStyle.color
-                item.style.color = "#ffffff"
-                item.style.fontWeight = "700"
+                item.style.color = '#ffffff'
+                item.style.fontWeight = '700'
               } else {
                 item.style.background = listStyle.background
                 item.style.color = listStyle.color
-                item.style.fontWeight = "normal"
+                item.style.fontWeight = 'normal'
               }
             })
           } else {
@@ -5985,9 +6132,8 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         let isShow = false
-        MENU.addEventListener("click", (event: MouseEvent) => {
-          if (event.target === MENU)
-            event.stopPropagation()
+        MENU.addEventListener('click', (event: MouseEvent) => {
+          if (event.target === MENU) event.stopPropagation()
           isShow = !isShow
           if (isShow) {
             MENU.appendChild(MENULIST)
@@ -5996,15 +6142,15 @@ const createExtendedDOMResolvers = function (app: App) {
               MENULIST.scrollTop += step * MenuItemHeight
             }
             const target = MenuItems[selectIndex]
-            MenuItems.forEach(item => {
+            MenuItems.forEach((item) => {
               if (item === target) {
                 item.style.background = listStyle.background
                 // item.style.color = "#ffffff"
-                item.style.fontWeight = "700"
+                item.style.fontWeight = '700'
               } else {
-                item.style.background = "#ffffff"
+                item.style.background = '#ffffff'
                 // item.style.color = listStyle.color
-                item.style.fontWeight = "normal"
+                item.style.fontWeight = 'normal'
               }
             })
           } else {
@@ -6012,18 +6158,26 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           const target = event.target as HTMLDivElement
           // const WIDTH = horizontalScroll.clientWidth
-          const idx = parseInt(target.getAttribute("alt") as string)
+          const idx = parseInt(target.getAttribute('alt') as string)
           if (!Number.isNaN(idx)) {
             gotoIndex(idx)
           }
         })
 
-        document.body.addEventListener("click", (event) => {
-          if (event.target !== MENU && !(new Set(MenuItems).has(event.target as HTMLDivElement)) && isShow) {
-            isShow = !isShow
-            MENU.removeChild(MENULIST)
-          }
-        }, { capture: true })
+        document.body.addEventListener(
+          'click',
+          (event) => {
+            if (
+              event.target !== MENU &&
+              !new Set(MenuItems).has(event.target as HTMLDivElement) &&
+              isShow
+            ) {
+              isShow = !isShow
+              MENU.removeChild(MENULIST)
+            }
+          },
+          { capture: true },
+        )
 
         // MENULIST.addEventListener("click", (event) => {
 
@@ -6041,219 +6195,290 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
         listenLoad()
-
-      }
+      },
     },
     '[App] Audio': {
-      cond: ({ component: c }) => ["textField", "textView"].includes(c.type),
+      cond: ({ component: c }) => ['textField', 'textView'].includes(c.type),
       resolve({ node, component }) {
-        if (u.isObj(component.blueprint) && 'audio' in component.blueprint && !nt.Identify.isBooleanFalse(component.blueprint.audio)) {
+        if (!(component.blueprint.audio === false)) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
-          let pageName = app.currentPage;
+          let pageName = app.currentPage
           const dataKey =
-            component.get('data-key') || component.blueprint?.dataKey || '';
-          const img = document.createElement("img");
-          img.id = "target_img"
+            component.get('data-key') || component.blueprint?.dataKey || ''
+          const img = document.createElement('img')
+          img.id = 'target_img'
           img.src = `${assetsUrl}audio_start.svg`
           img.style.cssText = `
             position: fixed;
             cursor: pointer;
             z-index: 99999999
-          `;
+          `
           const recorder = new Recorder({
-            bitRate: 128
-          });
-          let offsetX = 0;
-          let offsetY = 0;
-          let proccess_fun = true;
-          let isDragging = false;
+            bitRate: 128,
+          })
+          let offsetX = 0
+          let offsetY = 0
+          let proccess_fun = true
+          let isDragging = false
           const device_is_web = (() => {
             try {
-              document.createEvent("TouchEvent"); return false;
+              document.createEvent('TouchEvent')
+              return false
             } catch (e) {
-              return true;
+              return true
             }
-          })();
-          img.addEventListener(device_is_web ? 'mousedown' : "touchstart", onMouseDown);
+          })()
+          img.addEventListener(
+            device_is_web ? 'mousedown' : 'touchstart',
+            onMouseDown,
+          )
           component.addEventListeners({
-            event: device_is_web ? 'mousedown' : "touchstart",
+            event: device_is_web ? 'mousedown' : 'touchstart',
             callback: () => {
-              img?.removeEventListener(device_is_web ? 'mousedown' : "touchstart",onMouseDown)
+              img?.removeEventListener(
+                device_is_web ? 'mousedown' : 'touchstart',
+                onMouseDown,
+              )
             },
           })
           function onMouseDown(e) {
-            device_is_web && e.preventDefault();
-            offsetX = (e.clientX || e.touches[0].clientX) - img.offsetLeft;
-            offsetY = (e.clientY || e.touches[0].clientY) - img.offsetTop;
-            document.addEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove);
-            document.addEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp);
+            device_is_web && e.preventDefault()
+            offsetX = (e.clientX || e.touches[0].clientX) - img.offsetLeft
+            offsetY = (e.clientY || e.touches[0].clientY) - img.offsetTop
+            document.addEventListener(
+              device_is_web ? 'mousemove' : 'touchmove',
+              onMouseMove,
+            )
+            document.addEventListener(
+              device_is_web ? 'mouseup' : 'touchend',
+              onMouseUp,
+            )
             component.addEventListeners({
-              event: device_is_web ? 'mousemove' : "touchmove",
+              event: device_is_web ? 'mousemove' : 'touchmove',
               callback: () => {
-                document?.removeEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove)
-                document?.removeEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp)
+                document?.removeEventListener(
+                  device_is_web ? 'mousemove' : 'touchmove',
+                  onMouseMove,
+                )
+                document?.removeEventListener(
+                  device_is_web ? 'mouseup' : 'touchend',
+                  onMouseUp,
+                )
               },
             })
           }
           function onMouseMove(e) {
-            isDragging = true;
-            const newLeft = (e.clientX || e.touches[0].clientX) - offsetX;
-            const newTop = (e.clientY || e.touches[0].clientY) - offsetY;
-            const offW = document.documentElement.clientWidth - img.offsetWidth;
-            const offH = document.documentElement.clientHeight - img.offsetHeight;
+            isDragging = true
+            const newLeft = (e.clientX || e.touches[0].clientX) - offsetX
+            const newTop = (e.clientY || e.touches[0].clientY) - offsetY
+            const offW = document.documentElement.clientWidth - img.offsetWidth
+            const offH =
+              document.documentElement.clientHeight - img.offsetHeight
             if (newLeft < 0) {
-              img.style.left = "0"
+              img.style.left = '0'
             } else if (offW <= newLeft) {
-              img.style.left = offW + "px"
+              img.style.left = offW + 'px'
             } else {
-              img.style.left = newLeft + "px"
+              img.style.left = newLeft + 'px'
             }
             if (newTop < 0) {
-              img.style.top = "0"
+              img.style.top = '0'
             } else if (offH <= newTop) {
-              img.style.top = offH + "px"
+              img.style.top = offH + 'px'
             } else {
-              img.style.top = newTop + "px"
+              img.style.top = newTop + 'px'
             }
-            audioL = img.style.left;
-            audioT = img.style.top;
+            audioL = img.style.left
+            audioT = img.style.top
           }
           function onMouseUp(e) {
-            img.removeEventListener('click', stopRecording);
-            img.removeEventListener('click', startRecording);
+            img.removeEventListener('click', stopRecording)
+            img.removeEventListener('click', startRecording)
             if (!isDragging) {
-              img.addEventListener('click', proccess_fun ? startRecording : stopRecording);
+              img.addEventListener(
+                'click',
+                proccess_fun ? startRecording : stopRecording,
+              )
               component.addEventListeners({
                 event: 'click',
                 callback: () => {
-                  img?.removeEventListener('click', proccess_fun ? startRecording : stopRecording)
+                  img?.removeEventListener(
+                    'click',
+                    proccess_fun ? startRecording : stopRecording,
+                  )
                 },
               })
             }
-            isDragging = false;
-            document.removeEventListener(device_is_web ? 'mousemove' : "touchmove", onMouseMove);
-            document.removeEventListener(device_is_web ? 'mouseup' : "touchend", onMouseUp);
+            isDragging = false
+            document.removeEventListener(
+              device_is_web ? 'mousemove' : 'touchmove',
+              onMouseMove,
+            )
+            document.removeEventListener(
+              device_is_web ? 'mouseup' : 'touchend',
+              onMouseUp,
+            )
           }
           function startRecording() {
-            recorder.start().then(() => {
-              img.src = `${assetsUrl}audio_loading.svg`
-              img.removeEventListener('click', startRecording);
-              proccess_fun = false;
-              img.addEventListener('click', stopRecording);
-            }).catch((e) => {
-              console.error(e);
-            });
+            recorder
+              .start()
+              .then(() => {
+                img.src = `${assetsUrl}audio_loading.svg`
+                img.removeEventListener('click', startRecording)
+                proccess_fun = false
+                img.addEventListener('click', stopRecording)
+              })
+              .catch((e) => {
+                console.error(e)
+              })
           }
           function stopRecording() {
-            img.removeEventListener('click', stopRecording);
-            proccess_fun = true;
-            recorder.stop().getMp3().then(async ([buffer, blob]) => {
-              img.src = `${assetsUrl}audio_start.svg`;
-              const chun_size_sample_rates = 16000*20; 
-              const chunks:any[] = [];
-              const size_ws = blob.size>=5242880;
-              let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl||'https://audiosplit.aitmed.io';
-              let audio_url = `${baseUrl}/upload/`;
-              if(size_ws){
-                for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
-                  const chunk = blob.slice(i, i + chun_size_sample_rates);
-                  const mp3Header = new Uint8Array([
-                    0x49, 0x44, 0x33, 0x03,
-                    0x00, 0x00, 0x00, 0x00
-                  ]);
-                  const combinedBlob = new Blob([mp3Header, chunk], { type: 'audio/mp3' });
-                  chunks.push(combinedBlob)
+            img.removeEventListener('click', stopRecording)
+            proccess_fun = true
+            recorder
+              .stop()
+              .getMp3()
+              .then(async ([buffer, blob]) => {
+                img.src = `${assetsUrl}audio_start.svg`
+                const chun_size_sample_rates = 16000 * 20
+                const chunks: any[] = []
+                const size_ws = blob.size >= 5242880
+                let baseUrl =
+                  JSON.parse(localStorage.getItem('config') as string)
+                    .whisperBaseUrl || 'https://audiosplit.aitmed.io'
+                let audio_url = `${baseUrl}/upload/`
+                if (size_ws) {
+                  for (let i = 0; i < blob.size; i += chun_size_sample_rates) {
+                    const chunk = blob.slice(i, i + chun_size_sample_rates)
+                    const mp3Header = new Uint8Array([
+                      0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00,
+                    ])
+                    const combinedBlob = new Blob([mp3Header, chunk], {
+                      type: 'audio/mp3',
+                    })
+                    chunks.push(combinedBlob)
+                  }
+                } else {
+                  chunks.push(blob)
+                  audio_url = `${baseUrl}/smallUpload/`
                 }
-              }else{
-                chunks.push(blob)
-                audio_url =  `${baseUrl}/smallUpload/`
-              }
-                const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
-              const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
+                const rand =
+                  new Date().getTime().toString(36) +
+                  Math.random().toString(36).substring(2)
+                const chunks_map = chunks.map(
+                  (v, i) =>
+                    new Promise((res, rej) => {
+                      let xhr = new XMLHttpRequest()
+                      xhr.withCredentials = true
+                      xhr.addEventListener('readystatechange', function () {
+                        if (this.readyState === 4) {
+                          res(JSON.parse(this.response))
+                        }
+                      })
+                      xhr.open('POST', audio_url)
+                      let data = new FormData()
 
-                  let xhr = new XMLHttpRequest();
-                  xhr.withCredentials = true;
-                  xhr.addEventListener("readystatechange", function () {
-                    if (this.readyState === 4) {
-                      res(JSON.parse(this.response))
-                    }
-                  });
-                    xhr.open("POST",audio_url);
-                    let data = new FormData();
-                    
-                    data.append("audio", v, "123.mp3");
-                    size_ws&&data.append("code", `${rand}-${i+1}`);
-                    xhr.send(data);
-                })
-              )
-              const _upload_respose =  ():Promise<any>=>{
-                return new Promise((res,rej)=>{
-                  let xhr = new XMLHttpRequest();
-                  xhr.withCredentials = true;
-                  xhr.addEventListener("readystatechange", function () {
-                    if (this.readyState === 4) {
-                      this.status
-                      try{
-                        res(JSON.parse(this.response))
-                      }catch(e){
-                        console.error(`Unable to parse returned data`)
+                      data.append('audio', v, '123.mp3')
+                      size_ws && data.append('code', `${rand}-${i + 1}`)
+                      xhr.send(data)
+                    }),
+                )
+                const _upload_respose = (): Promise<any> => {
+                  return new Promise((res, rej) => {
+                    let xhr = new XMLHttpRequest()
+                    xhr.withCredentials = true
+                    xhr.addEventListener('readystatechange', function () {
+                      if (this.readyState === 4) {
+                        this.status
+                        try {
+                          res(JSON.parse(this.response))
+                        } catch (e) {
+                          console.error(`Unable to parse returned data`)
+                        }
+                      } else {
+                        if (this.status == 502) {
+                          rej('errorcode502')
+                        } else {
+                          new Error('request Failed')
+                        }
                       }
-                    }else{
-                      if(this.status==502){
-                        rej("errorcode502")
-                      }else{
-                        new Error("request Failed")
-                      }
-                    }
-                  });
-                    xhr.open("POST",`${baseUrl}/success/`);
-                    let data = new FormData();
-                    data.append("code", `${rand}`);
-                    data.append("size", `${chunks.length}`);
-                    data.append("providerId", localStorage.getItem('user_vid') as string);
-                    data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
-                    if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
-                      data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                    })
+                    xhr.open('POST', `${baseUrl}/success/`)
+                    let data = new FormData()
+                    data.append('code', `${rand}`)
+                    data.append('size', `${chunks.length}`)
+                    data.append(
+                      'providerId',
+                      localStorage.getItem('user_vid') as string,
+                    )
+                    data.append(
+                      'host',
+                      (app.config.apiHost + ':' + app.config.apiPort) as string,
+                    )
+                    if (app.root.Global?.['roomInfo']?.['edge']?.['id']) {
+                      data.append(
+                        'appointmentId',
+                        app.root.Global?.['roomInfo']?.['edge']?.[
+                          'id'
+                        ] as string,
+                      )
                     } else {
-                      data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                      data.append(
+                        'appointmentId',
+                        app.root.Global?.['rootNotebookID'] as string,
+                      )
                     }
-                    xhr.send(data);
+                    xhr.send(data)
+                  })
+                }
+                const text = await Promise.all(chunks_map)
+                let val = size_ws
+                  ? (await _upload_respose())?.text
+                  : text[0]?.text
+                app.updateRoot((draft) => {
+                  set(draft?.[pageName], dataKey, val)
+                  const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value)
+                  const end_p = node.selectionEnd
+                  const currentValue = node.value
+                  if (end_p !== currentValue.length) {
+                    node.value =
+                      currentValue.slice(0, end_p) +
+                      val +
+                      currentValue.slice(end_p)
+                    node.setSelectionRange(
+                      val.length + end_p,
+                      val.length + end_p,
+                    )
+                  } else {
+                    node.value = end_w
+                      ? ` ${node.value}${val}`
+                      : node.value
+                      ? `${node.value}.${val}`
+                      : `${node.value}${val}`
+                  }
+                  if (val) {
+                    node.dispatchEvent(
+                      new Event('input', {
+                        bubbles: false,
+                        cancelable: false,
+                        composed: false,
+                      }),
+                    )
+                  }
                 })
-              }
-              const text = await Promise.all(chunks_map);
-              let val = size_ws?(await _upload_respose())?.text:text[0]?.text
-             app.updateRoot(draft => {
-              set(draft?.[pageName], dataKey, val);
-                  const end_w = /(,|\.|\?|\!|;)$/g.test(node?.value);
-                  const end_p = node.selectionEnd;
-                  const currentValue = node.value;
-                  if(end_p!==currentValue.length){
-                    node.value = currentValue.slice(0, end_p) + val + currentValue.slice(end_p);
-                    node.setSelectionRange(val.length+end_p, val.length+end_p)
-                  }else{
-                    node.value = (end_w) ? ` ${node.value}${val}` : node.value ? `${node.value}.${val}` : `${node.value}${val}`;
-                  }
-                  if(val){
-                    node.dispatchEvent(new Event('input', {
-                      bubbles: false, 
-                      cancelable: false, 
-                      composed: false 
-                    }));
-                  }
-            })
-              img.removeEventListener('click', stopRecording);
-              img.addEventListener('click', startRecording);
-            }).catch((e) => {
-              console.error(e);
-            });
-          
+                img.removeEventListener('click', stopRecording)
+                img.addEventListener('click', startRecording)
+              })
+              .catch((e) => {
+                console.error(e)
+              })
           }
           const appendEle = (e) => {
-            node.parentNode?.appendChild(img);
-            img.style.left = audioL;
-            img.style.top = audioT;
+            node.parentNode?.appendChild(img)
+            img.style.left = audioL
+            img.style.top = audioT
           }
-          node.addEventListener("click", appendEle);
+          node.addEventListener('click', appendEle)
           component.addEventListeners({
             event: 'click',
             callback: () => {
@@ -6261,29 +6486,41 @@ const createExtendedDOMResolvers = function (app: App) {
             },
           })
           const mousedownFunc = (e) => {
-            if (node.parentNode?.contains(img) && !["target_img", node.id].includes(e.target?.id as string)) {
-              img.removeEventListener("click", appendEle);
-              recorder.stop();
+            if (
+              node.parentNode?.contains(img) &&
+              !['target_img', node.id].includes(e.target?.id as string)
+            ) {
+              img.removeEventListener('click', appendEle)
+              recorder.stop()
               img.src = `${assetsUrl}audio_start.svg`
-              proccess_fun = true;
-              img.removeEventListener('click', stopRecording);
-              img.addEventListener('click', startRecording);
-
-              node.parentNode?.removeChild(img);
+              proccess_fun = true
+              img.removeEventListener('click', stopRecording)
+              img.addEventListener('click', startRecording)
+              // 如果是正在录音的状态 则保留录音然后在销毁组件
+              console.log('proccess_fun', proccess_fun)
+              stopRecording()
+              node.parentNode?.removeChild(img)
               img.remove()
             } else {
               if (node.parentNode?.contains(img) && !device_is_web) {
-                node.focus();
+                node.focus()
               }
             }
           }
-          document.addEventListener(device_is_web ? 'mousedown' : "touchstart", mousedownFunc)
+          document.addEventListener(
+            device_is_web ? 'mousedown' : 'touchstart',
+            mousedownFunc,
+          )
           component.addEventListeners({
-            event: device_is_web ? 'mousedown' : "touchstart",
+            event: device_is_web ? 'mousedown' : 'touchstart',
             callback: () => {
-              document?.removeEventListener(device_is_web ? 'mousedown' : "touchstart", mousedownFunc)
+              document?.removeEventListener(
+                device_is_web ? 'mousedown' : 'touchstart',
+                mousedownFunc,
+              )
             },
           })
+          // eslint-disable-next-line no-empty
         } else {
         }
       },
@@ -6299,42 +6536,45 @@ const createExtendedDOMResolvers = function (app: App) {
           const assetsUrl = app.nui.getAssetsUrl() || ''
           const device_is_web = (() => {
             try {
-              document.createEvent("TouchEvent"); return false;
+              document.createEvent('TouchEvent')
+              return false
             } catch (e) {
-              return true;
+              return true
             }
-          })();
-          dataOptions["status"] = false
+          })()
+          dataOptions['status'] = false
           app.updateRoot((draft) => {
-            set(draft?.[pageName], dataKey, "")
+            set(draft?.[pageName], dataKey, '')
           })
-          const [file_name, path] = ["image", dataOptions["imgPath"]];
+          const [file_name, path] = ['image', dataOptions['imgPath']]
           const canvas_box = document.createElement('div')
-          const canvas_con = document.createElement("canvas");
-          const color_picker = document.createElement("input");
-          const line_width_input = document.createElement("input");
-          const edit_btn = document.createElement("img");
-          const clear_btn = document.createElement("img");
-          const undo_btn = document.createElement("img");
-          const redo_btn = document.createElement("img");
-          const save_btn = document.createElement("button");
-          const btns_container = document.createElement("div");
-          const options_container = document.createElement("div");
-          const components_img_container = document.createElement("div");
-          const edit_btn_container = document.createElement("div");
-          const left_btn_container = document.createElement("div");
-          const ctx = canvas_con.getContext("2d", {
+          const canvas_con = document.createElement('canvas')
+          const color_picker = document.createElement('input')
+          const line_width_input = document.createElement('input')
+          const edit_btn = document.createElement('img')
+          const clear_btn = document.createElement('img')
+          const undo_btn = document.createElement('img')
+          const redo_btn = document.createElement('img')
+          const save_btn = document.createElement('button')
+          const btns_container = document.createElement('div')
+          const options_container = document.createElement('div')
+          const components_img_container = document.createElement('div')
+          const edit_btn_container = document.createElement('div')
+          const left_btn_container = document.createElement('div')
+          const ctx = canvas_con.getContext('2d', {
             willReadFrequently: true,
-          }) as CanvasRenderingContext2D;
-          const image = new Image();
-          image.src = ((path as string).startsWith("blob")) ? path : `${assetsUrl}${path}`;
+          }) as CanvasRenderingContext2D
+          const image = new Image()
+          image.src = (path as string).startsWith('blob')
+            ? path
+            : `${assetsUrl}${path}`
 
-          let lineWidth: number = 2; // 默认线条粗细为2
-          let drawColor = "#ff0000"; // 默认绘制颜色为红色
-          let drawHistory: ImageData[] = []; // 用于存储绘制历史
-          let redoHistory: ImageData[] = []; // 添加redoHistory数组
-          let flag = true;
-          let move_flag = false;
+          let lineWidth: number = 2 // 默认线条粗细为2
+          let drawColor = '#ff0000' // 默认绘制颜色为红色
+          let drawHistory: ImageData[] = [] // 用于存储绘制历史
+          let redoHistory: ImageData[] = [] // 添加redoHistory数组
+          let flag = true
+          let move_flag = false
           image.onload = function () {
             // canvas_con.width = canvas_con.getBoundingClientRect().width;
             // canvas_con.height = canvas_con.getBoundingClientRect().height;
@@ -6356,13 +6596,17 @@ const createExtendedDOMResolvers = function (app: App) {
             `
 
             const setWidthFull = () => {
-              image.height = (node.getBoundingClientRect().width / image.width) * image.height
+              image.height =
+                (node.getBoundingClientRect().width / image.width) *
+                image.height
               image.width = node.getBoundingClientRect().width
             }
 
             const setHeightFull = () => {
-              image.width = (node.getBoundingClientRect().height / image.height) * image.width
-              image.height = node.getBoundingClientRect().height - 40;
+              image.width =
+                (node.getBoundingClientRect().height / image.height) *
+                image.width
+              image.height = node.getBoundingClientRect().height - 40
             }
 
             if (image.width > image.height) {
@@ -6370,13 +6614,13 @@ const createExtendedDOMResolvers = function (app: App) {
               // image.height = (node.getBoundingClientRect().width / image.width) * image.height
               // image.width = node.getBoundingClientRect().width
               setWidthFull()
-              if(image.height > compare_height) {
+              if (image.height > compare_height) {
                 setHeightFull()
               }
             } else {
               const compare_width = node.getBoundingClientRect().width
               setHeightFull()
-              if(image.width > compare_width) {
+              if (image.width > compare_width) {
                 setWidthFull()
               }
               // image.width = (node.getBoundingClientRect().height / image.height) * image.width
@@ -6384,29 +6628,27 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             // image.width = node.getBoundingClientRect().width
             // image.height = node.getBoundingClientRect().height - 80;
-            canvas_con.width = image.width;
-            canvas_con.height = image.height;
-            ctx.drawImage(image, 0, 0, image.width, image.height);
-
-
-          };
-          line_width_input.type = "range";
-          line_width_input.min = "1"
-          line_width_input.max = "15"
-          line_width_input.value = lineWidth + ""
-          color_picker.type = "color";
+            canvas_con.width = image.width
+            canvas_con.height = image.height
+            ctx.drawImage(image, 0, 0, image.width, image.height)
+          }
+          line_width_input.type = 'range'
+          line_width_input.min = '1'
+          line_width_input.max = '15'
+          line_width_input.value = lineWidth + ''
+          color_picker.type = 'color'
           color_picker.value = drawColor
-          edit_btn.src = assetsUrl + "editImg.svg";
-          clear_btn.src = assetsUrl + "clearEditImgPre.svg";
-          undo_btn.src = assetsUrl + "undoEditPre.svg";
-          redo_btn.src = assetsUrl + "redoEditPre.svg";
+          edit_btn.src = assetsUrl + 'editImg.svg'
+          clear_btn.src = assetsUrl + 'clearEditImgPre.svg'
+          undo_btn.src = assetsUrl + 'undoEditPre.svg'
+          redo_btn.src = assetsUrl + 'redoEditPre.svg'
 
-          edit_btn.draggable = false;
-          clear_btn.draggable = false;
-          undo_btn.draggable = false;
-          redo_btn.draggable = false;
-          save_btn.textContent = "Confirm"
-          canvas_con.draggable = false;
+          edit_btn.draggable = false
+          clear_btn.draggable = false
+          undo_btn.draggable = false
+          redo_btn.draggable = false
+          save_btn.textContent = 'Confirm'
+          canvas_con.draggable = false
 
           line_width_input.style.cssText = `
             width: 60px;
@@ -6437,9 +6679,9 @@ const createExtendedDOMResolvers = function (app: App) {
           justify-content: space-between;
           align-items: center;
         `
-        left_btn_container.style.cssText = `
+          left_btn_container.style.cssText = `
           height: auto;
-          width: ${device_is_web?"40%":"70%"};
+          width: ${device_is_web ? '40%' : '70%'};
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -6451,14 +6693,14 @@ const createExtendedDOMResolvers = function (app: App) {
           redo_btn.style.cssText = `
           cursor: not-allowed;
           user-select: none;
-          padding: ${device_is_web?"0":"0 5px"};
+          padding: ${device_is_web ? '0' : '0 5px'};
 
 
           `
           undo_btn.style.cssText = `
           cursor: not-allowed;
           user-select: none;
-          padding: ${device_is_web?"0":"0 5px"};
+          padding: ${device_is_web ? '0' : '0 5px'};
           `
           clear_btn.style.cssText = `
             padding: 0 15px;
@@ -6472,8 +6714,8 @@ const createExtendedDOMResolvers = function (app: App) {
             color: #fff;
             height: 3.5vh;
             border-radius: 5px;
-            width: ${device_is_web?"10%":"20%"};
-            padding: ${device_is_web?"5px 8px":"0"};
+            width: ${device_is_web ? '10%' : '20%'};
+            padding: ${device_is_web ? '5px 8px' : '0'};
             font-size: 1rem;
             background-color: #005795;
           `
@@ -6485,85 +6727,115 @@ const createExtendedDOMResolvers = function (app: App) {
           display: block;
 
         `
-          left_btn_container.append(color_picker, line_width_input, clear_btn, undo_btn, redo_btn)
-          edit_btn_container.append(left_btn_container,save_btn)
-          !dataOptions["isReadOnly"] && btns_container.append(edit_btn, edit_btn_container);
+          left_btn_container.append(
+            color_picker,
+            line_width_input,
+            clear_btn,
+            undo_btn,
+            redo_btn,
+          )
+          edit_btn_container.append(left_btn_container, save_btn)
+          !dataOptions['isReadOnly'] &&
+            btns_container.append(edit_btn, edit_btn_container)
           canvas_box.append(canvas_con)
           components_img_container.append(canvas_box, btns_container)
           node.append(components_img_container)
-          edit_btn_container.style.display = "none";
-          edit_btn.addEventListener("click", () => {
-            edit_btn.style.display = "none";
-            edit_btn_container.style.display = "flex";
-            btns_container.style.justifyContent = "flex-start";
+          edit_btn_container.style.display = 'none'
+          edit_btn.addEventListener('click', () => {
+            edit_btn.style.display = 'none'
+            edit_btn_container.style.display = 'flex'
+            btns_container.style.justifyContent = 'flex-start'
 
-            canvas_con.addEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start, false)
-
+            canvas_con.addEventListener(
+              device_is_web ? 'mousedown' : 'touchstart',
+              device_is_web ? (start_web as any) : start,
+              false,
+            )
           })
-          save_btn.addEventListener("click", () => {
-            edit_btn.style.display = "block";
-            edit_btn_container.style.display = "none";
-            canvas_con.removeEventListener(device_is_web ? "mousedown" : "touchstart", device_is_web ? start_web as any : start)
+          save_btn.addEventListener('click', () => {
+            edit_btn.style.display = 'block'
+            edit_btn_container.style.display = 'none'
+            canvas_con.removeEventListener(
+              device_is_web ? 'mousedown' : 'touchstart',
+              device_is_web ? (start_web as any) : start,
+            )
           })
           function getParentsCompute(ele: HTMLElement) {
-            let [left,top] = [ele.offsetLeft,ele.offsetTop];
+            let [left, top] = [ele.offsetLeft, ele.offsetTop]
             const ele_get_top = (ele_p: HTMLElement) => {
-              top += ele_p.offsetTop;
-              left += ele_p.offsetLeft;
+              top += ele_p.offsetTop
+              left += ele_p.offsetLeft
               if (ele_p.offsetParent) {
-                ele_get_top(ele_p.offsetParent);
+                ele_get_top(ele_p.offsetParent)
               }
             }
             ele_get_top(ele.offsetParent)
-            return {left,top};
+            return { left, top }
           }
           function start(e: TouchEvent) {
-            let touch = e.targetTouches[0];
-            ctx.beginPath();
+            let touch = e.targetTouches[0]
+            ctx.beginPath()
             // console.log(getParentsCompute(canvas_con),"kkkkkkkk",touch.clientY,touch.clientY -  (canvas_con.offsetParent?.offsetParent?.offsetTop as number)- (canvas_con.offsetParent?.offsetTop as number)-canvas_con.offsetTop)
-            ctx.moveTo(touch.clientX - getParentsCompute(canvas_con)["left"] + document.scrollingElement?.scrollLeft, touch.clientY - getParentsCompute(canvas_con)["top"] + document.scrollingElement?.scrollTop);
+            ctx.moveTo(
+              touch.clientX -
+                getParentsCompute(canvas_con)['left'] +
+                document.scrollingElement?.scrollLeft,
+              touch.clientY -
+                getParentsCompute(canvas_con)['top'] +
+                document.scrollingElement?.scrollTop,
+            )
             // ctx.moveTo(touch.clientX - canvas_con.offsetLeft, touch.offsetY);
             canvas_con.addEventListener('touchmove', move, false)
             canvas_con.addEventListener('touchend', end, false)
-
           }
           function move(e) {
             if (e.targetTouches.length === 1) {
               e.preventDefault()
-              let touch = e.targetTouches[0];
-              ctx.strokeStyle = drawColor;
-              ctx.lineWidth = lineWidth;
+              let touch = e.targetTouches[0]
+              ctx.strokeStyle = drawColor
+              ctx.lineWidth = lineWidth
               //现在的坐标减去原来的坐标
-              ctx.lineTo(touch.clientX - getParentsCompute(canvas_con)["left"] + document.scrollingElement?.scrollLeft, touch.clientY - getParentsCompute(canvas_con)["top"] + document.scrollingElement?.scrollTop);
-              ctx.stroke();
-
+              ctx.lineTo(
+                touch.clientX -
+                  getParentsCompute(canvas_con)['left'] +
+                  document.scrollingElement?.scrollLeft,
+                touch.clientY -
+                  getParentsCompute(canvas_con)['top'] +
+                  document.scrollingElement?.scrollTop,
+              )
+              ctx.stroke()
             }
           }
           function end(e) {
-            ctx.closePath();
+            ctx.closePath()
             // history
-            const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
-            drawHistory.push(imageData);
-            undo_btn.src = assetsUrl + "undoEdit.svg";
-            
-            redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+            const imageData: ImageData = ctx.getImageData(
+              0,
+              0,
+              canvas_con.width,
+              canvas_con.height,
+            )
+            drawHistory.push(imageData)
+            undo_btn.src = assetsUrl + 'undoEdit.svg'
 
-            undo_btn.src = assetsUrl + "undoEdit.svg";
-            undo_btn.addEventListener("click", undo_fun);
-            undo_btn.style.cursor = "pointer"
-            redo_btn.src = assetsUrl + "redoEditPre.svg";
-            redo_btn.removeEventListener("click", redo_fun);
-            redo_btn.style.cursor = "not-allowed"
-            clear_btn.src = assetsUrl + "clearEditImg.svg";
-            clear_btn.addEventListener("click", clear_fun);
-            clear_btn.style.cursor = "pointer"
+            redoHistory = [] // 每次绘制新内容时，清空已撤销历史
+
+            undo_btn.src = assetsUrl + 'undoEdit.svg'
+            undo_btn.addEventListener('click', undo_fun)
+            undo_btn.style.cursor = 'pointer'
+            redo_btn.src = assetsUrl + 'redoEditPre.svg'
+            redo_btn.removeEventListener('click', redo_fun)
+            redo_btn.style.cursor = 'not-allowed'
+            clear_btn.src = assetsUrl + 'clearEditImg.svg'
+            clear_btn.addEventListener('click', clear_fun)
+            clear_btn.style.cursor = 'pointer'
             move_flag = false
           }
           let domRect = canvas_con.getBoundingClientRect()
           function start_web(e: MouseEvent) {
-            flag = false;
+            flag = false
             domRect = canvas_con.getBoundingClientRect()
-            ctx.beginPath();
+            ctx.beginPath()
             // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
             // ctx.moveTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
             ctx.moveTo(e.clientX - domRect.left, e.clientY - domRect.top)
@@ -6573,28 +6845,31 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           function move_web(e) {
             if (flag) {
-              return false;
+              return false
             }
-            move_flag = true;
-            ctx.strokeStyle = drawColor;
-            ctx.lineWidth = lineWidth;
+            move_flag = true
+            ctx.strokeStyle = drawColor
+            ctx.lineWidth = lineWidth
             // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.clientY - canvas_con.offsetTop);
             // ctx.lineTo(e.clientX - canvas_con.offsetLeft, e.offsetY);
             ctx.lineTo(e.clientX - domRect.left, e.clientY - domRect.top)
-            ctx.stroke();
-
-
+            ctx.stroke()
           }
           function end_web(e) {
             if (flag) return
-            flag = true;
-            e.stopPropagation();
-            if(move_flag){
-              ctx.closePath();
+            flag = true
+            e.stopPropagation()
+            if (move_flag) {
+              ctx.closePath()
               // history
-              const imageData: ImageData = ctx.getImageData(0, 0, canvas_con.width, canvas_con.height);
-              drawHistory.push(imageData);
-              redoHistory = []; // 每次绘制新内容时，清空已撤销历史
+              const imageData: ImageData = ctx.getImageData(
+                0,
+                0,
+                canvas_con.width,
+                canvas_con.height,
+              )
+              drawHistory.push(imageData)
+              redoHistory = [] // 每次绘制新内容时，清空已撤销历史
               // saveData()
               // const dataURL = canvas_con.toDataURL();
               // // let arr = dataURL.split(","),
@@ -6609,69 +6884,80 @@ const createExtendedDOMResolvers = function (app: App) {
               //   // set(draft?.[pageName], dataKey, new File([u8_arr], file_name, { type: mime }))
               //   set(draft?.[pageName], dataKey, dataURL)
               // })
-            undo_btn.src = assetsUrl + "undoEdit.svg";
-            undo_btn.addEventListener("click", undo_fun);
-            undo_btn.style.cursor = "pointer"
-            redo_btn.src = assetsUrl + "redoEditPre.svg";
-            redo_btn.removeEventListener("click", redo_fun);
-            redo_btn.style.cursor = "not-allowed"
-            clear_btn.src = assetsUrl + "clearEditImg.svg";
-            clear_btn.addEventListener("click", clear_fun);
-            clear_btn.style.cursor = "pointer"
-            move_flag = false
+              undo_btn.src = assetsUrl + 'undoEdit.svg'
+              undo_btn.addEventListener('click', undo_fun)
+              undo_btn.style.cursor = 'pointer'
+              redo_btn.src = assetsUrl + 'redoEditPre.svg'
+              redo_btn.removeEventListener('click', redo_fun)
+              redo_btn.style.cursor = 'not-allowed'
+              clear_btn.src = assetsUrl + 'clearEditImg.svg'
+              clear_btn.addEventListener('click', clear_fun)
+              clear_btn.style.cursor = 'pointer'
+              move_flag = false
             }
-           
           }
           // color
-          color_picker.addEventListener("change", () => {
-            drawColor = color_picker.value;
-          });
-          line_width_input.addEventListener("change", () => {
-            lineWidth = +line_width_input.value;
-          });
+          color_picker.addEventListener('change', () => {
+            drawColor = color_picker.value
+          })
+          line_width_input.addEventListener('change', () => {
+            lineWidth = +line_width_input.value
+          })
           // clear
           const clear_fun = () => {
             // ctx.drawImage(image, 0, 0, image.width, image.height);
-            ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
-            ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
-            // drawHistory.push(drawHistory.at(-1) as ImageData); 
-            redoHistory = []; // 删除到已撤销历史
-            drawHistory = []; //删除到已前进历史
-            redo_btn.src = assetsUrl + "redoEditPre.svg";
-            redo_btn.removeEventListener("click", redo_fun);
-            redo_btn.style.cursor = "not-allowed"
-            undo_btn.src = assetsUrl + "undoEditPre.svg";
-            undo_btn.removeEventListener("click", undo_fun);
-            undo_btn.style.cursor = "not-allowed"
-            clear_btn.src = assetsUrl + "clearEditImgPre.svg";
-            clear_btn.removeEventListener("click", undo_fun);
-            clear_btn.style.cursor = "not-allowed"
+            ctx.clearRect(0, 0, canvas_con.width, canvas_con.height)
+            ctx.drawImage(
+              image,
+              0,
+              0,
+              canvas_con.getBoundingClientRect().width,
+              canvas_con.getBoundingClientRect().height,
+            )
+            // drawHistory.push(drawHistory.at(-1) as ImageData);
+            redoHistory = [] // 删除到已撤销历史
+            drawHistory = [] //删除到已前进历史
+            redo_btn.src = assetsUrl + 'redoEditPre.svg'
+            redo_btn.removeEventListener('click', redo_fun)
+            redo_btn.style.cursor = 'not-allowed'
+            undo_btn.src = assetsUrl + 'undoEditPre.svg'
+            undo_btn.removeEventListener('click', undo_fun)
+            undo_btn.style.cursor = 'not-allowed'
+            clear_btn.src = assetsUrl + 'clearEditImgPre.svg'
+            clear_btn.removeEventListener('click', undo_fun)
+            clear_btn.style.cursor = 'not-allowed'
             // saveData()
           }
           // clear_btn.addEventListener("click", clear_fun);
           // undo
-          const undo_fun  =() => {
+          const undo_fun = () => {
             if (drawHistory.length > 0) {
-              const lastDraw = drawHistory.pop() as ImageData; // 移除最后一步绘制历史
-              redoHistory.push(lastDraw); // 添加到已撤销历史
-              redo_btn.src = assetsUrl + "redoEdit.svg";
-              redo_btn.addEventListener("click", redo_fun);
-              redo_btn.style.cursor = "pointer"
+              const lastDraw = drawHistory.pop() as ImageData // 移除最后一步绘制历史
+              redoHistory.push(lastDraw) // 添加到已撤销历史
+              redo_btn.src = assetsUrl + 'redoEdit.svg'
+              redo_btn.addEventListener('click', redo_fun)
+              redo_btn.style.cursor = 'pointer'
 
               // 清除Canvas并恢复上一步绘制历史
-              ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
+              ctx.clearRect(0, 0, canvas_con.width, canvas_con.height)
               if (drawHistory.length > 0) {
-                ctx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
+                ctx.putImageData(drawHistory[drawHistory.length - 1], 0, 0)
               } else {
                 // 如果没有历史记录，则重新绘制原始图片
                 // ctx.drawImage(image, 0, 0, image.width, image.height);
-                ctx.drawImage(image, 0, 0, canvas_con.getBoundingClientRect().width, canvas_con.getBoundingClientRect().height);
-                undo_btn.src = assetsUrl + "undoEditPre.svg";
-                undo_btn.removeEventListener("click", undo_fun);
-                undo_btn.style.cursor = "not-allowed"
-                clear_btn.src = assetsUrl + "clearEditImgPre.svg";
-                clear_btn.removeEventListener("click", clear_fun);
-                clear_btn.style.cursor = "not-allowed"
+                ctx.drawImage(
+                  image,
+                  0,
+                  0,
+                  canvas_con.getBoundingClientRect().width,
+                  canvas_con.getBoundingClientRect().height,
+                )
+                undo_btn.src = assetsUrl + 'undoEditPre.svg'
+                undo_btn.removeEventListener('click', undo_fun)
+                undo_btn.style.cursor = 'not-allowed'
+                clear_btn.src = assetsUrl + 'clearEditImgPre.svg'
+                clear_btn.removeEventListener('click', clear_fun)
+                clear_btn.style.cursor = 'not-allowed'
               }
               // saveData()
             }
@@ -6679,42 +6965,41 @@ const createExtendedDOMResolvers = function (app: App) {
           // redo
           const redo_fun = () => {
             if (redoHistory.length > 0) {
-              const nextDraw = redoHistory.pop() as ImageData; // 取出下一步绘制历史
-              drawHistory.push(nextDraw); // 添加到绘制历史
-              undo_btn.src = assetsUrl + "undoEdit.svg";
-              undo_btn.addEventListener("click", undo_fun);
-              undo_btn.style.cursor = "pointer"
+              const nextDraw = redoHistory.pop() as ImageData // 取出下一步绘制历史
+              drawHistory.push(nextDraw) // 添加到绘制历史
+              undo_btn.src = assetsUrl + 'undoEdit.svg'
+              undo_btn.addEventListener('click', undo_fun)
+              undo_btn.style.cursor = 'pointer'
 
-              clear_btn.src = assetsUrl + "clearEditImg.svg";
-              clear_btn.addEventListener("click", clear_fun);
-              clear_btn.style.cursor = "pointer"
+              clear_btn.src = assetsUrl + 'clearEditImg.svg'
+              clear_btn.addEventListener('click', clear_fun)
+              clear_btn.style.cursor = 'pointer'
 
               // 清除Canvas并恢复下一步绘制历史
-              ctx.clearRect(0, 0, canvas_con.width, canvas_con.height);
-              ctx.putImageData(nextDraw, 0, 0);
-              if(redoHistory.length == 0){
-                redo_btn.src = assetsUrl + "redoEditPre.svg";
-                redo_btn.removeEventListener("click", redo_fun);
-                redo_btn.style.cursor = "not-allowed"
-
+              ctx.clearRect(0, 0, canvas_con.width, canvas_con.height)
+              ctx.putImageData(nextDraw, 0, 0)
+              if (redoHistory.length == 0) {
+                redo_btn.src = assetsUrl + 'redoEditPre.svg'
+                redo_btn.removeEventListener('click', redo_fun)
+                redo_btn.style.cursor = 'not-allowed'
               }
               // saveData()
             }
           }
           const saveData = () => {
-            const dataURL = canvas_con.toDataURL();
+            const dataURL = canvas_con.toDataURL()
             const arr = dataURL.split(',') as Array<string>
             const data = store.level2SDK.utilServices.base64ToBlob(
               arr[1],
-              arr[0].match(/:(.*?);/)?.[1]
+              arr[0].match(/:(.*?);/)?.[1],
             )
             app.updateRoot((draft) => {
               set(draft?.[pageName], dataKey, data)
             })
-            dataOptions["status"] = true
+            dataOptions['status'] = true
           }
 
-          save_btn.addEventListener("click", () => {
+          save_btn.addEventListener('click', () => {
             // const dataURL = canvas_con.toDataURL();
             // let arr = dataURL.split(","),
             //   mime = arr[0].match(/:(.*?);/)?.[1],
@@ -6738,7 +7023,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
-    '[App] Progress':{
+    '[App] Progress': {
       cond: 'progressBar',
       resolve({ node, component }) {
         const div = document.createElement('div')
@@ -6752,22 +7037,22 @@ const createExtendedDOMResolvers = function (app: App) {
         div.style.borderRadius = `4px 0px 0px 4px`
         node.appendChild(div)
         node.style.borderRadius = `4px`
-      }
+      },
     },
     '[App] Dictation': {
       cond: 'dictation',
       resolve({ node, component }) {
         const assetsUrl = app.nui.getAssetsUrl() || ''
-        let pageName = app.currentPage;
+        let pageName = app.currentPage
         const dataKey =
-            component.get('data-key') || component.blueprint?.dataKey || '';
+          component.get('data-key') || component.blueprint?.dataKey || ''
         let height = 50
-        let root = document.getElementById("root") as HTMLDivElement
+        let root = document.getElementById('root') as HTMLDivElement
 
         let timer
         const calculateHeight = () => {
           if (node.clientHeight) {
-            root = document.getElementById("root") as HTMLDivElement
+            root = document.getElementById('root') as HTMLDivElement
             height = 0.05 * root.clientHeight
             if (!timer) {
               clearTimeout(timer)
@@ -6822,7 +7107,7 @@ const createExtendedDOMResolvers = function (app: App) {
           font-weight: 600;
           cursor: pointer;
         `
-        
+
         const audio_start = document.createElement('img')
         audio_start.src = `${assetsUrl}audio_white.svg`
         const text_start = document.createElement('div')
@@ -6871,34 +7156,34 @@ const createExtendedDOMResolvers = function (app: App) {
         //   }
         // })()
         const recorder = new Recorder({
-          bitRate: 128
+          bitRate: 128,
         })
 
         let timestamp = Date.now()
         let audioTime = 0
         let complete = false
-        start_button.addEventListener("click", () => {
+        start_button.addEventListener('click', () => {
           timestamp = Date.now()
           audio_box.removeChild(start_button)
           audio_box.appendChild(recording)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
           status = 'recording'
           startRecording()
-          setTimeout(()=> {
+          setTimeout(() => {
             complete = true
           })
-          setTimeout(()=> {
-            // @ts-ignore
-            component.get("startRecord")?.execute()
+          setTimeout(() => {
+            // @ts-expect-error
+            component.get('startRecord')?.execute()
           })
         })
 
-        const isInterrupt = component.get("isInterrupt")
-        if(isInterrupt && isInterrupt !== "") {
+        const isInterrupt = component.get('isInterrupt')
+        if (isInterrupt && isInterrupt !== '') {
           const arr = isInterrupt.split('.')
           const key = arr.pop()
           let target = app.root?.[pageName]
-          arr.forEach(str => {
+          arr.forEach((str) => {
             target = target?.[str]
           })
           let t = target[key]
@@ -6908,34 +7193,32 @@ const createExtendedDOMResolvers = function (app: App) {
             },
             set: function reactiveSetter(v) {
               t = v
-              if(t === "false") {
+              if (t === 'false') {
                 translate()
               }
-            }
+            },
           })
           target[key] = true
         }
-        
+
         const translate = () => {
-          setTimeout(()=> {
-            // @ts-ignore
-            component.get("finishRecord")?.execute()
+          setTimeout(() => {
+            // @ts-expect-error
+            component.get('finishRecord')?.execute()
           })
-          
+
           stopRecording()
         }
 
-        end_button.addEventListener("click", () => {
-          
+        end_button.addEventListener('click', () => {
           audio_box.removeChild(recording)
           audio_status_img.src = `${assetsUrl}audio_pause.svg`
-          if(status === "recording")
-            audioTime += Date.now() - timestamp
-            status = "end"
-          if(component.get("beforeFinish")) {
-            if(audioTime/1000 < 20){
-              // @ts-ignore
-              component.get("beforeFinish")?.execute()
+          if (status === 'recording') audioTime += Date.now() - timestamp
+          status = 'end'
+          if (component.get('beforeFinish')) {
+            if (audioTime / 1000 < 20) {
+              // @ts-expect-error
+              component.get('beforeFinish')?.execute()
               pauseRecording()
             } else {
               translate()
@@ -6946,228 +7229,280 @@ const createExtendedDOMResolvers = function (app: App) {
           complete = false
         })
 
-        audio_status_box.addEventListener("click", () => {
-          if(status === "recording") {
+        audio_status_box.addEventListener('click', () => {
+          if (status === 'recording') {
             audioTime += Date.now() - timestamp
             audio_status_img.src = `${assetsUrl}audio_resume.svg`
-            status = "pausing"
+            status = 'pausing'
             pauseRecording()
-            setTimeout(()=> {
-              // @ts-ignore
-              component.get("pauseRecord")?.execute()
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('pauseRecord')?.execute()
             })
-          } else if(status === "pausing") {
+          } else if (status === 'pausing') {
             timestamp = Date.now()
             audio_status_img.src = `${assetsUrl}audio_pause.svg`
-            status = "recording"
+            status = 'recording'
             resumeRecording()
-            setTimeout(()=> {
-              // @ts-ignore
-              component.get("resumeRecord")?.execute()
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('resumeRecord')?.execute()
             })
           }
         })
 
         let recordData = new Array<Int8Array>()
         function startRecording() {
-          recorder.start().then(() => {
-            
-          }).catch((e) => {
-            console.error(e);
-          });
+          recorder
+            .start()
+            .then(() => {})
+            .catch((e) => {
+              console.error(e)
+            })
         }
         function stopRecording() {
-          let val;
+          let val
           try {
-              pauseRecording();
-              setTimeout(()=> {
-                // @ts-ignore
-                (async () => {
-                  const mp3Header = new Uint8Array([
-                    0x49, 0x44, 0x33, 0x03,
-                    0x00, 0x00, 0x00, 0x00
-                  ]);
-                  // const blobFile = await fetch("Dr.Bhalla-22-原始录音.m4a").then(async res=>new Blob([await res.blob()],{type: "audio/mp3"}))
-                  const blobFile = new Blob(recordData, { type: "audio/mp3" })
-                  const chun_size_sample_rates = 16000*20*5; 
-                  const chunks:any[] = [];
-                  const             size_ws = blobFile.size>=5242880;
-                  app.updateRoot(draft => {
-                    set(draft?.[pageName], component.get("audioFile"), blobFile);
-                  })
-                  let baseUrl = JSON.parse(localStorage.getItem("config") as string).whisperBaseUrl || 'https://audiosplit.aitmed.io';
-                  let audio_url = `${baseUrl}/upload/`;
-                  if(size_ws){
-                    for (let i = 0; i < blobFile.size; i += chun_size_sample_rates) {
-                      const chunk = blobFile.slice(i, i + chun_size_sample_rates);
-                      
-                      const combinedBlob = new Blob([mp3Header, chunk], { type: 'audio/mp3' });
-                      chunks.push(combinedBlob)
-                    }
-                  }else{
-                    chunks.push(blobFile)
-                    audio_url =  `${baseUrl}/smallUpload/`
+            pauseRecording()
+            setTimeout(() => {
+              // @ts-expect-error
+              ;(async () => {
+                const mp3Header = new Uint8Array([
+                  0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00,
+                ])
+                // const blobFile = await fetch("Dr.Bhalla-22-原始录音.m4a").then(async res=>new Blob([await res.blob()],{type: "audio/mp3"}))
+                const blobFile = new Blob(recordData, { type: 'audio/mp3' })
+                const chun_size_sample_rates = 16000 * 20 * 5
+                const chunks: any[] = []
+                const size_ws = blobFile.size >= 5242880
+                app.updateRoot((draft) => {
+                  set(draft?.[pageName], component.get('audioFile'), blobFile)
+                })
+                let baseUrl =
+                  JSON.parse(localStorage.getItem('config') as string)
+                    .whisperBaseUrl || 'https://audiosplit.aitmed.io'
+                let audio_url = `${baseUrl}/upload/`
+                if (size_ws) {
+                  for (
+                    let i = 0;
+                    i < blobFile.size;
+                    i += chun_size_sample_rates
+                  ) {
+                    const chunk = blobFile.slice(i, i + chun_size_sample_rates)
+
+                    const combinedBlob = new Blob([mp3Header, chunk], {
+                      type: 'audio/mp3',
+                    })
+                    chunks.push(combinedBlob)
                   }
-                  // 处理 生成ai report的文件
-                  let aiReqBody = app.root.AiVoice.formData.postBody
-                  aiReqBody['notification']['platform'] = 'web'
-                  aiReqBody['notification']['token'] = JSON.parse(localStorage.getItem('Global') || '{}')['firebaseToken']
-                  let aiReq = JSON.stringify(aiReqBody)
-                  const rand = new Date().getTime().toString(36)+(Math.random()).toString(36).substring(2);
-                  const chunks_map = chunks.map((v,i)=>new Promise((res,rej)=>{
-                      let xhr = new XMLHttpRequest();
-                      setTimeout(()=>{
-                        const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
+                } else {
+                  chunks.push(blobFile)
+                  audio_url = `${baseUrl}/smallUpload/`
+                }
+                // 处理 生成ai report的文件
+                let aiReqBody = app.root.AiVoice.formData.postBody
+                aiReqBody['notification']['platform'] = 'web'
+                aiReqBody['notification']['token'] = JSON.parse(
+                  localStorage.getItem('Global') || '{}',
+                )['firebaseToken']
+                let aiReq = JSON.stringify(aiReqBody)
+                const rand =
+                  new Date().getTime().toString(36) +
+                  Math.random().toString(36).substring(2)
+                const chunks_map = chunks.map(
+                  (v, i) =>
+                    new Promise((res, rej) => {
+                      let xhr = new XMLHttpRequest()
+                      setTimeout(() => {
+                        const unsubscribe = document.querySelector(
+                          `[data-viewtag=unsubscribe_t]`,
+                        ) as any
                         // unsubscribe.aud = controller;
-                        if(unsubscribe) {
-                          unsubscribe.addEventListener("click",(e)=>{
-                              xhr.abort()
-                            })
+                        if (unsubscribe) {
+                          unsubscribe.addEventListener('click', (e) => {
+                            xhr.abort()
+                          })
                         }
-                          
-                      },1000)
-                      xhr.withCredentials = true;
-                      xhr.addEventListener("readystatechange", function () {
+                      }, 1000)
+                      xhr.withCredentials = true
+                      xhr.addEventListener('readystatechange', function () {
                         if (this.readyState === 4) {
                           res(JSON.parse(this.response))
                         }
-                      });
-                        xhr.open("POST",audio_url);
-                        let data = new FormData();
-                        data.append("audio", v, "123.mp3");
-                        // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
-                        if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
-                          data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
+                      })
+                      xhr.open('POST', audio_url)
+                      let data = new FormData()
+                      data.append('audio', v, '123.mp3')
+                      // console.log(app.root.Global?.["roomInfo"]?.["edge"]?.["id"], localStorage.getItem('user_vid'),"mmmmmmmmm")
+                      if (app.root.Global?.['roomInfo']?.['edge']?.['id']) {
+                        data.append(
+                          'appointmentId',
+                          app.root.Global?.['roomInfo']?.['edge']?.[
+                            'id'
+                          ] as string,
+                        )
+                      } else {
+                        data.append(
+                          'appointmentId',
+                          app.root.Global?.['rootNotebookID'] as string,
+                        )
+                      }
+
+                      data.append(
+                        'providerId',
+                        localStorage.getItem('user_vid') as string,
+                      )
+                      data.append(
+                        'host',
+                        (app.config.apiHost +
+                          ':' +
+                          app.config.apiPort) as string,
+                      )
+                      data.append('aiReq', aiReq)
+                      size_ws && data.append('code', `${rand}-${i + 1}`)
+                      xhr.send(data)
+                    }),
+                )
+                const _upload_respose = (): Promise<any> => {
+                  return new Promise((res, rej) => {
+                    let xhr = new XMLHttpRequest()
+                    setTimeout(() => {
+                      const unsubscribe = document.querySelector(
+                        `[data-viewtag=unsubscribe_t]`,
+                      ) as any
+                      // unsubscribe.aud = controller;
+                      if (unsubscribe) {
+                        unsubscribe.addEventListener('click', (e) => {
+                          xhr.abort()
+                        })
+                      }
+                    }, 1000)
+
+                    xhr.withCredentials = true
+                    xhr.addEventListener('readystatechange', function () {
+                      if (this.readyState === 4) {
+                        try {
+                          res(JSON.parse(this.response))
+                        } catch (e) {
+                          console.error(`Unable to parse returned data`)
+                        }
+                      } else {
+                        if (this.status == 502) {
+                          rej('errorcode502')
                         } else {
-                          data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
+                          new Error('request Failed')
                         }
-                        
-                        data.append("providerId", localStorage.getItem('user_vid') as string);
-                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
-                        data.append("aiReq", aiReq);
-                        size_ws&&data.append("code", `${rand}-${i+1}`);
-                        xhr.send(data);
+                      }
                     })
-                  
-                  )
-                  const _upload_respose =  ():Promise<any>=>{
-                    return new Promise((res,rej)=>{
-                      let xhr = new XMLHttpRequest();
-                      setTimeout(()=>{
-                        const unsubscribe = document.querySelector(`[data-viewtag=unsubscribe_t]`) as any;
-                        // unsubscribe.aud = controller;
-                        if(unsubscribe) {
-                          unsubscribe.addEventListener("click",(e)=>{
-                              xhr.abort()
-                            })
-                        }
-                      },1000)
-                        
-                      xhr.withCredentials = true;
-                      xhr.addEventListener("readystatechange", function () {
-                        if (this.readyState === 4) {
-                          try{
-                            res(JSON.parse(this.response))
-                          }catch(e){
-                            console.error(`Unable to parse returned data`)
-                          }
-                        }else{
-                          if(this.status==502){
-                            rej("errorcode502")
-                          }else{
-                            new Error("request Failed")
-                          }
-                        }
-                      });
-                        xhr.open("POST",`${baseUrl}/success/`);
-                        
-                        let data = new FormData();
-                        data.append("code", `${rand}`);
-                        data.append("size", `${chunks.length}`);
-                        if (app.root.Global?.["roomInfo"]?.["edge"]?.["id"]) {
-                          data.append("appointmentId",app.root.Global?.["roomInfo"]?.["edge"]?.["id"] as string);
-                        } else {
-                          data.append("appointmentId",app.root.Global?.["rootNotebookID"] as string);
-                        }
-                        data.append("providerId", localStorage.getItem('user_vid') as string);
-                        data.append("aiReq", aiReq);
-                        data.append("host", app.config.apiHost+":"+app.config.apiPort as string);
-                        // const controller = new AbortController();
-                        xhr.send(data);
-                    })
-                  }
-                    const text = await Promise.all(chunks_map);
-                    console.error(text);
-                    let textVal = ''
-                    let sourceid = ''
-                    if (size_ws) {
-                      let resp = await _upload_respose()
-                      textVal = resp.text
-                      sourceid = resp.sourceId
+                    xhr.open('POST', `${baseUrl}/success/`)
+
+                    let data = new FormData()
+                    data.append('code', `${rand}`)
+                    data.append('size', `${chunks.length}`)
+                    if (app.root.Global?.['roomInfo']?.['edge']?.['id']) {
+                      data.append(
+                        'appointmentId',
+                        app.root.Global?.['roomInfo']?.['edge']?.[
+                          'id'
+                        ] as string,
+                      )
                     } else {
-                      //@ts-ignore
-                      textVal = text[0]?.text
-                      //@ts-ignore
-                      sourceid = text[0]?.sourceId
+                      data.append(
+                        'appointmentId',
+                        app.root.Global?.['rootNotebookID'] as string,
+                      )
                     }
-                    let resp = ''
-                      app.updateRoot(draft => {
-                        set(draft?.[pageName], dataKey, textVal);
-                        set(draft?.[pageName], component.get("sourceId"), sourceid);
-                      })
-                      recordData = []
-                      setTimeout(()=> {
-                        // @ts-ignore
-                        component.get("endRecord")?.execute()
-                      })
-                
-                })();
-              })
-            
+                    data.append(
+                      'providerId',
+                      localStorage.getItem('user_vid') as string,
+                    )
+                    data.append('aiReq', aiReq)
+                    data.append(
+                      'host',
+                      (app.config.apiHost + ':' + app.config.apiPort) as string,
+                    )
+                    // const controller = new AbortController();
+                    xhr.send(data)
+                  })
+                }
+                const text = await Promise.all(chunks_map)
+                console.error(text)
+                let textVal = ''
+                let sourceid = ''
+                if (size_ws) {
+                  let resp = await _upload_respose()
+                  textVal = resp.text
+                  sourceid = resp.sourceId
+                } else {
+                  //@ts-expect-error
+                  textVal = text[0]?.text
+                  //@ts-expect-error
+                  sourceid = text[0]?.sourceId
+                }
+                let resp = ''
+                app.updateRoot((draft) => {
+                  set(draft?.[pageName], dataKey, textVal)
+                  set(draft?.[pageName], component.get('sourceId'), sourceid)
+                })
+                recordData = []
+                setTimeout(() => {
+                  // @ts-expect-error
+                  component.get('endRecord')?.execute()
+                })
+              })()
+            })
           } catch (error) {
-            val = ""
-            app.updateRoot(draft => {
-              set(draft?.[pageName], dataKey, val);
+            val = ''
+            app.updateRoot((draft) => {
+              set(draft?.[pageName], dataKey, val)
             })
             recordData = []
-            setTimeout(()=> {
-              // @ts-ignore
-              component.get("errorRecord")?.execute()
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('errorRecord')?.execute()
             })
           }
-        } 
+        }
         function pauseRecording() {
-          recorder.stop().getMp3().then(([buffer, blob]) => {
-            recordData = recordData.concat(buffer)
-          })
+          recorder
+            .stop()
+            .getMp3()
+            .then(([buffer, blob]) => {
+              recordData = recordData.concat(buffer)
+            })
         }
         function resumeRecording() {
-          recorder.start().then(() => {
-            
-          }).catch((e) => {
-            console.error(e);
-          });
+          recorder
+            .start()
+            .then(() => {})
+            .catch((e) => {
+              console.error(e)
+            })
         }
 
         app.mainPage.once(eventId.page.on.ON_DOM_CLEANUP, () => {
           recorder.stop()
         })
-
-      }
+      },
     },
-    '[App] Search':{
+    '[App] Search': {
       cond: ({ component: c }) => c.contentType === 'search',
       resolve({ node, component, page }) {
-        if(node){
+        if (node) {
           const isdeleteAble = component.get('isdeleteAble')
-          const inputlimit = component.get('inputlimit') ? component.get('inputlimit') : 3
+          const inputlimit = component.get('inputlimit')
+            ? component.get('inputlimit')
+            : 3
           const assetsUrl = app.nui.getAssetsUrl() || ''
           const fragment = document.createDocumentFragment()
           const iteratorVar = findIteratorVar(component)
           const pageName = app.initPage
-          const dataKey = component.get('searchDataKey') || component.blueprint?.searchDataKey || ''
+          const dataKey =
+            component.get('searchDataKey') ||
+            component.blueprint?.searchDataKey ||
+            ''
           let value
-          if(iteratorVar && dataKey.startsWith(iteratorVar)){
+          if (iteratorVar && dataKey.startsWith(iteratorVar)) {
             const dataObject = findListDataObject(component)
             if (dataObject) {
               value = get(
@@ -7175,14 +7510,17 @@ const createExtendedDOMResolvers = function (app: App) {
                 excludeIteratorVar(dataKey, iteratorVar) as string,
               )
             }
-          }else{
-            if(pageName && dataKey){
+          } else {
+            if (pageName && dataKey) {
               app.updateRoot((draft) => {
                 if (u.isStr(dataKey) && dataKey.startsWith('Global')) {
                   let newDataKey = u.cloneDeep(dataKey)
                   newDataKey = newDataKey.replace('Global.', '')
                   value = get(draft?.['Global'], newDataKey)
-                } else if (u.isStr(dataKey) && dataKey.startsWith('BaseBLEData')) {
+                } else if (
+                  u.isStr(dataKey) &&
+                  dataKey.startsWith('BaseBLEData')
+                ) {
                   let newDataKey = u.cloneDeep(dataKey)
                   newDataKey = newDataKey.replace('BaseBLEData.', '')
                   value = get(draft?.['BaseBLEData'], newDataKey)
@@ -7191,18 +7529,26 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
               })
             }
-            
           }
 
-          const searchImagePath = component.get('searchImagePath') || component.blueprint?.searchImagePath || ''
-          const deleteImagePath = component.get('deleteImagePath') || component.blueprint?.deleteImagePath || ''
-          const placeholder = component.get('placeholder') || component.blueprint?.placeholder || ''
+          const searchImagePath =
+            component.get('searchImagePath') ||
+            component.blueprint?.searchImagePath ||
+            ''
+          const deleteImagePath =
+            component.get('deleteImagePath') ||
+            component.blueprint?.deleteImagePath ||
+            ''
+          const placeholder =
+            component.get('placeholder') ||
+            component.blueprint?.placeholder ||
+            ''
 
           const searchImage = document.createElement('img')
           searchImage.className = 'search-searchImage'
-          searchImagePath ?
-                searchImage.setAttribute('src',`${assetsUrl}${searchImagePath}`):
-                searchImage.setAttribute('src',`${assetsUrl}searchGray.svg`)
+          searchImagePath
+            ? searchImage.setAttribute('src', `${assetsUrl}${searchImagePath}`)
+            : searchImage.setAttribute('src', `${assetsUrl}searchGray.svg`)
 
           const searchInput = document.createElement('input')
           searchInput.placeholder = placeholder
@@ -7210,7 +7556,7 @@ const createExtendedDOMResolvers = function (app: App) {
           value && (searchInput.value = value)
           fragment.appendChild(searchImage)
           fragment.appendChild(searchInput)
-          if(dataKey){
+          if (dataKey) {
             const executeFunc = getNodeOnChange({
               component,
               dataKey,
@@ -7223,136 +7569,160 @@ const createExtendedDOMResolvers = function (app: App) {
             const listener = addListener(searchInput, 'input', executeFunc)
             component.addEventListeners(listener)
           }
-          
-          if(isdeleteAble){
+
+          if (isdeleteAble) {
             const searchCancelImage = document.createElement('img')
             searchCancelImage.className = 'search-searchCancelImage'
-            deleteImagePath ? 
-                      searchCancelImage.setAttribute('src',`${assetsUrl}${deleteImagePath}`):
-                      searchCancelImage.setAttribute('src',`${assetsUrl}searchCancel.svg`)
+            deleteImagePath
+              ? searchCancelImage.setAttribute(
+                  'src',
+                  `${assetsUrl}${deleteImagePath}`,
+                )
+              : searchCancelImage.setAttribute(
+                  'src',
+                  `${assetsUrl}searchCancel.svg`,
+                )
             fragment.appendChild(searchCancelImage)
-            searchInput.addEventListener('input',debounce(async function(){
-              console.log('test99',this.value)
-              if(this.value && this.value.length>0){
-                searchCancelImage.style.visibility = 'visible'
-                if(this.value.length >= inputlimit){
+            searchInput.addEventListener(
+              'input',
+              debounce(async function () {
+                console.log('test99', this.value)
+                if (this.value && this.value.length > 0) {
+                  searchCancelImage.style.visibility = 'visible'
+                  if (this.value.length >= inputlimit) {
+                    await component.get('onInput')?.execute()
+                  }
+                } else {
                   await component.get('onInput')?.execute()
+                  searchCancelImage.style.visibility = 'hidden'
                 }
-              }else{
-                await component.get('onInput')?.execute()
-                searchCancelImage.style.visibility = 'hidden'
-              }
-            },300))
+              }, 300),
+            )
 
-            searchCancelImage.addEventListener('click',async function(){
+            searchCancelImage.addEventListener('click', async function () {
               await component.get('deleteCallBack')?.execute()
             })
           }
           node.className = 'search-contrainer'
           node.append(fragment)
         }
-      }
+      },
     },
-    '[App] OpenApp':{
+    '[App] OpenApp': {
       cond: ({ component: c }) => c.contentType === 'openApp',
       resolve({ node, component }) {
-        if(node){
+        if (node) {
           // const fragment = document.createDocumentFragment()
           const androidLink = component.get('androidLink')
           const storeLink = component.get('storeLink')
-          const isPcHidden = u.isBool(component.get('isPcHidden'))?component.get('isPcHidden'):true
-          const isInitLoad = u.isBool(component.get('isInitLoad'))?component.get('isInitLoad'):true
+          const isPcHidden = u.isBool(component.get('isPcHidden'))
+            ? component.get('isPcHidden')
+            : true
+          const isInitLoad = u.isBool(component.get('isInitLoad'))
+            ? component.get('isInitLoad')
+            : true
           let timer
           if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) {
             //ios
-            if(androidLink){
-              if(isInitLoad){
-                setTimeout(()=>{
+            if (androidLink) {
+              if (isInitLoad) {
+                setTimeout(() => {
                   window.location.href = androidLink
-                },500)
+                }, 500)
               }
-          
-              node.addEventListener('click',()=>{
+
+              node.addEventListener('click', () => {
                 window.location.href = androidLink
                 clearTimeout(timer)
-                if(storeLink){
-                  timer = setTimeout(()=>{
+                if (storeLink) {
+                  timer = setTimeout(() => {
                     window.location.href = storeLink
-                  },2000)
+                  }, 2000)
                 }
-                
               })
             }
-            
-            document.addEventListener('visibilitychange',()=>{
+
+            document.addEventListener('visibilitychange', () => {
               //@ts-expect-error
               if (document?.hidden || document?.webkitHidden) {
                 clearTimeout(timer)
               }
             })
-
           } else {
             //pc
             isPcHidden && (node.style.visibility = 'hidden')
           }
-          
         }
-      }
+      },
     },
     '[App] CreditCard': {
       cond: ({ component: c }) => c.contentType === 'creditCard',
       resolve({ node, component }) {
-        if(node){
-          const { appId,locationId } = Square
-          async function initializeCard (payments) {
-            const card = await payments.card();
-            await card.attach(`#${node.id}`);
-            return card;
+        if (node) {
+          const { appId, locationId } = Square
+          async function initializeCard(payments) {
+            const card = await payments.card()
+            await card.attach(`#${node.id}`)
+            return card
           }
           if (!window.Square) {
-            throw new Error('Square.js failed to load properly');
+            throw new Error('Square.js failed to load properly')
           }
-          const payments = window.Square.payments(appId, locationId);
+          const payments = window.Square.payments(appId, locationId)
           try {
-            setTimeout(async ()=>{
-              const card = await initializeCard(payments);
+            setTimeout(async () => {
+              const card = await initializeCard(payments)
               Object.defineProperties(app, {
                 paymentMethod: { configurable: true, get: () => card },
               })
-            },0)
+            }, 0)
           } catch (e) {
-            console.error('Initializing Card failed', e);
-            return;
+            console.error('Initializing Card failed', e)
+            return
           }
         }
-      }
+      },
     },
     '[App] calendar': {
-      cond: ({component }) => component.has('calendarView'),
+      cond: ({ component }) => component.has('calendarView'),
       resolve({ node, component, page }) {
         const assetsUrl = app.nui.getAssetsUrl() || ''
         const calendarView =
-          component.get('calendarView') || component.blueprint?.calendarView || '';
+          component.get('calendarView') ||
+          component.blueprint?.calendarView ||
+          ''
         const defaultDate =
-          component.get('default-date') || component.blueprint?.defaultDate || '';
-          
+          component.get('default-date') ||
+          component.blueprint?.defaultDate ||
+          ''
+
         const pastDayClickAble =
-          component.get('pastDayClickAble') ?? component.blueprint?.pastDayClickAble ?? true;
+          component.get('pastDayClickAble') ??
+          component.blueprint?.pastDayClickAble ??
+          true
         const futureDayClickAble =
-          component.get('futureDayClickAble')  ?? component.blueprint?.futureDayClickAble  ?? true;
+          component.get('futureDayClickAble') ??
+          component.blueprint?.futureDayClickAble ??
+          true
         const showActionButton =
-          component.get('showActionButton') || component.blueprint?.showActionButton || '';
+          component.get('showActionButton') ||
+          component.blueprint?.showActionButton ||
+          ''
         const dataKey =
-          component.get('dataKey') || component.blueprint?.dataKey || '';
+          component.get('dataKey') || component.blueprint?.dataKey || ''
         const dataType =
-          component.get('dataType') || component.blueprint?.dataType || '';
+          component.get('dataType') || component.blueprint?.dataType || ''
         const calendarStyle =
-          component.get('calendarStyle') || component.blueprint?.calendarStyle || '';
-          // const newTop = app.nui?.getSize?.(`50vw`,'height')
-          let styleSheet = document.createElement('style');
-          styleSheet.innerText = `
+          component.get('calendarStyle') ||
+          component.blueprint?.calendarStyle ||
+          ''
+        // const newTop = app.nui?.getSize?.(`50vw`,'height')
+        let styleSheet = document.createElement('style')
+        styleSheet.innerText = `
           :root {
-            --calendar-width: calc(${node.style.width} - ${node.style.paddingLeft} - ${node.style.paddingRight});
+            --calendar-width: calc(${node.style.width} - ${
+          node.style.paddingLeft
+        } - ${node.style.paddingRight});
             --border-width: clamp(30px,12%,60px);
           }
             .xs-date-title {
@@ -7385,7 +7755,13 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .xs-date-week {
               width: 100%;
-              display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
+              display: ${
+                calendarView === 'month'
+                  ? 'flex'
+                  : calendarView === 'week'
+                  ? 'none'
+                  : ''
+              };
               justify-content: center;
               margin: 15px 0;
               font-weight: 600;
@@ -7401,14 +7777,26 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .xs-date-day {
               width: 100%;
-              display: ${calendarView==="month"?"flex": calendarView==="week"?"none":""};
+              display: ${
+                calendarView === 'month'
+                  ? 'flex'
+                  : calendarView === 'week'
+                  ? 'none'
+                  : ''
+              };
               flex-wrap: wrap;
               justify-content: center;
               align-items: center;
             }
             .xs-date-day-week {
               width: 100%;
-              display: ${calendarView==="week"?"flex": calendarView==="month"?"none":""};
+              display: ${
+                calendarView === 'week'
+                  ? 'flex'
+                  : calendarView === 'month'
+                  ? 'none'
+                  : ''
+              };
               flex-wrap: wrap;
               align-items: center;
               justify-content: space-between;
@@ -7416,12 +7804,20 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             .btn-container {
               width: 100%;
-              display: ${(calendarView==="month"&&showActionButton==true)?"flex": calendarView==="week"?"none":"none"};
+              display: ${
+                calendarView === 'month' && showActionButton == true
+                  ? 'flex'
+                  : calendarView === 'week'
+                  ? 'none'
+                  : 'none'
+              };
               flex-wrap: wrap;
               height: 60px;
               align-items: center;
               justify-content: space-between;
-              ${Object.keys(calendarStyle.buttonContainerStyle||{}).map(k=>`${k}: ${calendarStyle.buttonContainerStyle[k]};\n`).join("")}
+              ${Object.keys(calendarStyle.buttonContainerStyle || {})
+                .map((k) => `${k}: ${calendarStyle.buttonContainerStyle[k]};\n`)
+                .join('')}
           }
             .calender_cancel_btn{
               width: 45%;
@@ -7431,7 +7827,9 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 55%;
               color: #fff;
               border-radius: 4px;
-              ${Object.keys(calendarStyle?.cancelStyle||{}).map(k=>`${k}: ${calendarStyle?.cancelStyle[k]};\n`).join("")}
+              ${Object.keys(calendarStyle?.cancelStyle || {})
+                .map((k) => `${k}: ${calendarStyle?.cancelStyle[k]};\n`)
+                .join('')}
             }
             .calender_confirm_btn{
               width: 45%;
@@ -7441,7 +7839,9 @@ const createExtendedDOMResolvers = function (app: App) {
               color: #fff;
               border-radius: 4px;
               height: 55%;
-              ${Object.keys(calendarStyle?.confirmStyle||{}).map(k=>`${k}: ${calendarStyle?.confirmStyle[k]};\n`).join("")}
+              ${Object.keys(calendarStyle?.confirmStyle || {})
+                .map((k) => `${k}: ${calendarStyle?.confirmStyle[k]};\n`)
+                .join('')}
             }
             .week-time {
               display: flex;
@@ -7494,9 +7894,14 @@ const createExtendedDOMResolvers = function (app: App) {
             .active {
               color: #fff !important;
               user-select: none;
-              border-radius: ${calendarView==="week"?"var(--border-width)":"50%"};
-              background: ${calendarStyle?.selectStyle?.background||"linear-gradient(180deg, #629efe, #2988e6)"};
-              color: ${calendarStyle?.selectStyle?.color||"#fff"};
+              border-radius: ${
+                calendarView === 'week' ? 'var(--border-width)' : '50%'
+              };
+              background: ${
+                calendarStyle?.selectStyle?.background ||
+                'linear-gradient(180deg, #629efe, #2988e6)'
+              };
+              color: ${calendarStyle?.selectStyle?.color || '#fff'};
             }
             .Disable {
               color: #c0c4cc !important;
@@ -7524,364 +7929,456 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
             }
           }
-          `;
-          document.head.appendChild(styleSheet);
-          // node.innerHTML = `
-          //   <div class="xs-date-title">
-          //     <div class="month-container">
-          //       <div class="date-prev"> < </div>
-          //       <select class="date-time"></select>
-          //       <div class="date-next"> > </div>
-          //     </div>
-          //     <select class="year-time"></select>
-          //   </div>
-          //   <div class="xs-date-week">
-          //     <div>Su</div>
-          //     <div>Mo</div>
-          //     <div>Tu</div>
-          //     <div>We</div>
-          //     <div>Th</div>
-          //     <div>Fr</div>
-          //     <div>Sa</div>
-          //   </div>
-          //   <div class="xs-date-day" >
-          //   </div>
-          //   <div class="xs-date-day-week">
-          //     <div class="week-prev"> < </div>
-          //       <div class="week-time"></div>
-          //     <div class="week-next"> > </div>
-          //   </div>
-          //   <div class="btn-container">
-          //     <button class="calender_cancel_btn">Cancel</button>
-          //     <button class="calender_confirm_btn">Confirm</button>
-          //   </div>
-          // `;
-          let div1 = document.createElement('div');
-          div1.className = 'xs-date-title';
+          `
+        document.head.appendChild(styleSheet)
+        // node.innerHTML = `
+        //   <div class="xs-date-title">
+        //     <div class="month-container">
+        //       <div class="date-prev"> < </div>
+        //       <select class="date-time"></select>
+        //       <div class="date-next"> > </div>
+        //     </div>
+        //     <select class="year-time"></select>
+        //   </div>
+        //   <div class="xs-date-week">
+        //     <div>Su</div>
+        //     <div>Mo</div>
+        //     <div>Tu</div>
+        //     <div>We</div>
+        //     <div>Th</div>
+        //     <div>Fr</div>
+        //     <div>Sa</div>
+        //   </div>
+        //   <div class="xs-date-day" >
+        //   </div>
+        //   <div class="xs-date-day-week">
+        //     <div class="week-prev"> < </div>
+        //       <div class="week-time"></div>
+        //     <div class="week-next"> > </div>
+        //   </div>
+        //   <div class="btn-container">
+        //     <button class="calender_cancel_btn">Cancel</button>
+        //     <button class="calender_confirm_btn">Confirm</button>
+        //   </div>
+        // `;
+        let div1 = document.createElement('div')
+        div1.className = 'xs-date-title'
 
-          let div2 = document.createElement('div');
-          div2.className = 'month-container';
+        let div2 = document.createElement('div')
+        div2.className = 'month-container'
 
-          let prev = document.createElement('div');
-          prev.className = 'date-prev';
-          prev.textContent = ' < ';
+        let prev = document.createElement('div')
+        prev.className = 'date-prev'
+        prev.textContent = ' < '
 
-          let date_time = document.createElement('select');
-          date_time.className = 'date-time';
+        let date_time = document.createElement('select')
+        date_time.className = 'date-time'
 
-          let next = document.createElement('div');
-          next.className = 'date-next';
-          next.textContent = ' > ';
+        let next = document.createElement('div')
+        next.className = 'date-next'
+        next.textContent = ' > '
 
-          div2.append(prev,date_time,next);
-          // div2.appendChild(select1);
-          // div2.appendChild(div4);
+        div2.append(prev, date_time, next)
+        // div2.appendChild(select1);
+        // div2.appendChild(div4);
 
-          let year_time = document.createElement('select');
-          year_time.className = 'year-time';
+        let year_time = document.createElement('select')
+        year_time.className = 'year-time'
 
-          div1.append(div2,year_time);
-          // div1.appendChild(year_time);
+        div1.append(div2, year_time)
+        // div1.appendChild(year_time);
 
-          let div5 = document.createElement('div');
-          div5.className = 'xs-date-week';
+        let div5 = document.createElement('div')
+        div5.className = 'xs-date-week'
 
-          let days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-          for (let i = 0; i < days.length; i++) {
-            let div = document.createElement('div');
-            div.textContent = days[i];
-            div5.appendChild(div);
+        let days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+        for (let i = 0; i < days.length; i++) {
+          let div = document.createElement('div')
+          div.textContent = days[i]
+          div5.appendChild(div)
+        }
+
+        let date_day = document.createElement('div')
+        date_day.className = 'xs-date-day'
+
+        let div7 = document.createElement('div')
+        div7.className = 'xs-date-day-week'
+
+        let week_prev = document.createElement('div')
+        week_prev.className = 'week-prev'
+        week_prev.textContent = ' < '
+
+        let week_time = document.createElement('div')
+        week_time.className = 'week-time'
+
+        let week_next = document.createElement('div')
+        week_next.className = 'week-next'
+        week_next.textContent = ' > '
+
+        div7.append(week_prev, week_time, week_next)
+        // div7.appendChild(div9);
+        // div7.appendChild(div10);
+
+        let div11 = document.createElement('div')
+        div11.className = 'btn-container'
+
+        let cancel_btn = document.createElement('button')
+        cancel_btn.className = 'calender_cancel_btn'
+        cancel_btn.textContent = 'Cancel'
+
+        let confirm_btn = document.createElement('button')
+        confirm_btn.className = 'calender_confirm_btn'
+        confirm_btn.textContent = 'Confirm'
+
+        div11.appendChild(cancel_btn)
+        div11.appendChild(confirm_btn)
+
+        // 将创建的元素添加到node元素中
+        node.append(div1, div5, date_day, div7, div11)
+        // node.appendChild(div5);
+        // node.appendChild(div6);
+        // node.appendChild(div7);
+        // node.appendChild(div11);
+        let pageName = app.currentPage
+        // let date_time = document.querySelector(".date-time") as HTMLSelectElement;
+        // let year_time = document.querySelector(".year-time") as HTMLSelectElement;
+        // let prev = document.querySelector(".date-prev") as any;
+        // let next = document.querySelector(".date-next") as any;
+        // let week_prev = document.querySelector(".week-prev") as any;
+        // let week_next = document.querySelector(".week-next") as any;
+        // let date_day = document.querySelector(".xs-date-day") as any;
+        // let week_time = document.querySelector(".week-time") as any;
+        // let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
+        // let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
+        let date = defaultDate === 'today' ? new Date() : new Date(defaultDate) //当前时间
+        let require_day = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        )
+        let color_day = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        )
+        let current_time = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        )
+        let get_day = require_day.getDay()
+        let ms = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sept',
+          'Oct',
+          'Nov',
+          'Dec',
+        ]
+        let ws = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+        ms.map((e) => date_time.options.add(new Option(e)))
+        ;((last = 121, next = 10) => {
+          let currentYear = new Date().getFullYear()
+          let startYear: number = currentYear - last
+          for (let i = 0; i < last + next; i++) {
+            year_time.options.add(new Option(startYear.toString()))
+            startYear++
           }
-
-          let date_day = document.createElement('div');
-          date_day.className = 'xs-date-day';
-
-          let div7 = document.createElement('div');
-          div7.className = 'xs-date-day-week';
-
-          let week_prev = document.createElement('div');
-          week_prev.className = 'week-prev';
-          week_prev.textContent = ' < ';
-
-          let week_time = document.createElement('div');
-          week_time.className = 'week-time';
-
-          let week_next = document.createElement('div');
-          week_next.className = 'week-next';
-          week_next.textContent = ' > ';
-
-          div7.append(week_prev,week_time,week_next);
-          // div7.appendChild(div9);
-          // div7.appendChild(div10);
-
-          let div11 = document.createElement('div');
-          div11.className = 'btn-container';
-
-          let cancel_btn = document.createElement('button');
-          cancel_btn.className = 'calender_cancel_btn';
-          cancel_btn.textContent = 'Cancel';
-
-          let confirm_btn = document.createElement('button');
-          confirm_btn.className = 'calender_confirm_btn';
-          confirm_btn.textContent = 'Confirm';
-
-          div11.appendChild(cancel_btn);
-          div11.appendChild(confirm_btn);
-
-          // 将创建的元素添加到node元素中
-          node.append(div1,div5,date_day,div7,div11);
-          // node.appendChild(div5);
-          // node.appendChild(div6);
-          // node.appendChild(div7);
-          // node.appendChild(div11);
-          let pageName = app.currentPage;
-          // let date_time = document.querySelector(".date-time") as HTMLSelectElement;
-          // let year_time = document.querySelector(".year-time") as HTMLSelectElement;
-					// let prev = document.querySelector(".date-prev") as any;
-					// let next = document.querySelector(".date-next") as any;
-          // let week_prev = document.querySelector(".week-prev") as any;
-					// let week_next = document.querySelector(".week-next") as any;
-					// let date_day = document.querySelector(".xs-date-day") as any;
-          // let week_time = document.querySelector(".week-time") as any;
-          // let cancel_btn = document.querySelector(".calender_cancel_btn") as any;
-          // let confirm_btn = document.querySelector(".calender_confirm_btn") as any;
-          let date = defaultDate === "today"?new Date():new Date(defaultDate); //当前时间
-          let require_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
-          let color_day = new Date(date.getFullYear(),date.getMonth(),date.getDate());
-          let current_time = new Date(date.getFullYear(),date.getMonth(),date.getDate());
-					let get_day = require_day.getDay();
-          let ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
-          let ws = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-          ms.map(e=>date_time.options.add(new Option(e)));
-          ((last = 121, next = 10)=>{
-            let currentYear = new Date().getFullYear()
-            let startYear:number = currentYear - last
-            for (let i = 0; i < last + next; i++) {
-              year_time.options.add(new Option(startYear.toString()))
-              startYear++
+        })()
+        app.updateRoot((draft) => {
+          // set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+          node.firstChild.nodeValue && (node.firstChild.nodeValue = ``)
+        })
+        function updateTime() {
+          let year = date.getFullYear() //当前年份
+          let month = date.getMonth() + 1 + '' //当前月
+          ;+month < 10 ? (month = '0' + month) : month
+          let day = date.getDate() + '' //当前天
+          ;+day < 10 ? (day = '0' + day) : day
+          date_day.innerHTML = ''
+          week_time.innerHTML = ''
+          let setDate = new Date(year, +month, 0)
+          let setDay = setDate.getDate() //这个月天数
+          if (calendarView === 'month') {
+            //渲染头部
+            let setWeek = new Date(year, +month - 1, 1).getDay() //上个月星期几
+            let setDayEM = new Date(year, +month - 1, 0).getDate() //上个月天数
+            // let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
+            setWeek <= 0 ? (setWeek = 7) : setWeek
+            for (let i = setDayEM - setWeek + 1; i <= setDayEM; i++) {
+              let EmptyDiv = document.createElement('div') as any
+              EmptyDiv.innerText = i
+              EmptyDiv.className = 'Disable'
+              date_day.appendChild(EmptyDiv)
             }
-          })();
-          app.updateRoot(draft => {
-            // set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
-            node.firstChild.nodeValue&&(node.firstChild.nodeValue = ``)
-          })
-					function updateTime() {
-						let year = date.getFullYear(); //当前年份
-						let month = date.getMonth() + 1 + ""; //当前月
-						+month < 10 ? month = "0" + month : month;
-						let day = date.getDate()+ ""; //当前天 
-						+day < 10 ? day = "0" + day : day;
-						date_day.innerHTML = "";
-						week_time.innerHTML = "";
-            let setDate = new Date(year, +month, 0);
-						let setDay = setDate.getDate(); //这个月天数
-            if(calendarView==="month"){
-              //渲染头部
-              let setWeek = new Date(year, +month - 1, 1).getDay(); //上个月星期几
-              let setDayEM = new Date(year, +month - 1, 0).getDate(); //上个月天数
-              // let current_month_date =new Date(year, +month, 0).getDay(); //本月最后一天所在的星期
-						  setWeek <= 0 ? setWeek = 7 : setWeek;
-              for (let i = (setDayEM - setWeek) + 1; i <= setDayEM; i++) {
-                let EmptyDiv = document.createElement('div')  as any;
-                EmptyDiv.innerText = i;
-                EmptyDiv.className = "Disable";
-                date_day.appendChild(EmptyDiv);
-              }
-              // 渲染日期
-              for (let i = 1; i <= setDay; i++) {
-                let TimeDiv = document.createElement('div')  as any;
-                TimeDiv.innerText = i;
-                TimeDiv.className = "item-time";
-                if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)<require_day.setHours(0, 0, 0, 0)){
-                  if(pastDayClickAble==true){
-                    TimeDiv.className = "item-time"
-                  }else if(pastDayClickAble==false){
-                    TimeDiv.className = "Disable"
-                  }
-                }else if(new Date(date.getFullYear(),date.getMonth(),date.getDate()).setDate(i)>require_day.setHours(0, 0, 0, 0)){
-                  if(futureDayClickAble==true){
-                    TimeDiv.className = "item-time"
-                  }else if(futureDayClickAble==false){
-                    TimeDiv.className = "Disable"
-                  }
+            // 渲染日期
+            for (let i = 1; i <= setDay; i++) {
+              let TimeDiv = document.createElement('div') as any
+              TimeDiv.innerText = i
+              TimeDiv.className = 'item-time'
+              if (
+                new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  date.getDate(),
+                ).setDate(i) < require_day.setHours(0, 0, 0, 0)
+              ) {
+                if (pastDayClickAble == true) {
+                  TimeDiv.className = 'item-time'
+                } else if (pastDayClickAble == false) {
+                  TimeDiv.className = 'Disable'
                 }
-                if (current_time.toDateString()==date.toDateString()&&i == +day) {
-                  TimeDiv.classList.add("active");
+              } else if (
+                new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  date.getDate(),
+                ).setDate(i) > require_day.setHours(0, 0, 0, 0)
+              ) {
+                if (futureDayClickAble == true) {
+                  TimeDiv.className = 'item-time'
+                } else if (futureDayClickAble == false) {
+                  TimeDiv.className = 'Disable'
                 }
-                date_day.appendChild(TimeDiv);
               }
-              // 渲染尾部
-              for (let i = 1; i <= (42 - setWeek - setDay); i++) {
+              if (
+                current_time.toDateString() == date.toDateString() &&
+                i == +day
+              ) {
+                TimeDiv.classList.add('active')
+              }
+              date_day.appendChild(TimeDiv)
+            }
+            // 渲染尾部
+            for (let i = 1; i <= 42 - setWeek - setDay; i++) {
               // for (let i = 1; i <= (6- current_month_date); i++) {
-                let DisDiv = document.createElement('div')  as any;
-                DisDiv.innerText = i;
-                DisDiv.className = "Disable";
-                date_day.appendChild(DisDiv);
+              let DisDiv = document.createElement('div') as any
+              DisDiv.innerText = i
+              DisDiv.className = 'Disable'
+              date_day.appendChild(DisDiv)
+            }
+            date_time.value = ms[date.getMonth()]
+            year_time.value = date.getFullYear() + ''
+          } else if (calendarView === 'week') {
+            let i = 0
+            let fragment = document.createDocumentFragment()
+            while (i <= 6) {
+              let TimeDiv = document.createElement('div') as any
+              let TimeDivWeek = document.createElement('div') as any
+              let TimeDivText = document.createElement('div') as any
+              let times = new Date(date.getTime())
+              times.setDate(times.getDate() - get_day + i)
+              if (
+                times.setHours(0, 0, 0, 0) == color_day.setHours(0, 0, 0, 0)
+              ) {
+                TimeDiv.className = 'item-time'
+                TimeDiv.classList.add('active')
+              } else if (
+                times.setHours(0, 0, 0, 0) == require_day.setHours(0, 0, 0, 0)
+              ) {
+                TimeDiv.className = 'item-time'
+              } else if (
+                times.setHours(0, 0, 0, 0) < require_day.setHours(0, 0, 0, 0)
+              ) {
+                if (pastDayClickAble == true) {
+                  TimeDiv.className = 'item-time'
+                } else if (pastDayClickAble == false) {
+                  TimeDiv.className = 'Disable'
+                }
+              } else {
+                if (futureDayClickAble == true) {
+                  TimeDiv.className = 'item-time'
+                } else if (futureDayClickAble == false) {
+                  TimeDiv.className = 'Disable'
+                }
               }
-              date_time.value = ms[date.getMonth()];
-              year_time.value = date.getFullYear()+ "";
-            }else if(calendarView==="week"){
-              let i = 0;
-              let fragment = document.createDocumentFragment();
-              while (i <= 6) {
-                let TimeDiv = document.createElement('div')  as any;
-                let TimeDivWeek = document.createElement('div')  as any;
-                let TimeDivText = document.createElement('div')  as any;
-                  let times = new Date(date.getTime());
-                  times.setDate(times.getDate() - get_day + i);
-                  if (times.setHours(0, 0, 0, 0) == color_day.setHours(0, 0, 0, 0)) {
-                    TimeDiv.className = "item-time";
-                    TimeDiv.classList.add("active");
-                  }else if(times.setHours(0, 0, 0, 0)==require_day.setHours(0, 0, 0, 0)){
-                      TimeDiv.className = "item-time"
-                  }else if(times.setHours(0, 0, 0, 0)<require_day.setHours(0, 0, 0, 0)){
-                    if(pastDayClickAble==true){
-                      TimeDiv.className = "item-time"
-                    }else if(pastDayClickAble==false){
-                      TimeDiv.className = "Disable"
-                    }
-                  }else {
-                    if(futureDayClickAble==true){
-                      TimeDiv.className = "item-time"
-                    }else if(futureDayClickAble==false){
-                      TimeDiv.className = "Disable"
-                    }
-                  }
-                  TimeDivText.innerText = times.getDate();
-                  TimeDivText.className = `text_day`
-                  TimeDivWeek.innerText = ws[i];
-                  TimeDiv.style.cssText = `
+              TimeDivText.innerText = times.getDate()
+              TimeDivText.className = `text_day`
+              TimeDivWeek.innerText = ws[i]
+              TimeDiv.style.cssText = `
                     display: flex;
                     cursor: pointer;
                     flex-wrap: nowrap;
                     flex-direction: column;
                     width: 11%;
-                  `;
-                  TimeDivWeek.style.cssText = `
+                  `
+              TimeDivWeek.style.cssText = `
                     font-weight: 600;
                     font-size: 14px;
                     margin-bottom: 5px;
                   `
-                  TimeDiv.append(TimeDivWeek,TimeDivText)
-                  fragment.append(TimeDiv)
-                  if(i==6){
-                    date_time.value = ms[times.getMonth()];
-                    year_time.value = times.getFullYear()+ "";
-                  }
-                  i++;
-                }
-                week_time.appendChild(fragment);
+              TimeDiv.append(TimeDivWeek, TimeDivText)
+              fragment.append(TimeDiv)
+              if (i == 6) {
+                date_time.value = ms[times.getMonth()]
+                year_time.value = times.getFullYear() + ''
               }
-						itemClick(year,month);
-					}
-					updateTime();
-          date_time.onchange = (e)=>{
-            if(calendarView==="month"){
-              date.setMonth(ms.indexOf(date_time.value));
-            }else{
-              date = new Date(date.getFullYear(),ms.indexOf(date_time.value),1);
-              get_day = date.getDay();
+              i++
             }
-						updateTime();
+            week_time.appendChild(fragment)
           }
-					prev.onclick = function() {
-						date.setMonth(date.getMonth() - 1);
-						updateTime();
-					};
-					next.onclick = function() {
-						date.setMonth(date.getMonth() + 1);
-						updateTime();
-					};
-					year_time.onchange = function() {
-            if(calendarView==="month"){
-              date.setFullYear(+year_time.value); 
-            }else{
-              date = new Date(+year_time.value,date.getMonth(),1);
-              get_day = date.getDay();
-            }
-						updateTime();
-					};
-          week_prev.onclick = function() {
-            date.setDate(date.getDate() + date.getDay() - 8);
-            get_day = date.getDay();
-            updateTime();
-					};
-					week_next.onclick = function() {
-            date.setDate(date.getDate() - date.getDay() + 8 );
-            get_day = date.getDay();
-            updateTime();
-					};
+          itemClick(year, month)
+        }
+        updateTime()
+        date_time.onchange = (e) => {
+          if (calendarView === 'month') {
+            date.setMonth(ms.indexOf(date_time.value))
+          } else {
+            date = new Date(date.getFullYear(), ms.indexOf(date_time.value), 1)
+            get_day = date.getDay()
+          }
+          updateTime()
+        }
+        prev.onclick = function () {
+          date.setMonth(date.getMonth() - 1)
+          updateTime()
+        }
+        next.onclick = function () {
+          date.setMonth(date.getMonth() + 1)
+          updateTime()
+        }
+        year_time.onchange = function () {
+          if (calendarView === 'month') {
+            date.setFullYear(+year_time.value)
+          } else {
+            date = new Date(+year_time.value, date.getMonth(), 1)
+            get_day = date.getDay()
+          }
+          updateTime()
+        }
+        week_prev.onclick = function () {
+          date.setDate(date.getDate() + date.getDay() - 8)
+          get_day = date.getDay()
+          updateTime()
+        }
+        week_next.onclick = function () {
+          date.setDate(date.getDate() - date.getDay() + 8)
+          get_day = date.getDay()
+          updateTime()
+        }
 
-          if(showActionButton==true){
-            cancel_btn.onclick = function() {
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onCancelClick")?.execute()
-              })
-            };
-            confirm_btn.onclick = function() {
-              app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?color_day.getTime()/1000:"");
-              })
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onSelectClick")?.execute()
-              })
-            };
+        if (showActionButton == true) {
+          cancel_btn.onclick = function () {
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('onCancelClick')?.execute()
+            })
           }
-					function itemClick(year,month) {
-						let item_time = document.querySelectorAll(`#${node.id} div.item-time`);
-						for (let i = 0; i < item_time.length; i++) {
-							(item_time[i] as HTMLElement).onclick = function() {
-								for (let i = 0; i < item_time.length; i++) {
-									(item_time[i] as HTMLElement).classList.remove("active");
-								}
-								(item_time[i] as HTMLElement).classList.add("active");
-                if(calendarView==="month"){
-                  date = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
-                  current_time = new Date(year,month-1,+(item_time[i] as HTMLElement).innerText)
-                  if(showActionButton==false){
-                    app.updateRoot(draft => {
-                      set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+          confirm_btn.onclick = function () {
+            app.updateRoot((draft) => {
+              set(
+                draft?.[pageName],
+                dataKey,
+                dataType.toLowerCase() == 'date'
+                  ? current_time.toLocaleString('en-US', {
+                      day: '2-digit',
+                      year: 'numeric',
+                      month: '2-digit',
                     })
-                    console.log()
-                  }
-                }else if(calendarView==="week"){
-                  color_day = new Date(year,month-1,+(item_time[i].querySelector(`.text_day`) as HTMLElement).innerText)
-                  current_time = color_day;
-                  app.updateRoot(draft => {
-                    set(draft?.[pageName], dataKey,dataType.toLowerCase()=="date"?current_time.toLocaleString("en-US", { day: "2-digit",year: "numeric",month: "2-digit" }):dataType.toLowerCase()=="timestamp"?current_time.getTime()/1000:"");
+                  : dataType.toLowerCase() == 'timestamp'
+                  ? color_day.getTime() / 1000
+                  : '',
+              )
+            })
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('onSelectClick')?.execute()
+            })
+          }
+        }
+        function itemClick(year, month) {
+          let item_time = document.querySelectorAll(`#${node.id} div.item-time`)
+          for (let i = 0; i < item_time.length; i++) {
+            ;(item_time[i] as HTMLElement).onclick = function () {
+              for (let i = 0; i < item_time.length; i++) {
+                ;(item_time[i] as HTMLElement).classList.remove('active')
+              }
+              ;(item_time[i] as HTMLElement).classList.add('active')
+              if (calendarView === 'month') {
+                date = new Date(
+                  year,
+                  month - 1,
+                  +(item_time[i] as HTMLElement).innerText,
+                )
+                current_time = new Date(
+                  year,
+                  month - 1,
+                  +(item_time[i] as HTMLElement).innerText,
+                )
+                if (showActionButton == false) {
+                  app.updateRoot((draft) => {
+                    set(
+                      draft?.[pageName],
+                      dataKey,
+                      dataType.toLowerCase() == 'date'
+                        ? current_time.toLocaleString('en-US', {
+                            day: '2-digit',
+                            year: 'numeric',
+                            month: '2-digit',
+                          })
+                        : dataType.toLowerCase() == 'timestamp'
+                        ? current_time.getTime() / 1000
+                        : '',
+                    )
                   })
+                  console.log()
                 }
-                  setTimeout(()=>{
-                    // @ts-ignore
-                    component.get("onDateClick")?.execute()
-                  })
-							}
-						}
-					}
-
+              } else if (calendarView === 'week') {
+                color_day = new Date(
+                  year,
+                  month - 1,
+                  +(item_time[i].querySelector(`.text_day`) as HTMLElement)
+                    .innerText,
+                )
+                current_time = color_day
+                app.updateRoot((draft) => {
+                  set(
+                    draft?.[pageName],
+                    dataKey,
+                    dataType.toLowerCase() == 'date'
+                      ? current_time.toLocaleString('en-US', {
+                          day: '2-digit',
+                          year: 'numeric',
+                          month: '2-digit',
+                        })
+                      : dataType.toLowerCase() == 'timestamp'
+                      ? current_time.getTime() / 1000
+                      : '',
+                  )
+                })
+              }
+              setTimeout(() => {
+                // @ts-expect-error
+                component.get('onDateClick')?.execute()
+              })
+            }
+          }
+        }
       },
-      
-
     },
     '[App] scheduleSlot': {
       cond: 'scheduleSlot',
-     resolve({ node, component }) {
-        let pageName = app.currentPage;
+      resolve({ node, component }) {
+        let pageName = app.currentPage
         const providerId =
-          component.get('providerId') || component.blueprint?.providerId || '';
+          component.get('providerId') || component.blueprint?.providerId || ''
         const facilityId =
-          component.get('facilityId') || component.blueprint?.facilityId || '';
-          
+          component.get('facilityId') || component.blueprint?.facilityId || ''
+
         const locationId =
-          component.get('locationId') || component.blueprint?.locationId || "";
-        const timeSlot =
-          component.get('data-timeSlot')  ||  "";
+          component.get('locationId') || component.blueprint?.locationId || ''
+        const timeSlot = component.get('data-timeSlot') || ''
         const dataKey =
-          component.get('data-value') || component.blueprint?.dataKey || {};
-          const dataOptions = component.get('data-option') || component.blueprint?.dataKey || "";
-        let data:any = timeSlot;
+          component.get('data-value') || component.blueprint?.dataKey || {}
+        const dataOptions =
+          component.get('data-option') || component.blueprint?.dataKey || ''
+        let data: any = timeSlot
         // if(providerId){
         //   data = ( get_lists({type: "providerId",value: providerId,url: "getDoctorInFacility"}))["data"];
         // }else if(facilityId){
@@ -7891,68 +8388,95 @@ const createExtendedDOMResolvers = function (app: App) {
         // }else if(timeSlot){
         //   data = timeSlot;
         // }
-      // get_lists({type: "locationId",value: "YLbf0gAAAAAD2gAAAAAAAA==",url: "getRoomInFacility"}).then(res=>{
-      //   data =  res?.["data"]||[]
-      //   console.log(data)
-      //   // return ;
-      //   },rej=>{
-      //     rej("ddd")
-      //   });    
-        data = timeSlot;
-        const len:any = Array.isArray(data)?data.length:undefined;
-        let i = 0;
-        let con_coc:any= {
+        // get_lists({type: "locationId",value: "YLbf0gAAAAAD2gAAAAAAAA==",url: "getRoomInFacility"}).then(res=>{
+        //   data =  res?.["data"]||[]
+        //   console.log(data)
+        //   // return ;
+        //   },rej=>{
+        //     rej("ddd")
+        //   });
+        data = timeSlot
+        const len: any = Array.isArray(data) ? data.length : undefined
+        let i = 0
+        let con_coc: any = {
           status: 0,
-          timeMessage: "",
+          timeMessage: '',
           nextTime: 0,
-          new_arr: []
-        } 
-        if(!data){
-          con_coc.status = 3;
+          new_arr: [],
+        }
+        if (!data) {
+          con_coc.status = 3
           // con_coc.timeMessage = "No available, contact to book";
-        }else if(len>0){
-          let index_m_n = 0;
-          con_coc.new_arr = Array.from({length: 5},()=>{
-            let date = (new Date(dataOptions).setHours(24*i,0,0,0))||new Date().setHours(24*i,0,0,0);
+        } else if (len > 0) {
+          let index_m_n = 0
+          con_coc.new_arr = Array.from({ length: 5 }, () => {
+            let date =
+              new Date(dataOptions).setHours(24 * i, 0, 0, 0) ||
+              new Date().setHours(24 * i, 0, 0, 0)
             let obj = {
-              week: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
-              mday: new Intl.DateTimeFormat("en-US", {month: "short",day: "numeric"}).format(date),
-              back_color: "a",
-              date
-            };
-            i++;
-            return obj;
-          });
+              week: new Intl.DateTimeFormat('en-US', {
+                weekday: 'short',
+              }).format(date),
+              mday: new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric',
+              }).format(date),
+              back_color: 'a',
+              date,
+            }
+            i++
+            return obj
+          })
           for (let index = 0; index < con_coc.new_arr.length; index++) {
-            const element:any = con_coc.new_arr[index];
-            for (let index_m = index_m_n; index_m < timeSlot.length; index_m++) {
-              const ele = timeSlot[index_m];
-              const index_time = new Date(dataOptions).setHours(24*index,0,0,0)||new Date().setHours(24*index,0,0,0);
-              const ele_time = new Date(+ele?.gte*1000).setHours(0,0,0,0);
-              if(ele_time==index_time){
-                element.back_color = "back_color"
-                index_m_n = index_m+1;
-                break;
+            const element: any = con_coc.new_arr[index]
+            for (
+              let index_m = index_m_n;
+              index_m < timeSlot.length;
+              index_m++
+            ) {
+              const ele = timeSlot[index_m]
+              const index_time =
+                new Date(dataOptions).setHours(24 * index, 0, 0, 0) ||
+                new Date().setHours(24 * index, 0, 0, 0)
+              const ele_time = new Date(+ele?.gte * 1000).setHours(0, 0, 0, 0)
+              if (ele_time == index_time) {
+                element.back_color = 'back_color'
+                index_m_n = index_m + 1
+                break
               }
-              if(index ==0&&index_m==timeSlot.length - 1&&ele_time<index_time){
-                con_coc.timeMessage = "No available, contact to book";
+              if (
+                index == 0 &&
+                index_m == timeSlot.length - 1 &&
+                ele_time < index_time
+              ) {
+                con_coc.timeMessage = 'No available, contact to book'
                 con_coc.status = 2
-                break;
+                break
               }
-              if(index ==4&&con_coc.new_arr.every(e=>e.back_color=='a')&&ele_time>index_time){
-                con_coc.timeMessage = "Next Available " + new Intl.DateTimeFormat("en-US", {weekday: "short",month: "short",day: "2-digit"}).format(+ele?.gte*1000);
+              if (
+                index == 4 &&
+                con_coc.new_arr.every((e) => e.back_color == 'a') &&
+                ele_time > index_time
+              ) {
+                con_coc.timeMessage =
+                  'Next Available ' +
+                  new Intl.DateTimeFormat('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: '2-digit',
+                  }).format(+ele?.gte * 1000)
                 con_coc.status = 1
-                con_coc.nextTime = ele_time;
-                break;
+                con_coc.nextTime = ele_time
+                break
               }
             }
           }
-        }else if(len==0){
-          con_coc.status = 2;
-          con_coc.timeMessage = "No available, contact to book";
+        } else if (len == 0) {
+          con_coc.status = 2
+          con_coc.timeMessage = 'No available, contact to book'
         }
-        const container = document.createElement("div");
-        let styleSheet = document.createElement('style');
+        const container = document.createElement('div')
+        let styleSheet = document.createElement('style')
         styleSheet.innerText = `
         @scope (#${node.id}){
           .times_con{
@@ -7981,27 +8505,27 @@ const createExtendedDOMResolvers = function (app: App) {
             color: #000;
           }
         }
-        `;
-        container.id = "con"
-        if(con_coc.status ===0){
-          con_coc.new_arr.forEach(v=>{
-            const ele = document.createElement("div");
-            const week_ele = document.createElement("p");
-            const mday_ele = document.createElement("p");
-            week_ele.textContent = v.week;
-            mday_ele.textContent = v.mday;
-            ele.setAttribute("date",v.date+"")
-            ele.classList.add("times_con",v.back_color);
-            week_ele.style.fontWeight = "600";
-            ele.append(week_ele,mday_ele)
+        `
+        container.id = 'con'
+        if (con_coc.status === 0) {
+          con_coc.new_arr.forEach((v) => {
+            const ele = document.createElement('div')
+            const week_ele = document.createElement('p')
+            const mday_ele = document.createElement('p')
+            week_ele.textContent = v.week
+            mday_ele.textContent = v.mday
+            ele.setAttribute('date', v.date + '')
+            ele.classList.add('times_con', v.back_color)
+            week_ele.style.fontWeight = '600'
+            ele.append(week_ele, mday_ele)
             container.appendChild(ele)
-          });
-        }else if(con_coc.status ===1){
-          const ele = document.createElement("div");
-          ele.className = "times_con"
-          ele.classList.add("next")
-          ele.setAttribute("nextTime",con_coc.nextTime+"")
-          ele.textContent = con_coc.timeMessage;
+          })
+        } else if (con_coc.status === 1) {
+          const ele = document.createElement('div')
+          ele.className = 'times_con'
+          ele.classList.add('next')
+          ele.setAttribute('nextTime', con_coc.nextTime + '')
+          ele.textContent = con_coc.timeMessage
           container.appendChild(ele)
           styleSheet.innerText = `
           @scope (#${node.id}){
@@ -8026,12 +8550,12 @@ const createExtendedDOMResolvers = function (app: App) {
               background: #e9f2fc;
             }
           }
-          `;
-        }else if(con_coc.status ===2){
-          const ele = document.createElement("div");
-          ele.className = "times_con"
-          ele.classList.add("available")
-          ele.textContent = con_coc.timeMessage;
+          `
+        } else if (con_coc.status === 2) {
+          const ele = document.createElement('div')
+          ele.className = 'times_con'
+          ele.classList.add('available')
+          ele.textContent = con_coc.timeMessage
           container.appendChild(ele)
           styleSheet.innerText = `
           @scope (#${node.id}){
@@ -8056,66 +8580,65 @@ const createExtendedDOMResolvers = function (app: App) {
               background: #fff4e0;
             }
           }
-          `;
-        }else if(con_coc.status ===3){
-          node.style.display = "none";
+          `
+        } else if (con_coc.status === 3) {
+          node.style.display = 'none'
         }
         node.append(container)
-        document.head.appendChild(styleSheet);
+        document.head.appendChild(styleSheet)
 
-        document.querySelectorAll(`div.back_color`).forEach(e=>{
-          e.addEventListener("click",()=>{
-            let d = new Date((+e.getAttribute("date")));
-              let day = d.getDate();
-              let month = d.getMonth()+1;
-              let year = d.getUTCFullYear();
-              app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,{
-                  stime: (+e.getAttribute("date"))/1000,
-                  day,
-                  month,
-                  year,
-                  etime:(+e.getAttribute("date"))/1000+86400
-                });
-              });
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onDateClick")?.execute()
+        document.querySelectorAll(`div.back_color`).forEach((e) => {
+          e.addEventListener('click', () => {
+            let d = new Date(+e.getAttribute('date'))
+            let day = d.getDate()
+            let month = d.getMonth() + 1
+            let year = d.getUTCFullYear()
+            app.updateRoot((draft) => {
+              set(draft?.[pageName], dataKey, {
+                stime: +e.getAttribute('date') / 1000,
+                day,
+                month,
+                year,
+                etime: +e.getAttribute('date') / 1000 + 86400,
               })
-          })
-        });
-        document.querySelectorAll(`div.available`).forEach(e=>{
-          e.addEventListener("click",()=>{
-              setTimeout(()=>{
-              // @ts-ignore
-              component.get("onDateClick")?.execute()
+            })
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('onDateClick')?.execute()
             })
           })
         })
-        document.querySelectorAll(`div.next`).forEach(e=>{
-          e.addEventListener("click",()=>{
-            let d = new Date((+e.getAttribute("nextTime")));
-              let day = d.getDate();
-              let month = d.getMonth()+1;
-              let year = d.getUTCFullYear();
-              app.updateRoot(draft => {
-                set(draft?.[pageName], dataKey,{
-                  stime: (+e.getAttribute("nextTime"))/1000,
-                  day,
-                  month,
-                  year,
-                  etime:(+e.getAttribute("nextTime"))/1000+86400
-                });
-              });
-              setTimeout(()=>{
-                // @ts-ignore
-                component.get("onDateClick")?.execute()
+        document.querySelectorAll(`div.available`).forEach((e) => {
+          e.addEventListener('click', () => {
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('onDateClick')?.execute()
+            })
+          })
+        })
+        document.querySelectorAll(`div.next`).forEach((e) => {
+          e.addEventListener('click', () => {
+            let d = new Date(+e.getAttribute('nextTime'))
+            let day = d.getDate()
+            let month = d.getMonth() + 1
+            let year = d.getUTCFullYear()
+            app.updateRoot((draft) => {
+              set(draft?.[pageName], dataKey, {
+                stime: +e.getAttribute('nextTime') / 1000,
+                day,
+                month,
+                year,
+                etime: +e.getAttribute('nextTime') / 1000 + 86400,
               })
+            })
+            setTimeout(() => {
+              // @ts-expect-error
+              component.get('onDateClick')?.execute()
+            })
           })
         })
       },
-    }
-    
+    },
   }
 
   return u
