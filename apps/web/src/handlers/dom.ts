@@ -101,7 +101,7 @@ async function get_lists(params: {}) {
   }
   return (
     fetch(`https://${host}/elastic/search/${params['url']}`, requestOptions)
-      .then((response) => response.json())
+      .then(async (response) => response.json())
       // .then(result =>result)
       .catch((error) => console.log('error', error))
   )
@@ -2047,7 +2047,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // )
             const listener = addListener(node, 'input', executeFunc)
             component.addEventListeners(listener)
-          } else {
+          } else if (component?.type !== 'select') {
             const executeFunc = getOnChange({
               component,
               dataKey,
@@ -3256,6 +3256,7 @@ const createExtendedDOMResolvers = function (app: App) {
           component.on('timer:interval', (value) => {
             app.updateRoot((draft) => {
               const seconds = get(draft, dataKey) ? get(draft, dataKey) : 0
+              console.log('test000', dataKey, seconds)
               set(draft, dataKey, seconds + 1)
               const updatedSecs = get(draft, dataKey)
               if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
@@ -3267,6 +3268,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   )
                 }
               }
+              console.log('test001', textFunc(seconds))
               node && (node.textContent = textFunc(value))
             })
           })
@@ -4186,8 +4188,8 @@ const createExtendedDOMResolvers = function (app: App) {
           private caculateTime(timestamp: number) {
             const date = new Date(timestamp * 1000)
             const time = ''
-            let hour: string | number = date.getHours()
-            let minute: string | number = date.getMinutes()
+            let hour: number | string = date.getHours()
+            let minute: number | string = date.getMinutes()
             const AP = hour > 12 ? 'PM' : 'AM'
             hour = hour > 12 ? `${hour - 12}` : `${hour}`
             minute = minute < 10 ? `0${minute}` : `${minute}`
@@ -4273,6 +4275,7 @@ const createExtendedDOMResolvers = function (app: App) {
             `
             return fragment
           }
+
           private addListener(node: HTMLElement, event: string, callback: any) {
             node.addEventListener(event, callback)
             return {
@@ -5573,7 +5576,7 @@ const createExtendedDOMResolvers = function (app: App) {
             p {
               margin: 15px 0;
             }
-            
+
             table {
               border-collapse: collapse;
               margin: 15px 0;
@@ -5609,7 +5612,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
             .w-e-preView img {
               height: auto !important;
-              max-width: 100%;  
+              max-width: 100%;
             }
           </style>
         `
@@ -5989,7 +5992,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
         changBT()
 
-        const delay_frame = (delay: number) => {
+        const delay_frame = async (delay: number) => {
           let count = 0
           return new Promise(function (resolve, reject) {
             ;(function raf() {
@@ -6366,7 +6369,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   new Date().getTime().toString(36) +
                   Math.random().toString(36).substring(2)
                 const chunks_map = chunks.map(
-                  (v, i) =>
+                  async (v, i) =>
                     new Promise((res, rej) => {
                       let xhr = new XMLHttpRequest()
                       xhr.withCredentials = true
@@ -6383,7 +6386,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       xhr.send(data)
                     }),
                 )
-                const _upload_respose = (): Promise<any> => {
+                const _upload_respose = async (): Promise<any> => {
                   return new Promise((res, rej) => {
                     let xhr = new XMLHttpRequest()
                     xhr.withCredentials = true
@@ -6497,7 +6500,6 @@ const createExtendedDOMResolvers = function (app: App) {
               img.removeEventListener('click', stopRecording)
               img.addEventListener('click', startRecording)
               // 如果是正在录音的状态 则保留录音然后在销毁组件
-              console.log('proccess_fun', proccess_fun)
               stopRecording()
               node.parentNode?.removeChild(img)
               img.remove()
@@ -6706,7 +6708,7 @@ const createExtendedDOMResolvers = function (app: App) {
             padding: 0 15px;
             border-left: 1px solid #cdcdcd;
             user-select: none;
-            border-right: 1px solid #cdcdcd; 
+            border-right: 1px solid #cdcdcd;
             cursor: not-allowed;
           `
           save_btn.style.cssText = `
@@ -7116,7 +7118,7 @@ const createExtendedDOMResolvers = function (app: App) {
         text_start.style.cssText = `
           font-size: 16px;
           margin-left: 6px;
-        
+
         `
         start_button.append(audio_start, text_start)
 
@@ -7128,7 +7130,7 @@ const createExtendedDOMResolvers = function (app: App) {
         text_end.style.cssText = `
         font-size: 16px;
         margin-left: 6px;
-      
+
       `
         end_button.append(audio_end, text_end)
 
@@ -7310,7 +7312,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   new Date().getTime().toString(36) +
                   Math.random().toString(36).substring(2)
                 const chunks_map = chunks.map(
-                  (v, i) =>
+                  async (v, i) =>
                     new Promise((res, rej) => {
                       let xhr = new XMLHttpRequest()
                       setTimeout(() => {
@@ -7363,7 +7365,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       xhr.send(data)
                     }),
                 )
-                const _upload_respose = (): Promise<any> => {
+                const _upload_respose = async (): Promise<any> => {
                   return new Promise((res, rej) => {
                     let xhr = new XMLHttpRequest()
                     setTimeout(() => {
@@ -7858,7 +7860,7 @@ const createExtendedDOMResolvers = function (app: App) {
               height: clamp(25px,2vh,25px);
               box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
               background: #fff;
-              border-radius: 50%;    
+              border-radius: 50%;
               cursor: pointer;
               display: flex;
               font-weight: 800;
@@ -7909,7 +7911,7 @@ const createExtendedDOMResolvers = function (app: App) {
             .date-time{
               border-radius: 4px;
               width: clamp(60px,20%,100px);
-              height: 30px;              
+              height: 30px;
               flex-grow: unset;
               border: 1px solid rgb(222, 222, 223);
               background-color: ${node.style.backgroundColor};
