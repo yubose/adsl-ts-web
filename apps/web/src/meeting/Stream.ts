@@ -149,7 +149,11 @@ class MeetingStream {
   setVideoElement(
     node: HTMLCanvasElement | HTMLVideoElement | null | undefined,
   ) {
-    if (node) this.#videoElement = node
+    if (node) {
+      this.#videoElement = node
+      const maskEl = this.getMaskElement()
+      this.toggleBackdrop('open', node, maskEl)
+    }
   }
 
   getMaskElement() {
@@ -157,7 +161,11 @@ class MeetingStream {
   }
 
   hasVideoElement() {
-    return !!this.getVideoElement()
+    const node =
+      this.getElement()?.querySelector?.('video') ??
+      this.getElement()?.querySelector?.('canvas') ??
+      null
+    return !!node
   }
 
   removeVideoElement() {
@@ -410,6 +418,25 @@ class MeetingStream {
               containerEl.querySelector('canvas') ??
               containerEl.querySelector('video') ??
               undefined
+            const node = this.getVideoElement()
+            if (node) {
+              canvasEl = node
+              containerEl.appendChild(canvasEl)
+            }
+            if (!canvasEl) {
+              if (this.#isRenderSelfViewWithVideoElement) {
+                canvasEl = document.createElement('video') as HTMLVideoElement
+                canvasEl.style.width = '100%'
+                canvasEl.style.height = '100%'
+              } else {
+                canvasEl = document.createElement('canvas') as HTMLCanvasElement
+                canvasEl.style.width = '100%'
+                canvasEl.style.height = '100%'
+                canvasEl.width = parseInt(containerEl.style.width)
+                canvasEl.height = parseInt(containerEl.style.height)
+              }
+              containerEl.appendChild(canvasEl)
+            }
           }
         }
         console.log('test99', videoStatus)

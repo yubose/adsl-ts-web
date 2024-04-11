@@ -581,6 +581,13 @@ class App {
                 'Your caller is busy now, please call again later.',
                 'Recipient is not available. Please try again later.',
               ]
+              if (
+                this.initPage === 'AiVoice' &&
+                data.body === 'Click to jump to Call room'
+              ) {
+                this.register.emit('newPhoneCallIn')
+                return
+              }
 
               if (data?.did) {
                 let doc = data.did
@@ -1332,11 +1339,11 @@ class App {
     const onComponentsRendered = (page: NDOMPage) => {
       log.debug(`Done rendering DOM nodes for ${page.page}`)
       // if (page.page === 'VideoChat' || page.page === 'MeetingPage') {
-      //   if (this.meeting.isInMeeting && !this.meeting.calledOnConnected) {
-      //     this.meeting.onConnected(this.meeting.room)
-      //     this.meeting.calledOnConnected = true
-      //     log.debug(`Republishing tracks with meeting.onConnected`)
-      //   }
+      // if (this.meeting.isInMeeting && !this.meeting.calledOnConnected) {
+      //   this.meeting.onConnected(this.meeting.room)
+      //   this.meeting.calledOnConnected = true
+      //   log.debug(`Republishing tracks with meeting.onConnected`)
+      // }
       // }
       // Handle pages that have { viewPort: "top" }
       const pageObjectViewPort =

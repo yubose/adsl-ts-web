@@ -231,6 +231,15 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           }
           log.debug(`Mutation change`, mutations)
           const currentPage = app.initPage
+          if (
+            currentPage &&
+            MeetingPages.includes(currentPage) &&
+            mutations.length === 2
+          ) {
+            const videoEl =
+              app.meeting.mainStream.getVideoElement() as HTMLCanvasElement
+            app.mainStream.setVideoElement(videoEl)
+          }
           //Jumping to other pages of the meeting is still timed
           const timerNode = findByUX('videoTimer') as HTMLElement
           if (
@@ -293,16 +302,16 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               mask.style.display = 'none'
               app.selfStream.getElement().style.visibility = 'hidden'
             }
-            node.addEventListener('click', async () => {
-              if (app.selfStream.isRenderSelfViewWithVideoElement) {
-                await app.meeting.room.stream.stopRenderVideo(
-                  videoEl,
-                  app.selfStream.getParticipant()?.userId,
-                )
-              }
-              app.selfStream.setVideoElement(app.selfStream.getVideoElement())
-              app.mainStream.setVideoElement(videoEl)
-            })
+            // node.addEventListener('click', async () => {
+            //   if (app.selfStream.isRenderSelfViewWithVideoElement) {
+            //     await app.meeting.room.stream.stopRenderVideo(
+            //       videoEl,
+            //       app.selfStream.getParticipant()?.userId,
+            //     )
+            //   }
+            //   app.selfStream.setVideoElement(app.selfStream.getVideoElement())
+            //   app.mainStream.setVideoElement(videoEl)
+            // })
           } else if (node) {
             log.debug(
               `Element is hidden. Checking and removing audio or video elements if present...`,

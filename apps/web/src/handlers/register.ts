@@ -21,18 +21,19 @@ const registerEvents = {
   codeTask: 'codeTask',
   twilioOnPeopleShowRoom: 'twilioOnPeopleShowRoom',
   recordingStarted: 'recordingStarted',
-  recordingStopped:'recordingStopped',
-
+  recordingStopped: 'recordingStopped',
+  newPhoneCallIn: 'newPhoneCallIn',
 }
 interface RegisterHooks {
-  onNewMeetingInvite(onEvent:string): void
-  onDisconnect(onEvent:string): void
-  showExtendView(onEvent:string): void
-  onProviderDisconnect(onEvent:string): void
-  showExitWarningView(onEvent:string): void
-  twilioOnPeopleJoin(onEvent:string): void
-  codeTask(onEvent:string): void
-  twilioOnPeopleShowRoom(onEvent:string): void
+  onNewMeetingInvite(onEvent: string): void
+  onDisconnect(onEvent: string): void
+  showExtendView(onEvent: string): void
+  onProviderDisconnect(onEvent: string): void
+  showExitWarningView(onEvent: string): void
+  twilioOnPeopleJoin(onEvent: string): void
+  codeTask(onEvent: string): void
+  twilioOnPeopleShowRoom(onEvent: string): void
+  newPhoneCallIn(onEvent: string): void
 }
 type RegisterHook = keyof RegisterHooks
 
@@ -45,31 +46,37 @@ class createRegisters {
   #popUpWaitSeconds: number = 30
   #meetingEndTime: number = 0
   public timeId: Record<string, any>[] = []
-  hooks = new Map<RegisterHook,RegisterHooks[RegisterHook][]>()
+  hooks = new Map<RegisterHook, RegisterHooks[RegisterHook][]>()
 
-  set numberofExtensions(value:number){
+  set numberofExtensions(value: number) {
     this.#numberofExtensions = value
   }
-  get numberofExtensions(){
+
+  get numberofExtensions() {
     return this.#numberofExtensions
   }
-  set popUpWaitSeconds(value:number){
+
+  set popUpWaitSeconds(value: number) {
     this.#popUpWaitSeconds = value
   }
-  get popUpWaitSeconds(){
+
+  get popUpWaitSeconds() {
     return this.#popUpWaitSeconds
   }
-  set timePerExtendSeconds(value:number){
+
+  set timePerExtendSeconds(value: number) {
     this.#timePerExtendSeconds = value
   }
-  get timePerExtendSeconds(){
+
+  get timePerExtendSeconds() {
     return this.#timePerExtendSeconds
   }
 
-  set meetingEndTime(value:number){
+  set meetingEndTime(value: number) {
     this.#meetingEndTime = value
   }
-  get meetingEndTime(){
+
+  get meetingEndTime() {
     return this.#meetingEndTime
   }
 
@@ -89,6 +96,7 @@ class createRegisters {
         }
         try {
           if (app.notification?.supported) {
+            console.log(`FCMOnTokenReceive`, obj, options)
           } else {
             log.error(
               `Could not emit the "FCMOnTokenReceive" event because firebase ` +
@@ -131,8 +139,6 @@ class createRegisters {
       },
     }
 
-    
-
     this.registrees = {
       async FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'FCMOnTokenReceive'
@@ -154,7 +160,7 @@ class createRegisters {
             await Promise.all(
               app.actions?.emit
                 .get('register')
-                ?.map((obj: Store.ActionObject) =>
+                ?.map(async (obj: Store.ActionObject) =>
                   obj?.fn?.(
                     action,
                     app.nui?.getConsumerOptions({
@@ -187,7 +193,7 @@ class createRegisters {
           })
       },
       async onNewEcosDoc(componentObject: GlobalRegisterComponent) {
-        componentObject['eventId']= 'onNewEcosDoc'
+        componentObject['eventId'] = 'onNewEcosDoc'
 
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
@@ -208,15 +214,11 @@ class createRegisters {
             const result = await Promise.all(
               app.actions?.emit
                 .get('register')
-                ?.map((obj: Store.ActionObject) =>
-                  obj?.fn?.(
-                    action,
-                    options,
-                  ),
+                ?.map(async (obj: Store.ActionObject) =>
+                  obj?.fn?.(action, options),
                 ) || [],
             )
             if (result) {
-
               const results = u.array(result)
               while (results.length) {
                 let result = results.pop()
@@ -224,7 +226,7 @@ class createRegisters {
                   results.push(...result)
                   result = results.pop()
                 }
-                
+
                 const action = result
                 try {
                   const actionTypeKeys = [
@@ -245,21 +247,15 @@ class createRegisters {
                     })
                     const type = action?.['actionType']
                     const actionFn = app.root.actions[type]
-                    u.isFnc(actionFn) &&
-                      (await actionFn?.(
-                        newAction,
-                        options
-                      ))
-                  }else if(action?.['goto']){
+                    u.isFnc(actionFn) && (await actionFn?.(newAction, options))
+                  } else if (action?.['goto']) {
                     const fn = app.root.builtIn.goto
                     await fn?.(action['goto'])
                     break
                   }
-                  
                 } catch (error) {
                   log.error(error)
                 }
-               
               }
             }
             return did
@@ -269,7 +265,7 @@ class createRegisters {
         }
       },
       async onRejected(componentObject: GlobalRegisterComponent) {
-        componentObject['eventId']= 'onRejected'
+        componentObject['eventId'] = 'onRejected'
 
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
@@ -289,15 +285,11 @@ class createRegisters {
             const result = await Promise.all(
               app.actions?.emit
                 .get('register')
-                ?.map((obj: Store.ActionObject) =>
-                  obj?.fn?.(
-                    action,
-                    options,
-                  ),
+                ?.map(async (obj: Store.ActionObject) =>
+                  obj?.fn?.(action, options),
                 ) || [],
             )
             if (result) {
-
               const results = u.array(result)
               while (results.length) {
                 let result = results.pop()
@@ -305,7 +297,7 @@ class createRegisters {
                   results.push(...result)
                   result = results.pop()
                 }
-                
+
                 const action = result
                 try {
                   const actionTypeKeys = [
@@ -326,21 +318,15 @@ class createRegisters {
                     })
                     const type = action?.['actionType']
                     const actionFn = app.root.actions[type]
-                    u.isFnc(actionFn) &&
-                      (await actionFn?.(
-                        newAction,
-                        options
-                      ))
-                  }else if(action?.['goto']){
+                    u.isFnc(actionFn) && (await actionFn?.(newAction, options))
+                  } else if (action?.['goto']) {
                     const fn = app.root.builtIn.goto
                     await fn?.(action['goto'])
                     break
                   }
-                  
                 } catch (error) {
                   log.error(error)
                 }
-               
               }
             }
             return did
@@ -350,8 +336,8 @@ class createRegisters {
         }
       },
       async onNotificationClicked(componentObject: GlobalRegisterComponent) {
-        componentObject['eventId']= 'onNotificationClicked'
-        
+        componentObject['eventId'] = 'onNotificationClicked'
+
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
           trigger: 'register',
@@ -361,13 +347,15 @@ class createRegisters {
           componentObject,
         )) as NuiComponent.Instance
 
-        componentObject.onEvent = async function onNotificationClicked(notificationID:number) {
+        componentObject.onEvent = async function onNotificationClicked(
+          notificationID: number,
+        ) {
           try {
             action.dataKey = { var: notificationID }
             await Promise.all(
               app.actions?.emit
                 .get('register')
-                ?.map((obj: Store.ActionObject) =>
+                ?.map(async (obj: Store.ActionObject) =>
                   obj?.fn?.(
                     action,
                     app.nui?.getConsumerOptions({
@@ -382,13 +370,9 @@ class createRegisters {
             log.error(error)
           }
         }
-        
       },
-
-
     }
   }
-
 
   async handleRegister(componentObject: GlobalRegisterComponent) {
     let actions = componentObject.props.actions
@@ -406,10 +390,7 @@ class createRegisters {
         'refresh',
       ]
       for (const action of actions) {
-        if (
-          action?.actionType &&
-          actionTypeKeys.includes(action?.actionType)
-        ) {
+        if (action?.actionType && actionTypeKeys.includes(action?.actionType)) {
           const newAction = createAction({
             action: action,
             trigger: 'register',
@@ -431,7 +412,8 @@ class createRegisters {
           // })
           const functName = action.funcName
           const builtInFn =
-            this.app.root.builtIn[functName] || this.app.root.extendedBuiltIn[functName]
+            this.app.root.builtIn[functName] ||
+            this.app.root.extendedBuiltIn[functName]
           u.isFnc(builtInFn) &&
             (await builtInFn?.(
               action,
@@ -452,7 +434,7 @@ class createRegisters {
           }) as EmitAction
           await this.app.actions?.emit
             .get('register')
-            ?.map((obj: Store.ActionObject) =>
+            ?.map(async (obj: Store.ActionObject) =>
               obj?.fn?.(
                 emitAction,
                 this.app.nui?.getConsumerOptions({
@@ -467,23 +449,22 @@ class createRegisters {
       log.error(error)
     }
   }
-  
 
-  async registerHandlers(){
-    for(let [key,value] of Object.entries(registerEvents)){
+  async registerHandlers() {
+    for (let [key, value] of Object.entries(registerEvents)) {
       //@ts-expect-error
-      this.on(value,async()=>{
+      this.on(value, async () => {
         if (this.app.ndom.global.register) {
           const componentObject = this.app.ndom.global.register.get(value)
           if (componentObject) {
             const onEvent = componentObject.props.onEvent as any
             log.info(`[register] ${onEvent}`)
-            if(onEvent === 'onDisconnect'){
+            if (onEvent === 'onDisconnect') {
               if (u.isArr(this.timeId)) {
                 for (let i = 0; i < this.timeId.length; i++) {
                   clearTimeout(this.timeId[i]?.id)
                 }
-              }      
+              }
             }
             await this.handleRegister(componentObject)
           }
@@ -492,10 +473,7 @@ class createRegisters {
     }
   }
 
-  on<Hook extends RegisterHook>(
-    hook: Hook,
-    fn: RegisterHooks[Hook],
-  ){
+  on<Hook extends RegisterHook>(hook: Hook, fn: RegisterHooks[Hook]) {
     if (!this.hooks.has(hook)) this.hooks.set(hook, [])
     if (!this.hooks.get(hook)?.includes?.(fn)) {
       this.hooks.get(hook)?.push(fn)
@@ -581,13 +559,13 @@ class createRegisters {
     this.emit(onEvent)
   }
 
-
   setTimeId(key: string, id: unknown) {
     this.timeId.push({
       key: key,
       id: id,
     })
   }
+
   removeTime(key: string) {
     if (u.isArr(this.timeId)) {
       for (let i = 0; i < this.timeId.length; i++) {
