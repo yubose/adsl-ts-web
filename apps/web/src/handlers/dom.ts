@@ -2047,7 +2047,12 @@ const createExtendedDOMResolvers = function (app: App) {
             // )
             const listener = addListener(node, 'input', executeFunc)
             component.addEventListeners(listener)
-          } else if (component?.type !== 'select') {
+          } else {
+            if (component.type === 'select') {
+              component.eventListeners?.['change']?.map((callback: Function) =>
+                callback(),
+              )
+            }
             const executeFunc = getOnChange({
               component,
               dataKey,
