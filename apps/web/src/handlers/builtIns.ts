@@ -1471,9 +1471,11 @@ export const extendedSdkBuiltIns = {
         )
       } else {
         log.debug(`Connecting to room id: ${action?.sessionName}`)
+        const base64Tobase32 = this.root.builtIn.utils?.['base64Tobase32']
+        const sessionBs32Name = base64Tobase32({ key: action?.sessionName })
         newRoom = (await this.meeting.join(
           action?.accessToken,
-          action?.sessionName,
+          sessionBs32Name,
           action?.userName,
         )) as Room
         if (newRoom) {
