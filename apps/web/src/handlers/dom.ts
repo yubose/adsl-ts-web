@@ -4190,15 +4190,56 @@ const createExtendedDOMResolvers = function (app: App) {
             return this.chatBox
           }
 
+          private getWeekStartTimestamp() {
+            const now = new Date()
+            const dayOfWeek = now.getDay()
+            const weekStart = new Date(
+              now.getTime() - dayOfWeek * 24 * 60 * 60 * 1000,
+            )
+
+            weekStart.setHours(0, 0, 0, 0)
+
+            return weekStart.getTime() / 1000
+          }
+
+          private getDayStartTimestamp() {
+            const now = new Date()
+            now.setHours(0, 0, 0, 0)
+            return now.getTime() / 1000
+          }
+
           private caculateTime(timestamp: number) {
+            const weekStartTimestamp = this.getWeekStartTimestamp()
+            const dayStartTimestamp = this.getDayStartTimestamp()
+            const weekName = [
+              'Sunday',
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday',
+            ]
             const date = new Date(timestamp * 1000)
-            const time = ''
             let hour: number | string = date.getHours()
             let minute: number | string = date.getMinutes()
             const AP = hour > 12 ? 'PM' : 'AM'
             hour = hour > 12 ? `${hour - 12}` : `${hour}`
             minute = minute < 10 ? `0${minute}` : `${minute}`
-            return `${hour}:${minute} ${AP}`
+            if (timestamp > dayStartTimestamp) {
+              return `${hour}:${minute} ${AP}`
+            } else if (timestamp > weekStartTimestamp) {
+              let day: number | string = date.getDay()
+              let week = weekName[day]
+              return `${week} ${hour}:${minute} ${AP}`
+            } else {
+              let month: number | string = date.getMonth() + 1
+              let year: number | string = date.getFullYear()
+              let day: number | string = date.getDate()
+              month = month < 10 ? `0${month}` : `${month}`
+              day = day < 10 ? `0${day}` : `${day}`
+              return `${day}/${month}/${year} ${hour}:${minute} ${AP}`
+            }
           }
 
           private createTextNode(Msg: any): DocumentFragment {
