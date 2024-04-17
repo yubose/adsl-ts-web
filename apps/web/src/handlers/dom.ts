@@ -6328,7 +6328,9 @@ const createExtendedDOMResolvers = function (app: App) {
               onMouseUp,
             )
           }
+          let recordStatus = false
           function startRecording() {
+            recordStatus = true
             recorder
               .start()
               .then(() => {
@@ -6348,6 +6350,7 @@ const createExtendedDOMResolvers = function (app: App) {
               .stop()
               .getMp3()
               .then(async ([buffer, blob]) => {
+                recordStatus = false
                 img.src = `${assetsUrl}audio_start.svg`
                 const chun_size_sample_rates = 16000 * 20
                 const chunks: any[] = []
@@ -6506,7 +6509,9 @@ const createExtendedDOMResolvers = function (app: App) {
               img.removeEventListener('click', stopRecording)
               img.addEventListener('click', startRecording)
               // 如果是正在录音的状态 则保留录音然后在销毁组件
-              stopRecording()
+              if (recordStatus) {
+                stopRecording()
+              }
               node.parentNode?.removeChild(img)
               img.remove()
             } else {
