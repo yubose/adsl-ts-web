@@ -691,29 +691,32 @@ class App {
           log.error(error instanceof Error ? error : new Error(String(error)))
         }
       }
-
-      const host = 'https://worldtimeapi.org/api/ip'
-      fetch(host)
-        .then(async (response) => response.json())
-        .then((data) => {
-          const selfDialog = new SelfDialog()
-          const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
-          if (
-            data['unixtime'] &&
-            Math.abs(data['unixtime'] - currentClientUnixTime) > 4 * 60
-          ) {
-            selfDialog.insert(
-              `Sorry, You computer's local time is not accurate, please correct and click refresh button to refresh the page.`,
-              {
-                confirmButtonCallback: () => {
-                  window.location.reload()
-                  selfDialog.destroy()
+      try {
+        const host = 'https://worldtimeapi.org/api/ip'
+        fetch(host)
+          .then(async (response) => response.json())
+          .then((data) => {
+            const selfDialog = new SelfDialog()
+            const currentClientUnixTime = Math.ceil(new Date().getTime() / 1000)
+            if (
+              data['unixtime'] &&
+              Math.abs(data['unixtime'] - currentClientUnixTime) > 4 * 60
+            ) {
+              selfDialog.insert(
+                `Sorry, You computer's local time is not accurate, please correct and click refresh button to refresh the page.`,
+                {
+                  confirmButtonCallback: () => {
+                    window.location.reload()
+                    selfDialog.destroy()
+                  },
+                  confirmButtonText: 'Refresh',
                 },
-                confirmButtonText: 'Refresh',
-              },
-            )
-          }
-        })
+              )
+            }
+          })
+      } catch (error) {
+        console.error(error)
+      }
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()
@@ -725,26 +728,30 @@ class App {
         }
         this.disableSpinner()
       })
-      if (this.noodl) await this.noodl.init()
-      const initInjectScripts = this.noodl.config?.preloadlibInit
-      if (u.isArr(initInjectScripts) && initInjectScripts.length > 0) {
-        // eslint-disable-next-line
-        const loadjs = (url: string) => {
-          return new Promise((resolve, reject) => {
-            const script_ = document.createElement('script')
-            script_.onload = () => resolve(true)
-            script_.onerror = () => reject()
-            script_.type = 'text/javascript'
-            script_.async = true
-            document.body.append(script_)
-            script_.src = url
-          })
+      try {
+        if (this.noodl) await this.noodl.init()
+        const initInjectScripts = this.noodl.config?.preloadlibInit
+        if (u.isArr(initInjectScripts) && initInjectScripts.length > 0) {
+          // eslint-disable-next-line
+          const loadjs = (url: string) => {
+            return new Promise((resolve, reject) => {
+              const script_ = document.createElement('script')
+              script_.onload = () => resolve(true)
+              script_.onerror = () => reject()
+              script_.type = 'text/javascript'
+              script_.async = true
+              document.body.append(script_)
+              script_.src = url
+            })
+          }
+          await Promise.all(
+            initInjectScripts.map(async (url) => await loadjs(url)),
+          )
         }
-        await Promise.all(
-          initInjectScripts.map(async (url) => await loadjs(url)),
-        )
+        onSdkInit?.(this.noodl)
+      } catch (error) {
+        console.error(error)
       }
-      onSdkInit?.(this.noodl)
       // console.time('a')
 
       log.debug(`Initialized @aitmed/cadl sdk instance`)
@@ -827,22 +834,32 @@ class App {
       }
 
       // Override the start page if they were on a previous page
-      const cachedPages = await this.getCachedPages()
-      const cachedPage = cachedPages[0]
+      try {
+        const cachedPages = await this.getCachedPages()
+        const cachedPage = cachedPages[0]
 
-      if (cachedPages?.length) {
-        if (cachedPage?.name && cachedPage.name !== startPage) {
-          startPage = cachedPage.name
+        if (cachedPages?.length) {
+          if (cachedPage?.name && cachedPage.name !== startPage) {
+            startPage = cachedPage.name
+          }
         }
+      } catch (error) {
+        console.error(error)
       }
 
-      const injectScripts = this.noodl.config?.preloadlib
-      if (u.isArr(injectScripts) && injectScripts.length > 0) {
-        // eslint-disable-next-line
-        // Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
-        setTimeout(() => {
-          Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
-        }, 1000)
+      try {
+        const injectScripts = this.noodl.config?.preloadlib
+        if (u.isArr(injectScripts) && injectScripts.length > 0) {
+          // eslint-disable-next-line
+          // Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
+          setTimeout(() => {
+            Promise.all(
+              injectScripts.map(async (url) => this.injectScript(url)),
+            )
+          }, 1000)
+        }
+      } catch (error) {
+        console.error(error)
       }
 
       const cfgStore = createNoodlConfigValidator({
