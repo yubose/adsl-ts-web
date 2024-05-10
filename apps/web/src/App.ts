@@ -1267,11 +1267,11 @@ class App {
           viewport.width = window.innerWidth
           viewport.height = window.innerHeight
         }
-        this.#spinner = new Spinner({
-          containerWidth: viewport.width,
-          containerHeight: viewport.height,
-          ...this.spinner.opts,
-        })
+        // this.#spinner = new Spinner({
+        //   containerWidth: viewport.width,
+        //   containerHeight: viewport.height,
+        //   ...this.spinner.opts,
+        // })
       } else {
         viewport.width = w
         viewport.height = h
