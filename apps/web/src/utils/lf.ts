@@ -2,7 +2,7 @@ import localForage from 'localforage'
 import log from '../log'
 
 export const lf = localForage.createInstance({
-  driver: [localForage.INDEXEDDB, localForage.WEBSQL, localForage.LOCALSTORAGE],
+  driver: [localForage.LOCALSTORAGE, localForage.INDEXEDDB, localForage.WEBSQL],
   // driver: [localForage.LOCALSTORAGE],
   storeName: 'noodl',
   description: 'Storage for noodl web apps',
@@ -35,7 +35,7 @@ export async function getKeyCount() {
 
 export async function getItem(key = '') {
   let value
-  await lf.getItem(key).then((res)=>{
+  await lf.getItem(key).then((res) => {
     value = res
   })
   return value

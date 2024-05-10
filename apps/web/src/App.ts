@@ -861,12 +861,26 @@ class App {
       } catch (error) {
         console.error(error)
       }
-
+      console.log('test01')
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
-        get: async (key: string) => lf.getItem(key),
-        set: async (key: string, value: any) => lf.setItem(key, value),
+        get: async (key: string) => {
+          try {
+            return lf.getItem(key)
+          } catch (error) {
+            console.error(error)
+            return
+          }
+        },
+        set: async (key: string, value: any) => {
+          try {
+            return lf.setItem(key, value)
+          } catch (error) {
+            console.error(error)
+            return
+          }
+        },
       })
 
       const isTimestampCached = !!(await cfgStore.getTimestampKey())
@@ -874,6 +888,7 @@ class App {
 
       if (!isTimestampCached && isConfigCached) await cfgStore.cacheTimestamp()
 
+      console.log('test02')
       if (this.mainPage && location.href && !parsedUrl.hasParams) {
         let url = location.href
         if (url.includes('&checkoutId=')) {
