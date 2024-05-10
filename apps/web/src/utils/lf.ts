@@ -2,7 +2,7 @@ import localForage from 'localforage'
 import log from '../log'
 
 export const lf = localForage.createInstance({
-  driver: [localForage.LOCALSTORAGE, localForage.INDEXEDDB, localForage.WEBSQL],
+  driver: [localForage.INDEXEDDB, localForage.WEBSQL, localForage.LOCALSTORAGE],
   // driver: [localForage.LOCALSTORAGE],
   storeName: 'noodl',
   description: 'Storage for noodl web apps',
