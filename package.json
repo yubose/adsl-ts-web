@@ -193,7 +193,7 @@
   "dependencies": {
     "html5-qrcode": "^2.2.1",
     "noodl-types": "^1.0.277",
-    "noodl-ui": "^0.1.1193",
+    "noodl-ui": "^0.1.1194",
     "sweetalert2": "^11.7.6"
   }
 }
