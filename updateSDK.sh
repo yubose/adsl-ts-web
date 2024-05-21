@@ -1,11 +1,11 @@
 #!/bin/bash
-npm install @aitmed/cadl@1.7.141-1 -f
+npm install @aitmed/cadl@latest -f
 npm install @aitmed/ecos-lvl2-sdk@latest -f
 npm i noodl-ui@latest -f
 npm i noodl-types@latest -f
 
 cd apps/web
-npm install @aitmed/cadl@1.7.141-1 -f
+npm install @aitmed/cadl@latest -f
 npm install @aitmed/ecos-lvl2-sdk@latest -f
 npm i noodl-ui@latest -f
 npm i noodl-types@latest -f
