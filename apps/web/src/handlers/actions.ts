@@ -154,7 +154,7 @@ const createActions = function createActions(app: App) {
                   }
                 } else {
                   const isPossiblyAction = ('actionType' in result) && (result.actionType !== 'builtIn')
-                  
+
                   const isPossiblyToastMsg = 'message' in result
                   const isPossiblyGoto =
                     'goto' in result || 'destination' in result
@@ -390,7 +390,7 @@ const createActions = function createActions(app: App) {
     useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
 
-     
+
       let isRunLeave:boolean = true
       if (options?.component?.blueprint?.["dataOption"]?.["blank"] && u.isStr(goto)) {
         app.disableSpinner()
@@ -533,8 +533,8 @@ const createActions = function createActions(app: App) {
         }else{
           localStorage.setItem('continueGoto',destinationParam)
         }
-        
-        if(u.isArr(results) && hasAbortPopup(results)) return    
+
+        if(u.isArr(results) && hasAbortPopup(results)) return
       }
       if (!destinationParam.startsWith('http')) {
         // Avoids letting page components (lower level components) from mutating the tab's url
@@ -615,11 +615,13 @@ const createActions = function createActions(app: App) {
       divRootDom.setAttribute('id', 'rootDom')
       let w = document.documentElement.scrollWidth
       let h = document.documentElement.scrollHeight
-      divRootDom.style.cssText = `
-            position: relative;
+      divRootDom.style.cssText =  `
+            position: absolute;
             background-color: rgba(0,0,0,0.3);
             z-index: 10000000;
             display: flex;
+            top: 0;
+            left: 0;
             width: ${w}px;
             height: ${h}px;
             flex-direction: column;
@@ -825,7 +827,7 @@ const createActions = function createActions(app: App) {
           }
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
-            
+
             if (fileType) {
               log.error('files')
               log.error(files)
