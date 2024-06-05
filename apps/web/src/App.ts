@@ -54,6 +54,7 @@ import axios from 'axios'
 import debounce from 'lodash/debounce'
 import SelfDialog from './utils/Dialog'
 import UploadProgress from './utils/UploadProgress'
+import createCallingFns from './calling/Calling'
 class App {
   #state: t.AppState = {
     actionEvents: [],
@@ -87,6 +88,7 @@ class App {
   #ecosLogger: ReturnType<typeof createEcosLogger>
   #keypress: AtsLotusKeypress
   #meeting: ReturnType<typeof createMeetingFns>
+  #calling: ReturnType<typeof createCallingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
   #nui: t.AppConstructorOptions['nui']
@@ -126,6 +128,7 @@ class App {
   constructor({
     getStatus,
     meeting,
+    calling,
     noodl,
     notification,
     nui = NUI,
@@ -139,6 +142,9 @@ class App {
     this.#meeting =
       (meeting && u.isFnc(meeting) ? meeting(this) : meeting) ||
       createMeetingFns(this)
+    this.#calling =
+      (calling && u.isFnc(calling) ? calling(this) : calling) ||
+      createCallingFns(this)
     this.#notification = notification
     this.#ndom = ndom
     this.#nui = nui
@@ -259,6 +265,10 @@ class App {
 
   get meeting() {
     return this.#meeting
+  }
+
+  get calling() {
+    return this.#calling
   }
 
   get noodl() {

@@ -5,6 +5,7 @@ import { ActionObject, PageObject, RegisterComponentObject } from 'noodl-types'
 import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
 import { ActionEvent } from '../../constants'
+import createCallingFns from '../../calling/Calling'
 export * from './domTypes'
 export * from './meetingTypes'
 // export * from './twilio'
@@ -79,6 +80,7 @@ export interface AppConstructorOptions {
   configKey?: string
   getStatus?: typeof Account.getStatus
   meeting?: Meeting | typeof createMeetingFns
+  calling?: Calling | typeof createCallingFns
   notification?: AppNotification
   noodl?: CADL
   ndom?: NDOM
@@ -113,6 +115,7 @@ export type ActionMetadata<PKey extends string = string> = Record<
   }
 
 export type Meeting = ReturnType<typeof createMeetingFns>
+export type Calling = ReturnType<typeof createCallingFns>
 export type FirebaseApp = firebase.app.App
 export type FirebaseMessaging = firebase.messaging.Messaging
 

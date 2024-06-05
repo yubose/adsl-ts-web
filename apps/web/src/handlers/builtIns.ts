@@ -1263,6 +1263,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       destroyAllToasts()
     })
   }
+
+  const mute = async function onMute(action, options) {
+    const isMuted = app.calling.call.isMuted()
+    app.calling.call.mute(!isMuted)
+  }
+  const disconnectCall = async function onDisconnectCall(action, options) {
+    app.calling.leave()
+  }
   const builtIns = {
     checkField,
     disconnectMeeting,
@@ -1289,6 +1297,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     countDown,
     switchCamera,
     toast,
+    mute,
+    disconnectCall,
   }
 
   /** Shared common logic for both lock/logout logic */
@@ -1480,6 +1490,49 @@ export const extendedSdkBuiltIns = {
         )) as Room
         if (newRoom) {
           log.info(`Connected to room: ${action?.sessionName}`, newRoom)
+        }
+      }
+    } catch (error) {
+      log.error(error)
+      error instanceof Error && toast(error.message, { type: 'default' })
+    }
+  },
+  async callPhone(
+    this: App,
+    action: BuiltInActionObject & {
+      from: string
+      accessToken: string
+      to: string
+    },
+  ) {
+    try {
+      if (action) {
+        let msg = ''
+        if (action?.accessToken) msg += 'Received access token '
+        if (action?.from) msg += 'and to'
+        log.debug(msg, action)
+      } else {
+        log.error(
+          'Expected an action object but the value passed in was null or undefined',
+          action,
+        )
+      }
+      let newCall: any = null
+      if (this.calling?.calledOnConnected) {
+        // newCall = await this.calling.rejoin()
+        log.info(
+          `Reusing existent call that you are already connected to`,
+          newCall,
+        )
+      } else {
+        log.debug(`Connecting to call to: ${action?.to}`)
+        newCall = await this.calling.join(
+          action?.accessToken,
+          action.from,
+          action.to,
+        )
+        if (newCall) {
+          log.info(`Connected to call: ${action?.sessionName}`, newCall)
         }
       }
     } catch (error) {
