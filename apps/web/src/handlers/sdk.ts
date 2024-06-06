@@ -81,6 +81,9 @@ export function getSdkHelpers(app: App) {
     get videoChat() {
       return extendedSdkBuiltIns.videoChat.bind(app)
     },
+    get callPhone() {
+      return extendedSdkBuiltIns.callPhone.bind(app)
+    },
     get initExtend() {
       return extendedSdkBuiltIns.initExtend.bind(app)
     },
@@ -219,7 +222,6 @@ export function getSdkHelpers(app: App) {
                     videoChat: () => {},
                   },
                   pageSuffix: '',
-
                 })
                 const doc = new y.Document(
                   sdk.root[page],
