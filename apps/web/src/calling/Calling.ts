@@ -7,9 +7,10 @@ import { Calling } from '../app/types'
 const createCallingFns = function _createCallingFns(app: App) {
   let _call = new EventEmitter() as any & { _isMock?: boolean }
   let _calledOnConnected = false
+  let device
 
   async function _createCall(token: string, from: string, to: string) {
-    const device = new Device(token)
+    device = new Device(token)
     let call = await device.connect({
       params: {
         to: to,
@@ -24,13 +25,13 @@ const createCallingFns = function _createCallingFns(app: App) {
       log.debug('disconnect', payload)
     }
     function accept(payload) {
-      log.debug('disconnect', payload)
+      log.debug('accept', payload)
     }
     function cancel(payload) {
-      log.debug('disconnect', payload)
+      log.debug('cancel', payload)
     }
     function reject(payload) {
-      log.debug('disconnect', payload)
+      log.debug('reject', payload)
     }
     call.off('disconnect', disconnect)
     call.off('accept', accept)
@@ -83,6 +84,7 @@ const createCallingFns = function _createCallingFns(app: App) {
       if (this.calledOnConnected) {
         _call.removeAllListeners()
         o.calledOnConnected = false
+        device.destroy()
         o.reset()
         _call.disconnect()
       }
