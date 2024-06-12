@@ -22,9 +22,14 @@ const createCallingFns = function _createCallingFns(app: App) {
 
   async function onConnected(call: Calling['call']) {
     function disconnect(payload) {
+      app.register.emit('onDisconnect')
       log.debug('disconnect', payload)
     }
+    function ringing(payload) {
+      log.debug('ringing', payload)
+    }
     function accept(payload) {
+      app.register.emit('onRecord')
       log.debug('accept', payload)
     }
     function cancel(payload) {
@@ -33,15 +38,13 @@ const createCallingFns = function _createCallingFns(app: App) {
     function reject(payload) {
       log.debug('reject', payload)
     }
-    call.off('disconnect', disconnect)
-    call.off('accept', accept)
-    call.off('cancel', cancel)
-    call.off('reject', reject)
+    call.removeAllListeners()
 
     call.on('disconnect', disconnect)
     call.on('accept', accept)
     call.on('cancel', cancel)
     call.on('reject', reject)
+    call.off('ringing', ringing)
   }
 
   const o = {
@@ -82,11 +85,11 @@ const createCallingFns = function _createCallingFns(app: App) {
     leave() {
       log.error(`LEAVING MEETING ROOM`)
       if (this.calledOnConnected) {
-        _call.removeAllListeners()
-        o.calledOnConnected = false
-        device.destroy()
-        o.reset()
         _call.disconnect()
+        _call.removeAllListeners()
+        device.destroy()
+        o.calledOnConnected = false
+        o.reset()
       }
       return this
     },

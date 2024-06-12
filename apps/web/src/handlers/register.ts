@@ -14,6 +14,7 @@ import { GlobalRegisterComponent } from '../app/types'
 const registerEvents = {
   onNewMeetingInvite: 'onNewMeetingInvite',
   onDisconnect: 'onDisconnect',
+  onRecord: 'onRecord',
   showExtendView: 'showExtendView',
   onProviderDisconnect: 'onProviderDisconnect',
   showExitWarningView: 'showExitWarningView',
