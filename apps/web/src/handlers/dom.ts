@@ -7395,6 +7395,17 @@ const createExtendedDOMResolvers = function (app: App) {
                             'id'
                           ] as string,
                         )
+                      } else if (
+                        app.root.Global?.['formData']?.['currentFacility']?.[
+                          'relationEdge'
+                        ]?.['id']
+                      ) {
+                        data.append(
+                          'appointmentId',
+                          aapp.root.Global?.['formData']?.['currentFacility']?.[
+                            'relationEdge'
+                          ]?.['id'] as string,
+                        )
                       } else {
                         data.append(
                           'appointmentId',
@@ -7459,6 +7470,17 @@ const createExtendedDOMResolvers = function (app: App) {
                         app.root.Global?.['roomInfo']?.['edge']?.[
                           'id'
                         ] as string,
+                      )
+                    } else if (
+                      app.root.Global?.['formData']?.['currentFacility']?.[
+                        'relationEdge'
+                      ]?.['id']
+                    ) {
+                      data.append(
+                        'appointmentId',
+                        aapp.root.Global?.['formData']?.['currentFacility']?.[
+                          'relationEdge'
+                        ]?.['id'] as string,
                       )
                     } else {
                       data.append(
