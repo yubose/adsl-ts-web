@@ -25,6 +25,9 @@ const createCallingFns = function _createCallingFns(app: App) {
       app.register.emit('onDisconnect')
       log.debug('disconnect', payload)
     }
+    function handleError(payload) {
+      log.debug('error', payload)
+    }
     function ringing(payload) {
       log.debug('ringing', payload)
     }
@@ -44,7 +47,8 @@ const createCallingFns = function _createCallingFns(app: App) {
     call.on('accept', accept)
     call.on('cancel', cancel)
     call.on('reject', reject)
-    call.off('ringing', ringing)
+    call.on('ringing', ringing)
+    call.on('error', handleError)
   }
 
   const o = {
@@ -90,6 +94,8 @@ const createCallingFns = function _createCallingFns(app: App) {
         device.destroy()
         o.calledOnConnected = false
         o.reset()
+      } else {
+        app.register.emit('onDisconnect')
       }
       return this
     },

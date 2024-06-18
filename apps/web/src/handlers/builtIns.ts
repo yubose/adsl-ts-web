@@ -3,6 +3,9 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
+import 'firebase/auth'
+import { firebase as firebaseConfig } from '../app/config'
+import firebase from 'firebase/app'
 import {
   BASE_PAGE_URL,
   eventId as ndomEventId,
@@ -1436,6 +1439,33 @@ export const extendedSdkBuiltIns = {
         return download(url, filename)
       })
     }
+  },
+  signInWithGoogle(this: App) {
+    return new Promise((resolve, reject) => {
+      firebase.initializeApp(firebaseConfig.webPatient.config)
+      const provider = new firebase.auth.GoogleAuthProvider()
+      firebase
+        .auth()
+        .signInWithPopup(provider)
+        .then((result) => {
+          // This gives you a Google Access Token. You can use it to access the Google API.
+          const credential = result.credential
+          const token = credential.accessToken
+          // The signed-in user info.
+          const user = result.user
+          // IdP data available using getAdditionalUserInfo(result)
+          // ...
+          console.log(token, user)
+          resolve(user)
+        })
+        .catch((error) => {
+          // Handle Errors here.
+          const errorCode = error.code
+          const errorMessage = error.message
+          console.log(errorCode, errorMessage)
+          reject(errorMessage)
+        })
+    })
   },
   /**
    * Called during "init" when navigating to VideoChat

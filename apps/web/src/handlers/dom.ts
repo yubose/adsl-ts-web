@@ -8715,6 +8715,39 @@ const createExtendedDOMResolvers = function (app: App) {
         })
       },
     },
+    '[App] googleSignIn': {
+      cond: ({ component: c }) => c.contentType === 'googleSignIn',
+      resolve({ node, component }) {
+        function handleGoogleSignIn(response) {
+          console.log('signIn', response)
+        }
+        function handleGoogleSignInCancel(response) {
+          console.log('cancel: ', response)
+        }
+
+        if ('google' in window) {
+          const google: any = window?.google
+          google.accounts.id.initialize({
+            client_id:
+              '402340538049-fali4j5n2ccvju87ptro8sqemjjit8q2.apps.googleusercontent.com',
+            cancel_on_tap_outside: true, // 控制是否在提示之外进行点击时取消提示(关闭一键登录弹窗)，默认true
+            auto_select: true, // 开启自动登录功能，默认false
+            callback: handleGoogleSignIn, // 验证成功回调
+            cancel: handleGoogleSignInCancel,
+          })
+          // 渲染“使用 Google 帐号登录”按钮
+          google.accounts.id.renderButton(node, {
+            theme: 'outline',
+            size: 'large',
+            type: 'icon',
+            text: 'login_with',
+            shape: 'circle',
+          })
+          // 启用一键登录提示(弹窗)功能
+          google.accounts.id.prompt()
+        }
+      },
+    },
   }
 
   return u

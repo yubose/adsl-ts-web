@@ -36,6 +36,11 @@ export function getSdkHelpers(app: App) {
         return app.builtIns.get('exportPDF')?.find(Boolean)?.fn
       },
     },
+    thirdPartyRequest: {
+      get signInWithGoogle() {
+        return extendedSdkBuiltIns.signInWithGoogle
+      },
+    },
     get downloadQRCode() {
       return extendedSdkBuiltIns.downloadQRCode
     },
