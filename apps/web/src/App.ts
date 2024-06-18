@@ -427,7 +427,7 @@ class App {
         pageUrl = pageUrl.page
       }
 
-      if (pageUrl && pageUrl.includes('&')) {
+      if (pageUrl?.includes('&')) {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
         }
@@ -569,7 +569,6 @@ class App {
          * Instantiating the SDK this way will soon be @deprecated
          * The new way to be to import { createInstance } from the same file and instantiate it using that function
          */
-        //@ts-expect-error
         if (process.env.NODE_ENV !== 'test') {
           this.use((await import('./app/noodl')).noodl as CADL)
         } else {
@@ -703,7 +702,7 @@ class App {
       }
       try {
         const host = 'https://worldtimeapi.org/api/ip'
-        fetch(host)
+        await fetch(host)
           .then(async (response) => response.json())
           .then((data) => {
             const selfDialog = new SelfDialog()
@@ -862,8 +861,8 @@ class App {
         if (u.isArr(injectScripts) && injectScripts.length > 0) {
           // eslint-disable-next-line
           // Promise.all(injectScripts.map(async (url) => this.injectScript(url)))
-          setTimeout(() => {
-            Promise.all(
+          setTimeout(async () => {
+            await Promise.all(
               injectScripts.map(async (url) => this.injectScript(url)),
             )
           }, 1000)
@@ -1277,11 +1276,6 @@ class App {
           viewport.width = window.innerWidth
           viewport.height = window.innerHeight
         }
-        // this.#spinner = new Spinner({
-        //   containerWidth: viewport.width,
-        //   containerHeight: viewport.height,
-        //   ...this.spinner.opts,
-        // })
       } else {
         viewport.width = w
         viewport.height = h
@@ -1705,17 +1699,14 @@ class App {
 
   disableSpinner() {
     this.#spinner.stop()
-
     this.#state.spinner.active = false
     this.#state.spinner.page = null
     this.#state.spinner.timeout = null
     this.#state.spinner.trigger = null
-
     if (this.#state.spinner.ref) {
       clearTimeout(this.#state.spinner.ref)
       this.#state.spinner.ref = null
     }
-
     if (this.#state.spinner.timeout) {
       clearTimeout(this.#state.spinner.timeout)
       this.#state.spinner.timeout = null

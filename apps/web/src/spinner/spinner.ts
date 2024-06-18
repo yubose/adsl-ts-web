@@ -30,8 +30,8 @@ export class Spinner {
 
   constructor(opts?: Record<string, any>) {
     this.opts = { ...defaults, ...opts }
-    if(opts?.containerWidth){
-      this.opts.left = `${opts.containerWidth/2}px`
+    if (opts?.containerWidth) {
+      this.opts.left = `${opts.containerWidth / 2}px`
     }
   }
 
@@ -73,7 +73,7 @@ export class Spinner {
       }
       if (this.el.parentNode) {
         this.el.parentNode.removeChild(this.el)
-      }else{
+      } else {
         this.el.remove()
       }
       this.el = undefined

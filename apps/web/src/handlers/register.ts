@@ -451,7 +451,7 @@ class createRegisters {
     }
   }
 
-  async registerHandlers() {
+  registerHandlers() {
     for (let [key, value] of Object.entries(registerEvents)) {
       //@ts-expect-error
       this.on(value, async () => {
