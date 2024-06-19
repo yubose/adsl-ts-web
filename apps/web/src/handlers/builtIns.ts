@@ -1440,29 +1440,35 @@ export const extendedSdkBuiltIns = {
       })
     }
   },
-  signInWithGoogle(this: App) {
+  async signInWithGoogle(this: App) {
     return new Promise((resolve, reject) => {
-      firebase.initializeApp(firebaseConfig.webPatient.config)
+      // firebase.initializeApp(firebaseConfig.webPatient.config)
       const provider = new firebase.auth.GoogleAuthProvider()
       firebase
         .auth()
         .signInWithPopup(provider)
         .then((result) => {
-          // This gives you a Google Access Token. You can use it to access the Google API.
-          const credential = result.credential
-          const token = credential.accessToken
-          // The signed-in user info.
-          const user = result.user
-          // IdP data available using getAdditionalUserInfo(result)
-          // ...
-          console.log(token, user)
-          resolve(user)
+          const user = result?.user
+          const profile = result?.additionalUserInfo?.profile
+          const credential = result?.credential
+          // @ts-expect-error
+          const { email, name, given_name, family_name } = profile
+          const uid = user?.uid
+          // @ts-expect-error
+          const idToken = credential?.idToken
+          resolve({
+            userID: uid,
+            idToken,
+            email,
+            fullName: name,
+            givenName: given_name,
+            familyName: family_name,
+          })
         })
         .catch((error) => {
           // Handle Errors here.
           const errorCode = error.code
           const errorMessage = error.message
-          console.log(errorCode, errorMessage)
           reject(errorMessage)
         })
     })
