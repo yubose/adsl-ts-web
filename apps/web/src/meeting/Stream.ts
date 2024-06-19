@@ -468,6 +468,22 @@ class MeetingStream {
     }
   }
 
+  async switchCamera() {
+    const cameraList = this.#zoomStream.getCameraList()
+    const currentCameraId = this.#zoomStream.getActiveCamera()
+    if (u.isArr(cameraList) && cameraList.length >= 2) {
+      const selectedCamera = cameraList.filter(
+        (item) => item.deviceId === currentCameraId,
+      )
+      const label = selectedCamera[0].label
+      if (label.indexOf('front') !== -1) {
+        await this.#zoomStream.switchCamera('environment')
+      } else {
+        await this.#zoomStream.switchCamera('user')
+      }
+    }
+  }
+
   async toggeleSelfCamera(type: 'close' | 'open', reload: boolean = false) {
     try {
       const selfStreamEl = this.getElement()
