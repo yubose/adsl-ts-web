@@ -1441,21 +1441,19 @@ export const extendedSdkBuiltIns = {
     }
   },
   async signInWithGoogle(this: App) {
-    return new Promise((resolve, reject) => {
-      // firebase.initializeApp(firebaseConfig.webPatient.config)
+    return new Promise(async (resolve, reject) => {
       const provider = new firebase.auth.GoogleAuthProvider()
       firebase
         .auth()
         .signInWithPopup(provider)
-        .then((result) => {
+        .then(async (result) => {
           const user = result?.user
           const profile = result?.additionalUserInfo?.profile
-          const credential = result?.credential
+          // const credential = result?.credential
           // @ts-expect-error
           const { email, name, given_name, family_name } = profile
           const uid = user?.uid
-          // @ts-expect-error
-          const idToken = credential?.idToken
+          const idToken = await user?.getIdToken()
           resolve({
             userID: uid,
             idToken,
