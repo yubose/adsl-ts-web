@@ -40,6 +40,9 @@ export function getSdkHelpers(app: App) {
       get signInWithGoogle() {
         return extendedSdkBuiltIns.signInWithGoogle
       },
+      get signInWithApple() {
+        return extendedSdkBuiltIns.signInWithApple
+      },
     },
     get downloadQRCode() {
       return extendedSdkBuiltIns.downloadQRCode

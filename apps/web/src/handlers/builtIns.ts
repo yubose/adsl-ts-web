@@ -1462,6 +1462,47 @@ export const extendedSdkBuiltIns = {
             givenName: given_name,
             familyName: family_name,
           })
+          // resolve(result)
+        })
+        .catch((error) => {
+          // Handle Errors here.
+          const errorCode = error.code
+          const errorMessage = error.message
+          reject(errorMessage)
+        })
+    })
+  },
+  async signInWithApple(this: App) {
+    return new Promise(async (resolve, reject) => {
+      const provider = new firebase.auth.OAuthProvider('apple.com')
+      provider.addScope('email')
+      provider.addScope('name')
+      firebase
+        .auth()
+        .signInWithPopup(provider)
+        .then(async (result) => {
+          const user = result?.user
+          // const credential = result?.credential
+          // @ts-expect-error
+          const { email, displayName, givenName, familyName } = user
+          let given_name = givenName
+          let family_name = familyName
+          if (!given_name && !family_name && displayName) {
+            const res = displayName.split(' ')
+            given_name = res[0]
+            family_name = res[1]
+          }
+          const uid = user?.uid
+          const idToken = await user?.getIdToken()
+          resolve({
+            userIdentifier: uid,
+            identityToken: idToken,
+            email,
+            fullName: displayName,
+            givenName: given_name,
+            familyName: family_name,
+          })
+          // resolve(result)
         })
         .catch((error) => {
           // Handle Errors here.
