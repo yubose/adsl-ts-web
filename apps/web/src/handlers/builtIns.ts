@@ -1442,6 +1442,7 @@ export const extendedSdkBuiltIns = {
   },
   async signInWithGoogle(this: App) {
     return new Promise(async (resolve, reject) => {
+      await firebase.auth().signOut()
       const provider = new firebase.auth.GoogleAuthProvider()
       firebase
         .auth()
@@ -1474,6 +1475,7 @@ export const extendedSdkBuiltIns = {
   },
   async signInWithApple(this: App) {
     return new Promise(async (resolve, reject) => {
+      await firebase.auth().signOut()
       const provider = new firebase.auth.OAuthProvider('apple.com')
       provider.addScope('email')
       provider.addScope('name')
