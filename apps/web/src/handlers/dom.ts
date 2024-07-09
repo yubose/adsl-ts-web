@@ -7402,7 +7402,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       ) {
                         data.append(
                           'appointmentId',
-                          aapp.root.Global?.['formData']?.['currentFacility']?.[
+                          app.root.Global?.['formData']?.['currentFacility']?.[
                             'relationEdge'
                           ]?.['id'] as string,
                         )
@@ -7478,7 +7478,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     ) {
                       data.append(
                         'appointmentId',
-                        aapp.root.Global?.['formData']?.['currentFacility']?.[
+                        app.root.Global?.['formData']?.['currentFacility']?.[
                           'relationEdge'
                         ]?.['id'] as string,
                       )

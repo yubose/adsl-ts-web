@@ -1184,7 +1184,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.debug('switchCamera', options)
     try {
-      void app.meeting.switchCamera()
+      void app.selfStream.switchCamera()
     } catch (error) {
       log.error(error)
     }

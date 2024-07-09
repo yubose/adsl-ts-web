@@ -396,17 +396,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           return false
       }
     },
-    async switchCamera() {
-      const cameraList = zoomSession.getCameraList()
-      const currentCameraId = zoomSession.getActiveCamera()
-      if (u.isArr(cameraList) && cameraList.length >= 2) {
-        for (const camera of cameraList) {
-          if (camera.deviceId !== currentCameraId) {
-            await zoomSession.switchCamera(camera.deviceId)
-          }
-        }
-      }
-    },
     /**
      * Returns true if the participant is the LocalParticipant
      * @param { RoomParticipant } participant
